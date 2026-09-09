@@ -50,9 +50,16 @@ export default function ParticipantHome() {
               </p>
               <p className="text-muted-foreground">{live?.in_progress_modules ?? 0} in progress</p>
               <p className="flex items-center gap-1.5 text-muted-foreground">
-                <Award className="h-4 w-4 text-primary" aria-hidden="true" />
+                <Award className="h-4 w-4 text-brand-purple" aria-hidden="true" />
                 {live?.certificates ?? 0} certificates earned
               </p>
+              <Link
+                to="/participant/certificates"
+                className="inline-block text-sm font-medium text-brand-purple hover:underline"
+                data-testid="goto-certificates-link"
+              >
+                View certificates →
+              </Link>
             </div>
           </CardContent>
         </Card>

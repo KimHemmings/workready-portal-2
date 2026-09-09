@@ -121,6 +121,7 @@ class QuizResult(BaseModel):
     total: int
     results: list[QuizAnswerResult]
     certificate_earned: bool
+    new_certificates: list["Certificate"] = []
 
 
 class JobSearchLog(BaseModel):
@@ -219,6 +220,23 @@ class CaseNote(BaseModel):
     created_at: datetime = Field(default_factory=now_utc)
 
 
+CertificateKind = Literal["category", "interview"]
+
+
+class Certificate(BaseModel):
+    id: str = Field(default_factory=new_id)
+    certificate_id: str
+    participant_id: str
+    participant_name: str
+    kind: CertificateKind
+    title: str
+    subtitle: str = ""
+    organization_id: str
+    organization_name: str
+    score: int | None = None
+    issued_at: datetime = Field(default_factory=now_utc)
+
+
 class CaseNoteCreate(BaseModel):
     body: str
 
@@ -256,6 +274,7 @@ class CoachParticipantDetail(BaseModel):
     resumes: list[Resume]
     interviews: list[InterviewSession]
     notes: list[CaseNote]
+    certificates: list[Certificate]
     pbas_points: int
 
 

@@ -1,6 +1,7 @@
 import { useQueryClient } from "@tanstack/react-query";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import {
+  Award,
   BarChart3,
   BookOpen,
   ClipboardList,
@@ -24,6 +25,7 @@ const NAV: Record<User["role"], NavItem[]> = {
     { to: "/participant/interview", label: "AI Interview", icon: MessagesSquare },
     { to: "/participant/resume", label: "Resume Builder", icon: FileText },
     { to: "/participant/job-logs", label: "Job Search Log", icon: ClipboardList },
+    { to: "/participant/certificates", label: "Certificates", icon: Award },
   ],
   coach: [
     { to: "/coach", label: "Jobseeker Roster", icon: Users },

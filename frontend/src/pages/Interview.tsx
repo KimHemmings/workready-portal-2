@@ -93,7 +93,11 @@ export default function Interview() {
       if (data.finished) {
         qc.invalidateQueries({ queryKey: ["interview-history"] });
         qc.invalidateQueries({ queryKey: ["participant-dashboard"] });
+        qc.invalidateQueries({ queryKey: ["certificates"] });
         toast.success("Interview complete — your scorecard is ready.");
+        if ((data.overall_score ?? 0) > 70) {
+          toast.success("Certificate earned! Find it under Certificates.", { duration: 6000 });
+        }
       }
     },
     onError: () => toast.error("Could not send your answer. Please try again."),

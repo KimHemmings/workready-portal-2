@@ -2,9 +2,10 @@ from datetime import datetime, timezone
 
 from fastapi import APIRouter, HTTPException
 
-from lib import ai
+from lib import ai, certificates
 from lib.db import db
 from models.schemas import (
+    Certificate,
     JobSearchLog,
     JobSearchLogCreate,
     ModuleDetail,
@@ -81,7 +82,7 @@ async def dashboard(pid: str):
         next_module=next_module,
         recent_logs=[JobSearchLog(**log) for log in logs],
         pbas_points=await pbas_points(pid),
-        certificates=len([p for p in progress if (p.get("quiz_score") or 0) >= 80]),
+        certificates=await db.certificates.count_documents({"participant_id": pid}),
         latest_interview_score=sessions[0].get("overall_score") if sessions else None,
     )
 
@@ -156,6 +157,13 @@ async def submit_quiz(pid: str, module_id: str, body: QuizSubmission):
         },
         upsert=True,
     )
+
+    new_certs: list[Certificate] = []
+    if passed:
+        participant_doc = await db.users.find_one({"id": pid})
+        if participant_doc:
+            new_certs = await certificates.issue_for_category(participant_doc, module_id)
+
     return QuizResult(
         score=score,
         passed=passed,
@@ -163,7 +171,14 @@ async def submit_quiz(pid: str, module_id: str, body: QuizSubmission):
         total=len(questions),
         results=results,
         certificate_earned=passed,
+        new_certificates=new_certs,
     )
+
+
+@router.get("/{pid}/certificates", response_model=list[Certificate])
+async def list_certificates(pid: str):
+    docs = await db.certificates.find({"participant_id": pid}).sort("issued_at", -1).to_list(100)
+    return [Certificate(**d) for d in docs]
 
 
 @router.get("/{pid}/job-logs", response_model=list[JobSearchLog])

@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Link, useParams } from "react-router-dom";
-import { ArrowLeft, NotebookPen } from "lucide-react";
+import { ArrowLeft, Award, NotebookPen } from "lucide-react";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -10,16 +10,18 @@ import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import AppShell from "@/components/AppShell";
 import Markdown from "@/components/Markdown";
+import CertificateModal, { formatIssued } from "@/components/CertificateModal";
 import ProgressRing from "@/components/ProgressRing";
 import { apiGet, apiPost } from "@/lib/api";
 import { getSessionUser } from "@/lib/session";
-import type { CoachParticipantDetail, CaseNote } from "@/lib/types";
+import type { CoachParticipantDetail, CaseNote, Certificate } from "@/lib/types";
 
 export default function CoachParticipant() {
   const { participantId = "" } = useParams();
   const user = getSessionUser();
   const qc = useQueryClient();
   const [note, setNote] = useState("");
+  const [activeCert, setActiveCert] = useState<Certificate | null>(null);
 
   const detail = useQuery({
     queryKey: ["coach-participant", user?.id, participantId],
@@ -126,6 +128,7 @@ export default function CoachParticipant() {
               <TabsTrigger value="jobs" data-testid="tab-job-logs">Job search log</TabsTrigger>
               <TabsTrigger value="interviews" data-testid="tab-interviews">Interview scorecards</TabsTrigger>
               <TabsTrigger value="resumes" data-testid="tab-resumes">Resumes</TabsTrigger>
+              <TabsTrigger value="certificates" data-testid="tab-certificates">Certificates</TabsTrigger>
             </TabsList>
 
             <TabsContent value="modules">
@@ -203,7 +206,49 @@ export default function CoachParticipant() {
                 </div>
               )}
             </TabsContent>
+            <TabsContent value="certificates">
+              {d.certificates.length === 0 ? (
+                <p className="text-sm text-muted-foreground py-4" data-testid="participant-certificates-empty">
+                  No certificates earned yet.
+                </p>
+              ) : (
+                <ul className="space-y-3 py-2" data-testid="participant-certificates-list">
+                  {d.certificates.map((cert) => (
+                    <li
+                      key={cert.id}
+                      className="rounded-lg border p-4 flex flex-wrap items-center justify-between gap-3"
+                      data-testid={`coach-certificate-${cert.certificate_id}`}
+                    >
+                      <div className="flex items-start gap-3">
+                        <span className="grid h-10 w-10 shrink-0 place-items-center rounded-lg bg-brand-purple-soft text-brand-purple">
+                          <Award className="h-5 w-5" aria-hidden="true" />
+                        </span>
+                        <div>
+                          <p className="font-medium text-sm">{cert.title}</p>
+                          <p className="text-xs text-muted-foreground">
+                            {cert.certificate_id} · issued {formatIssued(cert.issued_at)}
+                            {cert.score != null ? ` · ${cert.score}%` : ""}
+                          </p>
+                        </div>
+                      </div>
+                      <Button
+                        size="sm"
+                        className="bg-cta text-cta-foreground hover:bg-cta/90"
+                        onClick={() => setActiveCert(cert)}
+                        data-testid={`coach-view-certificate-${cert.certificate_id}`}
+                      >
+                        <Award className="h-4 w-4 mr-1.5" aria-hidden="true" /> View & download PDF
+                      </Button>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </TabsContent>
           </Tabs>
+
+          {activeCert && (
+            <CertificateModal certificate={activeCert} open onClose={() => setActiveCert(null)} />
+          )}
         </>
       )}
     </AppShell>

@@ -4,6 +4,7 @@ import asyncio
 import random
 from datetime import datetime, timedelta, timezone
 
+from lib import certificates
 from lib.db import db, ensure_indexes
 from models.schemas import (
     CaseNote,
@@ -429,6 +430,7 @@ async def main() -> None:
         "resumes",
         "interview_sessions",
         "case_notes",
+        "certificates",
     ):
         await db[name].delete_many({})
 
@@ -584,6 +586,19 @@ async def main() -> None:
     )
 
     await ensure_indexes()
+
+    # Certificates are awarded by the same rules the app uses at runtime.
+    for participant in await db.users.find({"role": "participant"}).to_list(100):
+        completed = await db.participant_progress.find(
+            {"participant_id": participant["id"], "status": "completed"}
+        ).to_list(500)
+        for prog in completed:
+            await certificates.issue_for_category(participant, prog["module_id"])
+
+    sarah = await db.users.find_one({"id": PARTICIPANT_ID})
+    if sarah:
+        await certificates.issue_for_interview(sarah, "Retail Team Member", 82)
+
     print("Seeded WorkReady Portal.")
     print("  Participant : sarah@demo.au")
     print("  Case Manager: marcus@demo.au")

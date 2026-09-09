@@ -9,6 +9,7 @@ from lib.pdf import simple_pdf
 from models.schemas import (
     CaseNote,
     CaseNoteCreate,
+    Certificate,
     CoachParticipantDetail,
     InterviewSession,
     JobSearchLog,
@@ -76,6 +77,7 @@ async def participant_detail(coach_id: str, pid: str):
     resumes = await db.resumes.find({"participant_id": pid}).sort("created_at", -1).to_list(50)
     interviews = await db.interview_sessions.find({"participant_id": pid}).sort("created_at", -1).to_list(50)
     notes = await db.case_notes.find({"participant_id": pid}).sort("created_at", -1).to_list(200)
+    certs = await db.certificates.find({"participant_id": pid}).sort("issued_at", -1).to_list(100)
     modules = await db.training_modules.find().sort("order", 1).to_list(200)
     return CoachParticipantDetail(
         participant=User(**p),
@@ -86,6 +88,7 @@ async def participant_detail(coach_id: str, pid: str):
         resumes=[Resume(**x) for x in resumes],
         interviews=[InterviewSession(**x) for x in interviews],
         notes=[CaseNote(**x) for x in notes],
+        certificates=[Certificate(**x) for x in certs],
         pbas_points=sum(int(log.get("points", 5)) for log in logs),
     )
 

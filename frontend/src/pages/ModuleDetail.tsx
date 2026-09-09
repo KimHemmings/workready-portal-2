@@ -8,9 +8,10 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import AppShell from "@/components/AppShell";
 import Markdown from "@/components/Markdown";
+import CertificateModal from "@/components/CertificateModal";
 import { apiGet, apiPost } from "@/lib/api";
 import { getSessionUser } from "@/lib/session";
-import type { ModuleDetail as ModuleDetailType, QuizResult } from "@/lib/types";
+import type { Certificate, ModuleDetail as ModuleDetailType, QuizResult } from "@/lib/types";
 
 export default function ModuleDetail() {
   const { moduleId = "" } = useParams();
@@ -18,6 +19,7 @@ export default function ModuleDetail() {
   const qc = useQueryClient();
   const [answers, setAnswers] = useState<Record<number, number>>({});
   const [result, setResult] = useState<QuizResult | null>(null);
+  const [awarded, setAwarded] = useState<Certificate | null>(null);
 
   const detail = useQuery({
     queryKey: ["module-detail", user?.id, moduleId],
@@ -44,9 +46,13 @@ export default function ModuleDetail() {
       qc.invalidateQueries({ queryKey: ["participant-dashboard"] });
       qc.invalidateQueries({ queryKey: ["progress"] });
       qc.invalidateQueries({ queryKey: ["module-detail"] });
+      qc.invalidateQueries({ queryKey: ["certificates"] });
       toast[data.passed ? "success" : "warning"](
         data.passed ? `Passed with ${data.score}% — certificate earned!` : `You scored ${data.score}%. Have another go.`,
       );
+      if (data.new_certificates.length > 0) {
+        setAwarded(data.new_certificates[0]);
+      }
     },
     onError: () => toast.error("Please answer every question before submitting."),
   });
@@ -195,6 +201,10 @@ export default function ModuleDetail() {
             </Card>
           )}
         </>
+      )}
+
+      {awarded && (
+        <CertificateModal certificate={awarded} open onClose={() => setAwarded(null)} />
       )}
     </AppShell>
   );

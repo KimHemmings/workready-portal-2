@@ -1,6 +1,6 @@
 from fastapi import APIRouter, HTTPException
 
-from lib import ai
+from lib import ai, certificates
 from lib.db import db
 from models.schemas import (
     FeedbackSummary,
@@ -70,6 +70,11 @@ async def answer(session_id: str, body: InterviewAnswer):
             "skills": scored["skills"],
             "summary": scored["summary"],
         })
+        participant_doc = await db.users.find_one({"id": session.participant_id})
+        if participant_doc:
+            await certificates.issue_for_interview(
+                participant_doc, session.job_target, session.overall_score
+            )
     else:
         session.transcript_json.append(
             TranscriptTurn(role="interviewer", content=session.questions[session.current_index])

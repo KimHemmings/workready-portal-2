@@ -27,6 +27,13 @@ Fonts: Outfit (headings), Plus Jakarta Sans (body), IBM Plex Mono (labels).
 Provider logo lives in `frontend/src/lib/brand.ts` (`BRAND_LOGO`) — swap that URL to rebrand.
 
 ## Key flows
+- **Certificates**: auto-issued by `backend/lib/certificates.py` on two triggers — completing every
+  module in a category, or scoring >70 on an AI mock interview. Idempotent (unique index on
+  participant+kind+title); IDs look like `CERT-2026-8942`. Participants see them under a
+  Certificates nav item (`/participant/certificates`); coaches see them on a Certificates tab of the
+  participant detail page. Both open a landscape navy/purple modal and download a print-ready PDF
+  drawn as true vector content with jsPDF (`downloadCertificatePdf`) — html2canvas was removed
+  because it cannot parse Tailwind v4 colour functions.
 - **Participant**: dashboard (progress ring, PBAS bar, next module, recent logs) → Learning Centre →
   module detail (video + markdown + MCQ quiz, 80% to pass and earn a certificate) → AI Interview
   Simulator (5 questions, per-answer coaching tips, scorecard + .txt download) → Resume Builder

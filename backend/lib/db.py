@@ -49,6 +49,14 @@ INDEXES: dict[str, list[IndexModel]] = {
     "case_notes": [
         IndexModel([("participant_id", ASCENDING), ("created_at", DESCENDING)], name="participant_created"),
     ],
+    "certificates": [
+        IndexModel([("certificate_id", ASCENDING)], name="certificate_id", unique=True),
+        IndexModel(
+            [("participant_id", ASCENDING), ("kind", ASCENDING), ("title", ASCENDING)],
+            name="participant_kind_title",
+            unique=True,
+        ),
+    ],
 }
 
 

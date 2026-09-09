@@ -7,6 +7,7 @@ import ModuleDetail from "@/pages/ModuleDetail";
 import Interview from "@/pages/Interview";
 import ResumeBuilder from "@/pages/ResumeBuilder";
 import JobLogs from "@/pages/JobLogs";
+import Certificates from "@/pages/Certificates";
 import CoachDashboard from "@/pages/CoachDashboard";
 import CoachParticipant from "@/pages/CoachParticipant";
 import AdminDashboard from "@/pages/AdminDashboard";
@@ -82,6 +83,15 @@ export default function App() {
         />
 
         <Route
+          path="/participant/certificates"
+          element={
+            <Protected roles={["participant"]}>
+              <Certificates />
+            </Protected>
+          }
+        />
+
+        <Route
           path="/coach"
           element={
             <Protected roles={["coach", "admin"]}>
@@ -109,7 +119,7 @@ export default function App() {
 
         <Route path="*" element={<RootRedirect />} />
       </Routes>
-      <Toaster position="top-right" richColors />
+      <Toaster position="bottom-right" richColors />
     </>
   );
 }

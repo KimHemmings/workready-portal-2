@@ -87,6 +87,7 @@ export interface QuizResult {
   total: number;
   results: QuizAnswerResult[];
   certificate_earned: boolean;
+  new_certificates: Certificate[];
 }
 
 export interface JobSearchLog {
@@ -175,6 +176,22 @@ export interface CaseNote {
   created_at: string;
 }
 
+export type CertificateKind = "category" | "interview";
+
+export interface Certificate {
+  id: string;
+  certificate_id: string;
+  participant_id: string;
+  participant_name: string;
+  kind: CertificateKind;
+  title: string;
+  subtitle: string;
+  organization_id: string;
+  organization_name: string;
+  score: number | null;
+  issued_at: string;
+}
+
 export interface ParticipantDashboard {
   user: User;
   total_modules: number;
@@ -208,6 +225,7 @@ export interface CoachParticipantDetail {
   resumes: Resume[];
   interviews: InterviewSession[];
   notes: CaseNote[];
+  certificates: Certificate[];
   pbas_points: number;
 }
 
