@@ -5,7 +5,6 @@ import hmac
 import os
 import secrets
 import string
-
 _ITERATIONS = 200_000
 
 
@@ -26,6 +25,12 @@ def verify_password(password: str, stored: str) -> bool:
         return hmac.compare_digest(digest.hex(), digest_hex)
     except (ValueError, AttributeError):
         return False
+
+
+def temporary_password() -> str:
+    """Short, readable temporary password an admin can read out over the phone, e.g. Reset2026-XQ4T."""
+    alphabet = string.ascii_uppercase + string.digits
+    return f"Reset2026-{''.join(secrets.choice(alphabet) for _ in range(4))}"
 
 
 def new_site_code(prefix: str = "SITE") -> str:

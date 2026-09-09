@@ -15,7 +15,7 @@ def now_utc() -> datetime:
     return datetime.now(timezone.utc)
 
 
-Role = Literal["participant", "coach", "admin"]
+Role = Literal["participant", "coach", "admin", "owner"]
 OrgType = Literal["School", "Workforce Australia", "TtW", "DES"]
 ProgressStatus = Literal["not_started", "in_progress", "completed"]
 
@@ -27,7 +27,14 @@ class Organization(BaseModel):
     branding_logo: str = ""
     primary_color: str = "#1E3A8A"
     site_code: str = ""
+    coach_seat_limit: int = 5
+    participant_seat_limit: int = 100
     created_at: datetime = Field(default_factory=now_utc)
+
+
+class SeatUpdate(BaseModel):
+    coach_seat_limit: int = Field(ge=0, le=500)
+    participant_seat_limit: int = Field(ge=0, le=10000)
 
 
 class User(BaseModel):
@@ -37,11 +44,82 @@ class User(BaseModel):
     role: Role
     organization_id: str
     phone: str = ""
-    status: Literal["active", "inactive", "archived"] = "active"
+    status: Literal["active", "inactive", "archived", "pending"] = "active"
     coach_id: str | None = None
     cohort_id: str | None = None
     last_login: datetime | None = None
     archived_at: datetime | None = None
+    must_change_password: bool = False
+    invite_token: str | None = None
+    invited_by: str | None = None
+
+
+class InviteResult(BaseModel):
+    """Returned whenever a user is added, so the inviter can hand over a magic link immediately."""
+
+    user: User
+    invite_token: str
+    invite_path: str
+    welcome_message: str
+
+
+class InvitePreview(BaseModel):
+    email: str
+    name: str
+    role: Role
+    organization_name: str
+    organization_logo: str = ""
+    already_completed: bool = False
+
+
+class CompleteRegistrationRequest(BaseModel):
+    password: str = Field(min_length=8)
+
+
+class ResetPasswordResult(BaseModel):
+    user_id: str
+    name: str
+    email: str
+    temporary_password: str
+
+
+class ForgotPasswordRequest(BaseModel):
+    email: str
+
+
+class ForgotPasswordResponse(BaseModel):
+    message: str
+    contact_name: str = ""
+    contact_email: str = ""
+
+
+class ChangePasswordRequest(BaseModel):
+    user_id: str
+    current_password: str
+    new_password: str = Field(min_length=8)
+
+
+class ProviderCreate(BaseModel):
+    organization_name: str = Field(min_length=2)
+    type: OrgType = "Workforce Australia"
+    admin_name: str = Field(min_length=2)
+    admin_email: str
+    coach_seat_limit: int = Field(default=5, ge=0, le=500)
+    participant_seat_limit: int = Field(default=100, ge=0, le=10000)
+
+
+class ProviderRow(BaseModel):
+    organization: Organization
+    admins: list[User]
+    coach_seats_used: int
+    participant_seats_used: int
+
+
+class OwnerOverview(BaseModel):
+    providers: list[ProviderRow]
+    total_providers: int
+    total_coaches: int
+    total_participants: int
 
 
 class UserCreate(BaseModel):

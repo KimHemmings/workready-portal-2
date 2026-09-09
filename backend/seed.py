@@ -481,6 +481,8 @@ async def main() -> None:
             branding_logo="https://customer-assets-39nsmqrw.emergentagent.net/job_workready-portal-2/artifacts/kym1ejab_White_Background_PNG.png",
             primary_color="#1E3A8A",
             site_code="SITE-2026",
+            coach_seat_limit=5,
+            participant_seat_limit=100,
             created_at=now,
         ).model_dump()
     )
@@ -520,10 +522,20 @@ async def main() -> None:
             last_login=now - timedelta(days=1),
         ),
     ]
-    for u in users:
-        doc = u.model_dump()
-        doc["password_hash"] = hash_password(DEMO_PASSWORD)
-        await db.users.insert_one(doc)
+    owner = User(
+        id="user-owner-system",
+        name="Straight Up Training Owner",
+        email="owner@straightuptraining.com.au",
+        role="owner",
+        organization_id=ORG_ID,
+        last_login=now,
+    )
+    users = [owner] + users
+
+    # Seeded accounts are fully set up: real password hash, no forced change, no pending invite.
+    await db.users.insert_many(
+        [{**u.model_dump(), "password_hash": hash_password(DEMO_PASSWORD)} for u in users]
+    )
 
     for i, (name, email, done, apps) in enumerate(EXTRA_PARTICIPANTS):
         pid = f"user-participant-{email.split('@')[0]}"
@@ -641,6 +653,7 @@ async def main() -> None:
         await certificates.issue_for_interview(sarah, "Retail Team Member", 82)
 
     print("Seeded Straight Up Training.")
+    print("  System Owner: owner@straightuptraining.com.au")
     print("  Participant : sarah@hves.com.au")
     print("  Case Manager: marcus@hves.com.au")
     print("  Provider Admin: eleanor@hves.com.au")

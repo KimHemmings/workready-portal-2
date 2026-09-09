@@ -1,11 +1,13 @@
 import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Link } from "react-router-dom";
-import { Download, FileSpreadsheet, Search } from "lucide-react";
+import { Download, FileSpreadsheet, KeyRound, Link as LinkIcon, Search, UserPlus } from "lucide-react";
+import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import {
   Table,
   TableBody,
@@ -15,9 +17,10 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import AppShell from "@/components/AppShell";
-import { apiGet } from "@/lib/api";
+import { InviteLinkDialog, TempPasswordDialog } from "@/components/InviteLinkDialog";
+import { apiGet, apiPost, ApiError } from "@/lib/api";
 import { getSessionUser } from "@/lib/session";
-import type { RosterRow } from "@/lib/types";
+import type { InviteResult, ResetPasswordResult, RosterRow } from "@/lib/types";
 
 const RISK_LABEL: Record<RosterRow["risk"], string> = {
   on_track: "On track",
@@ -25,14 +28,58 @@ const RISK_LABEL: Record<RosterRow["risk"], string> = {
   at_risk: "At risk",
 };
 
+function detailOf(err: unknown, fallback: string): string {
+  const detail = err instanceof ApiError ? (err.body as { detail?: string } | null)?.detail : null;
+  return typeof detail === "string" ? detail : fallback;
+}
+
 export default function CoachDashboard() {
   const user = getSessionUser();
+  const qc = useQueryClient();
   const [search, setSearch] = useState("");
+  const [newName, setNewName] = useState("");
+  const [newEmail, setNewEmail] = useState("");
+  const [invitePreview, setInvitePreview] = useState<InviteResult | null>(null);
+  const [tempPassword, setTempPassword] = useState<ResetPasswordResult | null>(null);
 
   const roster = useQuery({
     queryKey: ["roster", user?.id],
     queryFn: () => apiGet<RosterRow[]>(`/coaches/${user!.id}/roster`),
     enabled: Boolean(user),
+  });
+
+  const addJobseeker = useMutation({
+    mutationFn: () =>
+      apiPost<InviteResult>(`/coaches/${user!.id}/participants`, {
+        name: newName.trim(),
+        email: newEmail.trim(),
+        role: "participant",
+      }),
+    onSuccess: (res) => {
+      qc.invalidateQueries({ queryKey: ["roster"] });
+      setNewName("");
+      setNewEmail("");
+      setInvitePreview(res);
+      toast.success(`${res.user.name} added — copy their invite link.`);
+    },
+    onError: (err) => toast.error(detailOf(err, "Could not add that jobseeker.")),
+  });
+
+  const inviteLink = useMutation({
+    mutationFn: (pid: string) =>
+      apiPost<InviteResult>(`/coaches/${user!.id}/participants/${pid}/invite-link`),
+    onSuccess: (res) => setInvitePreview(res),
+    onError: (err) => toast.error(detailOf(err, "Could not create an invite link.")),
+  });
+
+  const resetPassword = useMutation({
+    mutationFn: (pid: string) =>
+      apiPost<ResetPasswordResult>(`/coaches/${user!.id}/participants/${pid}/reset-password`),
+    onSuccess: (res) => {
+      qc.invalidateQueries({ queryKey: ["roster"] });
+      setTempPassword(res);
+    },
+    onError: (err) => toast.error(detailOf(err, "Could not reset that password.")),
   });
 
   const rows = (roster.isError ? [] : (roster.data ?? [])).filter((r) =>
@@ -88,6 +135,60 @@ export default function CoachDashboard() {
           </Card>
         ))}
       </div>
+
+      <Card className="mb-6">
+        <CardHeader>
+          <CardTitle className="text-lg flex items-center gap-2">
+            <UserPlus className="h-5 w-5 text-primary" aria-hidden="true" /> Add a jobseeker to your caseload
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <form
+            className="grid gap-3 sm:grid-cols-[1fr_1fr_auto] sm:items-end"
+            onSubmit={(e) => {
+              e.preventDefault();
+              if (!newName.trim() || !newEmail.trim()) {
+                toast.error("Name and email are both required.");
+                return;
+              }
+              addJobseeker.mutate();
+            }}
+            data-testid="coach-add-jobseeker-form"
+          >
+            <div className="space-y-1.5">
+              <Label htmlFor="new-jobseeker-name">Full name</Label>
+              <Input
+                id="new-jobseeker-name"
+                value={newName}
+                onChange={(e) => setNewName(e.target.value)}
+                data-testid="coach-jobseeker-name-input"
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="new-jobseeker-email">Email</Label>
+              <Input
+                id="new-jobseeker-email"
+                type="email"
+                value={newEmail}
+                onChange={(e) => setNewEmail(e.target.value)}
+                data-testid="coach-jobseeker-email-input"
+              />
+            </div>
+            <Button
+              type="submit"
+              className="bg-cta text-cta-foreground hover:bg-cta/90"
+              disabled={addJobseeker.isPending}
+              data-testid="coach-add-jobseeker-button"
+            >
+              {addJobseeker.isPending ? "Adding…" : "Add & get invite link"}
+            </Button>
+          </form>
+          <p className="text-xs text-muted-foreground mt-2">
+            No email is sent — you'll get a magic invite link to hand over. Seats are capped by your
+            provider's plan.
+          </p>
+        </CardContent>
+      </Card>
 
       <Card>
         <CardHeader>
@@ -145,11 +246,31 @@ export default function CoachDashboard() {
                       </Badge>
                     </TableCell>
                     <TableCell className="text-right">
-                      <Link to={`/coach/participants/${r.participant.id}`}>
-                        <Button variant="ghost" size="sm" data-testid={`view-participant-${r.participant.id}`}>
-                          View
+                      <div className="flex flex-wrap justify-end gap-1">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => inviteLink.mutate(r.participant.id)}
+                          disabled={inviteLink.isPending}
+                          data-testid={`roster-invite-link-${r.participant.id}`}
+                        >
+                          <LinkIcon className="h-4 w-4 mr-1.5" aria-hidden="true" /> Invite link
                         </Button>
-                      </Link>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => resetPassword.mutate(r.participant.id)}
+                          disabled={resetPassword.isPending}
+                          data-testid={`roster-reset-password-${r.participant.id}`}
+                        >
+                          <KeyRound className="h-4 w-4 mr-1.5" aria-hidden="true" /> Reset
+                        </Button>
+                        <Link to={`/coach/participants/${r.participant.id}`}>
+                          <Button variant="ghost" size="sm" data-testid={`view-participant-${r.participant.id}`}>
+                            View
+                          </Button>
+                        </Link>
+                      </div>
                     </TableCell>
                   </TableRow>
                 ))}
@@ -158,6 +279,9 @@ export default function CoachDashboard() {
           )}
         </CardContent>
       </Card>
+
+      <InviteLinkDialog result={invitePreview} onClose={() => setInvitePreview(null)} />
+      <TempPasswordDialog result={tempPassword} onClose={() => setTempPassword(null)} />
     </AppShell>
   );
 }

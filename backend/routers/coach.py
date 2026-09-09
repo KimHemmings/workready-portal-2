@@ -6,8 +6,9 @@ from fastapi.responses import Response
 
 from lib.db import db
 from lib import certificates as certs_lib
-from lib import limits
+from lib import invites, limits
 from lib.pdf import simple_pdf
+from lib.security import hash_password, temporary_password
 from models.schemas import (
     CaseNote,
     CaseNoteCreate,
@@ -15,13 +16,16 @@ from models.schemas import (
     CoachParticipantDetail,
     GrantRequest,
     InterviewSession,
+    InviteResult,
     JobSearchLog,
     ParticipantProgress,
     Resume,
+    ResetPasswordResult,
     RosterRow,
     TrainingModule,
     UsageSummary,
     User,
+    UserCreate,
 )
 
 router = APIRouter(prefix="/coaches", tags=["coach"])
@@ -127,6 +131,42 @@ async def grant_ai(coach_id: str, pid: str, body: GrantRequest):
     if body.amount < 1 or body.amount > 10:
         raise HTTPException(status_code=400, detail="Grant between 1 and 10 extra sessions")
     return await limits.grant_extra(pid, body.kind, body.amount)
+
+
+@router.post("/{coach_id}/participants", response_model=InviteResult)
+async def invite_participant(coach_id: str, body: UserCreate):
+    """Case managers add jobseekers to their own caseload, capped by the provider's paid seats."""
+    coach = await _coach(coach_id)
+    return await invites.create_invited_user(
+        name=body.name,
+        email=body.email,
+        role="participant",
+        organization_id=coach.organization_id,
+        invited_by=coach.id,
+        phone=body.phone,
+        coach_id=coach.id,
+        cohort_id=body.cohort_id,
+    )
+
+
+@router.post("/{coach_id}/participants/{pid}/invite-link", response_model=InviteResult)
+async def reissue_invite(coach_id: str, pid: str):
+    coach = await _coach(coach_id)
+    doc = await _participant_in_tenant(coach, pid)
+    return await invites.refresh_invite(doc)
+
+
+@router.post("/{coach_id}/participants/{pid}/reset-password", response_model=ResetPasswordResult)
+async def reset_password(coach_id: str, pid: str):
+    coach = await _coach(coach_id)
+    doc = await _participant_in_tenant(coach, pid)
+    temp = temporary_password()
+    await db.users.update_one(
+        {"id": pid}, {"$set": {"password_hash": hash_password(temp), "must_change_password": True}}
+    )
+    return ResetPasswordResult(
+        user_id=pid, name=doc["name"], email=doc["email"], temporary_password=temp
+    )
 
 
 @router.post("/{coach_id}/participants/{pid}/notes", response_model=CaseNote)

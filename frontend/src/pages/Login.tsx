@@ -1,33 +1,55 @@
 import { useState } from "react";
 import { useMutation } from "@tanstack/react-query";
 import { Link, useNavigate } from "react-router-dom";
-import { Lock, LogIn, Mail } from "lucide-react";
+import { HelpCircle, Lock, LogIn, Mail } from "lucide-react";
 import { toast } from "sonner";
 import { BRAND_LOGO } from "@/lib/brand";
 import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { apiPost, ApiError } from "@/lib/api";
 import { beginSession, homePathFor } from "@/lib/session";
-import type { User } from "@/lib/types";
+import type { ForgotPasswordResponse, User } from "@/lib/types";
 
 export default function Login() {
   const navigate = useNavigate();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [forgotOpen, setForgotOpen] = useState(false);
+  const [forgotEmail, setForgotEmail] = useState("");
+  const [forgotResult, setForgotResult] = useState<ForgotPasswordResponse | null>(null);
 
   const login = useMutation({
-    mutationFn: () =>
-      apiPost<User>("/auth/login", { email: email.trim(), password }),
+    mutationFn: () => apiPost<User>("/auth/login", { email: email.trim(), password }),
     onSuccess: (user) => {
       beginSession(user);
+      if (user.must_change_password) {
+        toast.info("Please choose your own password to continue.");
+        navigate("/change-password");
+        return;
+      }
       toast.success(`G'day ${user.name.split(" ")[0]}, you're signed in`);
       navigate(homePathFor(user.role));
     },
     onError: (err) => {
       const detail = err instanceof ApiError ? (err.body as { detail?: string } | null)?.detail : null;
-      toast.error(detail ?? "Could not sign in. Please check your email and password.");
+      toast.error(
+        typeof detail === "string" ? detail : "Could not sign in. Please check your email and password.",
+      );
     },
+  });
+
+  const forgot = useMutation({
+    mutationFn: () => apiPost<ForgotPasswordResponse>("/auth/forgot-password", { email: forgotEmail.trim() }),
+    onSuccess: (res) => setForgotResult(res),
+    onError: () => toast.error("Could not look that up. Please try again."),
   });
 
   return (
@@ -146,15 +168,24 @@ export default function Login() {
             </Button>
           </form>
 
-          <p className="mt-8 text-sm text-muted-foreground text-center" data-testid="signup-prompt">
-            Don't have an account?{" "}
-            <Link
-              to="/signup"
-              className="font-semibold text-primary underline-offset-4 hover:underline"
-              data-testid="signup-link"
+          <div className="mt-6 text-center">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => {
+                setForgotEmail(email.trim());
+                setForgotResult(null);
+                setForgotOpen(true);
+              }}
+              data-testid="forgot-password-button"
             >
-              Sign Up
-            </Link>
+              <HelpCircle className="h-4 w-4 mr-1.5" aria-hidden="true" /> Forgot your password?
+            </Button>
+          </div>
+
+          <p className="mt-4 text-sm text-muted-foreground text-center" data-testid="invite-only-notice">
+            Accounts are created by your provider — there's no public sign-up. If you were given a
+            magic invite link, open it to set your password.
           </p>
 
           <footer
@@ -181,6 +212,59 @@ export default function Login() {
           </footer>
         </div>
       </div>
+
+      <Dialog open={forgotOpen} onOpenChange={(open: boolean) => setForgotOpen(open)}>
+        <DialogContent className="sm:max-w-md" data-testid="forgot-password-dialog">
+          <DialogHeader>
+            <DialogTitle className="font-heading">Forgot your password?</DialogTitle>
+            <DialogDescription>
+              Your Case Manager or Provider Admin can issue you a temporary password straight away.
+              Enter your email and we'll tell you who to contact.
+            </DialogDescription>
+          </DialogHeader>
+          <form
+            className="space-y-4"
+            onSubmit={(e) => {
+              e.preventDefault();
+              if (!forgotEmail.trim()) {
+                toast.error("Please enter your email address.");
+                return;
+              }
+              forgot.mutate();
+            }}
+            data-testid="forgot-password-form"
+          >
+            <div className="space-y-2">
+              <Label htmlFor="forgot-email">Email address</Label>
+              <Input
+                id="forgot-email"
+                type="email"
+                value={forgotEmail}
+                onChange={(e) => setForgotEmail(e.target.value)}
+                data-testid="forgot-email-input"
+              />
+            </div>
+            <Button
+              type="submit"
+              className="w-full"
+              disabled={forgot.isPending}
+              data-testid="forgot-password-submit-button"
+            >
+              {forgot.isPending ? "Checking…" : "Who can help me?"}
+            </Button>
+          </form>
+          {forgotResult && (
+            <div className="rounded-lg border bg-muted/50 p-3 text-sm" data-testid="forgot-password-result">
+              <p>{forgotResult.message}</p>
+              {forgotResult.contact_email && (
+                <p className="mt-2 font-mono text-xs" data-testid="forgot-password-contact">
+                  {forgotResult.contact_name} — {forgotResult.contact_email}
+                </p>
+              )}
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

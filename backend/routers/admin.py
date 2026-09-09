@@ -1,14 +1,16 @@
 from fastapi import APIRouter, HTTPException
 
-from lib import limits
+from lib import invites, limits
 from lib.db import db
-from lib.security import hash_password, new_site_code
+from lib.security import hash_password, new_site_code, temporary_password
 from models.schemas import (
     AdminOverview,
     AssignUpdate,
     Cohort,
+    InviteResult,
     NameCount,
     Organization,
+    ResetPasswordResult,
     User,
     UserCreate,
 )
@@ -83,6 +85,7 @@ async def overview(admin_id: str):
         cohort_completion.append(NameCount(name=c["name"], value=pct))
 
     seats_participants, seats_coaches = await limits.seats_used(admin.organization_id)
+    coach_limit, participant_limit = await limits.org_limits(admin.organization_id)
     archived = await db.users.count_documents(
         {"organization_id": admin.organization_id, "role": "participant", "status": "archived"}
     )
@@ -99,45 +102,59 @@ async def overview(admin_id: str):
         cohorts=[Cohort(**c) for c in cohorts],
         coaches=[User(**c) for c in coaches],
         participant_seats_used=seats_participants,
-        participant_seat_limit=limits.PARTICIPANT_SEATS,
+        participant_seat_limit=participant_limit,
         coach_seats_used=seats_coaches,
-        coach_seat_limit=limits.COACH_SEATS,
+        coach_seat_limit=coach_limit,
         archived_participants=archived,
         logo_max_bytes=limits.LOGO_MAX_BYTES,
     )
 
 
-@router.post("/{admin_id}/users", response_model=User)
+@router.post("/{admin_id}/users", response_model=InviteResult)
 async def invite_user(admin_id: str, body: UserCreate):
+    """Add a Case Manager or Jobseeker and hand back a magic invite link (no email sent)."""
     admin = await _admin(admin_id)
-    email = body.email.strip().lower()
-    if await db.users.find_one({"email": email}):
-        raise HTTPException(status_code=409, detail="A user with that email already exists")
-
-    seats_participants, seats_coaches = await limits.seats_used(admin.organization_id)
-    if body.role == "participant" and seats_participants >= limits.PARTICIPANT_SEATS:
+    if body.role not in ("coach", "participant"):
         raise HTTPException(
-            status_code=409,
-            detail=f"Site limit reached: {limits.PARTICIPANT_SEATS} active jobseeker seats are in use.",
+            status_code=403, detail="Provider admins can invite Case Managers and Jobseekers only."
         )
-    if body.role == "coach" and seats_coaches >= limits.COACH_SEATS:
-        raise HTTPException(
-            status_code=409,
-            detail=f"Site limit reached: {limits.COACH_SEATS} case manager seats are in use.",
-        )
-    user = User(
-        name=body.name.strip(),
-        email=email,
+    return await invites.create_invited_user(
+        name=body.name,
+        email=body.email,
         role=body.role,
         organization_id=admin.organization_id,
+        invited_by=admin.id,
         phone=body.phone,
         coach_id=body.coach_id,
         cohort_id=body.cohort_id,
     )
-    doc = user.model_dump()
-    doc["password_hash"] = hash_password(body.password or "Welcome2026!")
-    await db.users.insert_one(doc)
-    return user
+
+
+@router.post("/{admin_id}/users/{user_id}/invite-link", response_model=InviteResult)
+async def reissue_invite(admin_id: str, user_id: str):
+    """Re-copy a magic link for a user who has not finished setting up."""
+    admin = await _admin(admin_id)
+    doc = await db.users.find_one({"id": user_id, "organization_id": admin.organization_id})
+    if not doc:
+        raise HTTPException(status_code=404, detail="User not found")
+    return await invites.refresh_invite(doc)
+
+
+@router.post("/{admin_id}/users/{user_id}/reset-password", response_model=ResetPasswordResult)
+async def reset_password(admin_id: str, user_id: str):
+    """Issue a temporary password to read out to the user; they must change it at next sign-in."""
+    admin = await _admin(admin_id)
+    doc = await db.users.find_one({"id": user_id, "organization_id": admin.organization_id})
+    if not doc:
+        raise HTTPException(status_code=404, detail="User not found")
+    temp = temporary_password()
+    await db.users.update_one(
+        {"id": user_id},
+        {"$set": {"password_hash": hash_password(temp), "must_change_password": True}},
+    )
+    return ResetPasswordResult(
+        user_id=user_id, name=doc["name"], email=doc["email"], temporary_password=temp
+    )
 
 
 @router.patch("/{admin_id}/users/{user_id}/assign", response_model=User)
@@ -161,17 +178,7 @@ async def toggle_status(admin_id: str, user_id: str):
         raise HTTPException(status_code=404, detail="User not found")
     reactivating = doc.get("status") != "active"
     if reactivating:
-        seats_participants, seats_coaches = await limits.seats_used(admin.organization_id)
-        if doc.get("role") == "participant" and seats_participants >= limits.PARTICIPANT_SEATS:
-            raise HTTPException(
-                status_code=409,
-                detail=f"Site limit reached: {limits.PARTICIPANT_SEATS} active jobseeker seats are in use.",
-            )
-        if doc.get("role") == "coach" and seats_coaches >= limits.COACH_SEATS:
-            raise HTTPException(
-                status_code=409,
-                detail=f"Site limit reached: {limits.COACH_SEATS} case manager seats are in use.",
-            )
+        await invites.assert_seat_available(admin.organization_id, doc.get("role", "participant"))
     new_status = "active" if reactivating else "inactive"
     await db.users.update_one(
         {"id": user_id}, {"$set": {"status": new_status, "archived_at": None}}

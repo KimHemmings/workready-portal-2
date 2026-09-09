@@ -73,7 +73,34 @@ component or demo overlay exists (grep for `demo` returns only code comments and
   Verified with a second seeded organisation: cross-tenant reads/writes 404, each export contains only its
   own jobseekers.
 
-## Authentication (real email + password — no demo mode)
+## Authentication — 3-tier B2B, invite-only (current)
+Roles: **owner** (system/platform owner) → **admin** (Provider Admin) → **coach** (Case Manager) →
+**participant** (Jobseeker). There is **no public sign-up** and no email sending anywhere.
+
+- `POST /api/auth/login` → `User` (401 bad credentials, 403 inactive/archived). `must_change_password`
+  on the returned user forces the frontend to `/change-password` before any dashboard renders
+  (`Protected` in `App.tsx`).
+- **Magic invite links**: adding a user mints a single-use `invite_token` and returns `InviteResult`
+  (`user`, `invite_token`, `invite_path` = `/register?invite=TOKEN`, `welcome_message`). The inviter
+  copies the link out of `components/InviteLinkDialog.tsx`. Endpoints: `POST /api/owner/{id}/providers`,
+  `POST /api/admin/{id}/users`, `POST /api/coaches/{id}/participants`, plus
+  `POST .../invite-link` on each tier to re-issue. Invited accounts sit at `status: "pending"`
+  (they hold a seat) until `POST /api/auth/invites/{token}/complete` sets their password → `active`.
+  `GET /api/auth/invites/{token}` powers the Complete Registration screen (`pages/Register.tsx`).
+- **Password reset / override**: `POST /api/admin/{id}/users/{uid}/reset-password` and
+  `POST /api/coaches/{id}/participants/{pid}/reset-password` return a one-off `temporary_password`
+  (shown in `TempPasswordDialog`) and set `must_change_password`. The user then changes it via
+  `POST /api/auth/change-password` (`pages/ChangePassword.tsx`).
+- **Forgot password**: `POST /api/auth/forgot-password` returns who can help (case manager, else a
+  provider admin) — surfaced in a dialog on the login page. No reset emails.
+- **Seat limits**: `Organization.coach_seat_limit` / `participant_seat_limit`, set by the Owner via
+  `PATCH /api/owner/{id}/providers/{org}/seats` (409 if below current usage). Every invite runs through
+  `lib/invites.assert_seat_available` → **409** "Seat limit reached…" when exhausted.
+- **Owner dashboard** (`pages/OwnerDashboard.tsx`, `/owner`): totals, provider list with seats used vs
+  sold, inline seat editing, create-provider form (org + first Provider Admin via magic link) and
+  invite-link re-issue.
+- Site registration codes and the public `/signup` page were removed with public sign-up.
+
 `/login` is a clean B2B sign-in: email + password, POST `/api/auth/login` (401 on bad credentials),
 with a "Don't have an account? Sign Up" link. The demo quick-login cards and the
 `/api/auth/demo-accounts` endpoint have been removed.
@@ -127,6 +154,9 @@ without clipping. The PDF path is untouched (vector jsPDF) and embeds the Admin-
 Online/Email/Phone/Agency = 5, In person = 10, Interview attended = 20. Monthly target 100.
 
 ## Seed data (`cd /app/backend && python seed.py`, idempotent — wipes and re-seeds)
-Org: Hunter Valley Employment Services (Workforce Australia). Cohorts: Morning Job Club, TtW Youth Cohort.
+Org: Hunter Valley Employment Services (Workforce Australia), 5 case manager / 100 jobseeker seats.
+Accounts (all `Training2026!`): owner@straightuptraining.com.au (owner), eleanor@hves.com.au (admin),
+marcus@hves.com.au (coach), sarah@hves.com.au + 5 more jobseekers.
+Cohorts: Morning Job Club, TtW Youth Cohort.
 5 modules with 5-question quizzes each. Sarah Chen: 2 modules complete, 1 in progress, 4 job logs, 1 case note.
 5 extra jobseekers assigned to Marcus Vance with varied progress.

@@ -1,6 +1,6 @@
 // Hand-written mirrors of backend/models/schemas.py — keep both sides in sync.
 
-export type Role = "participant" | "coach" | "admin";
+export type Role = "participant" | "coach" | "admin" | "owner";
 export type OrgType = "School" | "Workforce Australia" | "TtW" | "DES";
 export type ProgressStatus = "not_started" | "in_progress" | "completed";
 
@@ -11,11 +11,14 @@ export interface User {
   role: Role;
   organization_id: string;
   phone: string;
-  status: "active" | "inactive" | "archived";
+  status: "active" | "inactive" | "archived" | "pending";
   coach_id: string | null;
   cohort_id: string | null;
   last_login: string | null;
   archived_at: string | null;
+  must_change_password: boolean;
+  invite_token: string | null;
+  invited_by: string | null;
 }
 
 export interface Organization {
@@ -25,7 +28,52 @@ export interface Organization {
   branding_logo: string;
   primary_color: string;
   site_code: string;
+  coach_seat_limit: number;
+  participant_seat_limit: number;
   created_at: string;
+}
+
+export interface InviteResult {
+  user: User;
+  invite_token: string;
+  invite_path: string;
+  welcome_message: string;
+}
+
+export interface InvitePreview {
+  email: string;
+  name: string;
+  role: Role;
+  organization_name: string;
+  organization_logo: string;
+  already_completed: boolean;
+}
+
+export interface ResetPasswordResult {
+  user_id: string;
+  name: string;
+  email: string;
+  temporary_password: string;
+}
+
+export interface ForgotPasswordResponse {
+  message: string;
+  contact_name: string;
+  contact_email: string;
+}
+
+export interface ProviderRow {
+  organization: Organization;
+  admins: User[];
+  coach_seats_used: number;
+  participant_seats_used: number;
+}
+
+export interface OwnerOverview {
+  providers: ProviderRow[];
+  total_providers: number;
+  total_coaches: number;
+  total_participants: number;
 }
 
 export interface Cohort {

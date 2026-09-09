@@ -117,13 +117,24 @@ def logo_byte_size(value: str) -> int:
 
 
 async def seats_used(organization_id: str) -> tuple[int, int]:
+    """(jobseeker seats, case manager seats) in use — pending invites hold a seat."""
+    held = {"$in": ["active", "pending"]}
     participants = await db.users.count_documents(
-        {"organization_id": organization_id, "role": "participant", "status": "active"}
+        {"organization_id": organization_id, "role": "participant", "status": held}
     )
     coaches = await db.users.count_documents(
-        {"organization_id": organization_id, "role": "coach", "status": "active"}
+        {"organization_id": organization_id, "role": "coach", "status": held}
     )
     return participants, coaches
+
+
+async def org_limits(organization_id: str) -> tuple[int, int]:
+    """(coach seat limit, participant seat limit) as sold to this provider."""
+    org = await db.organizations.find_one({"id": organization_id}) or {}
+    return (
+        int(org.get("coach_seat_limit", COACH_SEATS)),
+        int(org.get("participant_seat_limit", PARTICIPANT_SEATS)),
+    )
 
 
 async def archive_inactive(organization_id: str | None = None) -> int:

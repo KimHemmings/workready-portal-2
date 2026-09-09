@@ -27,6 +27,7 @@ export function endSessionRaw() {
 }
 
 export function homePathFor(role: User["role"]): string {
+  if (role === "owner") return "/owner";
   if (role === "coach") return "/coach";
   if (role === "admin") return "/admin";
   return "/participant";

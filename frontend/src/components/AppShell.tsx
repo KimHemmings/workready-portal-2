@@ -4,6 +4,7 @@ import {
   Award,
   BarChart3,
   BookOpen,
+  Building2,
   ClipboardList,
   FileText,
   LayoutDashboard,
@@ -33,6 +34,10 @@ const NAV: Record<User["role"], NavItem[]> = {
   ],
   admin: [
     { to: "/admin", label: "Provider Analytics", icon: BarChart3 },
+    { to: "/coach", label: "Jobseeker Roster", icon: Users },
+  ],
+  owner: [
+    { to: "/owner", label: "Provider Accounts", icon: Building2 },
   ],
 };
 
@@ -45,7 +50,13 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
   const items = user ? NAV[user.role] : [];
 
   const roleLabel =
-    user?.role === "coach" ? "Case Manager" : user?.role === "admin" ? "Provider Admin" : "Jobseeker";
+    user?.role === "coach"
+      ? "Case Manager"
+      : user?.role === "admin"
+        ? "Provider Admin"
+        : user?.role === "owner"
+          ? "System Owner"
+          : "Jobseeker";
 
   return (
     <div className="min-h-screen bg-background flex flex-col lg:flex-row">
