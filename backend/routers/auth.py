@@ -1,9 +1,12 @@
+"""Sign-in, registration and shared lookup endpoints (no demo mode)."""
+
 from datetime import datetime, timezone
 
 from fastapi import APIRouter, HTTPException
-from pydantic import BaseModel
+from pydantic import BaseModel, EmailStr, Field
 
 from lib.db import db
+from lib.security import hash_password, new_site_code, verify_password
 from models.schemas import Cohort, Organization, TrainingModule, User
 
 router = APIRouter(tags=["auth"])
@@ -11,14 +14,27 @@ router = APIRouter(tags=["auth"])
 
 class LoginRequest(BaseModel):
     email: str
+    password: str
+
+
+class RegisterRequest(BaseModel):
+    name: str = Field(min_length=2)
+    organization_name: str = ""
+    email: EmailStr
+    password: str = Field(min_length=8)
+    invite_code: str = ""
+
+
+def _touch(doc: dict) -> User:
+    return User(**doc)
 
 
 @router.post("/auth/login", response_model=User)
 async def login(body: LoginRequest):
     email = body.email.strip().lower()
     doc = await db.users.find_one({"email": email})
-    if not doc:
-        raise HTTPException(status_code=404, detail="No account found for that email")
+    if not doc or not verify_password(body.password, doc.get("password_hash", "")):
+        raise HTTPException(status_code=401, detail="Incorrect email or password")
     if doc.get("status") == "archived":
         raise HTTPException(
             status_code=403,
@@ -29,13 +45,41 @@ async def login(body: LoginRequest):
     now = datetime.now(timezone.utc)
     await db.users.update_one({"id": doc["id"]}, {"$set": {"last_login": now}})
     doc["last_login"] = now
-    return User(**doc)
+    return _touch(doc)
 
 
-@router.get("/auth/demo-accounts", response_model=list[User])
-async def demo_accounts():
-    docs = await db.users.find({"is_demo": True}).to_list(20)
-    return [User(**d) for d in docs]
+@router.post("/auth/register", response_model=User)
+async def register(body: RegisterRequest):
+    email = str(body.email).strip().lower()
+    if await db.users.find_one({"email": email}):
+        raise HTTPException(status_code=409, detail="An account with that email already exists")
+
+    code = body.invite_code.strip().upper()
+    if code:
+        org = await db.organizations.find_one({"site_code": code})
+        if not org:
+            raise HTTPException(status_code=404, detail="That site invite code was not recognised")
+    else:
+        # No invite code: stand up the person's own site so they can start training straight away.
+        org_name = body.organization_name.strip() or f"{body.name.strip().split(' ')[0]}'s Site"
+        new_org = Organization(name=org_name, type="School", site_code=new_site_code())
+        await db.organizations.insert_one(new_org.model_dump())
+        org = new_org.model_dump()
+
+    # Registration always creates a Participant. Coaches and admins are invited by a Provider Admin.
+    coach = await db.users.find_one({"organization_id": org["id"], "role": "coach", "status": "active"})
+    user = User(
+        name=body.name.strip(),
+        email=email,
+        role="participant",
+        organization_id=org["id"],
+        coach_id=coach["id"] if coach else None,
+        last_login=datetime.now(timezone.utc),
+    )
+    doc = user.model_dump()
+    doc["password_hash"] = hash_password(body.password)
+    await db.users.insert_one(doc)
+    return user
 
 
 @router.get("/users/{user_id}", response_model=User)

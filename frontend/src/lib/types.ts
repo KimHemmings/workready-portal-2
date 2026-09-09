@@ -24,6 +24,7 @@ export interface Organization {
   type: OrgType;
   branding_logo: string;
   primary_color: string;
+  site_code: string;
   created_at: string;
 }
 

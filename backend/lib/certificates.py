@@ -71,7 +71,7 @@ async def _issue(
         title=title,
         subtitle=subtitle,
         organization_id=participant.get("organization_id", ""),
-        organization_name=(org or {}).get("name", "WorkReady Portal"),
+        organization_name=(org or {}).get("name", "Straight Up Training"),
         organization_logo=(org or {}).get("branding_logo", ""),
         score=score,
     )

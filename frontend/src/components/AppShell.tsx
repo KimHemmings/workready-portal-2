@@ -56,7 +56,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
               <img src={BRAND_LOGO} alt="Straight Up Training" className="h-full w-full object-contain" />
             </span>
             <span className="font-heading text-lg font-semibold leading-tight">
-              WorkReady<span className="text-sidebar-primary"> Portal</span>
+              Straight Up<span className="text-sidebar-primary"> Training</span>
             </span>
           </Link>
           {user && (

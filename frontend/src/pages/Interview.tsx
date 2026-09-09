@@ -69,7 +69,7 @@ function speak(text: string) {
 function downloadScorecard(session: InterviewSession) {
   const fb = session.feedback_summary_json;
   const lines = [
-    "WorkReady Portal — Interview Feedback Scorecard",
+    "Straight Up Training — Interview Feedback Scorecard",
     "==============================================",
     `Role target : ${session.job_target}`,
     `Industry    : ${session.industry}`,

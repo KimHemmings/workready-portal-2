@@ -26,6 +26,7 @@ class Organization(BaseModel):
     type: OrgType
     branding_logo: str = ""
     primary_color: str = "#1E3A8A"
+    site_code: str = ""
     created_at: datetime = Field(default_factory=now_utc)
 
 
@@ -50,6 +51,7 @@ class UserCreate(BaseModel):
     phone: str = ""
     coach_id: str | None = None
     cohort_id: str | None = None
+    password: str = ""
 
 
 class AssignUpdate(BaseModel):

@@ -1,47 +1,24 @@
 import { useState } from "react";
-import { useMutation, useQuery } from "@tanstack/react-query";
-import { useNavigate } from "react-router-dom";
-import { GraduationCap, ShieldCheck, UserRound } from "lucide-react";
+import { useMutation } from "@tanstack/react-query";
+import { Link, useNavigate } from "react-router-dom";
+import { Lock, LogIn, Mail } from "lucide-react";
 import { toast } from "sonner";
 import { BRAND_LOGO } from "@/lib/brand";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { apiGet, apiPost, ApiError } from "@/lib/api";
+import { apiPost, ApiError } from "@/lib/api";
 import { beginSession, homePathFor } from "@/lib/session";
 import type { User } from "@/lib/types";
-
-const ROLE_META: Record<User["role"], { label: string; blurb: string; icon: React.ComponentType<{ className?: string }> }> = {
-  participant: {
-    label: "Jobseeker / Student",
-    blurb: "Learning, AI interview practice, resume and PBAS job search log",
-    icon: UserRound,
-  },
-  coach: {
-    label: "Coach / Case Manager",
-    blurb: "Roster, progress tracking, case notes and compliance exports",
-    icon: GraduationCap,
-  },
-  admin: {
-    label: "Provider Admin",
-    blurb: "Staff, cohorts, branding and organisation-wide analytics",
-    icon: ShieldCheck,
-  },
-};
 
 export default function Login() {
   const navigate = useNavigate();
   const [email, setEmail] = useState("");
-
-  const demo = useQuery({
-    queryKey: ["demo-accounts"],
-    queryFn: () => apiGet<User[]>("/auth/demo-accounts"),
-    retry: false,
-  });
+  const [password, setPassword] = useState("");
 
   const login = useMutation({
-    mutationFn: (value: string) => apiPost<User>("/auth/login", { email: value }),
+    mutationFn: () =>
+      apiPost<User>("/auth/login", { email: email.trim(), password }),
     onSuccess: (user) => {
       beginSession(user);
       toast.success(`G'day ${user.name.split(" ")[0]}, you're signed in`);
@@ -49,7 +26,7 @@ export default function Login() {
     },
     onError: (err) => {
       const detail = err instanceof ApiError ? (err.body as { detail?: string } | null)?.detail : null;
-      toast.error(detail ?? "Could not sign in. Please check the email address.");
+      toast.error(detail ?? "Could not sign in. Please check your email and password.");
     },
   });
 
@@ -69,7 +46,7 @@ export default function Login() {
             <span className="grid h-14 w-14 place-items-center rounded-xl bg-white p-1.5">
               <img src={BRAND_LOGO} alt="Straight Up Training" className="h-full w-full object-contain" />
             </span>
-            <span className="font-heading text-xl font-semibold">WorkReady Portal</span>
+            <span className="font-heading text-xl font-semibold">Straight Up Training</span>
           </div>
         </div>
         <div className="relative max-w-md">
@@ -88,75 +65,97 @@ export default function Login() {
           </ul>
         </div>
         <p className="relative text-xs text-sidebar-foreground/60">
-          Demo environment — sample jobseeker data only.
+          Straight Up Training — Australian employability skills platform.
         </p>
       </div>
 
       <div className="flex items-center justify-center p-6 sm:p-10">
         <div className="w-full max-w-md">
+          <span className="lg:hidden mb-6 flex items-center gap-3">
+            <span className="grid h-12 w-12 place-items-center rounded-xl bg-white shadow-sm p-1.5">
+              <img src={BRAND_LOGO} alt="Straight Up Training" className="h-full w-full object-contain" />
+            </span>
+            <span className="font-heading text-lg font-semibold">Straight Up Training</span>
+          </span>
+
           <h2 className="font-heading text-3xl font-bold tracking-tight">Sign in</h2>
           <p className="text-muted-foreground mt-2">
-            Choose a demo account below, or enter a registered email address.
+            Use the email and password issued for your site.
           </p>
 
-          <div className="mt-6 space-y-3">
-            {(demo.data ?? []).map((user) => {
-              const meta = ROLE_META[user.role];
-              const Icon = meta.icon;
-              return (
-                <Card
-                  key={user.id}
-                  className="cursor-pointer hover:-translate-y-0.5 hover:shadow-md transition-all duration-200"
-                  onClick={() => login.mutate(user.email)}
-                  data-testid={`demo-login-${user.role}`}
-                >
-                  <CardContent className="flex items-start gap-3 p-4">
-                    <span className="grid h-10 w-10 shrink-0 place-items-center rounded-lg bg-secondary text-secondary-foreground">
-                      <Icon className="h-5 w-5" aria-hidden="true" />
-                    </span>
-                    <div className="min-w-0">
-                      <p className="font-semibold leading-tight">
-                        {user.name} <span className="text-muted-foreground font-normal">· {meta.label}</span>
-                      </p>
-                      <p className="text-sm text-muted-foreground mt-0.5">{meta.blurb}</p>
-                      <p className="text-xs font-mono text-muted-foreground mt-1">{user.email}</p>
-                    </div>
-                  </CardContent>
-                </Card>
-              );
-            })}
-            {demo.isError && (
-              <p className="text-sm text-muted-foreground" data-testid="demo-accounts-unavailable">
-                Demo accounts are unavailable right now — enter an email below to sign in.
-              </p>
-            )}
-          </div>
-
           <form
-            className="mt-8 space-y-3"
+            className="mt-8 space-y-4"
             onSubmit={(e) => {
               e.preventDefault();
-              if (email.trim()) login.mutate(email.trim());
+              if (!email.trim() || !password) {
+                toast.error("Please enter your email and password.");
+                return;
+              }
+              login.mutate();
             }}
+            data-testid="login-form"
           >
-            <Label htmlFor="email">Email address</Label>
-            <Input
-              id="email"
-              type="email"
-              placeholder="sarah@demo.au"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              data-testid="login-email-input"
-            />
+            <div className="space-y-2">
+              <Label htmlFor="email">Email address</Label>
+              <div className="relative">
+                <Mail
+                  className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground"
+                  aria-hidden="true"
+                />
+                <Input
+                  id="email"
+                  type="email"
+                  autoComplete="email"
+                  className="pl-9"
+                  placeholder="you@yoursite.com.au"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  data-testid="login-email-input"
+                />
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="password">Password</Label>
+              <div className="relative">
+                <Lock
+                  className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground"
+                  aria-hidden="true"
+                />
+                <Input
+                  id="password"
+                  type="password"
+                  autoComplete="current-password"
+                  className="pl-9"
+                  placeholder="••••••••"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  data-testid="login-password-input"
+                />
+              </div>
+            </div>
+
             <Button
               type="submit"
               className="w-full bg-cta text-cta-foreground hover:bg-cta/90"
               disabled={login.isPending}
               data-testid="login-submit-button"
             >
+              <LogIn className="h-4 w-4 mr-1.5" aria-hidden="true" />
               {login.isPending ? "Signing in…" : "Sign in"}
             </Button>
           </form>
+
+          <p className="mt-8 text-sm text-muted-foreground text-center" data-testid="signup-prompt">
+            Don't have an account?{" "}
+            <Link
+              to="/signup"
+              className="font-semibold text-primary underline-offset-4 hover:underline"
+              data-testid="signup-link"
+            >
+              Sign Up
+            </Link>
+          </p>
         </div>
       </div>
     </div>

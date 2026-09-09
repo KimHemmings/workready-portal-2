@@ -44,6 +44,25 @@ Provider logo lives in `frontend/src/lib/brand.ts` (`BRAND_LOGO`) — swap that 
 - **Admin**: KPIs, recharts module-engagement bar + cohort-completion pie, invite users,
   activate/deactivate accounts.
 
+## Authentication (real email + password — no demo mode)
+`/login` is a clean B2B sign-in: email + password, POST `/api/auth/login` (401 on bad credentials),
+with a "Don't have an account? Sign Up" link. The demo quick-login cards and the
+`/api/auth/demo-accounts` endpoint have been removed.
+
+`/signup` (page `Signup.tsx`) posts to `/api/auth/register` with full name, organisation/site name,
+email, password (min 8 chars) and an optional Site Invite Code. A valid code joins that organisation and
+auto-assigns the site's case manager; no code creates the person's own organisation. Registration always
+produces role `participant` — coach/admin accounts are created by a Provider Admin invite.
+
+Passwords are PBKDF2-HMAC-SHA256 (200k iterations) via `backend/lib/security.py`; the hash lives in the
+user document as `password_hash` and is never part of the `User` response model. Admin-invited users get
+`Welcome2026!` unless the admin supplies a password.
+
+Site registration codes live on `Organization.site_code`. Admin → Organisation branding shows a
+copyable/editable code, "Generate new code" (`POST /api/admin/{id}/site-code/regenerate`) and a
+"Copy invite link" that yields `/signup?code=…`, which pre-fills the field. Codes are uppercased,
+4–24 chars, unique across organisations.
+
 ## Platform caps & AI cost protection (this session)
 Server-anchored monthly caps live in `backend/lib/limits.py` (month = UTC calendar month):
 3 AI interviews, 3 AI resumes, 3 AI cover letters, 20 job search log entries per participant;

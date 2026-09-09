@@ -2,6 +2,7 @@ from fastapi import APIRouter, HTTPException
 
 from lib import limits
 from lib.db import db
+from lib.security import hash_password, new_site_code
 from models.schemas import (
     AdminOverview,
     AssignUpdate,
@@ -31,6 +32,12 @@ async def overview(admin_id: str):
     org_doc = await db.organizations.find_one({"id": admin.organization_id})
     if not org_doc:
         raise HTTPException(status_code=404, detail="Organisation not found")
+    if not org_doc.get("site_code"):
+        code = new_site_code()
+        await db.organizations.update_one(
+            {"id": admin.organization_id}, {"$set": {"site_code": code}}
+        )
+        org_doc["site_code"] = code
 
     users = await db.users.find({"organization_id": admin.organization_id}).to_list(1000)
     participants = [u for u in users if u["role"] == "participant"]
@@ -127,7 +134,9 @@ async def invite_user(admin_id: str, body: UserCreate):
         coach_id=body.coach_id,
         cohort_id=body.cohort_id,
     )
-    await db.users.insert_one(user.model_dump())
+    doc = user.model_dump()
+    doc["password_hash"] = hash_password(body.password or "Welcome2026!")
+    await db.users.insert_one(doc)
     return user
 
 
@@ -175,7 +184,23 @@ async def toggle_status(admin_id: str, user_id: str):
 @router.patch("/{admin_id}/organization", response_model=Organization)
 async def update_branding(admin_id: str, body: dict):
     admin = await _admin(admin_id)
-    updates = {k: v for k, v in body.items() if k in ("name", "type", "branding_logo", "primary_color")}
+    updates = {
+        k: v
+        for k, v in body.items()
+        if k in ("name", "type", "branding_logo", "primary_color", "site_code")
+    }
+    if "site_code" in updates:
+        code = str(updates["site_code"]).strip().upper().replace(" ", "-")
+        if len(code) < 4 or len(code) > 24:
+            raise HTTPException(
+                status_code=400, detail="Site registration code must be 4–24 characters."
+            )
+        clash = await db.organizations.find_one(
+            {"site_code": code, "id": {"$ne": admin.organization_id}}
+        )
+        if clash:
+            raise HTTPException(status_code=409, detail="Another site is already using that code.")
+        updates["site_code"] = code
     logo = updates.get("branding_logo")
     if isinstance(logo, str) and limits.logo_byte_size(logo) > limits.LOGO_MAX_BYTES:
         raise HTTPException(
@@ -184,6 +209,20 @@ async def update_branding(admin_id: str, body: dict):
         )
     if updates:
         await db.organizations.update_one({"id": admin.organization_id}, {"$set": updates})
+    doc = await db.organizations.find_one({"id": admin.organization_id})
+    return Organization(**doc)
+
+
+@router.post("/{admin_id}/site-code/regenerate", response_model=Organization)
+async def regenerate_site_code(admin_id: str):
+    admin = await _admin(admin_id)
+    for _ in range(10):
+        code = new_site_code()
+        if not await db.organizations.find_one({"site_code": code}):
+            await db.organizations.update_one(
+                {"id": admin.organization_id}, {"$set": {"site_code": code}}
+            )
+            break
     doc = await db.organizations.find_one({"id": admin.organization_id})
     return Organization(**doc)
 

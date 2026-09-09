@@ -192,7 +192,7 @@ async def export_pdf(coach_id: str):
     for row in rows:
         lines.append(" | ".join(row))
     return Response(
-        content=simple_pdf("WorkReady Portal - Compliance Report", lines),
+        content=simple_pdf("Straight Up Training - Compliance Report", lines),
         media_type="application/pdf",
         headers={"Content-Disposition": 'attachment; filename="workready-compliance.pdf"'},
     )

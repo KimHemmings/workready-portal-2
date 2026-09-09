@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Archive, Building2, Image as ImageIcon, UserPlus } from "lucide-react";
+import { Archive, Building2, Copy, Image as ImageIcon, Link as LinkIcon, RefreshCw, UserPlus } from "lucide-react";
 import { toast } from "sonner";
 import {
   Bar,
@@ -54,6 +54,8 @@ export default function AdminDashboard() {
   const [role, setRole] = useState<Role>("participant");
   const [coachId, setCoachId] = useState("");
   const [logoUrl, setLogoUrl] = useState("");
+  const [siteCode, setSiteCode] = useState("");
+  const [codeTouched, setCodeTouched] = useState(false);
 
   const overview = useQuery({
     queryKey: ["admin-overview", user?.id],
@@ -96,6 +98,33 @@ export default function AdminDashboard() {
     },
   });
 
+  const saveSiteCode = useMutation({
+    mutationFn: (code: string) =>
+      apiPatch<Organization>(`/admin/${user!.id}/organization`, { site_code: code }),
+    onSuccess: (org) => {
+      qc.invalidateQueries({ queryKey: ["admin-overview"] });
+      qc.invalidateQueries({ queryKey: ["organization"] });
+      setSiteCode(org.site_code);
+      setCodeTouched(false);
+      toast.success("Site registration code saved.");
+    },
+    onError: (err) => {
+      const detail = err instanceof ApiError ? (err.body as { detail?: string } | null)?.detail : null;
+      toast.error(detail ?? "Could not save that code.");
+    },
+  });
+
+  const regenerate = useMutation({
+    mutationFn: () => apiPost<Organization>(`/admin/${user!.id}/site-code/regenerate`),
+    onSuccess: (org) => {
+      qc.invalidateQueries({ queryKey: ["admin-overview"] });
+      setSiteCode(org.site_code);
+      setCodeTouched(false);
+      toast.success(`New site code generated: ${org.site_code}`);
+    },
+    onError: () => toast.error("Could not generate a new code."),
+  });
+
   const sweep = useMutation({
     mutationFn: () => apiPost<{ archived: number; inactive_days: number }>(`/admin/${user!.id}/archive-sweep`),
     onSuccess: (res) => {
@@ -122,6 +151,16 @@ export default function AdminDashboard() {
   });
 
   const d = overview.isError ? null : overview.data;
+  const currentCode = d?.organization.site_code ?? "";
+  const inviteLink = `${window.location.origin}/signup?code=${encodeURIComponent(currentCode)}`;
+  const displayCode = codeTouched ? siteCode : currentCode;
+
+  const copy = (value: string, message: string) => {
+    navigator.clipboard
+      .writeText(value)
+      .then(() => toast.success(message))
+      .catch(() => toast.error("Copy failed — please select and copy manually."));
+  };
 
   return (
     <AppShell>
@@ -228,6 +267,68 @@ export default function AdminDashboard() {
                   No logo uploaded yet
                 </p>
               )}
+            </div>
+
+            <div className="space-y-1.5 rounded-xl border bg-muted/40 p-3" data-testid="site-code-panel">
+              <Label htmlFor="site-code">Site Registration Code</Label>
+              <div className="flex gap-2">
+                <Input
+                  id="site-code"
+                  className="font-mono uppercase"
+                  value={displayCode}
+                  onChange={(e) => {
+                    setSiteCode(e.target.value.toUpperCase());
+                    setCodeTouched(true);
+                  }}
+                  placeholder="SITE-2026"
+                  data-testid="site-code-input"
+                />
+                <Button
+                  variant="outline"
+                  onClick={() => copy(displayCode, "Site registration code copied.")}
+                  disabled={!displayCode.trim()}
+                  aria-label="Copy site registration code"
+                  data-testid="copy-site-code-button"
+                >
+                  <Copy className="h-4 w-4" aria-hidden="true" />
+                </Button>
+              </div>
+              <div className="flex flex-wrap gap-2 pt-1">
+                <Button
+                  size="sm"
+                  onClick={() => saveSiteCode.mutate(displayCode.trim())}
+                  disabled={saveSiteCode.isPending || !displayCode.trim() || displayCode.trim() === currentCode}
+                  data-testid="save-site-code-button"
+                >
+                  {saveSiteCode.isPending ? "Saving…" : "Save code"}
+                </Button>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => regenerate.mutate()}
+                  disabled={regenerate.isPending}
+                  data-testid="regenerate-site-code-button"
+                >
+                  <RefreshCw className="h-4 w-4 mr-1.5" aria-hidden="true" />
+                  {regenerate.isPending ? "Generating…" : "Generate new code"}
+                </Button>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => copy(inviteLink, "Invite link copied — it pre-fills the code at sign-up.")}
+                  disabled={!currentCode}
+                  data-testid="copy-invite-link-button"
+                >
+                  <LinkIcon className="h-4 w-4 mr-1.5" aria-hidden="true" /> Copy invite link
+                </Button>
+              </div>
+              <p className="text-xs text-muted-foreground break-all" data-testid="invite-link-preview">
+                {currentCode ? inviteLink : "Save a code to generate a direct invite link."}
+              </p>
+              <p className="text-xs text-muted-foreground">
+                Jobseekers who sign up with this code join your site and are assigned to a Case Manager
+                automatically.
+              </p>
             </div>
 
             <div className="space-y-1.5">

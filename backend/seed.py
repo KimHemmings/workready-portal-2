@@ -1,4 +1,4 @@
-"""Idempotent seed data for WorkReady Portal. Run: cd /app/backend && python seed.py"""
+"""Idempotent seed data for Straight Up Training. Run: cd /app/backend && python seed.py"""
 
 import asyncio
 import random
@@ -6,6 +6,7 @@ from datetime import datetime, timedelta, timezone
 
 from lib import certificates
 from lib.db import db, ensure_indexes
+from lib.security import hash_password
 from models.schemas import (
     CaseNote,
     Cohort,
@@ -18,6 +19,7 @@ from models.schemas import (
 )
 
 ORG_ID = "org-hunter-workforce"
+DEMO_PASSWORD = "Training2026!"
 COACH_ID = "user-coach-marcus"
 ADMIN_ID = "user-admin-eleanor"
 PARTICIPANT_ID = "user-participant-sarah"
@@ -478,6 +480,7 @@ async def main() -> None:
             type="Workforce Australia",
             branding_logo="https://customer-assets-39nsmqrw.emergentagent.net/job_workready-portal-2/artifacts/kym1ejab_White_Background_PNG.png",
             primary_color="#1E3A8A",
+            site_code="SITE-2026",
             created_at=now,
         ).model_dump()
     )
@@ -519,23 +522,26 @@ async def main() -> None:
     ]
     for u in users:
         doc = u.model_dump()
-        doc["is_demo"] = True
+        doc["password_hash"] = hash_password(DEMO_PASSWORD)
         await db.users.insert_one(doc)
 
     for i, (name, email, done, apps) in enumerate(EXTRA_PARTICIPANTS):
         pid = f"user-participant-{email.split('@')[0]}"
         await db.users.insert_one(
-            User(
-                id=pid,
-                name=name,
-                email=email,
-                role="participant",
-                organization_id=ORG_ID,
-                phone=f"04{i}0 333 4{i}4",
-                coach_id=COACH_ID,
-                cohort_id="cohort-ttw" if i % 2 else "cohort-morning",
-                last_login=now - timedelta(days=i + 2),
-            ).model_dump()
+            {
+                **User(
+                    id=pid,
+                    name=name,
+                    email=email,
+                    role="participant",
+                    organization_id=ORG_ID,
+                    phone=f"04{i}0 333 4{i}4",
+                    coach_id=COACH_ID,
+                    cohort_id="cohort-ttw" if i % 2 else "cohort-morning",
+                    last_login=now - timedelta(days=i + 2),
+                ).model_dump(),
+                "password_hash": hash_password(DEMO_PASSWORD),
+            }
         )
         for m in MODULES[:done]:
             await db.participant_progress.insert_one(
@@ -634,7 +640,7 @@ async def main() -> None:
     if sarah:
         await certificates.issue_for_interview(sarah, "Retail Team Member", 82)
 
-    print("Seeded WorkReady Portal.")
+    print("Seeded Straight Up Training.")
     print("  Participant : sarah@demo.au")
     print("  Case Manager: marcus@demo.au")
     print("  Provider Admin: eleanor@demo.au")
