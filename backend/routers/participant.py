@@ -1,0 +1,208 @@
+from datetime import datetime, timezone
+
+from fastapi import APIRouter, HTTPException
+
+from lib import ai
+from lib.db import db
+from models.schemas import (
+    JobSearchLog,
+    JobSearchLogCreate,
+    ModuleDetail,
+    ParticipantDashboard,
+    ParticipantProgress,
+    Quiz,
+    QuizAnswerResult,
+    QuizResult,
+    QuizSubmission,
+    Resume,
+    ResumeCreate,
+    TrainingModule,
+    User,
+)
+
+router = APIRouter(prefix="/participants", tags=["participant"])
+
+POINTS_BY_TYPE = {
+    "Online application": 5,
+    "In person": 10,
+    "Email application": 5,
+    "Phone enquiry": 5,
+    "Recruitment agency": 5,
+    "Interview attended": 20,
+}
+
+
+async def get_participant(pid: str) -> User:
+    doc = await db.users.find_one({"id": pid})
+    if not doc:
+        raise HTTPException(status_code=404, detail="Jobseeker not found")
+    if doc.get("role") != "participant":
+        raise HTTPException(status_code=403, detail="Not a jobseeker account")
+    return User(**doc)
+
+
+async def completion_stats(pid: str) -> tuple[int, int, int, list[dict]]:
+    total = await db.training_modules.count_documents({})
+    progress = await db.participant_progress.find({"participant_id": pid}).to_list(500)
+    completed = len([p for p in progress if p.get("status") == "completed"])
+    percent = round(completed / total * 100) if total else 0
+    return total, completed, percent, progress
+
+
+async def pbas_points(pid: str) -> int:
+    logs = await db.job_search_logs.find({"participant_id": pid}).to_list(500)
+    return sum(int(log.get("points", 5)) for log in logs)
+
+
+@router.get("/{pid}/dashboard", response_model=ParticipantDashboard)
+async def dashboard(pid: str):
+    user = await get_participant(pid)
+    total, completed, percent, progress = await completion_stats(pid)
+    done_ids = {p["module_id"] for p in progress if p.get("status") == "completed"}
+    in_progress = len([p for p in progress if p.get("status") == "in_progress"])
+
+    next_module = None
+    for doc in await db.training_modules.find().sort("order", 1).to_list(200):
+        if doc["id"] not in done_ids:
+            next_module = TrainingModule(**doc)
+            break
+
+    logs = await db.job_search_logs.find({"participant_id": pid}).sort("created_at", -1).to_list(5)
+    sessions = await db.interview_sessions.find(
+        {"participant_id": pid, "finished": True}
+    ).sort("created_at", -1).to_list(1)
+
+    return ParticipantDashboard(
+        user=user,
+        total_modules=total,
+        completed_modules=completed,
+        in_progress_modules=in_progress,
+        completion_percent=percent,
+        next_module=next_module,
+        recent_logs=[JobSearchLog(**log) for log in logs],
+        pbas_points=await pbas_points(pid),
+        certificates=len([p for p in progress if (p.get("quiz_score") or 0) >= 80]),
+        latest_interview_score=sessions[0].get("overall_score") if sessions else None,
+    )
+
+
+@router.get("/{pid}/progress", response_model=list[ParticipantProgress])
+async def list_progress(pid: str):
+    docs = await db.participant_progress.find({"participant_id": pid}).to_list(500)
+    return [ParticipantProgress(**d) for d in docs]
+
+
+@router.get("/{pid}/modules/{module_id}", response_model=ModuleDetail)
+async def module_detail(pid: str, module_id: str):
+    mod = await db.training_modules.find_one({"id": module_id})
+    if not mod:
+        raise HTTPException(status_code=404, detail="Module not found")
+    quiz = await db.quizzes.find_one({"module_id": module_id})
+    prog = await db.participant_progress.find_one({"participant_id": pid, "module_id": module_id})
+    return ModuleDetail(
+        module=TrainingModule(**mod),
+        quiz=Quiz(**quiz) if quiz else None,
+        progress=ParticipantProgress(**prog) if prog else None,
+    )
+
+
+@router.post("/{pid}/modules/{module_id}/start", response_model=ParticipantProgress)
+async def start_module(pid: str, module_id: str):
+    await get_participant(pid)
+    existing = await db.participant_progress.find_one({"participant_id": pid, "module_id": module_id})
+    if existing:
+        return ParticipantProgress(**existing)
+    prog = ParticipantProgress(participant_id=pid, module_id=module_id, status="in_progress")
+    await db.participant_progress.insert_one(prog.model_dump())
+    return prog
+
+
+@router.post("/{pid}/modules/{module_id}/quiz", response_model=QuizResult)
+async def submit_quiz(pid: str, module_id: str, body: QuizSubmission):
+    await get_participant(pid)
+    quiz = await db.quizzes.find_one({"module_id": module_id})
+    if not quiz:
+        raise HTTPException(status_code=404, detail="Quiz not found for this module")
+    questions = quiz.get("questions", [])
+    if len(body.answers) != len(questions):
+        raise HTTPException(status_code=400, detail="Please answer every question")
+
+    results = []
+    correct = 0
+    for q, selected in zip(questions, body.answers):
+        is_correct = selected == q["correct_answer"]
+        correct += int(is_correct)
+        results.append(
+            QuizAnswerResult(
+                question=q["question"],
+                selected=selected,
+                correct_answer=q["correct_answer"],
+                is_correct=is_correct,
+                explanation=q.get("explanation", ""),
+            )
+        )
+
+    score = round(correct / len(questions) * 100)
+    passed = score >= 80
+    await db.participant_progress.update_one(
+        {"participant_id": pid, "module_id": module_id},
+        {
+            "$set": {
+                "status": "completed" if passed else "in_progress",
+                "quiz_score": score,
+                "completed_at": datetime.now(timezone.utc) if passed else None,
+            },
+            "$setOnInsert": {"id": str(__import__("uuid").uuid4()), "participant_id": pid, "module_id": module_id},
+        },
+        upsert=True,
+    )
+    return QuizResult(
+        score=score,
+        passed=passed,
+        correct=correct,
+        total=len(questions),
+        results=results,
+        certificate_earned=passed,
+    )
+
+
+@router.get("/{pid}/job-logs", response_model=list[JobSearchLog])
+async def list_job_logs(pid: str):
+    docs = await db.job_search_logs.find({"participant_id": pid}).sort("created_at", -1).to_list(200)
+    return [JobSearchLog(**d) for d in docs]
+
+
+@router.post("/{pid}/job-logs", response_model=JobSearchLog)
+async def create_job_log(pid: str, body: JobSearchLogCreate):
+    await get_participant(pid)
+    log = JobSearchLog(
+        participant_id=pid,
+        points=POINTS_BY_TYPE.get(body.application_type, 5),
+        **body.model_dump(),
+    )
+    await db.job_search_logs.insert_one(log.model_dump())
+    return log
+
+
+@router.get("/{pid}/resumes", response_model=list[Resume])
+async def list_resumes(pid: str):
+    docs = await db.resumes.find({"participant_id": pid}).sort("created_at", -1).to_list(50)
+    return [Resume(**d) for d in docs]
+
+
+@router.post("/{pid}/resumes", response_model=Resume)
+async def create_resume(pid: str, body: ResumeCreate):
+    await get_participant(pid)
+    generated = await ai.build_resume(body.model_dump())
+    resume = Resume(
+        participant_id=pid,
+        title=body.title,
+        contact_info_json=body.contact_info_json,
+        work_history_json=body.work_history_json,
+        education_json=body.education_json,
+        skills_json=body.skills_json,
+        generated_markdown=generated["resume_markdown"],
+        cover_letter_markdown=generated["cover_letter_markdown"],
+    )
+    await db.resumes.insert_one(resume.model_dump())
+    return resume

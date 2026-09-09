@@ -1,0 +1,228 @@
+{
+  "theme": {
+    "mode": "light-default-with-dark-support",
+    "rationale": "Australian educational, government (Workforce Australia/TtW/DES), and vocational training services require maximum readability, institutional trust, and high-contrast WCAG 2.1 AA accessibility for diverse users and lower digital literacy participants. Crisp light theme with rich eucalyptus green, deep navy slate, and warm ochre accents conveys approachable public-sector authority without sterility."
+  },
+  "typography": {
+    "font_family_heading": "Outfit, sans-serif",
+    "font_family_body": "Plus Jakarta Sans, sans-serif",
+    "font_family_mono": "IBM Plex Mono, monospace",
+    "css_import_lines": [
+      "@import \"@fontsource-variable/outfit\";",
+      "@import \"@fontsource-variable/plus-jakarta-sans\";",
+      "@import \"@fontsource/ibm-plex-mono\";"
+    ],
+    "scale_px": {
+      "display": 56,
+      "h1": 40,
+      "h2": 30,
+      "h3": 22,
+      "body": 16,
+      "caption": 14
+    },
+    "typesetting_rules": {
+      "hero_h1": "text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight leading-tight font-heading",
+      "section_h2": "text-2xl sm:text-3xl font-semibold tracking-tight text-foreground font-heading",
+      "card_h3": "text-lg sm:text-xl font-semibold text-foreground font-heading",
+      "body_regular": "text-base leading-relaxed text-foreground font-sans",
+      "body_muted": "text-sm leading-relaxed text-muted-foreground font-sans",
+      "label_overline": "text-xs uppercase tracking-wider font-semibold font-mono"
+    }
+  },
+  "colors": {
+    "archetype": "ARCHETYPE 1: ORGANIC & EARTHY + CIVIC TRUST (Deep Gumtree Forest, Pacific Marine, Warm Ochre)",
+    "surfaces": [
+      {
+        "name": "page",
+        "kind": "solid",
+        "bg": "#F8FAFC",
+        "on_bg": "#0F172A",
+        "on_bg_muted": "#475569",
+        "roles": {
+          "link": "#0369A1",
+          "error": "#BE123C",
+          "success": "#15803D",
+          "warning": "#B45309",
+          "accent_highlight": "#0D9488"
+        }
+      },
+      {
+        "name": "panel",
+        "kind": "solid",
+        "bg": "#FFFFFF",
+        "on_bg": "#0F172A",
+        "on_bg_muted": "#475569",
+        "roles": {
+          "link": "#0284C7",
+          "error": "#E11D48",
+          "success": "#16A34A",
+          "warning": "#D97706"
+        }
+      },
+      {
+        "name": "card_elevated",
+        "kind": "solid",
+        "bg": "#FFFFFF",
+        "on_bg": "#0F172A",
+        "on_bg_muted": "#475569",
+        "roles": {
+          "border": "#E2E8F0",
+          "interactive_hover": "#F1F5F9"
+        }
+      },
+      {
+        "name": "sidebar_brand",
+        "kind": "solid",
+        "bg": "#0B3B36",
+        "on_bg": "#F8FAFC",
+        "on_bg_muted": "#CBD5E1",
+        "roles": {
+          "active_item_bg": "#115E59",
+          "active_item_text": "#FFFFFF",
+          "hover_item_bg": "#0D4D47",
+          "badge_bg": "#14B8A6",
+          "badge_text": "#042F2E"
+        }
+      },
+      {
+        "name": "hero_banner",
+        "kind": "gradient",
+        "contrast_against": "#064E3B",
+        "guarantee": "scrim: linear-gradient(135deg, rgba(6,78,59,0.94) 0%, rgba(13,71,161,0.90) 100%)",
+        "on_bg": "#FFFFFF",
+        "on_bg_muted": "#E2E8F0",
+        "roles": {
+          "link": "#67E8F9",
+          "pill_bg": "rgba(255,255,255,0.15)",
+          "pill_text": "#F0FDFA"
+        }
+      },
+      {
+        "name": "scorecard_surface",
+        "kind": "solid",
+        "bg": "#F0FDF4",
+        "on_bg": "#14532D",
+        "on_bg_muted": "#166534",
+        "roles": {
+          "border": "#BBF7D0",
+          "score_high": "#15803D",
+          "score_mid": "#B45309",
+          "score_low": "#B91C1C"
+        }
+      },
+      {
+        "name": "dark_page",
+        "kind": "solid",
+        "bg": "#0A1118",
+        "on_bg": "#F1F5F9",
+        "on_bg_muted": "#94A3B8",
+        "roles": {
+          "link": "#38BDF8",
+          "error": "#FB7185",
+          "success": "#4ADE80",
+          "warning": "#FBBF24"
+        }
+      },
+      {
+        "name": "dark_panel",
+        "kind": "solid",
+        "bg": "#111C26",
+        "on_bg": "#F8FAFC",
+        "on_bg_muted": "#94A3B8",
+        "roles": {
+          "border": "#1E293B",
+          "interactive_hover": "#1E293B"
+        }
+      }
+    ],
+    "accent": "#0F766E",
+    "on_accent": "#FFFFFF",
+    "brand_palette": {
+      "forest_primary": "#0D5C54",
+      "forest_dark": "#0B3B36",
+      "teal_accent": "#0F766E",
+      "pacific_blue": "#0369A1",
+      "ochre_amber": "#D97706",
+      "eucalyptus_light": "#E6F4F1",
+      "canvas_bg": "#F8FAFC"
+    }
+  },
+  "entry_surfaces": {
+    "/": "split hero with Australian employability branding — active role switcher + key outcomes left, seeded live demo cards (PBAS logger, AI Interviewer simulator preview) right",
+    "/login": "split authentication portal — Australian employability provider network graphic & tenant selector left, secure role-picker & credentials form right",
+    "/dashboard/participant": "modular command center — circular Core Skills progress ring + PBAS activation status banner top, 12-col Tetris bento (next module, AI simulator launch, recent job logs)",
+    "/dashboard/coach": "high-density case manager cockpit — participant roster table with search & PBAS point flags left/center, participant case-notes drawer and compliance export actions right",
+    "/dashboard/admin": "multi-tenant provider overview — tenant cohort health KPI cards top, Recharts completion analytics center, staff/participant RBAC directory bottom"
+  },
+  "image_urls": {
+    "interview_simulator_avatar": {
+      "url": "https://images.unsplash.com/photo-1582004531597-6407189db7dd?crop=entropy&cs=srgb&fm=jpg&ixid=M3w3NTY2Njd8MHwxfHNlYXJjaHwyfHx5b3VuZyUyMGF1c3RyYWxpYW4lMjBqb2IlMjBpbnRlcnZpZXclMjBwcm9mZXNzaW9uYWwlMjBvZmZpY2V8ZW58MHx8fHwxNzg4OTE2MjM1fDA&ixlib=rb-4.1.0&q=85",
+      "description": "Australian workplace mentor and friendly interviewer providing feedback",
+      "placement": "AI Interview Simulator chat header & interviewer persona avatar card"
+    },
+    "learning_workshop_banner": {
+      "url": "https://images.unsplash.com/photo-1705579610984-910ad33fe2db?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjA1NTN8MHwxfHNlYXJjaHwyfHxkaXZlcnNlJTIwc3R1ZGVudHMlMjB3b3Jrc2hvcCUyMHZvY2F0aW9uYWwlMjBlZHVjYXRpb258ZW58MHx8fHwxNzg4OTE2MjM1fDA&ixlib=rb-4.1.0&q=85",
+      "description": "Diverse vocational students and jobseekers collaborating in employability workshop",
+      "placement": "Learning Center hero card & module category headers"
+    },
+    "community_skills_trades": {
+      "url": "https://images.unsplash.com/photo-1596496356933-9b6e0b186b88?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjA1NTN8MHwxfHNlYXJjaHw0fHxkaXZlcnNlJTIwc3R1ZGVudHMlMjB3b3Jrc2hvcCUyMHZvY2F0aW9uYWwlMjBlZHVjYXRpb258ZW58MHx8fHwxNzg4OTE2MjM1fDA&ixlib=rb-4.1.0&q=85",
+      "description": "Practical vocational training session with mentors and apprentices",
+      "placement": "Core Skills for Work module showcase and interview target selector"
+    },
+    "portal_subtle_backdrop": {
+      "url": "https://images.unsplash.com/photo-1668119208053-1545bcc49e4a?crop=entropy&cs=srgb&fm=jpg&ixid=M3w3NTY2NzZ8MHwxfHNlYXJjaHwyfHxhdXN0cmFsaWFuJTIwbGFuZHNjYXBlJTIwZXVjYWx5cHR1cyUyMHN1YnRsZSUyMGJhbm5lcnxlbnwwfHx8fDE3ODg5MTYyMzV8MA&ixlib=rb-4.1.0&q=85",
+      "description": "Authentic Australian eucalyptus gumtree canopy with natural warm light",
+      "placement": "Subtle low-opacity decorative backdrop for certificates, welcome banners, and auth split screen"
+    }
+  },
+  "grids_and_layouts": {
+    "dashboard_bento": "grid grid-cols-1 md:grid-cols-8 lg:grid-cols-12 gap-6 p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto",
+    "roster_table_layout": "w-full border border-slate-200 dark:border-slate-800 rounded-xl bg-white dark:bg-slate-900 overflow-hidden shadow-sm",
+    "chat_simulator_split": "grid grid-cols-1 lg:grid-cols-12 gap-6 h-[calc(100vh-10rem)] min-h-[640px]",
+    "module_learning_grid": "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6",
+    "stat_summary_ribbon": "grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6"
+  },
+  "motion": {
+    "principles": "Subtle, reassuring, lightweight transitions. High accessibility with prefers-reduced-motion fallback.",
+    "hover_transitions": "transition-colors duration-150 ease-out, transform 0.15s ease-out",
+    "card_hover": "hover:-translate-y-0.5 hover:shadow-md transition-all duration-200",
+    "chat_bubble_entry": "initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.2 }}",
+    "progress_ring_animation": "stroke-dashoffset ease-out duration-1000"
+  },
+  "accessibility": {
+    "standard": "WCAG 2.1 AA compliant",
+    "rules": [
+      "All normal text has minimum 4.5:1 contrast against surface background.",
+      "All interactive elements (buttons, inputs, tabs, checkboxes) have visible focus rings with `focus-visible:ring-2 focus-visible:ring-teal-600 focus-visible:ring-offset-2`.",
+      "Clear visual indicators for Australian Points-Based Activation System (PBAS) requirements with accessible color + icon pairings (never color alone).",
+      "All icons have aria-hidden='true' when paired with text, or aria-label when icon-only.",
+      "Mandatory data-testid on every interactive button, input, modal trigger, role-switch, quiz answer, and export button."
+    ]
+  },
+  "component_structure": {
+    "layout_shell": "frontend/src/components/layout/AppShell.tsx",
+    "role_switcher": "frontend/src/components/layout/RoleSwitcherNav.tsx",
+    "participant_progress_ring": "frontend/src/components/participant/ProgressRing.tsx",
+    "ai_interview_simulator": "frontend/src/components/interview/InterviewSimulator.tsx",
+    "interview_scorecard": "frontend/src/components/interview/InterviewScorecard.tsx",
+    "resume_builder_wizard": "frontend/src/components/resume/ResumeBuilderWizard.tsx",
+    "pbas_activity_logger": "frontend/src/components/pbas/JobSearchLogger.tsx",
+    "learning_module_viewer": "frontend/src/components/learning/ModuleViewer.tsx",
+    "quiz_interactive_runner": "frontend/src/components/learning/QuizRunner.tsx",
+    "coach_roster_table": "frontend/src/components/coach/ParticipantRoster.tsx",
+    "coach_notes_drawer": "frontend/src/components/coach/CaseNotesDrawer.tsx",
+    "compliance_export_modal": "frontend/src/components/compliance/ComplianceExportModal.tsx",
+    "admin_tenant_analytics": "frontend/src/components/admin/TenantAnalytics.tsx"
+  },
+  "instructions_to_main_agent": [
+    "Follow the Australian English terminology throughout: 'Jobseeker', 'Resume' (not CV), 'Case Manager', 'Mutual Obligation', 'Points-Based Activation System (PBAS)', 'Transition to Work (TtW)', 'Disability Employment Services (DES)'.",
+    "Implement the seeded instant demo role switcher at the top nav (Participant: Sarah Chen, Coach/Case Manager: Marcus Vance, Provider Admin: Eleanor Brooks) so any reviewer can immediately test all 3 views with 1 click.",
+    "The AI Interview Simulator must feature multi-turn Australian industry interview questions (5 realistic questions: Retail, Hospitality, Warehousing, Admin, Entry Trades) with dynamic scoring against Australian Core Skills for Work (Communication, Problem Solving, Workplace Etiquette) and exportable PDF/Printable scorecard.",
+    "The PBAS Job Search Logger must track points (e.g. 5 points per direct application, 10 points for interview attended, target 100 points/month) with evidence upload mock and confirmation badges.",
+    "Include rich pre-seeded modules (Digital Literacy in the Workplace, Australian Workplace Rights & Safety, First Impressions & Behavioural Interviews, Written Communication for Job Search) with interactive MCQ quiz and certificate generator upon 80%+ pass.",
+    "Case Manager/Coach view must feature search, filtering by risk/PBAS compliance status, inline private case notes, and single-click CSV/PDF compliance report export.",
+    "Provider Admin view must include Recharts graphs for cohort completion rates, module engagement, and tenant branding settings (School, TtW, DES, Workforce Australia).",
+    "Ensure all interactive buttons, inputs, links, and cards have explicit data-testid attributes (e.g. `data-testid='start-interview-button'`, `data-testid='pbas-submit-button'`, `data-testid='role-switch-coach'`)."
+  ]
+}
