@@ -101,8 +101,8 @@ export default function Login() {
           </span>
 
           <h2 className="font-heading text-3xl font-bold tracking-tight">Sign in</h2>
-          <p className="text-muted-foreground mt-2">
-            Use the email and password issued for your site.
+          <p className="text-muted-foreground mt-2" data-testid="login-subheading">
+            Sign in with your registered email address.
           </p>
 
           <form
@@ -182,11 +182,6 @@ export default function Login() {
               <HelpCircle className="h-4 w-4 mr-1.5" aria-hidden="true" /> Forgot your password?
             </Button>
           </div>
-
-          <p className="mt-4 text-sm text-muted-foreground text-center" data-testid="invite-only-notice">
-            Accounts are created by your provider — there's no public sign-up. If you were given a
-            magic invite link, open it to set your password.
-          </p>
 
           <footer
             className="mt-10 flex flex-wrap items-center justify-center gap-x-4 gap-y-1 text-xs text-muted-foreground"
