@@ -104,17 +104,51 @@ async def add_note(coach_id: str, pid: str, body: CaseNoteCreate):
 
 
 async def _report_rows(coach_id: str) -> list[list[str]]:
-    rows = [["Jobseeker", "Email", "Completion %", "Modules completed", "Job applications", "PBAS points", "Status"]]
+    """Full cohort compliance summary: progress, per-module quiz scores and job search counts."""
+    modules = await db.training_modules.find().sort("order", 1).to_list(200)
+    cohorts = {c["id"]: c["name"] for c in await db.cohorts.find().to_list(100)}
+
+    header = [
+        "Jobseeker",
+        "Email",
+        "Cohort",
+        "Completion %",
+        "Modules completed",
+        "Average quiz score %",
+        "Certificates earned",
+        "Job applications",
+        "PBAS points",
+        "Last login",
+        "Status",
+    ] + [f"Quiz: {m['title']}" for m in modules]
+    rows = [header]
+
     for r in await _roster_rows(coach_id):
+        pid = r.participant.id
+        progress = await db.participant_progress.find({"participant_id": pid}).to_list(500)
+        by_module = {p["module_id"]: p for p in progress}
+        scores = [p["quiz_score"] for p in progress if p.get("quiz_score") is not None]
+        certs = await db.certificates.count_documents({"participant_id": pid})
+
         rows.append(
             [
                 r.participant.name,
                 r.participant.email,
+                cohorts.get(r.participant.cohort_id or "", "Unassigned"),
                 str(r.completion_percent),
                 str(r.completed_modules),
+                str(round(sum(scores) / len(scores)) if scores else 0),
+                str(certs),
                 str(r.job_applications),
                 str(r.pbas_points),
+                r.last_login.date().isoformat() if r.last_login else "Never",
                 r.risk.replace("_", " ").title(),
+            ]
+            + [
+                str(by_module[m["id"]]["quiz_score"])
+                if m["id"] in by_module and by_module[m["id"]].get("quiz_score") is not None
+                else "-"
+                for m in modules
             ]
         )
     return rows
@@ -128,7 +162,7 @@ async def export_csv(coach_id: str):
     return Response(
         content=buf.getvalue(),
         media_type="text/csv",
-        headers={"Content-Disposition": 'attachment; filename="workready-compliance.csv"'},
+        headers={"Content-Disposition": 'attachment; filename="workready-cohort-summary.csv"'},
     )
 
 

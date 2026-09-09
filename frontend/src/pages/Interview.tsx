@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Download, Send, Sparkles } from "lucide-react";
+import { Accessibility, Briefcase, Download, Send, Sparkles, Volume2, VolumeX } from "lucide-react";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -18,9 +18,41 @@ import {
 import AppShell from "@/components/AppShell";
 import { apiGet, apiPost } from "@/lib/api";
 import { getSessionUser } from "@/lib/session";
-import type { InterviewSession } from "@/lib/types";
+import type { InterviewMode, InterviewSession } from "@/lib/types";
 
 const INDUSTRIES = ["Retail", "Hospitality", "Warehousing", "Administration", "Entry-level Trades"];
+
+const MODES: {
+  value: InterviewMode;
+  label: string;
+  blurb: string;
+  icon: React.ComponentType<{ className?: string }>;
+}[] = [
+  {
+    value: "standard",
+    label: "Standard mode",
+    blurb: "Full behavioural and situational questions, like a real employer interview.",
+    icon: Briefcase,
+  },
+  {
+    value: "llnd",
+    label: "LLND / Accessible mode",
+    blurb:
+      "Simpler words, shorter questions and extra encouragement — built for Language, Literacy, Numeracy and Digital support needs.",
+    icon: Accessibility,
+  },
+];
+
+/** Browser text-to-speech so questions can be read aloud. */
+function speak(text: string) {
+  if (!("speechSynthesis" in window)) return false;
+  window.speechSynthesis.cancel();
+  const utter = new SpeechSynthesisUtterance(text);
+  utter.lang = "en-AU";
+  utter.rate = 0.92;
+  window.speechSynthesis.speak(utter);
+  return true;
+}
 
 function downloadScorecard(session: InterviewSession) {
   const fb = session.feedback_summary_json;
@@ -61,6 +93,8 @@ export default function Interview() {
   const qc = useQueryClient();
   const [industry, setIndustry] = useState("Retail");
   const [jobTarget, setJobTarget] = useState("Retail Team Member");
+  const [mode, setMode] = useState<InterviewMode>("standard");
+  const [readAloud, setReadAloud] = useState(false);
   const [answer, setAnswer] = useState("");
   const [session, setSession] = useState<InterviewSession | null>(null);
 
@@ -76,10 +110,12 @@ export default function Interview() {
         participant_id: user!.id,
         job_target: jobTarget,
         industry,
+        mode,
       }),
     onSuccess: (data) => {
       setSession(data);
       toast.success("Your practice interview has started — good luck!");
+      if (readAloud && data.questions[0]) speak(data.questions[0]);
     },
     onError: () => toast.error("Could not start the interview. Please try again."),
   });
@@ -90,6 +126,10 @@ export default function Interview() {
     onSuccess: (data) => {
       setSession(data);
       setAnswer("");
+      if (readAloud && !data.finished) {
+        const next = data.questions[data.current_index];
+        if (next) speak(next);
+      }
       if (data.finished) {
         qc.invalidateQueries({ queryKey: ["interview-history"] });
         qc.invalidateQueries({ queryKey: ["participant-dashboard"] });
@@ -127,6 +167,74 @@ export default function Interview() {
               <CardTitle className="text-lg">Choose your job target</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
+              <div className="space-y-2">
+                <Label>Interview mode</Label>
+                <div className="grid gap-3 sm:grid-cols-2" role="radiogroup" aria-label="Interview mode">
+                  {MODES.map((m) => {
+                    const Icon = m.icon;
+                    const selected = mode === m.value;
+                    return (
+                      <button
+                        key={m.value}
+                        type="button"
+                        role="radio"
+                        aria-checked={selected}
+                        onClick={() => setMode(m.value)}
+                        className={`text-left rounded-xl border p-4 transition-all duration-200 focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none ${
+                          selected
+                            ? "border-brand-purple bg-brand-purple-soft shadow-sm"
+                            : "border-slate-200/80 hover:bg-muted"
+                        }`}
+                        data-testid={`interview-mode-${m.value}`}
+                      >
+                        <span className="flex items-center gap-2 font-semibold text-sm">
+                          <Icon
+                            className={`h-4 w-4 ${selected ? "text-brand-purple" : "text-muted-foreground"}`}
+                            aria-hidden="true"
+                          />
+                          {m.label}
+                        </span>
+                        <span className="block text-xs text-muted-foreground mt-1.5">{m.blurb}</span>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              <div className="flex items-start justify-between gap-3 rounded-xl border border-slate-200/80 p-4">
+                <div>
+                  <p className="text-sm font-medium flex items-center gap-2">
+                    {readAloud ? (
+                      <Volume2 className="h-4 w-4 text-brand-purple" aria-hidden="true" />
+                    ) : (
+                      <VolumeX className="h-4 w-4 text-muted-foreground" aria-hidden="true" />
+                    )}
+                    Read questions aloud
+                  </p>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Uses your device's voice to speak each question. Helpful if reading is hard.
+                  </p>
+                </div>
+                <Button
+                  type="button"
+                  variant={readAloud ? "default" : "outline"}
+                  size="sm"
+                  role="switch"
+                  aria-checked={readAloud}
+                  onClick={() => {
+                    const next = !readAloud;
+                    setReadAloud(next);
+                    if (next && !speak("Read aloud is now on.")) {
+                      toast.error("Your browser does not support read aloud.");
+                      setReadAloud(false);
+                    }
+                  }}
+                  data-testid="read-aloud-toggle"
+                >
+                  {readAloud ? "On" : "Off"}
+                </Button>
+              </div>
+
               <div className="space-y-2">
                 <Label htmlFor="industry">Industry</Label>
                 <Select value={industry} onValueChange={(v: string) => setIndustry(v)}>
@@ -183,6 +291,7 @@ export default function Interview() {
                           <p className="font-medium text-sm">{s.job_target}</p>
                           <p className="text-xs text-muted-foreground">
                             {s.industry} · {new Date(s.created_at).toLocaleDateString("en-AU")}
+                            {s.mode === "llnd" ? " · LLND mode" : ""}
                           </p>
                         </div>
                         <div className="flex items-center gap-2">
@@ -207,14 +316,32 @@ export default function Interview() {
         <div className="grid gap-6 lg:grid-cols-12">
           <Card className="lg:col-span-8">
             <CardHeader>
-              <div className="flex items-center justify-between gap-3">
+              <div className="flex flex-wrap items-center justify-between gap-3">
                 <CardTitle className="text-lg">
                   Interview — {session.job_target} ({session.industry})
                 </CardTitle>
-                <Badge variant="secondary" data-testid="interview-progress-badge">
-                  Question {Math.min(session.current_index + 1, session.questions.length)} of{" "}
-                  {session.questions.length}
-                </Badge>
+                <div className="flex items-center gap-2">
+                  {session.mode === "llnd" && (
+                    <Badge className="bg-brand-purple text-white gap-1" data-testid="llnd-mode-badge">
+                      <Accessibility className="h-3 w-3" aria-hidden="true" /> LLND mode
+                    </Badge>
+                  )}
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => {
+                      const q = session.questions[Math.min(session.current_index, session.questions.length - 1)];
+                      if (!speak(q)) toast.error("Your browser does not support read aloud.");
+                    }}
+                    data-testid="speak-question-button"
+                  >
+                    <Volume2 className="h-4 w-4 mr-1.5" aria-hidden="true" /> Read question
+                  </Button>
+                  <Badge variant="secondary" data-testid="interview-progress-badge">
+                    Question {Math.min(session.current_index + 1, session.questions.length)} of{" "}
+                    {session.questions.length}
+                  </Badge>
+                </div>
               </div>
             </CardHeader>
             <CardContent>

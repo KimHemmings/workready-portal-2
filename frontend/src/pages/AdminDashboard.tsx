@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Building2, UserPlus } from "lucide-react";
+import { Building2, Image as ImageIcon, UserPlus } from "lucide-react";
 import { toast } from "sonner";
 import {
   Bar,
@@ -37,7 +37,7 @@ import {
 import AppShell from "@/components/AppShell";
 import { apiGet, apiPatch, apiPost, ApiError } from "@/lib/api";
 import { getSessionUser } from "@/lib/session";
-import type { AdminOverview, Role, User } from "@/lib/types";
+import type { AdminOverview, Organization, Role, User } from "@/lib/types";
 
 const PIE_COLOURS = ["#7C3AED", "#1E3A8A", "#F97316", "#10B981", "#0EA5E9"];
 const ROLE_LABEL: Record<Role, string> = {
@@ -53,6 +53,7 @@ export default function AdminDashboard() {
   const [email, setEmail] = useState("");
   const [role, setRole] = useState<Role>("participant");
   const [coachId, setCoachId] = useState("");
+  const [logoUrl, setLogoUrl] = useState("");
 
   const overview = useQuery({
     queryKey: ["admin-overview", user?.id],
@@ -78,6 +79,18 @@ export default function AdminDashboard() {
       const detail = err instanceof ApiError ? (err.body as { detail?: string } | null)?.detail : null;
       toast.error(detail ?? "Could not invite that user.");
     },
+  });
+
+  const saveBranding = useMutation({
+    mutationFn: (branding_logo: string) =>
+      apiPatch<Organization>(`/admin/${user!.id}/organization`, { branding_logo }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["admin-overview"] });
+      qc.invalidateQueries({ queryKey: ["organization"] });
+      setLogoUrl("");
+      toast.success("Organisation logo updated — it will appear on new certificate downloads.");
+    },
+    onError: () => toast.error("Could not save that logo."),
   });
 
   const toggle = useMutation({
@@ -168,6 +181,77 @@ export default function AdminDashboard() {
       </div>
 
       <div className="grid gap-6 lg:grid-cols-12">
+        <Card className="lg:col-span-4">
+          <CardHeader>
+            <CardTitle className="text-lg flex items-center gap-2">
+              <ImageIcon className="h-5 w-5 text-brand-purple" aria-hidden="true" /> Organisation branding
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="rounded-xl border border-slate-200/80 bg-muted/40 p-4 flex items-center justify-center min-h-28">
+              {d?.organization.branding_logo ? (
+                <img
+                  src={d.organization.branding_logo}
+                  alt={`${d.organization.name} logo`}
+                  className="max-h-20 object-contain"
+                  data-testid="org-logo-preview"
+                />
+              ) : (
+                <p className="text-sm text-muted-foreground" data-testid="org-logo-empty">
+                  No logo uploaded yet
+                </p>
+              )}
+            </div>
+
+            <div className="space-y-1.5">
+              <Label htmlFor="logo-upload">Upload organisation logo</Label>
+              <Input
+                id="logo-upload"
+                type="file"
+                accept="image/png,image/jpeg,image/svg+xml,image/webp"
+                onChange={(e) => {
+                  const file = e.target.files?.[0];
+                  if (!file) return;
+                  if (file.size > 400_000) {
+                    toast.error("Please choose an image under 400KB.");
+                    return;
+                  }
+                  const reader = new FileReader();
+                  reader.onload = () => saveBranding.mutate(String(reader.result));
+                  reader.onerror = () => toast.error("Could not read that file.");
+                  reader.readAsDataURL(file);
+                }}
+                data-testid="org-logo-upload-input"
+              />
+              <p className="text-xs text-muted-foreground">
+                PNG, JPG, SVG or WebP up to 400KB. This logo appears on every certificate PDF your
+                jobseekers download.
+              </p>
+            </div>
+
+            <div className="space-y-1.5">
+              <Label htmlFor="logo-url">Or paste an image URL</Label>
+              <div className="flex gap-2">
+                <Input
+                  id="logo-url"
+                  value={logoUrl}
+                  onChange={(e) => setLogoUrl(e.target.value)}
+                  placeholder="https://…/logo.png"
+                  data-testid="org-logo-url-input"
+                />
+                <Button
+                  variant="outline"
+                  onClick={() => logoUrl.trim() && saveBranding.mutate(logoUrl.trim())}
+                  disabled={saveBranding.isPending || !logoUrl.trim()}
+                  data-testid="org-logo-url-save-button"
+                >
+                  Save
+                </Button>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
         <Card className="lg:col-span-4">
           <CardHeader>
             <CardTitle className="text-lg flex items-center gap-2">

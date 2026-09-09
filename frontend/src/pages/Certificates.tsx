@@ -8,7 +8,7 @@ import AppShell from "@/components/AppShell";
 import CertificateModal, { formatIssued } from "@/components/CertificateModal";
 import { apiGet } from "@/lib/api";
 import { getSessionUser } from "@/lib/session";
-import type { Certificate } from "@/lib/types";
+import type { Certificate, Organization } from "@/lib/types";
 
 export default function Certificates() {
   const user = getSessionUser();
@@ -18,6 +18,13 @@ export default function Certificates() {
     queryKey: ["certificates", user?.id],
     queryFn: () => apiGet<Certificate[]>(`/participants/${user!.id}/certificates`),
     enabled: Boolean(user),
+  });
+
+  // Live provider branding so certificates always carry the current logo.
+  const org = useQuery({
+    queryKey: ["organization", user?.organization_id],
+    queryFn: () => apiGet<Organization>(`/organizations/${user!.organization_id}`),
+    enabled: Boolean(user?.organization_id),
   });
 
   const list = certs.isError ? [] : (certs.data ?? []);
@@ -102,7 +109,12 @@ export default function Certificates() {
       )}
 
       {active && (
-        <CertificateModal certificate={active} open onClose={() => setActive(null)} />
+        <CertificateModal
+          certificate={active}
+          open
+          onClose={() => setActive(null)}
+          logo={org.data?.branding_logo || undefined}
+        />
       )}
     </AppShell>
   );

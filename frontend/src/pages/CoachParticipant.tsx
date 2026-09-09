@@ -14,7 +14,7 @@ import CertificateModal, { formatIssued } from "@/components/CertificateModal";
 import ProgressRing from "@/components/ProgressRing";
 import { apiGet, apiPost } from "@/lib/api";
 import { getSessionUser } from "@/lib/session";
-import type { CoachParticipantDetail, CaseNote, Certificate } from "@/lib/types";
+import type { CoachParticipantDetail, CaseNote, Certificate, Organization } from "@/lib/types";
 
 export default function CoachParticipant() {
   const { participantId = "" } = useParams();
@@ -29,8 +29,14 @@ export default function CoachParticipant() {
     enabled: Boolean(user && participantId),
   });
 
-  const addNote = useMutation({
-    mutationFn: (body: string) =>
+  // Live provider branding for the certificate PDFs the coach downloads.
+  const org = useQuery({
+    queryKey: ["organization", user?.organization_id],
+    queryFn: () => apiGet<Organization>(`/organizations/${user!.organization_id}`),
+    enabled: Boolean(user?.organization_id),
+  });
+
+  const addNote = useMutation({    mutationFn: (body: string) =>
       apiPost<CaseNote>(`/coaches/${user!.id}/participants/${participantId}/notes`, { body }),
     onSuccess: () => {
       setNote("");
@@ -247,7 +253,12 @@ export default function CoachParticipant() {
           </Tabs>
 
           {activeCert && (
-            <CertificateModal certificate={activeCert} open onClose={() => setActiveCert(null)} />
+            <CertificateModal
+              certificate={activeCert}
+              open
+              onClose={() => setActiveCert(null)}
+              logo={org.data?.branding_logo || undefined}
+            />
           )}
         </>
       )}

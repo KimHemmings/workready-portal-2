@@ -25,11 +25,12 @@ async def start(body: InterviewStart):
     user = await db.users.find_one({"id": body.participant_id})
     if not user:
         raise HTTPException(status_code=404, detail="Jobseeker not found")
-    questions = await ai.generate_questions(body.job_target, body.industry)
+    questions = await ai.generate_questions(body.job_target, body.industry, body.mode)
     session = InterviewSession(
         participant_id=body.participant_id,
         job_target=body.job_target,
         industry=body.industry,
+        mode=body.mode,
         questions=questions,
         transcript_json=[TranscriptTurn(role="interviewer", content=questions[0])],
     )
@@ -52,7 +53,7 @@ async def answer(session_id: str, body: InterviewAnswer):
 
     question = session.questions[session.current_index]
     session.transcript_json.append(TranscriptTurn(role="participant", content=body.answer.strip()))
-    tip = await ai.coach_tip(question, body.answer, session.job_target)
+    tip = await ai.coach_tip(question, body.answer, session.job_target, session.mode)
     session.transcript_json.append(TranscriptTurn(role="coach", content=tip))
     session.current_index += 1
 
@@ -62,6 +63,7 @@ async def answer(session_id: str, body: InterviewAnswer):
             session.job_target,
             session.industry,
             [t.model_dump() for t in session.transcript_json],
+            session.mode,
         )
         session.overall_score = scored["overall_score"]
         session.feedback_summary_json = FeedbackSummary(**{

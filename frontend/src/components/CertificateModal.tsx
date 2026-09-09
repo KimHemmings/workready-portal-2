@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Award, Download, X } from "lucide-react";
 import jsPDF from "jspdf";
 import { toast } from "sonner";
@@ -10,6 +10,8 @@ type Props = {
   certificate: Certificate;
   open: boolean;
   onClose: () => void;
+  /** Live organisation logo; falls back to the logo stored on the certificate, then the app brand. */
+  logo?: string;
 };
 
 export function formatIssued(iso: string) {
@@ -23,8 +25,10 @@ export function formatIssued(iso: string) {
 /** Landscape certificate artwork. Rendered on screen and captured for the PDF. */
 export function CertificateArtwork({
   certificate,
+  logo,
 }: {
   certificate: Certificate;
+  logo?: string;
 }) {
   const kindLabel =
     certificate.kind === "interview" ? "Interview Readiness" : "Skills Category Completion";
@@ -58,10 +62,11 @@ export function CertificateArtwork({
 
       <div className="absolute inset-0 flex flex-col items-center justify-center px-24 text-center">
         <img
-          src={BRAND_LOGO}
+          src={logo || certificate.organization_logo || BRAND_LOGO}
           alt=""
           crossOrigin="anonymous"
           style={{ height: 72, objectFit: "contain", marginBottom: 8 }}
+          data-testid="certificate-logo"
         />
         <p
           style={{ color: "#7C3AED", letterSpacing: "0.32em", fontSize: 13, fontWeight: 700 }}
@@ -160,9 +165,18 @@ export function CertificateArtwork({
 }
 
 /** Load the provider logo as a data URL so jsPDF can embed it. */
-async function loadLogo(): Promise<{ data: string; ratio: number } | null> {
+async function loadLogo(src: string): Promise<{ data: string; ratio: number } | null> {
   try {
-    const res = await fetch(BRAND_LOGO, { mode: "cors" });
+    if (src.startsWith("data:")) {
+      const ratio = await new Promise<number>((resolve) => {
+        const img = new Image();
+        img.onload = () => resolve(img.naturalWidth / img.naturalHeight || 1);
+        img.onerror = () => resolve(1);
+        img.src = src;
+      });
+      return { data: src, ratio };
+    }
+    const res = await fetch(src, { mode: "cors" });
     if (!res.ok) return null;
     const blob = await res.blob();
     const data = await new Promise<string>((resolve, reject) => {
@@ -188,7 +202,10 @@ async function loadLogo(): Promise<{ data: string; ratio: number } | null> {
  * Vector text stays crisp at any print size, and it avoids DOM rasterisation
  * (html2canvas cannot parse Tailwind v4's modern colour functions).
  */
-export async function downloadCertificatePdf(certificate: Certificate): Promise<void> {
+export async function downloadCertificatePdf(
+  certificate: Certificate,
+  logo?: string,
+): Promise<void> {
   const pdf = new jsPDF({ orientation: "landscape", unit: "pt", format: "a4" });
   const W = pdf.internal.pageSize.getWidth();
   const H = pdf.internal.pageSize.getHeight();
@@ -221,13 +238,13 @@ export async function downloadCertificatePdf(certificate: Certificate): Promise<
   ].forEach(([x, y]) => pdf.rect(x, y, c, c, "S"));
 
   // Provider logo
-  const logo = await loadLogo();
+  const logoAsset = await loadLogo(logo || certificate.organization_logo || BRAND_LOGO);
   let y = 74;
-  if (logo) {
+  if (logoAsset) {
     const h = 44;
-    const w = Math.min(h * logo.ratio, 200);
+    const w = Math.min(h * logoAsset.ratio, 200);
     try {
-      pdf.addImage(logo.data, "PNG", cx - w / 2, y - h + 10, w, h);
+      pdf.addImage(logoAsset.data, "PNG", cx - w / 2, y - h + 10, w, h);
     } catch {
       /* logo is decorative — carry on without it */
     }
@@ -349,15 +366,28 @@ export async function downloadCertificatePdf(certificate: Certificate): Promise<
   pdf.save(`${certificate.certificate_id}-${certificate.participant_name.replace(/\s+/g, "-")}.pdf`);
 }
 
-export default function CertificateModal({ certificate, open, onClose }: Props) {
+export default function CertificateModal({ certificate, open, onClose, logo }: Props) {
   const [busy, setBusy] = useState(false);
+  const [scale, setScale] = useState(0);
+  const frameRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    if (!open) return;
+    const el = frameRef.current;
+    if (!el) return;
+    const measure = () => setScale(el.clientWidth / 1000);
+    measure();
+    const ro = new ResizeObserver(measure);
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, [open]);
 
   if (!open) return null;
 
   const handleDownload = async () => {
     setBusy(true);
     try {
-      await downloadCertificatePdf(certificate);
+      await downloadCertificatePdf(certificate, logo);
       toast.success("Certificate PDF downloaded.");
     } catch {
       toast.error("Could not generate the PDF. Please try again.");
@@ -375,7 +405,11 @@ export default function CertificateModal({ certificate, open, onClose }: Props) 
       data-testid="certificate-modal"
       onClick={onClose}
     >
-      <div className="w-full max-w-5xl my-auto" onClick={(e) => e.stopPropagation()}>
+      <div
+        className="w-full my-auto"
+        style={{ maxWidth: "min(1024px, calc((100vh - 170px) * 1.414))" }}
+        onClick={(e) => e.stopPropagation()}
+      >
         <div className="flex items-center justify-between gap-3 mb-3">
           <p className="text-white font-heading text-lg font-semibold flex items-center gap-2">
             <Award className="h-5 w-5 text-[color:var(--cta)]" aria-hidden="true" />
@@ -403,12 +437,23 @@ export default function CertificateModal({ certificate, open, onClose }: Props) 
           </div>
         </div>
 
-        {/* Full-size artwork keeps the preview faithful to the PDF; scrolls when the viewport is smaller. */}
-        <div className="bg-white rounded-lg shadow-2xl overflow-auto max-h-[72vh]">
-          <CertificateArtwork certificate={certificate} />
+        {/* Artwork is authored at 1000px wide, then scaled to fit whatever width the dialog gets. */}
+        <div
+          ref={frameRef}
+          className="bg-white rounded-lg shadow-2xl overflow-hidden w-full aspect-[1.414/1]"
+        >
+          <div
+            style={{
+              width: 1000,
+              transform: `scale(${scale || 0.001})`,
+              transformOrigin: "top left",
+            }}
+          >
+            <CertificateArtwork certificate={certificate} logo={logo} />
+          </div>
         </div>
         <p className="text-white/60 text-xs mt-2 text-center">
-          Preview shown at full size — scroll to see the whole certificate, or download the print-ready PDF.
+          Scaled preview — download the print-ready A4 landscape PDF for the full-resolution certificate.
         </p>
       </div>
     </div>

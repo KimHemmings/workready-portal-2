@@ -59,40 +59,90 @@ INTERVIEWER_SYSTEM = (
     "Never be intimidating."
 )
 
+# LLND = Language, Literacy, Numeracy and Digital barriers. This variant keeps every
+# sentence short and concrete, avoids idiom and jargon, and stays highly encouraging.
+LLND_SYSTEM = (
+    "You are a kind, patient Australian employer running a practice interview for a jobseeker who "
+    "has Language, Literacy, Numeracy and Digital (LLND) barriers. Follow these rules strictly: "
+    "use very simple Australian English at about a Year 5 reading level; keep every question under "
+    "15 words; ask only ONE thing at a time; never use idioms, workplace jargon or abbreviations; "
+    "use everyday words. Always sound warm, patient and encouraging."
+)
 
-async def generate_questions(job_target: str, industry: str) -> list[str]:
-    raw = await _ask(
-        INTERVIEWER_SYSTEM,
-        f"Write exactly 5 realistic behavioural and situational interview questions for an entry-level "
-        f"'{job_target}' role in the Australian {industry} industry. Mix behavioural and situational. "
-        f'Respond ONLY with JSON: {{"questions": ["...", "...", "...", "...", "..."]}}',
-    )
+LLND_FALLBACK_QUESTIONS = [
+    "Hello! Tell me your name and why you want this job.",
+    "Tell me about a time you helped someone.",
+    "What do you do if you do not understand a task?",
+    "What would you do if you were going to be late?",
+    "How do you stay safe at work?",
+]
+
+
+def _system(mode: str) -> str:
+    return LLND_SYSTEM if mode == "llnd" else INTERVIEWER_SYSTEM
+
+
+async def generate_questions(job_target: str, industry: str, mode: str = "standard") -> list[str]:
+    if mode == "llnd":
+        prompt = (
+            f"Write exactly 5 very simple practice interview questions for an entry-level "
+            f"'{job_target}' job in the Australian {industry} industry. "
+            "Each question must be under 15 words, use simple everyday words, and ask only one thing. "
+            'Respond ONLY with JSON: {"questions": ["...", "...", "...", "...", "..."]}'
+        )
+    else:
+        prompt = (
+            f"Write exactly 5 realistic behavioural and situational interview questions for an entry-level "
+            f"'{job_target}' role in the Australian {industry} industry. Mix behavioural and situational. "
+            'Respond ONLY with JSON: {"questions": ["...", "...", "...", "...", "..."]}'
+        )
+
+    raw = await _ask(_system(mode), prompt)
     data = _parse_json(raw)
     if isinstance(data, dict) and isinstance(data.get("questions"), list):
         qs = [str(q) for q in data["questions"] if str(q).strip()][:5]
         if len(qs) == 5:
             return qs
-    return list(FALLBACK_QUESTIONS)
+    return list(LLND_FALLBACK_QUESTIONS if mode == "llnd" else FALLBACK_QUESTIONS)
 
 
-async def coach_tip(question: str, answer: str, job_target: str) -> str:
-    raw = await _ask(
-        INTERVIEWER_SYSTEM,
-        f"The jobseeker is practising for a '{job_target}' role.\nQuestion: {question}\n"
-        f"Their answer: {answer}\n\nGive ONE short encouraging coaching tip (max 30 words) on how to "
-        "strengthen that answer against the Australian Core Skills for Work. Plain text only.",
-    )
+async def coach_tip(question: str, answer: str, job_target: str, mode: str = "standard") -> str:
+    if mode == "llnd":
+        prompt = (
+            f"The jobseeker is practising for a '{job_target}' job.\nQuestion: {question}\n"
+            f"Their answer: {answer}\n\n"
+            "Say one kind, encouraging sentence. First say what they did well. "
+            "Then give ONE very simple tip. Use under 25 simple words. Plain text only."
+        )
+    else:
+        prompt = (
+            f"The jobseeker is practising for a '{job_target}' role.\nQuestion: {question}\n"
+            f"Their answer: {answer}\n\nGive ONE short encouraging coaching tip (max 30 words) on how to "
+            "strengthen that answer against the Australian Core Skills for Work. Plain text only."
+        )
+
+    raw = await _ask(_system(mode), prompt)
     if raw:
         return raw.strip().strip('"')[:300]
+    if mode == "llnd":
+        return "Well done for having a go. Next time, add one example of what you did."
     return "Good start — try adding a specific example with what you did and what the result was (the STAR approach)."
 
 
-async def score_interview(job_target: str, industry: str, transcript: list[dict]) -> dict:
+async def score_interview(
+    job_target: str, industry: str, transcript: list[dict], mode: str = "standard"
+) -> dict:
     convo = "\n".join(f"{t['role']}: {t['content']}" for t in transcript)
+    tone = (
+        "Be very encouraging and use simple, plain words in every comment, because this jobseeker "
+        "has Language, Literacy, Numeracy and Digital barriers. Focus on effort and progress."
+        if mode == "llnd"
+        else "Be constructive and specific."
+    )
     raw = await _ask(
         "You are an Australian employability assessor scoring a practice interview against the "
         "Australian Core Skills for Work framework.",
-        f"Role: {job_target} ({industry}).\nTranscript:\n{convo}\n\n"
+        f"Role: {job_target} ({industry}).\nTranscript:\n{convo}\n\n{tone}\n"
         "Score the jobseeker out of 100 overall and out of 100 for Communication, Problem Solving and "
         "Workplace Etiquette. Respond ONLY with JSON: "
         '{"overall_score": 0, "summary": "", "strengths": ["", ""], "improvements": ["", ""], '

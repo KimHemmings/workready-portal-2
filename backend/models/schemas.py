@@ -79,6 +79,7 @@ class QuizQuestion(BaseModel):
     options: list[str]
     correct_answer: int
     explanation: str
+    scenario: str = ""
 
 
 class Quiz(BaseModel):
@@ -187,11 +188,15 @@ class FeedbackSummary(BaseModel):
     summary: str = ""
 
 
+InterviewMode = Literal["standard", "llnd"]
+
+
 class InterviewSession(BaseModel):
     id: str = Field(default_factory=new_id)
     participant_id: str
     job_target: str
     industry: str
+    mode: InterviewMode = "standard"
     transcript_json: list[TranscriptTurn] = []
     questions: list[str] = []
     current_index: int = 0
@@ -205,6 +210,7 @@ class InterviewStart(BaseModel):
     participant_id: str
     job_target: str
     industry: str
+    mode: InterviewMode = "standard"
 
 
 class InterviewAnswer(BaseModel):
@@ -233,6 +239,7 @@ class Certificate(BaseModel):
     subtitle: str = ""
     organization_id: str
     organization_name: str
+    organization_logo: str = ""
     score: int | None = None
     issued_at: datetime = Field(default_factory=now_utc)
 

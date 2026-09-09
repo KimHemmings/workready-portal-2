@@ -111,6 +111,17 @@ export default function ModuleDetail() {
                   const answerResult = result?.results[qi];
                   return (
                     <fieldset key={qi} className="border-t pt-5 first:border-t-0 first:pt-0">
+                      {q.scenario && (
+                        <div
+                          className="rounded-lg border-l-4 border-brand-purple bg-brand-purple-soft/60 p-3 mb-3"
+                          data-testid={`quiz-scenario-${qi}`}
+                        >
+                          <p className="text-[11px] uppercase tracking-wider font-semibold text-brand-purple font-mono mb-1">
+                            Scenario {qi + 1}
+                          </p>
+                          <p className="text-sm">{q.scenario}</p>
+                        </div>
+                      )}
                       <legend className="font-medium mb-3">
                         {qi + 1}. {q.question}
                       </legend>

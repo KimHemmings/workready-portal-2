@@ -44,6 +44,11 @@ Provider logo lives in `frontend/src/lib/brand.ts` (`BRAND_LOGO`) — swap that 
 - **Admin**: KPIs, recharts module-engagement bar + cohort-completion pie, invite users,
   activate/deactivate accounts.
 
+## Certificate modal preview (audit fix, this session)
+The on-screen artwork is authored at a fixed 1000px width and scaled down with a ResizeObserver-driven
+`transform: scale()` inside an `aspect-[1.414/1]` frame, so the preview fits desktop, tablet and mobile
+without clipping. The PDF path is untouched (vector jsPDF) and embeds the Admin-uploaded org logo.
+
 ## PBAS points
 Online/Email/Phone/Agency = 5, In person = 10, Interview attended = 20. Monthly target 100.
 

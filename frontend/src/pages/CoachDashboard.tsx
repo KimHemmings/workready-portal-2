@@ -60,7 +60,7 @@ export default function CoachDashboard() {
         <div className="flex gap-2">
           <a href={`/api/coaches/${user?.id}/export.csv`} data-testid="export-csv-link">
             <Button variant="outline">
-              <FileSpreadsheet className="h-4 w-4 mr-1.5" aria-hidden="true" /> Export CSV
+              <FileSpreadsheet className="h-4 w-4 mr-1.5" aria-hidden="true" /> Cohort CSV summary
             </Button>
           </a>
           <a href={`/api/coaches/${user?.id}/export.pdf`} data-testid="export-pdf-link">

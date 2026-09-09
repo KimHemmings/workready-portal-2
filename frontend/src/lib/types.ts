@@ -49,6 +49,7 @@ export interface QuizQuestion {
   options: string[];
   correct_answer: number;
   explanation: string;
+  scenario: string;
 }
 
 export interface Quiz {
@@ -153,11 +154,14 @@ export interface FeedbackSummary {
   summary: string;
 }
 
+export type InterviewMode = "standard" | "llnd";
+
 export interface InterviewSession {
   id: string;
   participant_id: string;
   job_target: string;
   industry: string;
+  mode: InterviewMode;
   transcript_json: TranscriptTurn[];
   questions: string[];
   current_index: number;
@@ -188,6 +192,7 @@ export interface Certificate {
   subtitle: string;
   organization_id: string;
   organization_name: string;
+  organization_logo: string;
   score: number | null;
   issued_at: string;
 }

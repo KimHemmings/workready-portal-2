@@ -49,6 +49,7 @@ async def _issue(
         subtitle=subtitle,
         organization_id=participant.get("organization_id", ""),
         organization_name=(org or {}).get("name", "WorkReady Portal"),
+        organization_logo=(org or {}).get("branding_logo", ""),
         score=score,
     )
     await db.certificates.insert_one(cert.model_dump())
