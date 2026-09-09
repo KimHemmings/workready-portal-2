@@ -5,18 +5,21 @@ from fastapi import APIRouter, HTTPException
 from fastapi.responses import Response
 
 from lib.db import db
+from lib import limits
 from lib.pdf import simple_pdf
 from models.schemas import (
     CaseNote,
     CaseNoteCreate,
     Certificate,
     CoachParticipantDetail,
+    GrantRequest,
     InterviewSession,
     JobSearchLog,
     ParticipantProgress,
     Resume,
     RosterRow,
     TrainingModule,
+    UsageSummary,
     User,
 )
 
@@ -61,6 +64,8 @@ async def _roster_rows(coach_id: str) -> list[RosterRow]:
 @router.get("/{coach_id}/roster", response_model=list[RosterRow])
 async def roster(coach_id: str):
     await _coach(coach_id)
+    # Data-retention sweep runs whenever a case manager opens their roster.
+    await limits.archive_inactive()
     return await _roster_rows(coach_id)
 
 
@@ -90,7 +95,19 @@ async def participant_detail(coach_id: str, pid: str):
         notes=[CaseNote(**x) for x in notes],
         certificates=[Certificate(**x) for x in certs],
         pbas_points=sum(int(log.get("points", 5)) for log in logs),
+        usage=await limits.usage_summary(pid),
     )
+
+
+@router.post("/{coach_id}/participants/{pid}/grant-ai", response_model=UsageSummary)
+async def grant_ai(coach_id: str, pid: str, body: GrantRequest):
+    """Case manager override: top up a jobseeker's monthly AI/activity allowance."""
+    await _coach(coach_id)
+    if not await db.users.find_one({"id": pid, "role": "participant"}):
+        raise HTTPException(status_code=404, detail="Jobseeker not found")
+    if body.amount < 1 or body.amount > 10:
+        raise HTTPException(status_code=400, detail="Grant between 1 and 10 extra sessions")
+    return await limits.grant_extra(pid, body.kind, body.amount)
 
 
 @router.post("/{coach_id}/participants/{pid}/notes", response_model=CaseNote)

@@ -1,6 +1,16 @@
 import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Accessibility, Briefcase, Download, Send, Sparkles, Volume2, VolumeX } from "lucide-react";
+import {
+  Accessibility,
+  Briefcase,
+  Download,
+  Mic,
+  MicOff,
+  Send,
+  Sparkles,
+  Volume2,
+  VolumeX,
+} from "lucide-react";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -16,9 +26,11 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import AppShell from "@/components/AppShell";
-import { apiGet, apiPost } from "@/lib/api";
+import UsageMeter from "@/components/UsageMeter";
+import { apiGet, apiPost, ApiError } from "@/lib/api";
 import { getSessionUser } from "@/lib/session";
-import type { InterviewMode, InterviewSession } from "@/lib/types";
+import { useDictation } from "@/lib/speech";
+import type { InterviewMode, InterviewSession, UsageSummary } from "@/lib/types";
 
 const INDUSTRIES = ["Retail", "Hospitality", "Warehousing", "Administration", "Entry-level Trades"];
 
@@ -104,6 +116,18 @@ export default function Interview() {
     enabled: Boolean(user),
   });
 
+  const usage = useQuery({
+    queryKey: ["usage", user?.id],
+    queryFn: () => apiGet<UsageSummary>(`/participants/${user!.id}/usage`),
+    enabled: Boolean(user),
+  });
+
+  const dictation = useDictation((chunk) =>
+    setAnswer((prev) => (prev ? `${prev.replace(/\s+$/, "")} ${chunk}` : chunk)),
+  );
+
+  const interviewsLeft = usage.data?.interviews.remaining ?? 1;
+
   const start = useMutation({
     mutationFn: () =>
       apiPost<InterviewSession>("/interviews/start", {
@@ -117,7 +141,11 @@ export default function Interview() {
       toast.success("Your practice interview has started — good luck!");
       if (readAloud && data.questions[0]) speak(data.questions[0]);
     },
-    onError: () => toast.error("Could not start the interview. Please try again."),
+    onError: (err) => {
+      const detail = err instanceof ApiError ? (err.body as { detail?: string } | null)?.detail : null;
+      toast.error(detail ?? "Could not start the interview. Please try again.");
+      qc.invalidateQueries({ queryKey: ["usage"] });
+    },
   });
 
   const reply = useMutation({
@@ -134,6 +162,7 @@ export default function Interview() {
         qc.invalidateQueries({ queryKey: ["interview-history"] });
         qc.invalidateQueries({ queryKey: ["participant-dashboard"] });
         qc.invalidateQueries({ queryKey: ["certificates"] });
+        qc.invalidateQueries({ queryKey: ["usage"] });
         toast.success("Interview complete — your scorecard is ready.");
         if ((data.overall_score ?? 0) > 70) {
           toast.success("Certificate earned! Find it under Certificates.", { duration: 6000 });
@@ -164,7 +193,10 @@ export default function Interview() {
         <div className="grid gap-6 lg:grid-cols-12">
           <Card className="lg:col-span-7">
             <CardHeader>
-              <CardTitle className="text-lg">Choose your job target</CardTitle>
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <CardTitle className="text-lg">Choose your job target</CardTitle>
+                {usage.data && <UsageMeter metric={usage.data.interviews} testId="interview-usage-meter" />}
+              </div>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="space-y-2">
@@ -260,9 +292,18 @@ export default function Interview() {
                   data-testid="job-target-input"
                 />
               </div>
+              {interviewsLeft <= 0 && (
+                <p
+                  className="rounded-xl border border-destructive/40 bg-destructive/5 p-3 text-sm text-destructive"
+                  data-testid="interview-limit-notice"
+                >
+                  You have used all your practice interviews for this month. Your case manager can grant an
+                  extra session from your record.
+                </p>
+              )}
               <Button
                 className="w-full sm:w-auto bg-cta text-cta-foreground hover:bg-cta/90"
-                disabled={start.isPending || !jobTarget.trim()}
+                disabled={start.isPending || !jobTarget.trim() || interviewsLeft <= 0}
                 onClick={() => start.mutate()}
                 data-testid="start-interview-button"
               >
@@ -382,10 +423,43 @@ export default function Interview() {
                     placeholder="Use the STAR approach: Situation, Task, Action, Result…"
                     data-testid="interview-answer-input"
                   />
-                  <Button type="submit" disabled={reply.isPending || !answer.trim()} data-testid="send-answer-button">
-                    <Send className="h-4 w-4 mr-1.5" aria-hidden="true" />
-                    {reply.isPending ? "Sending…" : "Send answer"}
-                  </Button>
+                  <div className="flex flex-wrap items-center gap-2">
+                    <Button type="submit" disabled={reply.isPending || !answer.trim()} data-testid="send-answer-button">
+                      <Send className="h-4 w-4 mr-1.5" aria-hidden="true" />
+                      {reply.isPending ? "Sending…" : "Send answer"}
+                    </Button>
+                    <Button
+                      type="button"
+                      variant={dictation.listening ? "default" : "outline"}
+                      aria-pressed={dictation.listening}
+                      aria-label={dictation.listening ? "Stop dictation" : "Speak your answer"}
+                      className={dictation.listening ? "bg-brand-purple text-white animate-pulse" : ""}
+                      onClick={() => {
+                        if (dictation.listening) {
+                          dictation.stop();
+                          return;
+                        }
+                        if (!dictation.start()) {
+                          toast.error("Speech to text is not supported in this browser. Please type instead.");
+                          return;
+                        }
+                        toast.success("Listening — speak your answer, then press the mic again to stop.");
+                      }}
+                      data-testid="dictate-answer-button"
+                    >
+                      {dictation.listening ? (
+                        <MicOff className="h-4 w-4 mr-1.5" aria-hidden="true" />
+                      ) : (
+                        <Mic className="h-4 w-4 mr-1.5" aria-hidden="true" />
+                      )}
+                      {dictation.listening ? "Stop speaking" : "Speak answer"}
+                    </Button>
+                    <span className="text-xs text-muted-foreground" data-testid="dictation-hint">
+                      {dictation.listening
+                        ? "Your words appear in the box — you can edit them before sending."
+                        : "Prefer talking? Use the microphone and edit the text afterwards."}
+                    </span>
+                  </div>
                 </form>
               )}
             </CardContent>

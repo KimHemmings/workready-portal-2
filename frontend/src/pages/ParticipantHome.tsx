@@ -5,6 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import ProgressRing from "@/components/ProgressRing";
+import UsageMeter from "@/components/UsageMeter";
 import AppShell from "@/components/AppShell";
 import { apiGet } from "@/lib/api";
 import { getSessionUser } from "@/lib/session";
@@ -143,11 +144,40 @@ export default function ParticipantHome() {
                 <span className="font-bold text-lg">{live.latest_interview_score}/100</span>
               </p>
             )}
+            {live?.usage && (
+              <p className="mt-3 text-sm font-medium" data-testid="interviews-remaining-counter">
+                Interviews remaining: {live.usage.interviews.remaining}/{live.usage.interviews.limit}
+              </p>
+            )}
             <Link to="/participant/interview">
               <Button className="mt-4 w-full" data-testid="goto-interview-button">
                 <Sparkles className="h-4 w-4 mr-1.5" aria-hidden="true" /> Start a practice interview
               </Button>
             </Link>
+          </CardContent>
+        </Card>
+
+        <Card className="lg:col-span-12">
+          <CardHeader>
+            <CardTitle className="text-lg">Your monthly allowances</CardTitle>
+          </CardHeader>
+          <CardContent>
+            {live?.usage ? (
+              <div className="flex flex-wrap gap-2" data-testid="usage-summary-panel">
+                <UsageMeter metric={live.usage.interviews} testId="usage-interviews" />
+                <UsageMeter metric={live.usage.resumes} testId="usage-resumes" />
+                <UsageMeter metric={live.usage.cover_letters} testId="usage-cover-letters" />
+                <UsageMeter metric={live.usage.job_logs} testId="usage-job-logs" showIcon={false} />
+              </div>
+            ) : (
+              <p className="text-muted-foreground text-sm" data-testid="usage-summary-empty">
+                Allowances will appear here.
+              </p>
+            )}
+            <p className="text-xs text-muted-foreground mt-3">
+              Allowances reset on the first of each month. Saved resumes, cover letters, scorecards and
+              certificates can be viewed and downloaded as often as you like.
+            </p>
           </CardContent>
         </Card>
 

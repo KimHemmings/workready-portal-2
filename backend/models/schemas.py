@@ -36,10 +36,11 @@ class User(BaseModel):
     role: Role
     organization_id: str
     phone: str = ""
-    status: Literal["active", "inactive"] = "active"
+    status: Literal["active", "inactive", "archived"] = "active"
     coach_id: str | None = None
     cohort_id: str | None = None
     last_login: datetime | None = None
+    archived_at: datetime | None = None
 
 
 class UserCreate(BaseModel):
@@ -168,6 +169,40 @@ class ResumeCreate(BaseModel):
     education_json: list[dict[str, Any]] = []
     skills_json: list[str] = []
     target_role: str = ""
+    include_cover_letter: bool = True
+
+
+class ResumeUpdate(BaseModel):
+    """Free text edits to an already generated document — never spends AI credits."""
+
+    generated_markdown: str | None = None
+    cover_letter_markdown: str | None = None
+
+
+UsageKind = Literal["interviews", "resumes", "cover_letters", "job_logs"]
+
+
+class UsageMetric(BaseModel):
+    kind: UsageKind
+    used: int
+    limit: int
+    base_limit: int
+    granted_extra: int
+    remaining: int
+
+
+class UsageSummary(BaseModel):
+    participant_id: str
+    month: str
+    interviews: UsageMetric
+    resumes: UsageMetric
+    cover_letters: UsageMetric
+    job_logs: UsageMetric
+
+
+class GrantRequest(BaseModel):
+    kind: UsageKind = "interviews"
+    amount: int = 1
 
 
 class TranscriptTurn(BaseModel):
@@ -260,6 +295,7 @@ class ParticipantDashboard(BaseModel):
     pbas_target: int = 100
     certificates: int = 0
     latest_interview_score: int | None = None
+    usage: UsageSummary
 
 
 class RosterRow(BaseModel):
@@ -283,6 +319,7 @@ class CoachParticipantDetail(BaseModel):
     notes: list[CaseNote]
     certificates: list[Certificate]
     pbas_points: int
+    usage: UsageSummary
 
 
 class NameCount(BaseModel):
@@ -301,3 +338,9 @@ class AdminOverview(BaseModel):
     users: list[User]
     cohorts: list[Cohort]
     coaches: list[User]
+    participant_seats_used: int = 0
+    participant_seat_limit: int = 100
+    coach_seats_used: int = 0
+    coach_seat_limit: int = 5
+    archived_participants: int = 0
+    logo_max_bytes: int = 2097152

@@ -1,6 +1,6 @@
 from fastapi import APIRouter, HTTPException
 
-from lib import ai, certificates
+from lib import ai, certificates, limits
 from lib.db import db
 from models.schemas import (
     FeedbackSummary,
@@ -25,6 +25,15 @@ async def start(body: InterviewStart):
     user = await db.users.find_one({"id": body.participant_id})
     if not user:
         raise HTTPException(status_code=404, detail="Jobseeker not found")
+    usage = await limits.usage_summary(body.participant_id)
+    if usage.interviews.remaining <= 0:
+        raise HTTPException(
+            status_code=429,
+            detail=(
+                f"You have completed all {usage.interviews.limit} practice interviews for this month. "
+                "Your case manager can grant an extra session."
+            ),
+        )
     questions = await ai.generate_questions(body.job_target, body.industry, body.mode)
     session = InterviewSession(
         participant_id=body.participant_id,

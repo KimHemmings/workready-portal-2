@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Link, useParams } from "react-router-dom";
-import { ArrowLeft, Award, NotebookPen } from "lucide-react";
+import { ArrowLeft, Award, NotebookPen, Sparkles } from "lucide-react";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -12,9 +12,17 @@ import AppShell from "@/components/AppShell";
 import Markdown from "@/components/Markdown";
 import CertificateModal, { formatIssued } from "@/components/CertificateModal";
 import ProgressRing from "@/components/ProgressRing";
+import UsageMeter from "@/components/UsageMeter";
 import { apiGet, apiPost } from "@/lib/api";
 import { getSessionUser } from "@/lib/session";
-import type { CoachParticipantDetail, CaseNote, Certificate, Organization } from "@/lib/types";
+import type {
+  CoachParticipantDetail,
+  CaseNote,
+  Certificate,
+  Organization,
+  UsageKind,
+  UsageSummary,
+} from "@/lib/types";
 
 export default function CoachParticipant() {
   const { participantId = "" } = useParams();
@@ -44,6 +52,19 @@ export default function CoachParticipant() {
       toast.success("Case note saved.");
     },
     onError: () => toast.error("Could not save that note."),
+  });
+
+  const grant = useMutation({
+    mutationFn: (kind: UsageKind) =>
+      apiPost<UsageSummary>(`/coaches/${user!.id}/participants/${participantId}/grant-ai`, {
+        kind,
+        amount: 1,
+      }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["coach-participant"] });
+      toast.success("Extra allowance granted for this month.");
+    },
+    onError: () => toast.error("Could not grant an extra session."),
   });
 
   const d = detail.data;
@@ -127,6 +148,49 @@ export default function CoachParticipant() {
               </CardContent>
             </Card>
           </div>
+
+          <Card className="mb-6" data-testid="ai-usage-card">
+            <CardHeader>
+              <CardTitle className="text-lg flex items-center gap-2">
+                <Sparkles className="h-5 w-5 text-brand-purple" aria-hidden="true" /> AI usage this month
+                <span className="text-xs font-normal text-muted-foreground">({d.usage.month})</span>
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="flex flex-wrap gap-2">
+                <UsageMeter metric={d.usage.interviews} testId="coach-usage-interviews" />
+                <UsageMeter metric={d.usage.resumes} testId="coach-usage-resumes" />
+                <UsageMeter metric={d.usage.cover_letters} testId="coach-usage-cover-letters" />
+                <UsageMeter metric={d.usage.job_logs} testId="coach-usage-job-logs" showIcon={false} />
+              </div>
+              <div className="flex flex-wrap gap-2">
+                {(
+                  [
+                    ["interviews", "Grant Extra AI Session"],
+                    ["resumes", "Grant extra resume"],
+                    ["cover_letters", "Grant extra cover letter"],
+                    ["job_logs", "Grant extra job log"],
+                  ] as [UsageKind, string][]
+                ).map(([kind, label]) => (
+                  <Button
+                    key={kind}
+                    size="sm"
+                    variant={kind === "interviews" ? "default" : "outline"}
+                    className={kind === "interviews" ? "bg-cta text-cta-foreground hover:bg-cta/90" : ""}
+                    disabled={grant.isPending}
+                    onClick={() => grant.mutate(kind)}
+                    data-testid={`grant-${kind.replace("_", "-")}-button`}
+                  >
+                    <Sparkles className="h-4 w-4 mr-1.5" aria-hidden="true" /> {label}
+                  </Button>
+                ))}
+              </div>
+              <p className="text-xs text-muted-foreground">
+                Each grant adds one extra session on top of the monthly cap and resets on the first of next
+                month.
+              </p>
+            </CardContent>
+          </Card>
 
           <Tabs defaultValue="modules">
             <TabsList>

@@ -44,6 +44,24 @@ Provider logo lives in `frontend/src/lib/brand.ts` (`BRAND_LOGO`) — swap that 
 - **Admin**: KPIs, recharts module-engagement bar + cohort-completion pie, invite users,
   activate/deactivate accounts.
 
+## Platform caps & AI cost protection (this session)
+Server-anchored monthly caps live in `backend/lib/limits.py` (month = UTC calendar month):
+3 AI interviews, 3 AI resumes, 3 AI cover letters, 20 job search log entries per participant;
+100 active jobseeker seats and 5 case manager seats per organisation; 2MB max logo upload;
+participants with no login for 60 days are set to `archived` (sweep runs on coach roster load,
+admin overview load, and the admin "Run 60-day archive sweep" button).
+
+Case managers top up an individual allowance with `POST /api/coaches/{coach_id}/participants/{pid}/grant-ai`
+(`{kind, amount}`), stored per participant per month in the `usage_overrides` collection — "Grant Extra
+AI Session" on the participant detail page. Usage is exposed via `GET /api/participants/{pid}/usage`
+and embedded in the participant dashboard and coach detail payloads.
+
+Saved resumes/cover letters are edited free of charge via `PATCH /api/participants/{pid}/resumes/{id}`
+and downloaded unlimited times as vector PDFs (`frontend/src/lib/docPdf.ts`).
+
+Voice input: `frontend/src/lib/speech.ts` wraps `webkitSpeechRecognition` (en-AU, interim results) and
+the "Speak answer" mic button in the interview appends recognised phrases into the answer box for editing.
+
 ## Certificate modal preview (audit fix, this session)
 The on-screen artwork is authored at a fixed 1000px width and scaled down with a ResizeObserver-driven
 `transform: scale()` inside an `aspect-[1.414/1]` frame, so the preview fits desktop, tablet and mobile

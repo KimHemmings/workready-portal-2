@@ -24,9 +24,10 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import AppShell from "@/components/AppShell";
-import { apiGet, apiPost } from "@/lib/api";
+import UsageMeter from "@/components/UsageMeter";
+import { apiGet, apiPost, ApiError } from "@/lib/api";
 import { getSessionUser } from "@/lib/session";
-import type { JobSearchLog } from "@/lib/types";
+import type { JobSearchLog, UsageSummary } from "@/lib/types";
 
 const TYPES: Record<string, number> = {
   "Online application": 5,
@@ -55,6 +56,12 @@ export default function JobLogs() {
     enabled: Boolean(user),
   });
 
+  const usage = useQuery({
+    queryKey: ["usage", user?.id],
+    queryFn: () => apiGet<UsageSummary>(`/participants/${user!.id}/usage`),
+    enabled: Boolean(user),
+  });
+
   const create = useMutation({
     mutationFn: () =>
       apiPost<JobSearchLog>(`/participants/${user!.id}/job-logs`, {
@@ -68,13 +75,18 @@ export default function JobLogs() {
     onSuccess: (data) => {
       qc.invalidateQueries({ queryKey: ["job-logs"] });
       qc.invalidateQueries({ queryKey: ["participant-dashboard"] });
+      qc.invalidateQueries({ queryKey: ["usage"] });
       setEmployer("");
       setPosition("");
       setEvidence("");
       setNotes("");
       toast.success(`Activity logged — ${data.points} PBAS points added.`);
     },
-    onError: () => toast.error("Could not save that activity. Please check the fields."),
+    onError: (err) => {
+      const detail = err instanceof ApiError ? (err.body as { detail?: string } | null)?.detail : null;
+      toast.error(detail ?? "Could not save that activity. Please check the fields.");
+      qc.invalidateQueries({ queryKey: ["usage"] });
+    },
   });
 
   const rows = logs.isError ? [] : (logs.data ?? []);
@@ -98,7 +110,10 @@ export default function JobLogs() {
       <div className="grid gap-6 lg:grid-cols-12">
         <Card className="lg:col-span-5">
           <CardHeader>
-            <CardTitle className="text-lg">Log a new activity</CardTitle>
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <CardTitle className="text-lg">Log a new activity</CardTitle>
+              {usage.data && <UsageMeter metric={usage.data.job_logs} testId="job-logs-usage-meter" showIcon={false} />}
+            </div>
           </CardHeader>
           <CardContent>
             <form
@@ -154,10 +169,16 @@ export default function JobLogs() {
                 <Label htmlFor="notes">Notes</Label>
                 <Textarea id="notes" rows={2} value={notes} onChange={(e) => setNotes(e.target.value)} data-testid="pbas-notes-input" />
               </div>
-              <Button type="submit" className="w-full bg-cta text-cta-foreground hover:bg-cta/90" disabled={create.isPending} data-testid="pbas-submit-button">
+              <Button type="submit" className="w-full bg-cta text-cta-foreground hover:bg-cta/90" disabled={create.isPending || (usage.data?.job_logs.remaining ?? 1) <= 0} data-testid="pbas-submit-button">
                 <Plus className="h-4 w-4 mr-1.5" aria-hidden="true" />
                 {create.isPending ? "Saving…" : `Log activity (${TYPES[type]} pts)`}
               </Button>
+              {(usage.data?.job_logs.remaining ?? 1) <= 0 && (
+                <p className="text-sm text-destructive" data-testid="job-logs-limit-notice">
+                  You have reached this month's cap of {usage.data?.job_logs.limit} entries. Your case
+                  manager can raise it from your record.
+                </p>
+              )}
             </form>
           </CardContent>
         </Card>

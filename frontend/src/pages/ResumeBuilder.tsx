@@ -1,7 +1,8 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Download, FileText, Plus, Sparkles } from "lucide-react";
+import { Download, FileText, Plus, Save, Sparkles } from "lucide-react";
 import { toast } from "sonner";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -10,9 +11,11 @@ import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import AppShell from "@/components/AppShell";
 import Markdown from "@/components/Markdown";
-import { apiGet, apiPost } from "@/lib/api";
+import UsageMeter from "@/components/UsageMeter";
+import { apiGet, apiPatch, apiPost, ApiError } from "@/lib/api";
+import { downloadMarkdownPdf } from "@/lib/docPdf";
 import { getSessionUser } from "@/lib/session";
-import type { Resume } from "@/lib/types";
+import type { Resume, UsageSummary } from "@/lib/types";
 
 type Job = { title: string; employer: string; dates: string; description: string };
 type Edu = { qualification: string; institution: string; year: string };
@@ -26,6 +29,7 @@ function download(name: string, content: string) {
   a.click();
   URL.revokeObjectURL(url);
 }
+
 
 export default function ResumeBuilder() {
   const user = getSessionUser();
@@ -44,11 +48,43 @@ export default function ResumeBuilder() {
     { qualification: "Year 12 Certificate", institution: "Hunter Valley High School", year: "2023" },
   ]);
   const [current, setCurrent] = useState<Resume | null>(null);
+  const [resumeText, setResumeText] = useState("");
+  const [coverText, setCoverText] = useState("");
+  const [editing, setEditing] = useState(false);
+
+  useEffect(() => {
+    setResumeText(current?.generated_markdown ?? "");
+    setCoverText(current?.cover_letter_markdown ?? "");
+    setEditing(false);
+  }, [current]);
 
   const resumes = useQuery({
     queryKey: ["resumes", user?.id],
     queryFn: () => apiGet<Resume[]>(`/participants/${user!.id}/resumes`),
     enabled: Boolean(user),
+  });
+
+  const usage = useQuery({
+    queryKey: ["usage", user?.id],
+    queryFn: () => apiGet<UsageSummary>(`/participants/${user!.id}/usage`),
+    enabled: Boolean(user),
+  });
+
+  const coverLettersLeft = usage.data?.cover_letters.remaining ?? 1;
+  const resumesLeft = usage.data?.resumes.remaining ?? 1;
+
+  const save = useMutation({
+    mutationFn: () =>
+      apiPatch<Resume>(`/participants/${user!.id}/resumes/${current!.id}`, {
+        generated_markdown: resumeText,
+        cover_letter_markdown: coverText,
+      }),
+    onSuccess: (data) => {
+      setCurrent(data);
+      qc.invalidateQueries({ queryKey: ["resumes"] });
+      toast.success("Edits saved — no AI credits used.");
+    },
+    onError: () => toast.error("Could not save your edits."),
   });
 
   const generate = useMutation({
@@ -60,13 +96,23 @@ export default function ResumeBuilder() {
         education_json: edu,
         skills_json: skills.split(",").map((s) => s.trim()).filter(Boolean),
         target_role: targetRole,
+        include_cover_letter: coverLettersLeft > 0,
       }),
     onSuccess: (data) => {
       setCurrent(data);
       qc.invalidateQueries({ queryKey: ["resumes"] });
-      toast.success("Your resume and cover letter are ready.");
+      qc.invalidateQueries({ queryKey: ["usage"] });
+      toast.success(
+        data.cover_letter_markdown
+          ? "Your resume and cover letter are ready."
+          : "Resume ready. Your cover letter allowance for this month is used up.",
+      );
     },
-    onError: () => toast.error("Could not generate your resume. Please try again."),
+    onError: (err) => {
+      const detail = err instanceof ApiError ? (err.body as { detail?: string } | null)?.detail : null;
+      toast.error(detail ?? "Could not generate your resume. Please try again.");
+      qc.invalidateQueries({ queryKey: ["usage"] });
+    },
   });
 
   return (
@@ -203,55 +249,150 @@ export default function ResumeBuilder() {
 
             <Button
               className="w-full bg-cta text-cta-foreground hover:bg-cta/90"
-              disabled={generate.isPending || !fullName.trim()}
+              disabled={generate.isPending || !fullName.trim() || resumesLeft <= 0}
               onClick={() => generate.mutate()}
               data-testid="generate-resume-button"
             >
               <Sparkles className="h-4 w-4 mr-1.5" aria-hidden="true" />
               {generate.isPending ? "Writing your resume…" : "Generate resume & cover letter"}
             </Button>
+            {resumesLeft <= 0 && (
+              <p className="text-sm text-destructive" data-testid="resume-limit-notice">
+                You have used all {usage.data?.resumes.limit} AI resume generations this month. You can
+                still edit and download your saved resumes, or ask your case manager for an extra session.
+              </p>
+            )}
           </CardContent>
         </Card>
 
         <div className="lg:col-span-6 space-y-6">
           <Card>
             <CardHeader>
-              <CardTitle className="text-lg flex items-center gap-2">
-                <FileText className="h-5 w-5 text-primary" aria-hidden="true" /> Preview
-              </CardTitle>
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <CardTitle className="text-lg flex items-center gap-2">
+                  <FileText className="h-5 w-5 text-primary" aria-hidden="true" /> Preview
+                </CardTitle>
+                <div className="flex flex-wrap gap-2">
+                  {usage.data && <UsageMeter metric={usage.data.resumes} testId="resume-usage-meter" />}
+                  {usage.data && (
+                    <UsageMeter metric={usage.data.cover_letters} testId="cover-letter-usage-meter" />
+                  )}
+                </div>
+              </div>
             </CardHeader>
             <CardContent>
               {current ? (
                 <Tabs defaultValue="resume">
-                  <TabsList>
-                    <TabsTrigger value="resume" data-testid="preview-tab-resume">Resume</TabsTrigger>
-                    <TabsTrigger value="cover" data-testid="preview-tab-cover">Cover letter</TabsTrigger>
-                  </TabsList>
+                  <div className="flex flex-wrap items-center justify-between gap-2">
+                    <TabsList>
+                      <TabsTrigger value="resume" data-testid="preview-tab-resume">Resume</TabsTrigger>
+                      <TabsTrigger value="cover" data-testid="preview-tab-cover">Cover letter</TabsTrigger>
+                    </TabsList>
+                    <div className="flex items-center gap-2">
+                      <Badge variant="secondary" className="text-[11px]">Editing is free</Badge>
+                      <Button
+                        variant={editing ? "default" : "outline"}
+                        size="sm"
+                        onClick={() => setEditing((v) => !v)}
+                        data-testid="toggle-edit-button"
+                      >
+                        {editing ? "Preview" : "Edit text"}
+                      </Button>
+                      {editing && (
+                        <Button
+                          size="sm"
+                          onClick={() => save.mutate()}
+                          disabled={save.isPending}
+                          data-testid="save-edits-button"
+                        >
+                          <Save className="h-4 w-4 mr-1.5" aria-hidden="true" />
+                          {save.isPending ? "Saving…" : "Save edits"}
+                        </Button>
+                      )}
+                    </div>
+                  </div>
+
                   <TabsContent value="resume">
-                    <div className="max-h-[420px] overflow-y-auto" data-testid="resume-preview">
-                      <Markdown markdown={current.generated_markdown} />
+                    {editing ? (
+                      <Textarea
+                        rows={16}
+                        value={resumeText}
+                        onChange={(e) => setResumeText(e.target.value)}
+                        aria-label="Edit resume text"
+                        className="font-mono text-xs"
+                        data-testid="resume-edit-input"
+                      />
+                    ) : (
+                      <div className="max-h-[420px] overflow-y-auto" data-testid="resume-preview">
+                        <Markdown markdown={resumeText} />
+                      </div>
+                    )}
+                    <div className="flex flex-wrap gap-2 mt-4">
+                      <Button
+                        className="bg-cta text-cta-foreground hover:bg-cta/90"
+                        onClick={() =>
+                          downloadMarkdownPdf(
+                            `${current.title.replace(/\s+/g, "-").toLowerCase()}.pdf`,
+                            current.title,
+                            resumeText,
+                          )
+                        }
+                        data-testid="download-resume-pdf-button"
+                      >
+                        <Download className="h-4 w-4 mr-1.5" aria-hidden="true" /> Download PDF
+                      </Button>
+                      <Button
+                        variant="outline"
+                        onClick={() => download("resume.md", resumeText)}
+                        data-testid="download-resume-button"
+                      >
+                        <Download className="h-4 w-4 mr-1.5" aria-hidden="true" /> Download markdown
+                      </Button>
                     </div>
-                    <Button
-                      variant="outline"
-                      className="mt-4"
-                      onClick={() => download("resume.md", current.generated_markdown)}
-                      data-testid="download-resume-button"
-                    >
-                      <Download className="h-4 w-4 mr-1.5" aria-hidden="true" /> Download resume
-                    </Button>
                   </TabsContent>
+
                   <TabsContent value="cover">
-                    <div className="max-h-[420px] overflow-y-auto" data-testid="cover-preview">
-                      <Markdown markdown={current.cover_letter_markdown} />
-                    </div>
-                    <Button
-                      variant="outline"
-                      className="mt-4"
-                      onClick={() => download("cover-letter.md", current.cover_letter_markdown)}
-                      data-testid="download-cover-button"
-                    >
-                      <Download className="h-4 w-4 mr-1.5" aria-hidden="true" /> Download cover letter
-                    </Button>
+                    {coverText ? (
+                      <>
+                        {editing ? (
+                          <Textarea
+                            rows={16}
+                            value={coverText}
+                            onChange={(e) => setCoverText(e.target.value)}
+                            aria-label="Edit cover letter text"
+                            className="font-mono text-xs"
+                            data-testid="cover-edit-input"
+                          />
+                        ) : (
+                          <div className="max-h-[420px] overflow-y-auto" data-testid="cover-preview">
+                            <Markdown markdown={coverText} />
+                          </div>
+                        )}
+                        <div className="flex flex-wrap gap-2 mt-4">
+                          <Button
+                            className="bg-cta text-cta-foreground hover:bg-cta/90"
+                            onClick={() =>
+                              downloadMarkdownPdf("cover-letter.pdf", "Cover Letter", coverText)
+                            }
+                            data-testid="download-cover-pdf-button"
+                          >
+                            <Download className="h-4 w-4 mr-1.5" aria-hidden="true" /> Download PDF
+                          </Button>
+                          <Button
+                            variant="outline"
+                            onClick={() => download("cover-letter.md", coverText)}
+                            data-testid="download-cover-button"
+                          >
+                            <Download className="h-4 w-4 mr-1.5" aria-hidden="true" /> Download markdown
+                          </Button>
+                        </div>
+                      </>
+                    ) : (
+                      <p className="text-sm text-muted-foreground py-4" data-testid="cover-letter-empty">
+                        No cover letter was generated for this resume — your monthly cover letter allowance
+                        was used up. Your case manager can grant more.
+                      </p>
+                    )}
                   </TabsContent>
                 </Tabs>
               ) : (

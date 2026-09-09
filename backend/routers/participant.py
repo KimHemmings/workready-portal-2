@@ -2,10 +2,11 @@ from datetime import datetime, timezone
 
 from fastapi import APIRouter, HTTPException
 
-from lib import ai, certificates
+from lib import ai, certificates, limits
 from lib.db import db
 from models.schemas import (
     Certificate,
+    GrantRequest,
     JobSearchLog,
     JobSearchLogCreate,
     ModuleDetail,
@@ -17,7 +18,9 @@ from models.schemas import (
     QuizSubmission,
     Resume,
     ResumeCreate,
+    ResumeUpdate,
     TrainingModule,
+    UsageSummary,
     User,
 )
 
@@ -84,7 +87,14 @@ async def dashboard(pid: str):
         pbas_points=await pbas_points(pid),
         certificates=await db.certificates.count_documents({"participant_id": pid}),
         latest_interview_score=sessions[0].get("overall_score") if sessions else None,
+        usage=await limits.usage_summary(pid),
     )
+
+
+@router.get("/{pid}/usage", response_model=UsageSummary)
+async def usage(pid: str):
+    await get_participant(pid)
+    return await limits.usage_summary(pid)
 
 
 @router.get("/{pid}/progress", response_model=list[ParticipantProgress])
@@ -190,6 +200,14 @@ async def list_job_logs(pid: str):
 @router.post("/{pid}/job-logs", response_model=JobSearchLog)
 async def create_job_log(pid: str, body: JobSearchLogCreate):
     await get_participant(pid)
+    if await limits.remaining(pid, "job_logs") <= 0:
+        raise HTTPException(
+            status_code=429,
+            detail=(
+                f"You have reached the monthly cap of {limits.JOB_LOGS_PER_MONTH} job search entries. "
+                "Ask your case manager if you need more."
+            ),
+        )
     log = JobSearchLog(
         participant_id=pid,
         points=POINTS_BY_TYPE.get(body.application_type, 5),
@@ -208,6 +226,16 @@ async def list_resumes(pid: str):
 @router.post("/{pid}/resumes", response_model=Resume)
 async def create_resume(pid: str, body: ResumeCreate):
     await get_participant(pid)
+    usage_now = await limits.usage_summary(pid)
+    if usage_now.resumes.remaining <= 0:
+        raise HTTPException(
+            status_code=429,
+            detail=(
+                f"You have used all {usage_now.resumes.limit} AI resume generations this month. "
+                "Your saved resumes can still be edited and downloaded, or ask your case manager for an extra session."
+            ),
+        )
+    want_cover = body.include_cover_letter and usage_now.cover_letters.remaining > 0
     generated = await ai.build_resume(body.model_dump())
     resume = Resume(
         participant_id=pid,
@@ -217,7 +245,21 @@ async def create_resume(pid: str, body: ResumeCreate):
         education_json=body.education_json,
         skills_json=body.skills_json,
         generated_markdown=generated["resume_markdown"],
-        cover_letter_markdown=generated["cover_letter_markdown"],
+        cover_letter_markdown=generated["cover_letter_markdown"] if want_cover else "",
     )
     await db.resumes.insert_one(resume.model_dump())
     return resume
+
+
+@router.patch("/{pid}/resumes/{resume_id}", response_model=Resume)
+async def update_resume(pid: str, resume_id: str, body: ResumeUpdate):
+    """Save participant text edits. Free — no AI call, no credit spent."""
+    await get_participant(pid)
+    doc = await db.resumes.find_one({"id": resume_id, "participant_id": pid})
+    if not doc:
+        raise HTTPException(status_code=404, detail="Resume not found")
+    updates = {k: v for k, v in body.model_dump().items() if v is not None}
+    if updates:
+        await db.resumes.update_one({"id": resume_id}, {"$set": updates})
+        doc.update(updates)
+    return Resume(**doc)

@@ -1,5 +1,6 @@
 from fastapi import APIRouter, HTTPException
 
+from lib import limits
 from lib.db import db
 from models.schemas import (
     AdminOverview,
@@ -26,6 +27,7 @@ async def _admin(admin_id: str) -> User:
 @router.get("/{admin_id}/overview", response_model=AdminOverview)
 async def overview(admin_id: str):
     admin = await _admin(admin_id)
+    await limits.archive_inactive(admin.organization_id)
     org_doc = await db.organizations.find_one({"id": admin.organization_id})
     if not org_doc:
         raise HTTPException(status_code=404, detail="Organisation not found")
@@ -73,6 +75,11 @@ async def overview(admin_id: str):
             pct = 0
         cohort_completion.append(NameCount(name=c["name"], value=pct))
 
+    seats_participants, seats_coaches = await limits.seats_used(admin.organization_id)
+    archived = await db.users.count_documents(
+        {"organization_id": admin.organization_id, "role": "participant", "status": "archived"}
+    )
+
     return AdminOverview(
         organization=Organization(**org_doc),
         total_participants=len(participants),
@@ -84,6 +91,12 @@ async def overview(admin_id: str):
         users=[User(**u) for u in users],
         cohorts=[Cohort(**c) for c in cohorts],
         coaches=[User(**c) for c in coaches],
+        participant_seats_used=seats_participants,
+        participant_seat_limit=limits.PARTICIPANT_SEATS,
+        coach_seats_used=seats_coaches,
+        coach_seat_limit=limits.COACH_SEATS,
+        archived_participants=archived,
+        logo_max_bytes=limits.LOGO_MAX_BYTES,
     )
 
 
@@ -93,6 +106,18 @@ async def invite_user(admin_id: str, body: UserCreate):
     email = body.email.strip().lower()
     if await db.users.find_one({"email": email}):
         raise HTTPException(status_code=409, detail="A user with that email already exists")
+
+    seats_participants, seats_coaches = await limits.seats_used(admin.organization_id)
+    if body.role == "participant" and seats_participants >= limits.PARTICIPANT_SEATS:
+        raise HTTPException(
+            status_code=409,
+            detail=f"Site limit reached: {limits.PARTICIPANT_SEATS} active jobseeker seats are in use.",
+        )
+    if body.role == "coach" and seats_coaches >= limits.COACH_SEATS:
+        raise HTTPException(
+            status_code=409,
+            detail=f"Site limit reached: {limits.COACH_SEATS} case manager seats are in use.",
+        )
     user = User(
         name=body.name.strip(),
         email=email,
@@ -121,13 +146,29 @@ async def assign_user(admin_id: str, user_id: str, body: AssignUpdate):
 
 @router.patch("/{admin_id}/users/{user_id}/status", response_model=User)
 async def toggle_status(admin_id: str, user_id: str):
-    await _admin(admin_id)
+    admin = await _admin(admin_id)
     doc = await db.users.find_one({"id": user_id})
     if not doc:
         raise HTTPException(status_code=404, detail="User not found")
-    new_status = "inactive" if doc.get("status") == "active" else "active"
-    await db.users.update_one({"id": user_id}, {"$set": {"status": new_status}})
+    reactivating = doc.get("status") != "active"
+    if reactivating:
+        seats_participants, seats_coaches = await limits.seats_used(admin.organization_id)
+        if doc.get("role") == "participant" and seats_participants >= limits.PARTICIPANT_SEATS:
+            raise HTTPException(
+                status_code=409,
+                detail=f"Site limit reached: {limits.PARTICIPANT_SEATS} active jobseeker seats are in use.",
+            )
+        if doc.get("role") == "coach" and seats_coaches >= limits.COACH_SEATS:
+            raise HTTPException(
+                status_code=409,
+                detail=f"Site limit reached: {limits.COACH_SEATS} case manager seats are in use.",
+            )
+    new_status = "active" if reactivating else "inactive"
+    await db.users.update_one(
+        {"id": user_id}, {"$set": {"status": new_status, "archived_at": None}}
+    )
     doc["status"] = new_status
+    doc["archived_at"] = None
     return User(**doc)
 
 
@@ -135,10 +176,24 @@ async def toggle_status(admin_id: str, user_id: str):
 async def update_branding(admin_id: str, body: dict):
     admin = await _admin(admin_id)
     updates = {k: v for k, v in body.items() if k in ("name", "type", "branding_logo", "primary_color")}
+    logo = updates.get("branding_logo")
+    if isinstance(logo, str) and limits.logo_byte_size(logo) > limits.LOGO_MAX_BYTES:
+        raise HTTPException(
+            status_code=413,
+            detail="Logo is too large — please upload an image under 2MB.",
+        )
     if updates:
         await db.organizations.update_one({"id": admin.organization_id}, {"$set": updates})
     doc = await db.organizations.find_one({"id": admin.organization_id})
     return Organization(**doc)
+
+
+@router.post("/{admin_id}/archive-sweep")
+async def archive_sweep(admin_id: str):
+    """Manually run the 60-day inactivity data-retention sweep for this organisation."""
+    admin = await _admin(admin_id)
+    archived = await limits.archive_inactive(admin.organization_id)
+    return {"archived": archived, "inactive_days": limits.INACTIVE_DAYS}
 
 
 @router.post("/{admin_id}/cohorts", response_model=Cohort)

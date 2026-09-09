@@ -19,6 +19,11 @@ async def login(body: LoginRequest):
     doc = await db.users.find_one({"email": email})
     if not doc:
         raise HTTPException(status_code=404, detail="No account found for that email")
+    if doc.get("status") == "archived":
+        raise HTTPException(
+            status_code=403,
+            detail="This account was archived after 60 days of inactivity. Ask your provider to reactivate it.",
+        )
     if doc.get("status") != "active":
         raise HTTPException(status_code=403, detail="This account is inactive")
     now = datetime.now(timezone.utc)

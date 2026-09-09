@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Building2, Image as ImageIcon, UserPlus } from "lucide-react";
+import { Archive, Building2, Image as ImageIcon, UserPlus } from "lucide-react";
 import { toast } from "sonner";
 import {
   Bar,
@@ -90,7 +90,23 @@ export default function AdminDashboard() {
       setLogoUrl("");
       toast.success("Organisation logo updated — it will appear on new certificate downloads.");
     },
-    onError: () => toast.error("Could not save that logo."),
+    onError: (err) => {
+      const detail = err instanceof ApiError ? (err.body as { detail?: string } | null)?.detail : null;
+      toast.error(detail ?? "Could not save that logo.");
+    },
+  });
+
+  const sweep = useMutation({
+    mutationFn: () => apiPost<{ archived: number; inactive_days: number }>(`/admin/${user!.id}/archive-sweep`),
+    onSuccess: (res) => {
+      qc.invalidateQueries({ queryKey: ["admin-overview"] });
+      toast.success(
+        res.archived > 0
+          ? `${res.archived} jobseeker(s) archived after ${res.inactive_days} days of inactivity.`
+          : `No jobseekers have been inactive for ${res.inactive_days} days.`,
+      );
+    },
+    onError: () => toast.error("Could not run the retention sweep."),
   });
 
   const toggle = useMutation({
@@ -99,7 +115,10 @@ export default function AdminDashboard() {
       qc.invalidateQueries({ queryKey: ["admin-overview"] });
       toast.success("Account status updated.");
     },
-    onError: () => toast.error("Could not update that account."),
+    onError: (err) => {
+      const detail = err instanceof ApiError ? (err.body as { detail?: string } | null)?.detail : null;
+      toast.error(detail ?? "Could not update that account.");
+    },
   });
 
   const d = overview.isError ? null : overview.data;
@@ -121,8 +140,16 @@ export default function AdminDashboard() {
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
         {[
-          { label: "Jobseekers", value: d?.total_participants ?? 0, testId: "kpi-participants" },
-          { label: "Case Managers", value: d?.total_coaches ?? 0, testId: "kpi-coaches" },
+          {
+            label: `Jobseeker seats (max ${d?.participant_seat_limit ?? 100})`,
+            value: `${d?.participant_seats_used ?? 0}/${d?.participant_seat_limit ?? 100}`,
+            testId: "kpi-participants",
+          },
+          {
+            label: `Case Manager seats (max ${d?.coach_seat_limit ?? 5})`,
+            value: `${d?.coach_seats_used ?? 0}/${d?.coach_seat_limit ?? 5}`,
+            testId: "kpi-coaches",
+          },
           { label: "Cohorts", value: d?.total_cohorts ?? 0, testId: "kpi-cohorts" },
           { label: "Average completion", value: `${d?.average_completion ?? 0}%`, testId: "kpi-completion" },
         ].map((kpi) => (
@@ -212,8 +239,9 @@ export default function AdminDashboard() {
                 onChange={(e) => {
                   const file = e.target.files?.[0];
                   if (!file) return;
-                  if (file.size > 400_000) {
-                    toast.error("Please choose an image under 400KB.");
+                  const max = d?.logo_max_bytes ?? 2_097_152;
+                  if (file.size > max) {
+                    toast.error("Logo too large — please choose an image under 2MB.");
                     return;
                   }
                   const reader = new FileReader();
@@ -224,7 +252,7 @@ export default function AdminDashboard() {
                 data-testid="org-logo-upload-input"
               />
               <p className="text-xs text-muted-foreground">
-                PNG, JPG, SVG or WebP up to 400KB. This logo appears on every certificate PDF your
+                PNG, JPG, SVG or WebP up to 2MB. This logo appears on every certificate PDF your
                 jobseekers download.
               </p>
             </div>
@@ -316,7 +344,24 @@ export default function AdminDashboard() {
 
         <Card className="lg:col-span-8">
           <CardHeader>
-            <CardTitle className="text-lg">Users in this organisation</CardTitle>
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <CardTitle className="text-lg">Users in this organisation</CardTitle>
+              <div className="flex items-center gap-2">
+                <Badge variant="secondary" data-testid="archived-count-badge">
+                  {d?.archived_participants ?? 0} archived
+                </Badge>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => sweep.mutate()}
+                  disabled={sweep.isPending}
+                  data-testid="archive-sweep-button"
+                >
+                  <Archive className="h-4 w-4 mr-1.5" aria-hidden="true" />
+                  {sweep.isPending ? "Checking…" : "Run 60-day archive sweep"}
+                </Button>
+              </div>
+            </div>
           </CardHeader>
           <CardContent>
             {(d?.users.length ?? 0) === 0 ? (
@@ -346,7 +391,14 @@ export default function AdminDashboard() {
                         {d?.cohorts.find((c) => c.id === u.cohort_id)?.name ?? "—"}
                       </TableCell>
                       <TableCell>
-                        <Badge variant={u.status === "active" ? "default" : "secondary"}>{u.status}</Badge>
+                        <Badge
+                          variant={
+                            u.status === "active" ? "default" : u.status === "archived" ? "destructive" : "secondary"
+                          }
+                          data-testid={`user-status-${u.id}`}
+                        >
+                          {u.status}
+                        </Badge>
                       </TableCell>
                       <TableCell className="text-right">
                         <Button
@@ -356,7 +408,7 @@ export default function AdminDashboard() {
                           disabled={u.id === user?.id}
                           data-testid={`toggle-status-${u.id}`}
                         >
-                          {u.status === "active" ? "Deactivate" : "Activate"}
+                          {u.status === "active" ? "Deactivate" : "Reactivate"}
                         </Button>
                       </TableCell>
                     </TableRow>

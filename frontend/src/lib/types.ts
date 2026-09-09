@@ -11,10 +11,11 @@ export interface User {
   role: Role;
   organization_id: string;
   phone: string;
-  status: "active" | "inactive";
+  status: "active" | "inactive" | "archived";
   coach_id: string | null;
   cohort_id: string | null;
   last_login: string | null;
+  archived_at: string | null;
 }
 
 export interface Organization {
@@ -134,6 +135,37 @@ export interface ResumeCreate {
   education_json: Record<string, string>[];
   skills_json: string[];
   target_role: string;
+  include_cover_letter?: boolean;
+}
+
+export interface ResumeUpdate {
+  generated_markdown?: string;
+  cover_letter_markdown?: string;
+}
+
+export type UsageKind = "interviews" | "resumes" | "cover_letters" | "job_logs";
+
+export interface UsageMetric {
+  kind: UsageKind;
+  used: number;
+  limit: number;
+  base_limit: number;
+  granted_extra: number;
+  remaining: number;
+}
+
+export interface UsageSummary {
+  participant_id: string;
+  month: string;
+  interviews: UsageMetric;
+  resumes: UsageMetric;
+  cover_letters: UsageMetric;
+  job_logs: UsageMetric;
+}
+
+export interface GrantRequest {
+  kind: UsageKind;
+  amount: number;
 }
 
 export interface TranscriptTurn {
@@ -209,6 +241,7 @@ export interface ParticipantDashboard {
   pbas_target: number;
   certificates: number;
   latest_interview_score: number | null;
+  usage: UsageSummary;
 }
 
 export interface RosterRow {
@@ -232,6 +265,7 @@ export interface CoachParticipantDetail {
   notes: CaseNote[];
   certificates: Certificate[];
   pbas_points: number;
+  usage: UsageSummary;
 }
 
 export interface NameCount {
@@ -250,4 +284,10 @@ export interface AdminOverview {
   users: User[];
   cohorts: Cohort[];
   coaches: User[];
+  participant_seats_used: number;
+  participant_seat_limit: number;
+  coach_seats_used: number;
+  coach_seat_limit: number;
+  archived_participants: number;
+  logo_max_bytes: number;
 }
