@@ -102,7 +102,7 @@ export default function Login() {
 
           <h2 className="font-heading text-3xl font-bold tracking-tight">Sign in</h2>
           <p className="text-muted-foreground mt-2" data-testid="login-subheading">
-            Sign in with your registered email address.
+            Sign in to access your account.
           </p>
 
           <form
