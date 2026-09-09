@@ -21,6 +21,11 @@ export function endSession(qc: QueryClient) {
   qc.clear();
 }
 
+/** Drop a stale/invalid session without needing the query client (used by session validation). */
+export function endSessionRaw() {
+  localStorage.removeItem(KEY);
+}
+
 export function homePathFor(role: User["role"]): string {
   if (role === "coach") return "/coach";
   if (role === "admin") return "/admin";

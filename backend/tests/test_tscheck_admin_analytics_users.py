@@ -18,7 +18,7 @@ def test_admin_overview_kpis(client):
 
 def test_invite_new_user_added(client):
     suffix = uuid.uuid4().hex[:8]
-    email = f"tscheck-invite-{suffix}@demo.au"
+    email = f"tscheck-invite-{suffix}@hves.com.au"
     resp = client.post(
         f"/admin/{ADMIN_ID}/users",
         json={"name": f"tscheck-user-{suffix}", "email": email, "role": "participant"},
@@ -32,7 +32,7 @@ def test_invite_new_user_added(client):
 def test_invite_duplicate_email_rejected(client):
     resp = client.post(
         f"/admin/{ADMIN_ID}/users",
-        json={"name": "Duplicate Sarah", "email": "sarah@demo.au", "role": "participant"},
+        json={"name": "Duplicate Sarah", "email": "sarah@hves.com.au", "role": "participant"},
     )
     assert resp.status_code >= 400, (
         f"expected duplicate email to be rejected, got {resp.status_code}: {resp.text}"
@@ -41,7 +41,7 @@ def test_invite_duplicate_email_rejected(client):
 
 def test_deactivate_user_flips_status(client):
     suffix = uuid.uuid4().hex[:8]
-    email = f"tscheck-deactivate-{suffix}@demo.au"
+    email = f"tscheck-deactivate-{suffix}@hves.com.au"
     created = client.post(
         f"/admin/{ADMIN_ID}/users",
         json={"name": f"tscheck-deact-{suffix}", "email": email, "role": "participant"},

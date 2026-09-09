@@ -14,7 +14,7 @@ def _create_fresh_participant(client):
     suffix = uuid.uuid4().hex[:8]
     payload = {
         "name": f"tscheck-interview-user-{suffix}",
-        "email": f"tscheck-interview-{suffix}@demo.au",
+        "email": f"tscheck-interview-{suffix}@hves.com.au",
         "role": "participant",
     }
     resp = client.post(f"/admin/{ADMIN_ID}/users", json=payload)

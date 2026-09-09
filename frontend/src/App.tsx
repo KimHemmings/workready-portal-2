@@ -14,6 +14,7 @@ import CoachDashboard from "@/pages/CoachDashboard";
 import CoachParticipant from "@/pages/CoachParticipant";
 import AdminDashboard from "@/pages/AdminDashboard";
 import { getSessionUser, homePathFor } from "@/lib/session";
+import { useSessionValidation } from "@/lib/useSessionValidation";
 import type { Role } from "@/lib/types";
 
 function Protected({ roles, children }: { roles: Role[]; children: React.ReactNode }) {
@@ -23,16 +24,24 @@ function Protected({ roles, children }: { roles: Role[]; children: React.ReactNo
   return <>{children}</>;
 }
 
-function RootRedirect() {
-  const user = getSessionUser();
-  return <Navigate to={user ? homePathFor(user.role) : "/login"} replace />;
-}
-
 export default function App() {
+  // Any stored session is checked against the backend before a protected route can render, so a
+  // leftover session never auto-signs anyone in on page load.
+  const sessionChecked = useSessionValidation();
+
+  if (!sessionChecked) {
+    return (
+      <div className="min-h-screen grid place-items-center bg-muted/30" data-testid="session-loading">
+        <p className="text-sm text-muted-foreground">Loading…</p>
+      </div>
+    );
+  }
+
   return (
     <>
       <Routes>
-        <Route path="/" element={<RootRedirect />} />
+        {/* Root and /login always render the B2B sign-in form — no demo overlays, no auto-login. */}
+        <Route path="/" element={<Login />} />
         <Route path="/login" element={<Login />} />
         <Route path="/signup" element={<Signup />} />
         <Route path="/privacy" element={<LegalPage />} />
@@ -122,7 +131,7 @@ export default function App() {
           }
         />
 
-        <Route path="*" element={<RootRedirect />} />
+        <Route path="*" element={<Navigate to="/login" replace />} />
       </Routes>
       <Toaster position="bottom-right" richColors />
     </>

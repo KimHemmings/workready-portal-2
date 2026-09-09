@@ -436,11 +436,11 @@ QUIZZES = {
 }
 
 EXTRA_PARTICIPANTS = [
-    ("Jayden Nguyen", "jayden@demo.au", 3, 8),
-    ("Amira Haddad", "amira@demo.au", 2, 5),
-    ("Tyrone Walker", "tyrone@demo.au", 0, 1),
-    ("Chloe Marsden", "chloe@demo.au", 5, 14),
-    ("Rangi Patel", "rangi@demo.au", 1, 3),
+    ("Jayden Nguyen", "jayden@hves.com.au", 3, 8),
+    ("Amira Haddad", "amira@hves.com.au", 2, 5),
+    ("Tyrone Walker", "tyrone@hves.com.au", 0, 1),
+    ("Chloe Marsden", "chloe@hves.com.au", 5, 14),
+    ("Rangi Patel", "rangi@hves.com.au", 1, 3),
 ]
 
 APPLICATION_TYPES = ["Online application", "In person", "Email application", "Phone enquiry", "Interview attended"]
@@ -495,7 +495,7 @@ async def main() -> None:
         User(
             id=ADMIN_ID,
             name="Eleanor Brooks",
-            email="eleanor@demo.au",
+            email="eleanor@hves.com.au",
             role="admin",
             organization_id=ORG_ID,
             phone="02 4900 1000",
@@ -503,7 +503,7 @@ async def main() -> None:
         User(
             id=COACH_ID,
             name="Marcus Vance",
-            email="marcus@demo.au",
+            email="marcus@hves.com.au",
             role="coach",
             organization_id=ORG_ID,
             phone="02 4900 1001",
@@ -511,7 +511,7 @@ async def main() -> None:
         User(
             id=PARTICIPANT_ID,
             name="Sarah Chen",
-            email="sarah@demo.au",
+            email="sarah@hves.com.au",
             role="participant",
             organization_id=ORG_ID,
             phone="0400 111 222",
@@ -641,9 +641,9 @@ async def main() -> None:
         await certificates.issue_for_interview(sarah, "Retail Team Member", 82)
 
     print("Seeded Straight Up Training.")
-    print("  Participant : sarah@demo.au")
-    print("  Case Manager: marcus@demo.au")
-    print("  Provider Admin: eleanor@demo.au")
+    print("  Participant : sarah@hves.com.au")
+    print("  Case Manager: marcus@hves.com.au")
+    print("  Provider Admin: eleanor@hves.com.au")
 
 
 if __name__ == "__main__":

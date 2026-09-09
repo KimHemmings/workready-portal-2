@@ -44,6 +44,20 @@ Provider logo lives in `frontend/src/lib/brand.ts` (`BRAND_LOGO`) — swap that 
 - **Admin**: KPIs, recharts module-engagement bar + cohort-completion pie, invite users,
   activate/deactivate accounts.
 
+## Demo-mode cleanup (final)
+There is no demo mode anywhere in the codebase — no `IS_DEMO_MODE` flag, `demoUsers` list, quick-login
+component or demo overlay exists (grep for `demo` returns only code comments and the words
+"mock interview"/"demonstrating").
+
+- `/` **and** `/login` both render `Login.tsx` only; `*` also falls back to `/login`. The old
+  `RootRedirect` that sent a stored session straight to a dashboard is gone — that auto-login was what
+  looked like "demo mode" on load.
+- `lib/useSessionValidation.ts` re-checks any stored session against `GET /api/users/{id}` before a
+  protected route renders and discards it if the account is missing, inactive or archived. App renders a
+  brief "Loading…" gate while that check runs.
+- Seeded accounts moved off the `@demo.au` domain to `@hves.com.au` (Hunter Valley Employment Services);
+  the old addresses no longer exist (login returns 401). Backend tests updated to match.
+
 ## Security & privacy hardening (final pass)
 - **Hard AI caps** are server-side only: `POST /api/interviews/start` and `POST /api/participants/{pid}/resumes`
   return **HTTP 402** with an "Upgrade Required — …" message once the account's 3-per-month allowance is
