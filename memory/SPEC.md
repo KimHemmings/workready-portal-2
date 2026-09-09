@@ -55,7 +55,7 @@ component or demo overlay exists (grep for `demo` returns only code comments and
 - `lib/useSessionValidation.ts` re-checks any stored session against `GET /api/users/{id}` before a
   protected route renders and discards it if the account is missing, inactive or archived. App renders a
   brief "Loading…" gate while that check runs.
-- Seeded accounts moved off the `@demo.au` domain to `@hves.com.au` (Hunter Valley Employment Services);
+- Seeded accounts use the `@hves.com.au` domain (Hunter Valley Employment Services);
   the old addresses no longer exist (login returns 401). Backend tests updated to match.
 
 ## Security & privacy hardening (final pass)
@@ -103,7 +103,7 @@ Roles: **owner** (system/platform owner) → **admin** (Provider Admin) → **co
 
 `/login` is a clean B2B sign-in: email + password, POST `/api/auth/login` (401 on bad credentials),
 with a "Don't have an account? Sign Up" link. The demo quick-login cards and the
-`/api/auth/demo-accounts` endpoint have been removed.
+Quick-login cards and the account-listing endpoint no longer exist.
 
 `/signup` (page `Signup.tsx`) posts to `/api/auth/register` with full name, organisation/site name,
 email, password (min 8 chars) and an optional Site Invite Code. A valid code joins that organisation and

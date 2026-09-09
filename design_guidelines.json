@@ -148,11 +148,11 @@
     }
   },
   "entry_surfaces": {
-    "/": "split hero with Australian employability branding — active role switcher + key outcomes left, seeded live demo cards (PBAS logger, AI Interviewer simulator preview) right",
-    "/login": "split authentication portal — Australian employability provider network graphic & tenant selector left, secure role-picker & credentials form right",
-    "/dashboard/participant": "modular command center — circular Core Skills progress ring + PBAS activation status banner top, 12-col Tetris bento (next module, AI simulator launch, recent job logs)",
-    "/dashboard/coach": "high-density case manager cockpit — participant roster table with search & PBAS point flags left/center, participant case-notes drawer and compliance export actions right",
-    "/dashboard/admin": "multi-tenant provider overview — tenant cohort health KPI cards top, Recharts completion analytics center, staff/participant RBAC directory bottom"
+    "/": "split hero with Australian employability branding \u2014 active role switcher + key outcomes left, seeded live demo cards (PBAS logger, AI Interviewer simulator preview) right",
+    "/login": "split authentication portal \u2014 Australian employability provider network graphic & tenant selector left, secure role-picker & credentials form right",
+    "/dashboard/participant": "modular command center \u2014 circular Core Skills progress ring + PBAS activation status banner top, 12-col Tetris bento (next module, AI simulator launch, recent job logs)",
+    "/dashboard/coach": "high-density case manager cockpit \u2014 participant roster table with search & PBAS point flags left/center, participant case-notes drawer and compliance export actions right",
+    "/dashboard/admin": "multi-tenant provider overview \u2014 tenant cohort health KPI cards top, Recharts completion analytics center, staff/participant RBAC directory bottom"
   },
   "image_urls": {
     "interview_simulator_avatar": {
@@ -217,7 +217,6 @@
   },
   "instructions_to_main_agent": [
     "Follow the Australian English terminology throughout: 'Jobseeker', 'Resume' (not CV), 'Case Manager', 'Mutual Obligation', 'Points-Based Activation System (PBAS)', 'Transition to Work (TtW)', 'Disability Employment Services (DES)'.",
-    "Implement the seeded instant demo role switcher at the top nav (Participant: Sarah Chen, Coach/Case Manager: Marcus Vance, Provider Admin: Eleanor Brooks) so any reviewer can immediately test all 3 views with 1 click.",
     "The AI Interview Simulator must feature multi-turn Australian industry interview questions (5 realistic questions: Retail, Hospitality, Warehousing, Admin, Entry Trades) with dynamic scoring against Australian Core Skills for Work (Communication, Problem Solving, Workplace Etiquette) and exportable PDF/Printable scorecard.",
     "The PBAS Job Search Logger must track points (e.g. 5 points per direct application, 10 points for interview attended, target 100 points/month) with evidence upload mock and confirmation badges.",
     "Include rich pre-seeded modules (Digital Literacy in the Workplace, Australian Workplace Rights & Safety, First Impressions & Behavioural Interviews, Written Communication for Job Search) with interactive MCQ quiz and certificate generator upon 80%+ pass.",
