@@ -27,6 +27,7 @@ import {
 } from "@/components/ui/select";
 import AppShell from "@/components/AppShell";
 import UsageMeter from "@/components/UsageMeter";
+import VoiceConsentDialog, { grantVoiceConsent, hasVoiceConsent } from "@/components/VoiceConsentDialog";
 import { apiGet, apiPost, ApiError } from "@/lib/api";
 import { getSessionUser } from "@/lib/session";
 import { useDictation } from "@/lib/speech";
@@ -125,6 +126,15 @@ export default function Interview() {
   const dictation = useDictation((chunk) =>
     setAnswer((prev) => (prev ? `${prev.replace(/\s+$/, "")} ${chunk}` : chunk)),
   );
+  const [consentOpen, setConsentOpen] = useState(false);
+
+  const startDictation = () => {
+    if (!dictation.start()) {
+      toast.error("Speech to text is not supported in this browser. Please type instead.");
+      return;
+    }
+    toast.success("Listening — speak your answer, then press the mic again to stop.");
+  };
 
   const interviewsLeft = usage.data?.interviews.remaining ?? 1;
 
@@ -439,11 +449,11 @@ export default function Interview() {
                           dictation.stop();
                           return;
                         }
-                        if (!dictation.start()) {
-                          toast.error("Speech to text is not supported in this browser. Please type instead.");
+                        if (!hasVoiceConsent()) {
+                          setConsentOpen(true);
                           return;
                         }
-                        toast.success("Listening — speak your answer, then press the mic again to stop.");
+                        startDictation();
                       }}
                       data-testid="dictate-answer-button"
                     >
@@ -534,6 +544,16 @@ export default function Interview() {
           </div>
         </div>
       )}
+
+      <VoiceConsentDialog
+        open={consentOpen}
+        onAllow={() => {
+          grantVoiceConsent();
+          setConsentOpen(false);
+          startDictation();
+        }}
+        onCancel={() => setConsentOpen(false)}
+      />
     </AppShell>
   );
 }

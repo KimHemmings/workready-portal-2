@@ -36,9 +36,30 @@ async def _coach(coach_id: str) -> User:
     return User(**doc)
 
 
-async def _roster_rows(coach_id: str) -> list[RosterRow]:
+async def _participant_in_tenant(coach: User, pid: str) -> dict:
+    """Load a jobseeker only if they sit inside the case manager's organisation.
+
+    Tenant isolation: a foreign jobseeker returns 404 rather than 403 so the record's existence
+    is not leaked across organisations.
+    """
+    doc = await db.users.find_one(
+        {"id": pid, "role": "participant", "organization_id": coach.organization_id}
+    )
+    if not doc:
+        raise HTTPException(status_code=404, detail="Jobseeker not found")
+    return doc
+
+
+async def _roster_rows(coach: User) -> list[RosterRow]:
     total_modules = await db.training_modules.count_documents({})
-    participants = await db.users.find({"coach_id": coach_id, "role": "participant"}).to_list(500)
+    # Every roster query is scoped to the case manager's organisation AND their own caseload.
+    participants = await db.users.find(
+        {
+            "coach_id": coach.id,
+            "role": "participant",
+            "organization_id": coach.organization_id,
+        }
+    ).to_list(500)
     rows: list[RosterRow] = []
     for p in participants:
         progress = await db.participant_progress.find({"participant_id": p["id"]}).to_list(500)
@@ -64,18 +85,16 @@ async def _roster_rows(coach_id: str) -> list[RosterRow]:
 
 @router.get("/{coach_id}/roster", response_model=list[RosterRow])
 async def roster(coach_id: str):
-    await _coach(coach_id)
-    # Data-retention sweep runs whenever a case manager opens their roster.
-    await limits.archive_inactive()
-    return await _roster_rows(coach_id)
+    coach = await _coach(coach_id)
+    # Data-retention sweep runs whenever a case manager opens their roster (own tenant only).
+    await limits.archive_inactive(coach.organization_id)
+    return await _roster_rows(coach)
 
 
 @router.get("/{coach_id}/participants/{pid}", response_model=CoachParticipantDetail)
 async def participant_detail(coach_id: str, pid: str):
-    await _coach(coach_id)
-    p = await db.users.find_one({"id": pid, "role": "participant"})
-    if not p:
-        raise HTTPException(status_code=404, detail="Jobseeker not found")
+    coach = await _coach(coach_id)
+    p = await _participant_in_tenant(coach, pid)
     total_modules = await db.training_modules.count_documents({})
     progress = await db.participant_progress.find({"participant_id": pid}).to_list(500)
     completed = len([x for x in progress if x.get("status") == "completed"])
@@ -103,9 +122,8 @@ async def participant_detail(coach_id: str, pid: str):
 @router.post("/{coach_id}/participants/{pid}/grant-ai", response_model=UsageSummary)
 async def grant_ai(coach_id: str, pid: str, body: GrantRequest):
     """Case manager override: top up a jobseeker's monthly AI/activity allowance."""
-    await _coach(coach_id)
-    if not await db.users.find_one({"id": pid, "role": "participant"}):
-        raise HTTPException(status_code=404, detail="Jobseeker not found")
+    coach = await _coach(coach_id)
+    await _participant_in_tenant(coach, pid)
     if body.amount < 1 or body.amount > 10:
         raise HTTPException(status_code=400, detail="Grant between 1 and 10 extra sessions")
     return await limits.grant_extra(pid, body.kind, body.amount)
@@ -114,6 +132,7 @@ async def grant_ai(coach_id: str, pid: str, body: GrantRequest):
 @router.post("/{coach_id}/participants/{pid}/notes", response_model=CaseNote)
 async def add_note(coach_id: str, pid: str, body: CaseNoteCreate):
     coach = await _coach(coach_id)
+    await _participant_in_tenant(coach, pid)
     if not body.body.strip():
         raise HTTPException(status_code=400, detail="Note cannot be empty")
     note = CaseNote(participant_id=pid, coach_id=coach_id, coach_name=coach.name, body=body.body.strip())
@@ -121,10 +140,13 @@ async def add_note(coach_id: str, pid: str, body: CaseNoteCreate):
     return note
 
 
-async def _report_rows(coach_id: str) -> list[list[str]]:
-    """Full cohort compliance summary: progress, per-module quiz scores and job search counts."""
+async def _report_rows(coach: User) -> list[list[str]]:
+    """Full cohort compliance summary, scoped to the case manager's organisation."""
     modules = await db.training_modules.find().sort("order", 1).to_list(200)
-    cohorts = {c["id"]: c["name"] for c in await db.cohorts.find().to_list(100)}
+    cohorts = {
+        c["id"]: c["name"]
+        for c in await db.cohorts.find({"organization_id": coach.organization_id}).to_list(100)
+    }
 
     header = [
         "Jobseeker",
@@ -141,7 +163,7 @@ async def _report_rows(coach_id: str) -> list[list[str]]:
     ] + [f"Quiz: {m['title']}" for m in modules]
     rows = [header]
 
-    for r in await _roster_rows(coach_id):
+    for r in await _roster_rows(coach):
         pid = r.participant.id
         progress = await db.participant_progress.find({"participant_id": pid}).to_list(500)
         by_module = {p["module_id"]: p for p in progress}
@@ -174,25 +196,30 @@ async def _report_rows(coach_id: str) -> list[list[str]]:
 
 @router.get("/{coach_id}/export.csv")
 async def export_csv(coach_id: str):
-    await _coach(coach_id)
+    coach = await _coach(coach_id)
     buf = io.StringIO()
-    csv.writer(buf).writerows(await _report_rows(coach_id))
+    csv.writer(buf).writerows(await _report_rows(coach))
     return Response(
         content=buf.getvalue(),
         media_type="text/csv",
-        headers={"Content-Disposition": 'attachment; filename="workready-cohort-summary.csv"'},
+        headers={"Content-Disposition": 'attachment; filename="cohort-summary.csv"'},
     )
 
 
 @router.get("/{coach_id}/export.pdf")
 async def export_pdf(coach_id: str):
     coach = await _coach(coach_id)
-    rows = await _report_rows(coach_id)
-    lines = [f"Case Manager: {coach.name}", ""]
+    rows = await _report_rows(coach)
+    org = await db.organizations.find_one({"id": coach.organization_id}) or {}
+    lines = [
+        f"Organisation: {org.get('name', 'Straight Up Training')}",
+        f"Case Manager: {coach.name}",
+        "",
+    ]
     for row in rows:
         lines.append(" | ".join(row))
     return Response(
         content=simple_pdf("Straight Up Training - Compliance Report", lines),
         media_type="application/pdf",
-        headers={"Content-Disposition": 'attachment; filename="workready-compliance.pdf"'},
+        headers={"Content-Disposition": 'attachment; filename="compliance-report.pdf"'},
     )

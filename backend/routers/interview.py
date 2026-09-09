@@ -28,10 +28,10 @@ async def start(body: InterviewStart):
     usage = await limits.usage_summary(body.participant_id)
     if usage.interviews.remaining <= 0:
         raise HTTPException(
-            status_code=429,
+            status_code=402,
             detail=(
-                f"You have completed all {usage.interviews.limit} practice interviews for this month. "
-                "Your case manager can grant an extra session."
+                f"Upgrade Required — you have used all {usage.interviews.limit} AI practice interviews "
+                "for this month. Your case manager can grant an extra session, or upgrade your site plan."
             ),
         )
     questions = await ai.generate_questions(body.job_target, body.industry, body.mode)

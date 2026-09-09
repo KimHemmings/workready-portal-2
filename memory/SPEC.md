@@ -44,6 +44,21 @@ Provider logo lives in `frontend/src/lib/brand.ts` (`BRAND_LOGO`) — swap that 
 - **Admin**: KPIs, recharts module-engagement bar + cohort-completion pie, invite users,
   activate/deactivate accounts.
 
+## Security & privacy hardening (final pass)
+- **Hard AI caps** are server-side only: `POST /api/interviews/start` and `POST /api/participants/{pid}/resumes`
+  return **HTTP 402** with an "Upgrade Required — …" message once the account's 3-per-month allowance is
+  spent (a case manager grant or plan upgrade clears it). Job search entries stay at 429/20 per month.
+- **Voice consent**: `components/VoiceConsentDialog.tsx` gates the microphone — the first mic press opens
+  "Allow voice recording for AI feedback" and dictation only starts after Allow; the choice is remembered in
+  localStorage (`workready.voiceConsent`). Declining leaves the mic idle and typing always works.
+- **Legal placeholders**: `/privacy` and `/terms` (`pages/LegalPage.tsx`) linked from the login page footer.
+- **Tenant isolation (coach surfaces)**: `_roster_rows` filters on `{coach_id, role, organization_id}`,
+  `_participant_in_tenant()` guards participant detail / case notes / AI grants (foreign jobseeker → **404**,
+  never 403, so existence isn't leaked), the CSV/PDF exports run through the same scoped roster, cohort names
+  resolve only within the caller's organisation, and the retention sweep is scoped to the caller's org.
+  Verified with a second seeded organisation: cross-tenant reads/writes 404, each export contains only its
+  own jobseekers.
+
 ## Authentication (real email + password — no demo mode)
 `/login` is a clean B2B sign-in: email + password, POST `/api/auth/login` (401 on bad credentials),
 with a "Don't have an account? Sign Up" link. The demo quick-login cards and the

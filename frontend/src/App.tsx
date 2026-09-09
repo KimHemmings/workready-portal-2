@@ -2,6 +2,7 @@ import { Navigate, Route, Routes } from "react-router-dom";
 import { Toaster } from "@/components/ui/sonner";
 import Login from "@/pages/Login";
 import Signup from "@/pages/Signup";
+import LegalPage from "@/pages/LegalPage";
 import ParticipantHome from "@/pages/ParticipantHome";
 import Learning from "@/pages/Learning";
 import ModuleDetail from "@/pages/ModuleDetail";
@@ -34,6 +35,8 @@ export default function App() {
         <Route path="/" element={<RootRedirect />} />
         <Route path="/login" element={<Login />} />
         <Route path="/signup" element={<Signup />} />
+        <Route path="/privacy" element={<LegalPage />} />
+        <Route path="/terms" element={<LegalPage />} />
 
         <Route
           path="/participant"

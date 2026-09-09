@@ -156,6 +156,29 @@ export default function Login() {
               Sign Up
             </Link>
           </p>
+
+          <footer
+            className="mt-10 flex flex-wrap items-center justify-center gap-x-4 gap-y-1 text-xs text-muted-foreground"
+            data-testid="login-footer"
+          >
+            <Link
+              to="/privacy"
+              className="hover:text-foreground underline-offset-4 hover:underline"
+              data-testid="privacy-policy-link"
+            >
+              Privacy Policy
+            </Link>
+            <span aria-hidden="true">·</span>
+            <Link
+              to="/terms"
+              className="hover:text-foreground underline-offset-4 hover:underline"
+              data-testid="terms-of-use-link"
+            >
+              Terms of Use
+            </Link>
+            <span aria-hidden="true">·</span>
+            <span>© {new Date().getFullYear()} Straight Up Training</span>
+          </footer>
         </div>
       </div>
     </div>

@@ -229,10 +229,11 @@ async def create_resume(pid: str, body: ResumeCreate):
     usage_now = await limits.usage_summary(pid)
     if usage_now.resumes.remaining <= 0:
         raise HTTPException(
-            status_code=429,
+            status_code=402,
             detail=(
-                f"You have used all {usage_now.resumes.limit} AI resume generations this month. "
-                "Your saved resumes can still be edited and downloaded, or ask your case manager for an extra session."
+                f"Upgrade Required — you have used all {usage_now.resumes.limit} AI resume generations "
+                "for this month. Saved resumes can still be edited and downloaded free of charge; ask "
+                "your case manager for an extra session or upgrade your site plan."
             ),
         )
     want_cover = body.include_cover_letter and usage_now.cover_letters.remaining > 0
