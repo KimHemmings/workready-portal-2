@@ -62,6 +62,14 @@ and downloaded unlimited times as vector PDFs (`frontend/src/lib/docPdf.ts`).
 Voice input: `frontend/src/lib/speech.ts` wraps `webkitSpeechRecognition` (en-AU, interim results) and
 the "Speak answer" mic button in the interview appends recognised phrases into the answer box for editing.
 
+## Certificate modal preview (audit fixes)
+The on-screen artwork is authored at a fixed 1000px width and scaled with a ResizeObserver-driven
+`transform: scale()` inside an `aspect-[1.414/1]` frame. The dialog is rendered through
+`createPortal(..., document.body)` — inside the page tree an animated (transformed) ancestor became the
+containing block for `position: fixed` and clipped the modal. Certificates are also re-hydrated with the
+organisation's *current* name/logo on read (`lib/certificates.hydrate`), so a logo uploaded after a
+certificate was issued still appears on its PDF.
+
 ## Certificate modal preview (audit fix, this session)
 The on-screen artwork is authored at a fixed 1000px width and scaled down with a ResizeObserver-driven
 `transform: scale()` inside an `aspect-[1.414/1]` frame, so the preview fits desktop, tablet and mobile

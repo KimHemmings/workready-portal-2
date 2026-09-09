@@ -188,7 +188,7 @@ async def submit_quiz(pid: str, module_id: str, body: QuizSubmission):
 @router.get("/{pid}/certificates", response_model=list[Certificate])
 async def list_certificates(pid: str):
     docs = await db.certificates.find({"participant_id": pid}).sort("issued_at", -1).to_list(100)
-    return [Certificate(**d) for d in docs]
+    return await certificates.hydrate(docs)
 
 
 @router.get("/{pid}/job-logs", response_model=list[JobSearchLog])

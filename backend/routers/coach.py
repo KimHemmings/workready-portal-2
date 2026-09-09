@@ -5,6 +5,7 @@ from fastapi import APIRouter, HTTPException
 from fastapi.responses import Response
 
 from lib.db import db
+from lib import certificates as certs_lib
 from lib import limits
 from lib.pdf import simple_pdf
 from models.schemas import (
@@ -93,7 +94,7 @@ async def participant_detail(coach_id: str, pid: str):
         resumes=[Resume(**x) for x in resumes],
         interviews=[InterviewSession(**x) for x in interviews],
         notes=[CaseNote(**x) for x in notes],
-        certificates=[Certificate(**x) for x in certs],
+        certificates=await certs_lib.hydrate(certs),
         pbas_points=sum(int(log.get("points", 5)) for log in logs),
         usage=await limits.usage_summary(pid),
     )

@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { Award, Download, X } from "lucide-react";
 import jsPDF from "jspdf";
 import { toast } from "sonner";
@@ -396,7 +397,7 @@ export default function CertificateModal({ certificate, open, onClose, logo }: P
     }
   };
 
-  return (
+  return createPortal(
     <div
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4 overflow-y-auto"
       role="dialog"
@@ -410,12 +411,12 @@ export default function CertificateModal({ certificate, open, onClose, logo }: P
         style={{ maxWidth: "min(1024px, calc((100vh - 170px) * 1.414))" }}
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="flex items-center justify-between gap-3 mb-3">
-          <p className="text-white font-heading text-lg font-semibold flex items-center gap-2">
-            <Award className="h-5 w-5 text-[color:var(--cta)]" aria-hidden="true" />
-            {certificate.title}
+        <div className="flex flex-wrap items-center justify-between gap-2 mb-3">
+          <p className="text-white font-heading text-base sm:text-lg font-semibold flex items-center gap-2 min-w-0">
+            <Award className="h-5 w-5 shrink-0 text-[color:var(--cta)]" aria-hidden="true" />
+            <span className="truncate">{certificate.title}</span>
           </p>
-          <div className="flex gap-2">
+          <div className="flex gap-2 shrink-0">
             <Button
               onClick={handleDownload}
               disabled={busy}
@@ -456,6 +457,7 @@ export default function CertificateModal({ certificate, open, onClose, logo }: P
           Scaled preview — download the print-ready A4 landscape PDF for the full-resolution certificate.
         </p>
       </div>
-    </div>
+    </div>,
+    document.body,
   );
 }

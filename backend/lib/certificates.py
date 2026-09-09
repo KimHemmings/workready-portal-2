@@ -26,6 +26,29 @@ async def _next_certificate_id() -> str:
     return f"CERT-{year}-{random.randint(10000, 99999)}"
 
 
+async def hydrate(docs: list[dict]) -> list[Certificate]:
+    """Refresh each certificate's org name/logo from the organisation record.
+
+    Certificates snapshot branding at issue time, so a logo uploaded later would not appear on an
+    older certificate's PDF. Reading through this helper keeps every download on the current logo.
+    """
+    cache: dict[str, dict] = {}
+    out: list[Certificate] = []
+    for doc in docs:
+        org_id = doc.get("organization_id") or ""
+        if org_id and org_id not in cache:
+            cache[org_id] = await db.organizations.find_one({"id": org_id}) or {}
+        org = cache.get(org_id, {})
+        if org:
+            doc = {
+                **doc,
+                "organization_name": org.get("name", doc.get("organization_name", "")),
+                "organization_logo": org.get("branding_logo", "") or "",
+            }
+        out.append(Certificate(**doc))
+    return out
+
+
 async def _issue(
     participant: dict,
     kind: str,
