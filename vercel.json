@@ -2,10 +2,7 @@
   "builds": [
     {
       "src": "backend/server.py",
-      "use": "@vercel/python",
-      "config": {
-        "includeFiles": "backend/requirements.txt"
-      }
+      "use": "@vercel/python"
     }
   ],
   "routes": [
