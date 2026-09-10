@@ -1,0 +1,9 @@
+[project]
+name = "workready-backend"
+version = "0.1.0"
+dependencies = [
+    "fastapi"
+]
+
+[tool.vercel]
+entrypoint = "main:app"
