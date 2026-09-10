@@ -15,6 +15,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import AppShell from "@/components/AppShell";
+import SendInviteButton from "@/components/SendInviteButton";
 import { InviteLinkDialog } from "@/components/InviteLinkDialog";
 import { apiGet, apiPatch, apiPost, ApiError } from "@/lib/api";
 import { getSessionUser } from "@/lib/session";
@@ -106,7 +107,7 @@ export default function OwnerDashboard() {
         {[
           { label: "Providers", value: d?.total_providers ?? 0, testId: "kpi-providers" },
           { label: "Case Managers", value: d?.total_coaches ?? 0, testId: "kpi-total-coaches" },
-          { label: "Jobseekers", value: d?.total_participants ?? 0, testId: "kpi-total-participants" },
+          { label: "Learners", value: d?.total_participants ?? 0, testId: "kpi-total-participants" },
         ].map((kpi) => (
           <Card key={kpi.label}>
             <CardContent className="pt-6">
@@ -195,7 +196,7 @@ export default function OwnerDashboard() {
                   />
                 </div>
                 <div className="space-y-1.5">
-                  <Label htmlFor="provider-participant-seats">Jobseeker seats</Label>
+                  <Label htmlFor="provider-participant-seats">Learner seats</Label>
                   <Input
                     id="provider-participant-seats"
                     type="number"
@@ -253,7 +254,7 @@ export default function OwnerDashboard() {
                           Case Managers {row.coach_seats_used}/{row.organization.coach_seat_limit}
                         </Badge>
                         <Badge variant="secondary" data-testid={`provider-participant-usage-${row.organization.id}`}>
-                          Jobseekers {row.participant_seats_used}/{row.organization.participant_seat_limit}
+                          Learners {row.participant_seats_used}/{row.organization.participant_seat_limit}
                         </Badge>
                       </div>
                     </div>
@@ -280,7 +281,7 @@ export default function OwnerDashboard() {
                       </div>
                       <div className="space-y-1.5">
                         <Label htmlFor={`participant-seats-${row.organization.id}`} className="text-xs">
-                          Jobseeker seats
+                          Learner seats
                         </Label>
                         <Input
                           id={`participant-seats-${row.organization.id}`}
@@ -336,6 +337,12 @@ export default function OwnerDashboard() {
                               >
                                 <LinkIcon className="h-4 w-4 mr-1.5" aria-hidden="true" /> Invite link
                               </Button>
+                              <SendInviteButton
+                                inviterId={user!.id}
+                                userId={a.id}
+                                userName={a.name}
+                                testId={`owner-send-invite-${a.id}`}
+                              />
                             </div>
                           </div>
                         ))

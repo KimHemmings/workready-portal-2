@@ -15,6 +15,7 @@ import CoachDashboard from "@/pages/CoachDashboard";
 import CoachParticipant from "@/pages/CoachParticipant";
 import AdminDashboard from "@/pages/AdminDashboard";
 import OwnerDashboard from "@/pages/OwnerDashboard";
+import Evidence from "@/pages/Evidence";
 import { getSessionUser, homePathFor } from "@/lib/session";
 import { useSessionValidation } from "@/lib/useSessionValidation";
 import type { Role } from "@/lib/types";
@@ -64,6 +65,8 @@ export default function App() {
         />
         <Route path="/privacy" element={<LegalPage />} />
         <Route path="/terms" element={<LegalPage />} />
+        {/* The onboarding email's /#/accept-invite link lands here; the token form lives on /register. */}
+        <Route path="/accept-invite" element={<Navigate to="/register" replace />} />
 
         <Route
           path="/participant"
@@ -154,6 +157,15 @@ export default function App() {
           element={
             <Protected roles={["owner"]}>
               <OwnerDashboard />
+            </Protected>
+          }
+        />
+
+        <Route
+          path="/evidence"
+          element={
+            <Protected roles={["coach", "admin", "owner"]}>
+              <Evidence />
             </Protected>
           }
         />

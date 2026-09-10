@@ -214,6 +214,14 @@ class JobSearchLog(BaseModel):
     application_date: str
     application_type: str
     evidence_filename: str = ""
+    # Proof file stored inline in Mongo as base64 (capped at EVIDENCE_MAX_BYTES on upload).
+    evidence_data: str = ""
+    evidence_mime: str = ""
+    evidence_size: int = 0
+    review_status: Literal["pending", "approved", "flagged"] = "pending"
+    review_note: str = ""
+    reviewed_by: str = ""
+    reviewed_at: datetime | None = None
     notes: str = ""
     status: Literal["submitted", "verified"] = "submitted"
     points: int = 5
@@ -226,6 +234,9 @@ class JobSearchLogCreate(BaseModel):
     application_date: str
     application_type: str
     evidence_filename: str = ""
+    # Optional proof file supplied at creation time: base64 payload + its mime type.
+    evidence_data: str = ""
+    evidence_mime: str = ""
     notes: str = ""
 
 
@@ -424,3 +435,55 @@ class AdminOverview(BaseModel):
     coach_seat_limit: int = 5
     archived_participants: int = 0
     logo_max_bytes: int = 2097152
+
+
+# ---------------------------------------------------------------------------
+# Job Search Evidence review
+# ---------------------------------------------------------------------------
+class EvidenceUpload(BaseModel):
+    """Attach (or replace) the proof file on an existing job search log."""
+
+    evidence_filename: str
+    evidence_data: str
+    evidence_mime: str = ""
+
+
+class EvidenceReview(BaseModel):
+    review_status: Literal["approved", "flagged"]
+    review_note: str = ""
+
+
+class EvidenceRow(BaseModel):
+    log: JobSearchLog
+    learner_id: str
+    learner_name: str
+    learner_email: str
+    organization_name: str
+    has_file: bool
+
+
+class EvidenceSummary(BaseModel):
+    rows: list[EvidenceRow]
+    pending: int
+    approved: int
+    flagged: int
+    with_file: int
+
+
+# ---------------------------------------------------------------------------
+# Invite emails and role switching
+# ---------------------------------------------------------------------------
+class InviteEmailResult(BaseModel):
+    status: Literal["sent", "unavailable", "failed"]
+    detail: str
+    recipient: str
+    subject: str
+    body: str
+    invite_url: str
+    mailto_url: str
+
+
+class RoleSwitchTarget(BaseModel):
+    role: Role
+    label: str
+    user: User

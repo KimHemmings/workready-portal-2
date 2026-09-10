@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { CheckCircle2, Paperclip, Plus } from "lucide-react";
+import { CheckCircle2, Flag, Paperclip, Plus, Upload } from "lucide-react";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -48,6 +48,9 @@ export default function JobLogs() {
   const [date, setDate] = useState(today);
   const [type, setType] = useState("Online application");
   const [evidence, setEvidence] = useState("");
+  const [fileData, setFileData] = useState("");
+  const [fileMime, setFileMime] = useState("");
+  const [fileSize, setFileSize] = useState(0);
   const [notes, setNotes] = useState("");
 
   const logs = useQuery({
@@ -70,6 +73,8 @@ export default function JobLogs() {
         application_date: date,
         application_type: type,
         evidence_filename: evidence,
+        evidence_data: fileData,
+        evidence_mime: fileMime,
         notes,
       }),
     onSuccess: (data) => {
@@ -79,6 +84,9 @@ export default function JobLogs() {
       setEmployer("");
       setPosition("");
       setEvidence("");
+      setFileData("");
+      setFileMime("");
+      setFileSize(0);
       setNotes("");
       toast.success(`Activity logged — ${data.points} PBAS points added.`);
     },
@@ -152,7 +160,41 @@ export default function JobLogs() {
                 </Select>
               </div>
               <div className="space-y-1.5">
-                <Label htmlFor="evidence">Proof / evidence file name</Label>
+                <Label htmlFor="evidence-file">Proof / evidence file</Label>
+                <Input
+                  id="evidence-file"
+                  type="file"
+                  accept=".pdf,.png,.jpg,.jpeg,.webp,.heic,.txt,.doc,.docx"
+                  onChange={(e) => {
+                    const file = e.target.files?.[0];
+                    if (!file) return;
+                    if (file.size > 5 * 1024 * 1024) {
+                      toast.error("Files must be 5MB or smaller.");
+                      e.target.value = "";
+                      return;
+                    }
+                    const reader = new FileReader();
+                    reader.onload = () => {
+                      const result = String(reader.result);
+                      // Store the bare base64 payload; the data-URL prefix is stripped.
+                      setFileData(result.includes(",") ? result.split(",")[1] : result);
+                      setFileMime(file.type || "application/octet-stream");
+                      setFileSize(file.size);
+                      setEvidence(file.name);
+                      toast.success(`${file.name} attached.`);
+                    };
+                    reader.onerror = () => toast.error("Could not read that file.");
+                    reader.readAsDataURL(file);
+                  }}
+                  data-testid="pbas-evidence-file-input"
+                />
+                <p className="text-xs text-muted-foreground flex items-center gap-1">
+                  <Upload className="h-3 w-3" aria-hidden="true" /> PDF, screenshot or receipt, up
+                  to 5MB. Your case manager can download and approve it.
+                </p>
+              </div>
+              <div className="space-y-1.5">
+                <Label htmlFor="evidence">Evidence file name</Label>
                 <Input
                   id="evidence"
                   value={evidence}
@@ -161,8 +203,10 @@ export default function JobLogs() {
                   data-testid="pbas-evidence-input"
                 />
                 <p className="text-xs text-muted-foreground flex items-center gap-1">
-                  <Paperclip className="h-3 w-3" aria-hidden="true" /> Record the file name of your
-                  confirmation email or screenshot.
+                  <Paperclip className="h-3 w-3" aria-hidden="true" />
+                  {fileData
+                    ? `Attached (${Math.max(1, Math.round(fileSize / 1024))} KB)`
+                    : "Filled in automatically when you attach a file."}
                 </p>
               </div>
               <div className="space-y-1.5">
@@ -202,8 +246,9 @@ export default function JobLogs() {
                     <TableHead>Date</TableHead>
                     <TableHead>Employer</TableHead>
                     <TableHead>Method</TableHead>
+                    <TableHead>Proof</TableHead>
                     <TableHead className="text-right">Points</TableHead>
-                    <TableHead>Status</TableHead>
+                    <TableHead>Review</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -215,15 +260,51 @@ export default function JobLogs() {
                         <p className="text-xs text-muted-foreground">{log.position_title}</p>
                       </TableCell>
                       <TableCell className="text-sm">{log.application_type}</TableCell>
+                      <TableCell className="text-sm">
+                        {log.evidence_size > 0 ? (
+                          <span
+                            className="flex items-center gap-1.5"
+                            data-testid={`job-log-file-${log.id}`}
+                          >
+                            <Paperclip className="h-3.5 w-3.5 text-primary" aria-hidden="true" />
+                            <span className="max-w-[8rem] truncate">{log.evidence_filename}</span>
+                          </span>
+                        ) : (
+                          <span className="text-muted-foreground text-xs">
+                            {log.evidence_filename || "No file"}
+                          </span>
+                        )}
+                      </TableCell>
                       <TableCell className="text-right tabular-nums">{log.points}</TableCell>
                       <TableCell>
                         <Badge
-                          className={log.status === "verified" ? "bg-success text-success-foreground gap-1" : "gap-1"}
-                          variant={log.status === "verified" ? "default" : "secondary"}
+                          className={
+                            log.review_status === "approved"
+                              ? "bg-success text-success-foreground gap-1"
+                              : log.review_status === "flagged"
+                                ? "bg-destructive text-destructive-foreground gap-1"
+                                : "gap-1"
+                          }
+                          variant={log.review_status === "pending" ? "secondary" : "default"}
+                          data-testid={`job-log-review-${log.id}`}
                         >
-                          {log.status === "verified" && <CheckCircle2 className="h-3 w-3" aria-hidden="true" />}
-                          {log.status}
+                          {log.review_status === "approved" && (
+                            <CheckCircle2 className="h-3 w-3" aria-hidden="true" />
+                          )}
+                          {log.review_status === "flagged" && (
+                            <Flag className="h-3 w-3" aria-hidden="true" />
+                          )}
+                          {log.review_status === "approved"
+                            ? "Approved"
+                            : log.review_status === "flagged"
+                              ? "Flagged"
+                              : "Awaiting review"}
                         </Badge>
+                        {log.review_note && (
+                          <p className="text-xs text-muted-foreground mt-1 max-w-[14rem]">
+                            {log.review_note}
+                          </p>
+                        )}
                       </TableCell>
                     </TableRow>
                   ))}

@@ -7,6 +7,7 @@ import {
   Building2,
   ClipboardList,
   FileText,
+  FolderOpen,
   LayoutDashboard,
   LogOut,
   MessagesSquare,
@@ -14,7 +15,10 @@ import {
 } from "lucide-react";
 import { BRAND_LOGO } from "@/lib/brand";
 import { Button } from "@/components/ui/button";
-import { endSession, getSessionUser } from "@/lib/session";
+import LegalFooter from "@/components/LegalFooter";
+import RoleSwitcher from "@/components/RoleSwitcher";
+import { endSession, getImpersonator, getSessionUser } from "@/lib/session";
+import { ROLE_LABEL } from "@/lib/roles";
 import type { User } from "@/lib/types";
 
 type NavItem = { to: string; label: string; icon: React.ComponentType<{ className?: string }> };
@@ -29,15 +33,18 @@ const NAV: Record<User["role"], NavItem[]> = {
     { to: "/participant/certificates", label: "Certificates", icon: Award },
   ],
   coach: [
-    { to: "/coach", label: "Jobseeker Roster", icon: Users },
+    { to: "/coach", label: "Learner Roster", icon: Users },
+    { to: "/evidence", label: "Job Search Evidence", icon: FolderOpen },
     { to: "/participant/learning", label: "Learning Centre", icon: BookOpen },
   ],
   admin: [
     { to: "/admin", label: "Provider Analytics", icon: BarChart3 },
-    { to: "/coach", label: "Jobseeker Roster", icon: Users },
+    { to: "/coach", label: "Learner Roster", icon: Users },
+    { to: "/evidence", label: "Job Search Evidence", icon: FolderOpen },
   ],
   owner: [
     { to: "/owner", label: "Provider Accounts", icon: Building2 },
+    { to: "/evidence", label: "Job Search Evidence", icon: FolderOpen },
   ],
 };
 
@@ -48,15 +55,8 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
   const qc = useQueryClient();
 
   const items = user ? NAV[user.role] : [];
-
-  const roleLabel =
-    user?.role === "coach"
-      ? "Case Manager"
-      : user?.role === "admin"
-        ? "Provider Admin"
-        : user?.role === "owner"
-          ? "System Owner"
-          : "Jobseeker";
+  const impersonator = getImpersonator();
+  const roleLabel = user ? ROLE_LABEL[user.role] : "";
 
   return (
     <div className="min-h-screen bg-background flex flex-col lg:flex-row">
@@ -130,8 +130,26 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
         )}
       </aside>
 
-      <main className="flex-1 min-w-0 px-4 py-6 sm:px-6 lg:px-8 lg:py-10">
-        <div className="max-w-6xl mx-auto wr-rise">{children}</div>
+      <main className="flex-1 min-w-0 flex flex-col px-4 py-6 sm:px-6 lg:px-8 lg:py-10">
+        <div className="max-w-6xl mx-auto w-full">
+          {/* Access override header: System Admin only. */}
+          <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
+            {impersonator ? (
+              <p
+                className="rounded-lg border border-warning/40 bg-warning/10 px-3 py-2 text-sm"
+                data-testid="impersonation-banner"
+              >
+                Viewing as <strong>{roleLabel}</strong> ({user?.name}) — signed in as{" "}
+                {impersonator.name}
+              </p>
+            ) : (
+              <span />
+            )}
+            <RoleSwitcher />
+          </div>
+        </div>
+        <div className="max-w-6xl mx-auto w-full wr-rise">{children}</div>
+        <LegalFooter className="max-w-6xl mx-auto w-full mt-12 border-t pt-6" />
       </main>
     </div>
   );

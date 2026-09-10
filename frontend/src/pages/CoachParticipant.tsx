@@ -76,7 +76,7 @@ export default function CoachParticipant() {
       </Link>
 
       {!d ? (
-        <p className="text-muted-foreground" data-testid="participant-loading">Loading jobseeker record…</p>
+        <p className="text-muted-foreground" data-testid="participant-loading">Loading learner record…</p>
       ) : (
         <>
           <header className="mb-6">
@@ -123,7 +123,7 @@ export default function CoachParticipant() {
                     rows={3}
                     value={note}
                     onChange={(e) => setNote(e.target.value)}
-                    placeholder="Record a coaching note (not visible to the jobseeker)…"
+                    placeholder="Record a coaching note (not visible to the learner)…"
                     aria-label="New case note"
                     data-testid="case-note-input"
                   />

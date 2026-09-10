@@ -18,6 +18,13 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import {
   Select,
@@ -35,7 +42,9 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import AppShell from "@/components/AppShell";
+import SendInviteButton from "@/components/SendInviteButton";
 import { InviteLinkDialog, TempPasswordDialog } from "@/components/InviteLinkDialog";
+import { ROLE_LABEL } from "@/lib/roles";
 import { apiGet, apiPatch, apiPost, ApiError } from "@/lib/api";
 import { getSessionUser } from "@/lib/session";
 import type {
@@ -48,12 +57,6 @@ import type {
 } from "@/lib/types";
 
 const PIE_COLOURS = ["#7C3AED", "#1E3A8A", "#F97316", "#10B981", "#0EA5E9"];
-const ROLE_LABEL: Record<Role, string> = {
-  participant: "Jobseeker",
-  coach: "Case Manager",
-  admin: "Provider Admin",
-  owner: "System Owner",
-};
 
 export default function AdminDashboard() {
   const user = getSessionUser();
@@ -64,6 +67,7 @@ export default function AdminDashboard() {
   const [coachId, setCoachId] = useState("");
   const [logoUrl, setLogoUrl] = useState("");
   const [invitePreview, setInvitePreview] = useState<InviteResult | null>(null);
+  const [addOpen, setAddOpen] = useState(false);
   const [tempPassword, setTempPassword] = useState<ResetPasswordResult | null>(null);
 
   const overview = useQuery({
@@ -85,6 +89,7 @@ export default function AdminDashboard() {
       setName("");
       setEmail("");
       setInvitePreview(res);
+      setAddOpen(false);
       toast.success(`${res.user.name} added as a ${ROLE_LABEL[res.user.role]} — copy their invite link.`);
     },
     onError: (err) => {
@@ -136,8 +141,8 @@ export default function AdminDashboard() {
       qc.invalidateQueries({ queryKey: ["admin-overview"] });
       toast.success(
         res.archived > 0
-          ? `${res.archived} jobseeker(s) archived after ${res.inactive_days} days of inactivity.`
-          : `No jobseekers have been inactive for ${res.inactive_days} days.`,
+          ? `${res.archived} learner(s) archived after ${res.inactive_days} days of inactivity.`
+          : `No learners have been inactive for ${res.inactive_days} days.`,
       );
     },
     onError: () => toast.error("Could not run the retention sweep."),
@@ -175,7 +180,7 @@ export default function AdminDashboard() {
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
         {[
           {
-            label: `Jobseeker seats (max ${d?.participant_seat_limit ?? 100})`,
+            label: `Learner seats (max ${d?.participant_seat_limit ?? 100})`,
             value: `${d?.participant_seats_used ?? 0}/${d?.participant_seat_limit ?? 100}`,
             testId: "kpi-participants",
           },
@@ -267,7 +272,7 @@ export default function AdminDashboard() {
             <div className="rounded-xl border bg-muted/40 p-3 text-sm" data-testid="invite-only-panel">
               <p className="font-semibold">Invite-only access</p>
               <p className="text-xs text-muted-foreground mt-1">
-                There is no public sign-up. Add a Case Manager or Jobseeker below and hand them the
+                There is no public sign-up. Add a Case Manager or Learner below and hand them the
                 magic invite link that appears — they set their own password when they open it.
               </p>
             </div>
@@ -295,7 +300,7 @@ export default function AdminDashboard() {
               />
               <p className="text-xs text-muted-foreground">
                 PNG, JPG, SVG or WebP up to 2MB. This logo appears on every certificate PDF your
-                jobseekers download.
+                learners download.
               </p>
             </div>
 
@@ -325,10 +330,33 @@ export default function AdminDashboard() {
         <Card className="lg:col-span-4">
           <CardHeader>
             <CardTitle className="text-lg flex items-center gap-2">
-              <UserPlus className="h-5 w-5 text-primary" aria-hidden="true" /> Invite a user
+              <UserPlus className="h-5 w-5 text-primary" aria-hidden="true" /> User management
             </CardTitle>
           </CardHeader>
-          <CardContent>
+          <CardContent className="space-y-3">
+            <p className="text-sm text-muted-foreground">
+              Add Case Managers and Learners to your organisation, assign them to a Case Manager,
+              then send their onboarding invitation.
+            </p>
+            <Button
+              className="w-full bg-cta text-cta-foreground hover:bg-cta/90"
+              onClick={() => setAddOpen(true)}
+              data-testid="open-add-user-modal-button"
+            >
+              <UserPlus className="h-4 w-4 mr-1.5" aria-hidden="true" /> Add a user
+            </Button>
+          </CardContent>
+        </Card>
+
+        <Dialog open={addOpen} onOpenChange={(open: boolean) => setAddOpen(open)}>
+          <DialogContent className="sm:max-w-md" data-testid="add-user-modal">
+            <DialogHeader>
+              <DialogTitle className="font-heading">Add a user</DialogTitle>
+              <DialogDescription>
+                They receive a personal onboarding link and set their own password. Seats are capped
+                by your provider plan.
+              </DialogDescription>
+            </DialogHeader>
             <form
               className="space-y-4"
               onSubmit={(e) => {
@@ -336,6 +364,7 @@ export default function AdminDashboard() {
                 if (name.trim() && email.trim()) invite.mutate();
                 else toast.error("Name and email are required.");
               }}
+              data-testid="add-user-form"
             >
               <div className="space-y-1.5">
                 <Label htmlFor="invite-name">Full name</Label>
@@ -346,15 +375,25 @@ export default function AdminDashboard() {
                 <Input id="invite-email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} data-testid="invite-email-input" />
               </div>
               <div className="space-y-1.5">
+                <Label htmlFor="invite-org">Provider organisation</Label>
+                <Input
+                  id="invite-org"
+                  value={d?.organization.name ?? ""}
+                  readOnly
+                  className="bg-muted/50"
+                  data-testid="invite-org-input"
+                />
+              </div>
+              <div className="space-y-1.5">
                 <Label htmlFor="invite-role">Role</Label>
                 <Select value={role} onValueChange={(v: string) => setRole(v as Role)}>
                   <SelectTrigger id="invite-role" data-testid="invite-role-select">
                     <SelectValue>{(v) => ROLE_LABEL[(v as Role) ?? "participant"]}</SelectValue>
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="participant" data-testid="invite-role-participant">Jobseeker</SelectItem>
+                    <SelectItem value="participant" data-testid="invite-role-participant">Learner</SelectItem>
                     <SelectItem value="coach" data-testid="invite-role-coach">Case Manager</SelectItem>
-                    <SelectItem value="admin" data-testid="invite-role-admin">Provider Admin</SelectItem>
+                    <SelectItem value="admin" data-testid="invite-role-admin">Provider</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -381,8 +420,8 @@ export default function AdminDashboard() {
                 {invite.isPending ? "Adding…" : "Add user & get invite link"}
               </Button>
             </form>
-          </CardContent>
-        </Card>
+          </DialogContent>
+        </Dialog>
 
         <Card className="lg:col-span-8">
           <CardHeader>
@@ -455,6 +494,12 @@ export default function AdminDashboard() {
                               >
                                 <LinkIcon className="h-4 w-4 mr-1.5" aria-hidden="true" /> Invite link
                               </Button>
+                              <SendInviteButton
+                                inviterId={user!.id}
+                                userId={u.id}
+                                userName={u.name}
+                                testId={`send-invite-${u.id}`}
+                              />
                               <Button
                                 variant="outline"
                                 size="sm"

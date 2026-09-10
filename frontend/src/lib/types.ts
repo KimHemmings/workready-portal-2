@@ -149,10 +149,50 @@ export interface JobSearchLog {
   application_date: string;
   application_type: string;
   evidence_filename: string;
+  evidence_data: string;
+  evidence_mime: string;
+  evidence_size: number;
+  review_status: "pending" | "approved" | "flagged";
+  review_note: string;
+  reviewed_by: string;
+  reviewed_at: string | null;
   notes: string;
   status: "submitted" | "verified";
   points: number;
   created_at: string;
+}
+
+export interface EvidenceRow {
+  log: JobSearchLog;
+  learner_id: string;
+  learner_name: string;
+  learner_email: string;
+  organization_name: string;
+  has_file: boolean;
+}
+
+export interface EvidenceSummary {
+  rows: EvidenceRow[];
+  pending: number;
+  approved: number;
+  flagged: number;
+  with_file: number;
+}
+
+export interface InviteEmailResult {
+  status: "sent" | "unavailable" | "failed";
+  detail: string;
+  recipient: string;
+  subject: string;
+  body: string;
+  invite_url: string;
+  mailto_url: string;
+}
+
+export interface RoleSwitchTarget {
+  role: Role;
+  label: string;
+  user: User;
 }
 
 export interface JobSearchLogCreate {
@@ -161,6 +201,8 @@ export interface JobSearchLogCreate {
   application_date: string;
   application_type: string;
   evidence_filename?: string;
+  evidence_data?: string;
+  evidence_mime?: string;
   notes?: string;
 }
 

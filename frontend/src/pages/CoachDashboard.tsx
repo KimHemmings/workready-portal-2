@@ -17,6 +17,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import AppShell from "@/components/AppShell";
+import SendInviteButton from "@/components/SendInviteButton";
 import { InviteLinkDialog, TempPasswordDialog } from "@/components/InviteLinkDialog";
 import { apiGet, apiPost, ApiError } from "@/lib/api";
 import { getSessionUser } from "@/lib/session";
@@ -48,7 +49,7 @@ export default function CoachDashboard() {
     enabled: Boolean(user),
   });
 
-  const addJobseeker = useMutation({
+  const addLearner = useMutation({
     mutationFn: () =>
       apiPost<InviteResult>(`/coaches/${user!.id}/participants`, {
         name: newName.trim(),
@@ -62,7 +63,7 @@ export default function CoachDashboard() {
       setInvitePreview(res);
       toast.success(`${res.user.name} added — copy their invite link.`);
     },
-    onError: (err) => toast.error(detailOf(err, "Could not add that jobseeker.")),
+    onError: (err) => toast.error(detailOf(err, "Could not add that Learner.")),
   });
 
   const inviteLink = useMutation({
@@ -98,7 +99,7 @@ export default function CoachDashboard() {
             Case Manager
           </p>
           <h1 className="font-heading text-3xl sm:text-4xl font-bold tracking-tight mt-1">
-            Jobseeker roster
+            Learner roster
           </h1>
           <p className="text-muted-foreground mt-2">
             Track progress, review evidence and export compliance reports.
@@ -120,7 +121,7 @@ export default function CoachDashboard() {
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
         {[
-          { label: "Jobseekers assigned", value: rows.length, testId: "kpi-jobseekers" },
+          { label: "Learners assigned", value: rows.length, testId: "kpi-jobseekers" },
           { label: "Average completion", value: `${avg}%`, testId: "kpi-avg-completion" },
           { label: "Job applications", value: apps, testId: "kpi-applications" },
           { label: "At risk", value: atRisk, testId: "kpi-at-risk" },
@@ -139,7 +140,7 @@ export default function CoachDashboard() {
       <Card className="mb-6">
         <CardHeader>
           <CardTitle className="text-lg flex items-center gap-2">
-            <UserPlus className="h-5 w-5 text-primary" aria-hidden="true" /> Add a jobseeker to your caseload
+            <UserPlus className="h-5 w-5 text-primary" aria-hidden="true" /> Add a Learner to your caseload
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -151,7 +152,7 @@ export default function CoachDashboard() {
                 toast.error("Name and email are both required.");
                 return;
               }
-              addJobseeker.mutate();
+              addLearner.mutate();
             }}
             data-testid="coach-add-jobseeker-form"
           >
@@ -177,10 +178,10 @@ export default function CoachDashboard() {
             <Button
               type="submit"
               className="bg-cta text-cta-foreground hover:bg-cta/90"
-              disabled={addJobseeker.isPending}
+              disabled={addLearner.isPending}
               data-testid="coach-add-jobseeker-button"
             >
-              {addJobseeker.isPending ? "Adding…" : "Add & get invite link"}
+              {addLearner.isPending ? "Adding…" : "Add & get invite link"}
             </Button>
           </form>
           <p className="text-xs text-muted-foreground mt-2">
@@ -193,15 +194,15 @@ export default function CoachDashboard() {
       <Card>
         <CardHeader>
           <div className="flex flex-wrap items-center justify-between gap-3">
-            <CardTitle className="text-lg">Assigned jobseekers</CardTitle>
+            <CardTitle className="text-lg">Assigned learners</CardTitle>
             <div className="relative w-full sm:w-64">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" aria-hidden="true" />
               <Input
                 className="pl-9"
-                placeholder="Search jobseekers"
+                placeholder="Search learners"
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                aria-label="Search jobseekers"
+                aria-label="Search learners"
                 data-testid="roster-search-input"
               />
             </div>
@@ -210,13 +211,13 @@ export default function CoachDashboard() {
         <CardContent>
           {rows.length === 0 ? (
             <p className="text-muted-foreground text-sm" data-testid="roster-empty">
-              No jobseekers match that search.
+              No learners match that search.
             </p>
           ) : (
             <Table data-testid="roster-table">
               <TableHeader>
                 <TableRow>
-                  <TableHead>Jobseeker</TableHead>
+                  <TableHead>Learner</TableHead>
                   <TableHead className="text-right">Completion</TableHead>
                   <TableHead className="text-right">Applications</TableHead>
                   <TableHead className="text-right">PBAS points</TableHead>
@@ -256,6 +257,12 @@ export default function CoachDashboard() {
                         >
                           <LinkIcon className="h-4 w-4 mr-1.5" aria-hidden="true" /> Invite link
                         </Button>
+                        <SendInviteButton
+                          inviterId={user!.id}
+                          userId={r.participant.id}
+                          userName={r.participant.name}
+                          testId={`roster-send-invite-${r.participant.id}`}
+                        />
                         <Button
                           variant="outline"
                           size="sm"

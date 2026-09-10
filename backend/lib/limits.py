@@ -19,6 +19,7 @@ JOB_LOGS_PER_MONTH = 20
 PARTICIPANT_SEATS = 100
 COACH_SEATS = 5
 LOGO_MAX_BYTES = 2 * 1024 * 1024  # 2MB
+EVIDENCE_MAX_BYTES = 5 * 1024 * 1024  # 5MB per proof file
 INACTIVE_DAYS = 60
 
 UsageKind = str
@@ -109,7 +110,7 @@ async def remaining(participant_id: str, kind: str) -> int:
 
 
 def logo_byte_size(value: str) -> int:
-    """Approximate stored size of a logo: decoded length for data URLs, raw length otherwise."""
+    """Approximate stored size of a base64/data-URL payload: decoded bytes."""
     if value.startswith("data:"):
         b64 = value.split(",", 1)[-1]
         return int(len(b64) * 3 / 4)
@@ -117,7 +118,6 @@ def logo_byte_size(value: str) -> int:
 
 
 async def seats_used(organization_id: str) -> tuple[int, int]:
-    """(jobseeker seats, case manager seats) in use — pending invites hold a seat."""
     held = {"$in": ["active", "pending"]}
     participants = await db.users.count_documents(
         {"organization_id": organization_id, "role": "participant", "status": held}
@@ -151,3 +151,8 @@ async def archive_inactive(organization_id: str | None = None) -> int:
         query, {"$set": {"status": "archived", "archived_at": datetime.now(timezone.utc)}}
     )
     return int(result.modified_count)
+
+
+def evidence_byte_size(value: str) -> int:
+    """Decoded size of an uploaded proof file (base64 or data URL)."""
+    return logo_byte_size(value)

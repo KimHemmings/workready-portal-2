@@ -496,8 +496,8 @@ async def main() -> None:
     users = [
         User(
             id=ADMIN_ID,
-            name="Eleanor Brooks",
-            email="eleanor@hves.com.au",
+            name="Straight Up Admin",
+            email="kimh@straightuptraining.com",
             role="admin",
             organization_id=ORG_ID,
             phone="02 4900 1000",
@@ -525,7 +525,7 @@ async def main() -> None:
     owner = User(
         id="user-owner-system",
         name="Straight Up Training Owner",
-        email="owner@straightuptraining.com.au",
+        email="admin@straightuptraining.com",
         role="owner",
         organization_id=ORG_ID,
         last_login=now,
@@ -653,10 +653,10 @@ async def main() -> None:
         await certificates.issue_for_interview(sarah, "Retail Team Member", 82)
 
     print("Seeded Straight Up Training.")
-    print("  System Owner: owner@straightuptraining.com.au")
+    print("  System Admin: admin@straightuptraining.com")
     print("  Participant : sarah@hves.com.au")
     print("  Case Manager: marcus@hves.com.au")
-    print("  Provider Admin: eleanor@hves.com.au")
+    print("  Provider: kimh@straightuptraining.com")
 
 
 if __name__ == "__main__":

@@ -12,10 +12,10 @@ import { beginSession, homePathFor } from "@/lib/session";
 import type { InvitePreview, Role, User } from "@/lib/types";
 
 const ROLE_LABEL: Record<Role, string> = {
-  participant: "Jobseeker",
+  participant: "Learner",
   coach: "Case Manager",
-  admin: "Provider Admin",
-  owner: "System Owner",
+  admin: "Provider",
+  owner: "System Admin",
 };
 
 function errorDetail(err: unknown, fallback: string): string {

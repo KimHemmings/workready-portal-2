@@ -5,6 +5,7 @@ from fastapi import APIRouter, HTTPException
 from lib import ai, certificates, limits
 from lib.db import db
 from models.schemas import (
+    EvidenceUpload,
     Certificate,
     GrantRequest,
     JobSearchLog,
@@ -194,7 +195,45 @@ async def list_certificates(pid: str):
 @router.get("/{pid}/job-logs", response_model=list[JobSearchLog])
 async def list_job_logs(pid: str):
     docs = await db.job_search_logs.find({"participant_id": pid}).sort("created_at", -1).to_list(200)
+    # Never ship the base64 payload in a list response — it is fetched only on download.
+    for d in docs:
+        d["evidence_data"] = ""
     return [JobSearchLog(**d) for d in docs]
+
+
+@router.post("/{pid}/job-logs/{log_id}/evidence", response_model=JobSearchLog)
+async def upload_evidence(pid: str, log_id: str, body: EvidenceUpload):
+    """Attach or replace the proof file (PDF, screenshot, receipt) on a job search entry."""
+    await get_participant(pid)
+    log = await db.job_search_logs.find_one({"id": log_id, "participant_id": pid})
+    if not log:
+        raise HTTPException(status_code=404, detail="Job search entry not found")
+    size = limits.evidence_byte_size(body.evidence_data)
+    if size > limits.EVIDENCE_MAX_BYTES:
+        raise HTTPException(
+            status_code=413,
+            detail=f"Files must be {limits.EVIDENCE_MAX_BYTES // (1024 * 1024)}MB or smaller.",
+        )
+    await db.job_search_logs.update_one(
+        {"id": log_id},
+        {
+            "$set": {
+                "evidence_filename": body.evidence_filename,
+                "evidence_data": body.evidence_data,
+                "evidence_mime": body.evidence_mime,
+                "evidence_size": size,
+                # A replaced file goes back into the review queue.
+                "review_status": "pending",
+                "review_note": "",
+                "reviewed_by": "",
+                "reviewed_at": None,
+                "status": "submitted",
+            }
+        },
+    )
+    doc = await db.job_search_logs.find_one({"id": log_id})
+    doc["evidence_data"] = ""
+    return JobSearchLog(**doc)
 
 
 @router.post("/{pid}/job-logs", response_model=JobSearchLog)
@@ -208,12 +247,20 @@ async def create_job_log(pid: str, body: JobSearchLogCreate):
                 "Ask your case manager if you need more."
             ),
         )
+    size = limits.evidence_byte_size(body.evidence_data)
+    if size > limits.EVIDENCE_MAX_BYTES:
+        raise HTTPException(
+            status_code=413,
+            detail=f"Files must be {limits.EVIDENCE_MAX_BYTES // (1024 * 1024)}MB or smaller.",
+        )
     log = JobSearchLog(
         participant_id=pid,
         points=POINTS_BY_TYPE.get(body.application_type, 5),
+        evidence_size=size,
         **body.model_dump(),
     )
     await db.job_search_logs.insert_one(log.model_dump())
+    log.evidence_data = ""
     return log
 
 

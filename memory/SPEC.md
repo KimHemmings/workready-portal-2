@@ -73,6 +73,51 @@ component or demo overlay exists (grep for `demo` returns only code comments and
   Verified with a second seeded organisation: cross-tenant reads/writes 404, each export contains only its
   own jobseekers.
 
+
+## Role hierarchy, labels and access override
+Stored role values are unchanged; only the UI wording was relabelled (single source:
+`frontend/src/lib/roles.ts`).
+
+| stored | UI label | can add |
+|---|---|---|
+| `owner` | System Admin | Providers (org + first admin), Case Managers, Learners; sees every org |
+| `admin` | Provider | Case Managers and Learners in their own org |
+| `coach` | Case Manager | Learners on their own caseload |
+| `participant` | Learner | submits job applications + proof files |
+
+**Role Switcher** (`components/RoleSwitcher.tsx`, System Admin only) calls
+`GET /api/role-switch/{owner_id}` for one real active user per role (preferring an org that has
+learners) and impersonates them. The original System Admin is stored in the
+`workready.impersonator` localStorage key, a banner shows who is being previewed, and
+"Back to System Admin" restores the session. Non-owners get 403 and never see the control.
+
+## Job Search Evidence
+Learners attach a proof file (PDF/image/receipt, <= 5MB) to a PBAS job search log; it is stored
+inline in Mongo as base64 (`evidence_data`, never returned in list responses — only via download).
+`routers/evidence.py`:
+- `GET /api/evidence/{staff_id}` -> `EvidenceSummary` (rows + pending/approved/flagged/with_file
+  counts), scoped: coach = own caseload, admin = own org, owner = all.
+- `GET /api/evidence/{staff_id}/{log_id}/file` -> streams the file as a download.
+- `PATCH /api/evidence/{staff_id}/{log_id}/review` -> approve (also marks the log `verified`) or
+  flag, recording `reviewed_by` / `reviewed_at` / `review_note`.
+Frontend: `pages/Evidence.tsx` at `/evidence` (nav item for Case Manager, Provider, System Admin),
+with search, status filters, download, an approve/flag dialog and a link to the learner profile.
+Replacing a file resets the review to pending.
+
+## Invite emails (Resend)
+`POST /api/invite-email/{inviter_id}/{user_id}` re-issues the magic link, renders the onboarding
+template (`lib/email.py`) and sends it via Resend. It returns `status` = `sent` | `unavailable` |
+`failed` plus the subject, body, onboarding URL and a `mailto:` draft, so
+`components/SendInviteButton.tsx` always gives the inviter a way to deliver it. `RESEND_API_KEY` is
+blank in `backend/.env` -> status `unavailable` and no email is sent; set the key to enable delivery.
+`APP_URL` controls the link host.
+
+## Legal pages
+`/privacy` and `/terms` (`pages/LegalPage.tsx`) hold full Australian Privacy Principles (APP 1-13)
+and platform Terms of Use content. `components/LegalFooter.tsx` puts Privacy/Terms links in the app
+shell footer on every signed-in screen and on the login page. Legacy hash links (`/#/privacy`, `/#/terms`, `/#/accept-invite`) are rewritten to the clean path in
+`main.tsx` *before* BrowserRouter reads the URL; `/accept-invite` redirects to `/register`.
+
 ## Authentication — 3-tier B2B, invite-only (current)
 Roles: **owner** (system/platform owner) → **admin** (Provider Admin) → **coach** (Case Manager) →
 **participant** (Jobseeker). There is **no public sign-up** and no email sending anywhere.
@@ -160,3 +205,14 @@ marcus@hves.com.au (coach), sarah@hves.com.au + 5 more jobseekers.
 Cohorts: Morning Job Club, TtW Youth Cohort.
 5 modules with 5-question quizzes each. Sarah Chen: 2 modules complete, 1 in progress, 4 job logs, 1 case note.
 5 extra jobseekers assigned to Marcus Vance with varied progress.
+
+## Pod/infra gotchas found while building this feature
+- The public preview had been served by a stray `npx serve -s dist -l 5173` process bound to all
+  interfaces, so the ingress was returning a **stale static build** (the source of the "demo cards
+  keep coming back" reports). That process was killed; the ingress now reaches Vite on port 3000.
+- `frontend/vite.config.ts` and `frontend/src/index.css` had been overwritten with minimal/incorrect
+  content (index.css literally contained HTML, and the config had lost the Tailwind v4 plugin, the
+  `/api` proxy and `port: 3000`). Both were restored from git — if the dev server 502s or styling
+  disappears, check these two files first.
+- `APP_URL` is exported by supervisor with a stale UUID host, so `routers/invite_email.app_url()`
+  reads `backend/.env` with `dotenv_values` and lets the file win.

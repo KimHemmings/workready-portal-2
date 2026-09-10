@@ -2,53 +2,124 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { ArrowLeft, FileText, ShieldCheck } from "lucide-react";
 import { BRAND_LOGO } from "@/lib/brand";
 import { Button } from "@/components/ui/button";
+import LegalFooter from "@/components/LegalFooter";
 
 const CONTENT = {
   privacy: {
     title: "Privacy Policy",
     icon: ShieldCheck,
+    updated: "Last updated: February 2026",
     intro:
-      "This is a placeholder Privacy Policy for Straight Up Training. Replace this text with your organisation's policy before going live.",
+      "Straight Up Training is bound by the Australian Privacy Principles (APPs) in the Privacy Act 1988 (Cth). This policy explains what personal information we collect from learners, case managers and providers, why we collect it, who can see it, and how you can access or correct it.",
     sections: [
       {
-        heading: "What we collect",
-        body: "Your name, email, training progress, quiz results, saved resumes, interview transcripts and job search evidence recorded for Mutual Obligation reporting.",
+        heading: "1. Open and transparent management (APP 1)",
+        body: "We maintain this policy publicly, keep an internal record of the personal information we hold, and review our handling practices whenever the platform changes. Questions or complaints can be raised with your provider's Privacy Officer, who can escalate them to us.",
       },
       {
-        heading: "Voice recording",
-        body: "Voice input for AI interview practice is processed by your browser's speech recognition to turn speech into text. Recording only starts after you give consent, and you can decline and type your answers instead.",
+        heading: "2. Anonymity and pseudonymity (APP 2)",
+        body: "The platform is an invite-only workforce and education service, so accounts must be identifiable to a real person for compliance reporting. Where training content can be browsed without identification, we do not require you to identify yourself.",
       },
       {
-        heading: "Who can see your data",
-        body: "Only staff inside your own organisation — your assigned case manager and your provider admin. Data is isolated per organisation.",
+        heading: "3. What we collect and why (APP 3)",
+        body: "We collect only what is reasonably necessary to deliver employability training and to evidence your activity: your name, email address, phone number (optional), provider and cohort, training progress and quiz results, resumes and cover letters you generate, AI mock interview transcripts and scores, and your job search records including employer, position, method, date and any proof file you upload (PDFs, screenshots, receipts). We do not collect payment card details, Tax File Numbers or government benefit numbers.",
       },
       {
-        heading: "Retention",
-        body: "Accounts with no sign-in for 60 days are archived in line with data retention practice. Contact your provider to have an archived account reactivated.",
+        heading: "4. Unsolicited information (APP 4)",
+        body: "If you upload a document containing information we did not ask for and could not lawfully have collected, we will destroy or de-identify it once we become aware of it, unless a law requires us to keep it.",
+      },
+      {
+        heading: "5. Notification of collection (APP 5)",
+        body: "You are told at the point of collection why information is required — for example, the job search logger states that entries may be used for Mutual Obligation reporting, and voice input for AI interview practice only begins after you give explicit consent and can be declined in favour of typing.",
+      },
+      {
+        heading: "6. Use and disclosure (APP 6)",
+        body: "Your information is used to run your training, generate your feedback and certificates, and let your assigned case manager and provider verify your job search evidence. We do not sell personal information or use it for unrelated marketing. Disclosure outside your provider occurs only where you consent, or where it is required or authorised by Australian law (for example a lawful request from a government department administering your obligations).",
+      },
+      {
+        heading: "7. Direct marketing (APP 7)",
+        body: "We do not use your information for direct marketing. Emails you receive from the platform are transactional — account invitations, password resets and training notifications.",
+      },
+      {
+        heading: "8. Cross-border disclosure (APP 8)",
+        body: "Platform data is stored in Australian-hosted infrastructure. Some AI features (interview practice, resume drafting) send the text you enter to an overseas processing provider under contractual terms restricting its use to generating your result. Do not enter sensitive information you would not want processed this way — the feature is optional.",
+      },
+      {
+        heading: "9. Government related identifiers (APP 9)",
+        body: "We do not adopt, use or disclose government related identifiers such as a Centrelink CRN, Medicare number or Tax File Number as our own identifier for you. Your account identifier is generated by the platform.",
+      },
+      {
+        heading: "10. Quality of information (APP 10)",
+        body: "You can review and correct your profile, resumes and job search entries from your dashboard at any time. Ask your case manager if a record you cannot edit — such as an approved evidence review — needs correcting.",
+      },
+      {
+        heading: "11. Security of information (APP 11)",
+        body: "Passwords are stored only as one-way salted hashes and are never visible to staff. Access is role-based and strictly isolated per provider organisation: your case manager and your provider's administrators can see your records, and staff at other providers cannot. Evidence files are stored inside the platform database rather than a public link, and are served only to authorised reviewers. Learner accounts with no sign-in for 60 days are archived; records are destroyed or de-identified when they are no longer needed for the compliance period that applies to your program.",
+      },
+      {
+        heading: "12. Access and correction (APP 12 and 13)",
+        body: "You may request a copy of the personal information we hold about you, and request correction of anything inaccurate, out of date or misleading. Contact your provider in the first instance; requests are normally answered within 30 days. If you are dissatisfied with the outcome you may complain to the Office of the Australian Information Commissioner (oaic.gov.au).",
+      },
+      {
+        heading: "13. Evidence uploads and provider record access",
+        body: "Proof files you attach to a job application (confirmation emails, screenshots, receipts) are visible to your assigned case manager, your provider's administrators and the platform's system administrator for support purposes. Each review is recorded with the reviewer's name and the time of the decision, so there is an audit trail of who accessed and assessed your evidence.",
       },
     ],
   },
   terms: {
     title: "Terms of Use",
     icon: FileText,
+    updated: "Last updated: February 2026",
     intro:
-      "These are placeholder Terms of Use for Straight Up Training. Replace this text with your organisation's terms before going live.",
+      "These Terms of Use govern your access to the Straight Up Training platform. By signing in you agree to them. If you are using the platform as part of an employment services or education program, your provider's own participation agreement continues to apply alongside these terms.",
     sections: [
       {
-        heading: "Your account",
-        body: "Accounts are issued to a single person. Keep your password confidential and do not share access with anyone else.",
+        heading: "1. Eligibility and account creation",
+        body: "Accounts are issued by invitation only. There is no public sign-up. Your provider, case manager or the system administrator creates your account and sends you a personal onboarding link. You may not create an account for anyone else or use an invitation intended for another person.",
       },
       {
-        heading: "Fair use of AI features",
-        body: "AI practice interviews, resumes and cover letters are capped each calendar month per account. Your case manager may grant additional sessions.",
+        heading: "2. Your account responsibilities",
+        body: "Your login is for your sole use. Keep your password confidential, do not share your onboarding link, and change any temporary password immediately when prompted. Tell your provider straight away if you believe someone else has accessed your account. You are responsible for activity carried out under your login.",
       },
       {
-        heading: "Accurate records",
-        body: "Job search activity you log may be used for Mutual Obligation reporting. Recording activity you did not complete may affect your payments.",
+        heading: "3. Acceptable use",
+        body: "Use the platform only for lawful training, job search and case management purposes. You must not: upload malicious files or attempt to bypass file type and size limits; probe, scan or attempt to gain access to accounts, organisations or data that are not yours; scrape, resell or republish training content; upload material that is unlawful, defamatory, discriminatory or infringes someone else's copyright; or use the AI features to generate misleading claims about your skills, qualifications or work history.",
       },
       {
-        heading: "Availability",
-        body: "The service is provided on an as-is basis while your organisation holds an active site licence.",
+        heading: "4. Accuracy of records and compliance reporting",
+        body: "Job search activity you log, and the evidence you upload, may be reported to your provider and relied on for Mutual Obligation or program participation purposes. Recording activity you did not complete, or submitting altered or fabricated evidence, is a serious matter that may affect your payments or program status and may be reported to the responsible agency.",
+      },
+      {
+        heading: "5. Staff and provider obligations",
+        body: "Case managers, provider administrators and the system administrator must access learner records only where there is a genuine work purpose, must keep learner information confidential, and must not export or retain data beyond what their program requires. Role switching and administrative overrides are logged and are provided for support and quality assurance, not for browsing records out of curiosity.",
+      },
+      {
+        heading: "6. AI-generated content",
+        body: "Mock interview feedback, resumes and cover letters are generated with automated assistance and are provided as a practice and drafting aid. They are not a guarantee of employment, a formal assessment, or professional career or legal advice. Always review and correct AI output before relying on it or sending it to an employer. Fair use limits apply to AI features each calendar month; your case manager can grant additional sessions.",
+      },
+      {
+        heading: "7. Uploads and storage limits",
+        body: "Evidence files must be 5MB or smaller and provider logos 2MB or smaller. We may remove files that exceed limits, cannot be scanned, or breach these terms. Keep your own copy of anything important — the platform is not a document archive.",
+      },
+      {
+        heading: "8. Availability and changes",
+        body: "The platform is provided on an as-is basis while your organisation holds an active licence. We may update features, content and these terms to keep the service accurate and compliant; material changes will be notified in the app. Planned maintenance may make the service briefly unavailable.",
+      },
+      {
+        heading: "9. Suspension and termination",
+        body: "Your provider may deactivate your account when you exit their program, and we may suspend access for a breach of these terms or where required by law. Learner accounts inactive for 60 days are archived and can be reactivated by your provider. Records may be retained after account closure for the compliance period that applies to your program.",
+      },
+      {
+        heading: "10. Intellectual property",
+        body: "Training modules, quizzes, templates and platform software remain the property of Straight Up Training or its licensors. Content you create — your resumes, cover letters and job search records — remains yours, and you grant us the licence needed to store it, generate your documents and make it available to your provider for compliance purposes.",
+      },
+      {
+        heading: "11. Liability",
+        body: "Nothing in these terms excludes rights you have under the Australian Consumer Law. To the extent permitted by law, our liability for any claim relating to the platform is limited to supplying the service again, and we are not liable for indirect or consequential loss, including loss of employment opportunity or program payments.",
+      },
+      {
+        heading: "12. Governing law",
+        body: "These terms are governed by the laws of New South Wales, Australia, and you submit to the non-exclusive jurisdiction of its courts.",
       },
     ],
   },
@@ -63,7 +134,7 @@ export default function LegalPage() {
 
   return (
     <div className="min-h-screen bg-muted/30 px-6 py-12" data-testid={`legal-page-${key}`}>
-      <div className="mx-auto max-w-2xl">
+      <div className="mx-auto max-w-3xl">
         <div className="flex items-center gap-3">
           <span className="grid h-11 w-11 place-items-center rounded-xl bg-white shadow-sm p-1.5">
             <img src={BRAND_LOGO} alt="Straight Up Training" className="h-full w-full object-contain" />
@@ -75,7 +146,10 @@ export default function LegalPage() {
           <Icon className="h-7 w-7 text-primary" aria-hidden="true" />
           {doc.title}
         </h1>
-        <p className="text-muted-foreground mt-3" data-testid="legal-intro">
+        <p className="text-xs font-mono uppercase tracking-wider text-muted-foreground mt-2">
+          {doc.updated}
+        </p>
+        <p className="text-muted-foreground mt-3 leading-relaxed" data-testid="legal-intro">
           {doc.intro}
         </p>
 
@@ -88,14 +162,20 @@ export default function LegalPage() {
           ))}
         </div>
 
-        <Button
-          variant="outline"
-          className="mt-10"
-          onClick={() => navigate("/login")}
-          data-testid="legal-back-button"
-        >
-          <ArrowLeft className="h-4 w-4 mr-1.5" aria-hidden="true" /> Back to sign in
-        </Button>
+        <div className="mt-10 flex flex-wrap items-center gap-3">
+          <Button variant="outline" onClick={() => navigate(-1)} data-testid="legal-back-button">
+            <ArrowLeft className="h-4 w-4 mr-1.5" aria-hidden="true" /> Back
+          </Button>
+          <Button
+            variant="ghost"
+            onClick={() => navigate(key === "privacy" ? "/terms" : "/privacy")}
+            data-testid="legal-switch-doc-button"
+          >
+            Read the {key === "privacy" ? "Terms of Use" : "Privacy Policy"}
+          </Button>
+        </div>
+
+        <LegalFooter className="mt-8 border-t pt-6" />
       </div>
     </div>
   );
