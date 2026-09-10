@@ -234,6 +234,30 @@ QUIZZES = {
             "correct_answer": 1,
             "explanation": "Planning, prioritising and flagging problems early is exactly what employers mean by working independently.",
         },
+        {
+            "scenario": "Your case manager asks you to bring evidence of your job search to your next appointment.",
+            "question": "Which evidence best meets your Mutual Obligation requirements?",
+            "options": [
+                "A verbal list of employers you can remember",
+                "Screenshots or emails confirming each application, with dates",
+                "A note saying you looked online",
+                "Nothing — your case manager can check for you",
+            ],
+            "correct_answer": 1,
+            "explanation": "Dated written confirmation is the evidence a provider must keep on file for auditing.",
+        },
+        {
+            "scenario": "You are working with a workmate whose first language is not English and they look unsure about a task.",
+            "question": "Which action best shows the 'Communicate for work' core skill?",
+            "options": [
+                "Speak faster so they catch up",
+                "Check in kindly, use simple words and show them the step",
+                "Do the task for them without saying anything",
+                "Tell the supervisor they cannot cope",
+            ],
+            "correct_answer": 1,
+            "explanation": "Adjusting how you communicate — plain words plus a demonstration — is a core employability skill.",
+        },
     ],
     "mod-digital-literacy": [
         {
@@ -281,6 +305,23 @@ QUIZZES = {
             "correct_answer": 1,
             "explanation": "Asking early is a strength, not a weakness.",
         },
+        {
+            "question": "You need to attach your resume to an online application. The safest format is:",
+            "options": ["A .exe file", "A PDF", "A screenshot in a chat app", "A shared home folder"],
+            "correct_answer": 1,
+            "explanation": "PDF keeps your layout intact and is accepted by nearly every Australian employer portal.",
+        },
+        {
+            "question": "Before a video interview on your phone you should:",
+            "options": [
+                "Join from a noisy bus",
+                "Test your camera, microphone and internet, and find a quiet, well-lit spot",
+                "Leave the camera off",
+                "Use a nickname as your display name",
+            ],
+            "correct_answer": 1,
+            "explanation": "Checking your device and setting beforehand prevents the most common video interview problems.",
+        },
     ],
     "mod-workplace-etiquette": [
         {
@@ -322,6 +363,28 @@ QUIZZES = {
             ],
             "correct_answer": 2,
             "explanation": "Being friendly and curious builds trust quickly.",
+        },
+        {
+            "question": "You will be away sick for your shift tomorrow. The right thing to do is:",
+            "options": [
+                "Post about it on social media",
+                "Tell your supervisor as early as possible and follow the workplace sick leave process",
+                "Send a message after your shift starts",
+                "Say nothing and turn up late",
+            ],
+            "correct_answer": 1,
+            "explanation": "Early notice through the proper process is what Australian employers expect for any absence.",
+        },
+        {
+            "question": "If you experience bullying or harassment at work you can:",
+            "options": [
+                "Only put up with it",
+                "Raise it with your supervisor or HR, and contact the Fair Work Commission if unresolved",
+                "Quit without telling anyone",
+                "Retaliate in the same way",
+            ],
+            "correct_answer": 1,
+            "explanation": "You have a right to a safe workplace; the Fair Work Commission handles stop-bullying applications.",
         },
     ],
     "mod-interview-prep": [
@@ -385,6 +448,30 @@ QUIZZES = {
             "correct_answer": 1,
             "explanation": "A printed resume and two referees show you are organised and prepared.",
         },
+        {
+            "scenario": "The employer asks why you have a gap in your work history while you were studying and job searching.",
+            "question": "Which answer is strongest?",
+            "options": [
+                "Refuse to answer",
+                "Explain honestly what you did in that time — study, volunteering, training — and what you gained",
+                "Say you were doing nothing",
+                "Change the subject",
+            ],
+            "correct_answer": 1,
+            "explanation": "Honest, positive framing of a gap — with the skills you built — reassures employers.",
+        },
+        {
+            "scenario": "Two days after your interview you still have not heard anything.",
+            "question": "What is the best next step?",
+            "options": [
+                "Ring every hour",
+                "Send a short, polite thank-you or follow-up email and log it in your job search activity",
+                "Assume you missed out and stop looking",
+                "Post a complaint online",
+            ],
+            "correct_answer": 1,
+            "explanation": "A brief follow-up shows interest and also counts as a loggable job search activity.",
+        },
     ],
     "mod-written-comms": [
         {
@@ -431,6 +518,28 @@ QUIZZES = {
             "options": ["Key Skills", "Favourite Films", "Star Sign", "Pet Names"],
             "correct_answer": 0,
             "explanation": "Key Skills gives recruiters an instant match to the role.",
+        },
+        {
+            "question": "The best email address to put on an Australian resume is:",
+            "options": [
+                "A nickname address like partyanimal99",
+                "A simple address based on your name",
+                "A shared family address",
+                "No email at all",
+            ],
+            "correct_answer": 1,
+            "explanation": "A plain name-based address looks professional and is easy for employers to use.",
+        },
+        {
+            "question": "Before sending a written application you should always:",
+            "options": [
+                "Send it straight away",
+                "Proofread it and check the employer's name and the role title are correct",
+                "Add as many fonts as possible",
+                "Attach every certificate you own",
+            ],
+            "correct_answer": 1,
+            "explanation": "Spelling errors and the wrong employer name are the fastest way to be screened out.",
         },
     ],
 }
@@ -578,6 +687,10 @@ async def main() -> None:
                     evidence_filename=f"{employer.lower().replace(' ', '-')}-confirmation.pdf",
                     notes="Applied via employer careers page.",
                     status="verified" if j % 3 else "submitted",
+                    # Seeded review state mirrors the PBAS status so the Evidence dashboard is
+                    # consistent on a fresh seed.
+                    review_status="approved" if j % 3 else "pending",
+                    reviewed_by="Marcus Vance" if j % 3 else "",
                     points=POINTS[app_type],
                     created_at=now - timedelta(days=j + 1),
                 ).model_dump()
@@ -623,6 +736,8 @@ async def main() -> None:
                 evidence_filename=f"{employer.lower().replace(' ', '-')}-receipt.pdf",
                 notes="Submitted resume and cover letter.",
                 status="verified" if j % 2 else "submitted",
+                review_status="approved" if j % 2 else "pending",
+                reviewed_by="Marcus Vance" if j % 2 else "",
                 points=POINTS[app_type],
                 created_at=now - timedelta(days=j + 1),
             ).model_dump()

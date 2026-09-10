@@ -5,6 +5,51 @@ def _esc(text: str) -> str:
     return text.replace("\\", r"\\").replace("(", r"\(").replace(")", r"\)")
 
 
+def _wrap(text: str, width: int = 100) -> list[str]:
+    words, out, line = str(text).split(), [], ""
+    for w in words:
+        if len(line) + len(w) + 1 > width:
+            out.append(line)
+            line = w
+        else:
+            line = f"{line} {w}".strip()
+    if line:
+        out.append(line)
+    return out or [""]
+
+
+def interview_scorecard_pdf(session: dict) -> bytes:
+    """Build the downloadable Interview Feedback Scorecard PDF for one practice session."""
+    fb = session.get("feedback_summary_json") or {}
+    created = str(session.get("created_at", ""))[:10]
+    lines: list[str] = [
+        f"Role target : {session.get('job_target', '')}",
+        f"Industry    : {session.get('industry', '')}",
+        f"Date        : {created}",
+        f"Mode        : {'LLND / Accessible' if session.get('mode') == 'llnd' else 'Standard'}",
+        f"Overall readiness score: {session.get('overall_score', 0)}/100",
+        "",
+        "Summary",
+        "-------",
+    ]
+    lines += _wrap(fb.get("summary", ""))
+    lines += ["", "Core Skills for Work", "--------------------"]
+    for s in fb.get("skills", []) or []:
+        lines += _wrap(f"{s.get('skill', '')}: {s.get('score', 0)}/100 - {s.get('comment', '')}")
+    lines += ["", "Strengths", "---------"]
+    for s in fb.get("strengths", []) or []:
+        lines += _wrap(f"- {s}")
+    lines += ["", "Areas for improvement", "---------------------"]
+    for s in fb.get("improvements", []) or []:
+        lines += _wrap(f"- {s}")
+    lines += ["", "Transcript", "----------"]
+    for turn in session.get("transcript_json", []) or []:
+        label = str(turn.get("role", "")).upper()
+        lines += _wrap(f"{label}: {turn.get('content', '')}")
+        lines.append("")
+    return simple_pdf("WorkReady Portal - Interview Feedback Scorecard", lines)
+
+
 def simple_pdf(title: str, lines: list[str]) -> bytes:
     per_page = 46
     pages: list[list[str]] = []

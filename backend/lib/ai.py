@@ -16,6 +16,9 @@ FALLBACK_QUESTIONS = [
     "Describe a situation where you had to deal with a difficult customer or workmate. How did you handle it?",
     "If you were running late for your shift, what would you do?",
     "What do you think good workplace safety looks like day to day, and how would you contribute to it?",
+    "Tell me about a time you had to learn something new quickly. How did you go about it?",
+    "How do you organise your day when you have several tasks and not much time?",
+    "Where would you like to be in your career in twelve months, and how does this role help?",
 ]
 
 
@@ -75,6 +78,9 @@ LLND_FALLBACK_QUESTIONS = [
     "What do you do if you do not understand a task?",
     "What would you do if you were going to be late?",
     "How do you stay safe at work?",
+    "Tell me about something new you learnt recently.",
+    "What do you do when you have a lot of jobs to finish?",
+    "What kind of work would you like to do next year?",
 ]
 
 
@@ -85,23 +91,23 @@ def _system(mode: str) -> str:
 async def generate_questions(job_target: str, industry: str, mode: str = "standard") -> list[str]:
     if mode == "llnd":
         prompt = (
-            f"Write exactly 5 very simple practice interview questions for an entry-level "
+            f"Write exactly 8 very simple practice interview questions for an entry-level "
             f"'{job_target}' job in the Australian {industry} industry. "
             "Each question must be under 15 words, use simple everyday words, and ask only one thing. "
-            'Respond ONLY with JSON: {"questions": ["...", "...", "...", "...", "..."]}'
+            'Respond ONLY with JSON: {"questions": ["q1","q2","q3","q4","q5","q6","q7","q8"]}'
         )
     else:
         prompt = (
-            f"Write exactly 5 realistic behavioural and situational interview questions for an entry-level "
+            f"Write exactly 8 realistic behavioural and situational interview questions for an entry-level "
             f"'{job_target}' role in the Australian {industry} industry. Mix behavioural and situational. "
-            'Respond ONLY with JSON: {"questions": ["...", "...", "...", "...", "..."]}'
+            'Respond ONLY with JSON: {"questions": ["q1","q2","q3","q4","q5","q6","q7","q8"]}'
         )
 
     raw = await _ask(_system(mode), prompt)
     data = _parse_json(raw)
     if isinstance(data, dict) and isinstance(data.get("questions"), list):
-        qs = [str(q) for q in data["questions"] if str(q).strip()][:5]
-        if len(qs) == 5:
+        qs = [str(q) for q in data["questions"] if str(q).strip()][:8]
+        if len(qs) == 8:
             return qs
     return list(LLND_FALLBACK_QUESTIONS if mode == "llnd" else FALLBACK_QUESTIONS)
 
@@ -169,7 +175,7 @@ async def score_interview(
             ],
         }
     answered = len([t for t in transcript if t["role"] == "participant"])
-    base = 55 + min(answered, 5) * 5
+    base = 55 + min(answered, 8) * 3
     return {
         "overall_score": base,
         "summary": "You completed the practice interview. Keep building detailed examples for each answer.",

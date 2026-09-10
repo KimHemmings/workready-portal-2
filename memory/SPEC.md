@@ -216,3 +216,9 @@ Cohorts: Morning Job Club, TtW Youth Cohort.
   disappears, check these two files first.
 - `APP_URL` is exported by supervisor with a stale UUID host, so `routers/invite_email.app_url()`
   reads `backend/.env` with `dotenv_values` and lets the file win.
+
+## Update — quiz/interview length, read-aloud, PDF scorecard
+- Module quizzes: every quiz in `backend/seed.py` QUIZZES now has exactly 7 MCQs (re-run `python backend/seed.py` to apply).
+- Mock interviews: exactly 8 questions (`backend/lib/ai.py` prompts + FALLBACK_QUESTIONS / LLND_FALLBACK_QUESTIONS).
+- Per-question read-aloud buttons on interviewer turns in `frontend/src/pages/Interview.tsx` (window.speechSynthesis, en-AU).
+- PDF scorecard generator: `pdf.interview_scorecard_pdf()` served by `GET /api/interviews/{id}/scorecard.pdf`; frontend "Download PDF scorecard" (text export retained).

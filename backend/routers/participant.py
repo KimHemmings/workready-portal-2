@@ -55,7 +55,10 @@ async def completion_stats(pid: str) -> tuple[int, int, int, list[dict]]:
 
 
 async def pbas_points(pid: str) -> int:
-    logs = await db.job_search_logs.find({"participant_id": pid}).to_list(500)
+    # Projection keeps the base64 evidence payload out of a points-only aggregation.
+    logs = await db.job_search_logs.find(
+        {"participant_id": pid}, {"points": 1}
+    ).to_list(500)
     return sum(int(log.get("points", 5)) for log in logs)
 
 

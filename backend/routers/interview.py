@@ -1,6 +1,7 @@
 from fastapi import APIRouter, HTTPException
+from fastapi.responses import Response
 
-from lib import ai, certificates, limits
+from lib import ai, certificates, limits, pdf
 from lib.db import db
 from models.schemas import (
     FeedbackSummary,
@@ -93,6 +94,23 @@ async def answer(session_id: str, body: InterviewAnswer):
 
     await db.interview_sessions.replace_one({"id": session.id}, session.model_dump())
     return session
+
+
+@router.get("/{session_id}/scorecard.pdf")
+async def scorecard_pdf(session_id: str):
+    doc = await db.interview_sessions.find_one({"id": session_id}, {"_id": 0})
+    if not doc:
+        raise HTTPException(status_code=404, detail="Interview session not found")
+    if not doc.get("finished"):
+        raise HTTPException(status_code=400, detail="Finish the interview to download your scorecard")
+    data = pdf.interview_scorecard_pdf(doc)
+    return Response(
+        content=data,
+        media_type="application/pdf",
+        headers={
+            "Content-Disposition": f'attachment; filename="interview-scorecard-{session_id[:8]}.pdf"'
+        },
+    )
 
 
 @router.get("/participant/{pid}/history", response_model=list[InterviewSession])

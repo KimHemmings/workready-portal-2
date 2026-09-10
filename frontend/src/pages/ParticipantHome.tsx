@@ -135,7 +135,7 @@ export default function ParticipantHome() {
           </CardHeader>
           <CardContent>
             <p className="text-sm text-muted-foreground">
-              Practise five realistic questions with a friendly Australian employer and get a readiness
+              Practise eight realistic questions with a friendly Australian employer and get a readiness
               scorecard.
             </p>
             {live?.latest_interview_score != null && (

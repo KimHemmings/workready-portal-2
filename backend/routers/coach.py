@@ -68,7 +68,10 @@ async def _roster_rows(coach: User) -> list[RosterRow]:
     for p in participants:
         progress = await db.participant_progress.find({"participant_id": p["id"]}).to_list(500)
         completed = len([x for x in progress if x.get("status") == "completed"])
-        logs = await db.job_search_logs.find({"participant_id": p["id"]}).to_list(500)
+        # Projection keeps the base64 evidence payload out of the roster aggregation.
+        logs = await db.job_search_logs.find(
+            {"participant_id": p["id"]}, {"points": 1}
+        ).to_list(500)
         points = sum(int(log.get("points", 5)) for log in logs)
         percent = round(completed / total_modules * 100) if total_modules else 0
         risk = "on_track" if points >= 100 else "watch" if points >= 50 else "at_risk"

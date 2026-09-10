@@ -28,7 +28,7 @@ import {
 import AppShell from "@/components/AppShell";
 import UsageMeter from "@/components/UsageMeter";
 import VoiceConsentDialog, { grantVoiceConsent, hasVoiceConsent } from "@/components/VoiceConsentDialog";
-import { apiGet, apiPost, ApiError } from "@/lib/api";
+import { apiGet, apiPost, ApiError, API_BASE } from "@/lib/api";
 import { getSessionUser } from "@/lib/session";
 import { useDictation } from "@/lib/speech";
 import type { InterviewMode, InterviewSession, UsageSummary } from "@/lib/types";
@@ -65,6 +65,19 @@ function speak(text: string) {
   utter.rate = 0.92;
   window.speechSynthesis.speak(utter);
   return true;
+}
+
+/** PDF scorecard generator — streams the server-rendered PDF and saves it locally. */
+async function downloadScorecardPdf(session: InterviewSession) {
+  const res = await fetch(`${API_BASE}/interviews/${session.id}/scorecard.pdf`);
+  if (!res.ok) throw new Error("scorecard download failed");
+  const blob = await res.blob();
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = `interview-scorecard-${session.job_target.replace(/\W+/g, "-").toLowerCase()}.pdf`;
+  a.click();
+  URL.revokeObjectURL(url);
 }
 
 function downloadScorecard(session: InterviewSession) {
@@ -194,7 +207,7 @@ export default function Interview() {
           Practise with an Australian employer
         </h1>
         <p className="text-muted-foreground mt-2 max-w-2xl">
-          Five realistic behavioural and situational questions, real-time coaching tips, and a readiness
+          Eight realistic behavioural and situational questions, real-time coaching tips, and a readiness
           scorecard against the Core Skills for Work.
         </p>
       </header>
@@ -350,7 +363,12 @@ export default function Interview() {
                           <Button
                             variant="ghost"
                             size="sm"
-                            onClick={() => downloadScorecard(s)}
+                            aria-label="Download PDF scorecard"
+                            onClick={() =>
+                              downloadScorecardPdf(s).catch(() =>
+                                toast.error("Could not download the PDF scorecard. Please try again."),
+                              )
+                            }
                             data-testid={`download-scorecard-${s.id}`}
                           >
                             <Download className="h-4 w-4" aria-hidden="true" />
@@ -408,8 +426,23 @@ export default function Interview() {
                           : "bg-muted"
                     }`}
                   >
-                    <span className="block text-[10px] uppercase tracking-wider font-mono opacity-70 mb-1">
+                    <span className="flex items-center justify-between gap-2 text-[10px] uppercase tracking-wider font-mono opacity-70 mb-1">
                       {turn.role === "participant" ? "You" : turn.role === "coach" ? "Coaching tip" : "Interviewer"}
+                      {turn.role === "interviewer" && (
+                        <button
+                          type="button"
+                          aria-label="Read this question aloud"
+                          title="Read this question aloud"
+                          className="rounded-full p-1 transition-colors duration-150 hover:bg-background/70 focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
+                          onClick={() => {
+                            if (!speak(turn.content))
+                              toast.error("Your browser does not support read aloud.");
+                          }}
+                          data-testid={`speak-turn-button-${i}`}
+                        >
+                          <Volume2 className="h-3.5 w-3.5" aria-hidden="true" />
+                        </button>
+                      )}
                     </span>
                     {turn.content}
                   </div>
@@ -520,8 +553,19 @@ export default function Interview() {
                     </ul>
                   </div>
 
-                  <Button className="w-full bg-cta text-cta-foreground hover:bg-cta/90" onClick={() => downloadScorecard(session)} data-testid="download-scorecard-button">
-                    <Download className="h-4 w-4 mr-1.5" aria-hidden="true" /> Download scorecard
+                  <Button
+                    className="w-full bg-cta text-cta-foreground hover:bg-cta/90"
+                    onClick={() =>
+                      downloadScorecardPdf(session).catch(() =>
+                        toast.error("Could not download the PDF scorecard. Please try again."),
+                      )
+                    }
+                    data-testid="download-scorecard-pdf-button"
+                  >
+                    <Download className="h-4 w-4 mr-1.5" aria-hidden="true" /> Download PDF scorecard
+                  </Button>
+                  <Button variant="outline" className="w-full" onClick={() => downloadScorecard(session)} data-testid="download-scorecard-button">
+                    <Download className="h-4 w-4 mr-1.5" aria-hidden="true" /> Download as text
                   </Button>
                   <Button variant="outline" className="w-full" onClick={() => setSession(null)} data-testid="new-interview-button">
                     Practise another interview

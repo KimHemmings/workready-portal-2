@@ -27,7 +27,7 @@ def test_quiz_submission_scores_and_completes_module(client):
     resp = client.get(f"/participants/{pid}/modules/{MODULE_ID}")
     assert resp.status_code == 200, resp.text
     quiz = resp.json()["quiz"]
-    assert len(quiz["questions"]) == 5
+    assert len(quiz["questions"]) == 7
 
     start = client.post(f"/participants/{pid}/modules/{MODULE_ID}/start")
     assert start.status_code == 200, start.text

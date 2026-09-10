@@ -6,6 +6,7 @@ email is unavailable.
 """
 
 import os
+import re
 from pathlib import Path
 from urllib.parse import quote
 
@@ -37,10 +38,16 @@ ROLE_LABEL = {
 def app_url() -> str:
     """Public origin used in onboarding links.
 
-    backend/.env wins over the process environment, which can carry a stale preview host.
+    In production APP_URL arrives as a platform secret, so the process environment wins. The pod's
+    supervisor config exports a stale UUID-form preview host, so that one specific case falls back
+    to backend/.env.
     """
-    env_file = dotenv_values(Path(__file__).resolve().parents[1] / ".env")
-    return (env_file.get("APP_URL") or os.environ.get("APP_URL", "")).rstrip("/")
+    env_value = os.environ.get("APP_URL", "").strip()
+    stale_preview = bool(re.match(r"^https?://[0-9a-f-]{36}\.preview\.emergentagent\.com", env_value))
+    if env_value and not stale_preview:
+        return env_value.rstrip("/")
+    file_value = dotenv_values(Path(__file__).resolve().parents[1] / ".env").get("APP_URL") or ""
+    return (file_value or env_value).rstrip("/")
 
 
 async def _inviter(inviter_id: str) -> User:
