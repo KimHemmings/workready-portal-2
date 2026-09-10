@@ -1,26 +1,17 @@
 {
-  "services": {
-    "frontend": {
-      "root": "frontend",
-      "framework": "vite"
-    },
-    "backend": {
-      "root": "backend",
-      "entrypoint": "server.py"
+  "builds": [
+    {
+      "src": "backend/server.py",
+      "use": "@vercel/python",
+      "config": {
+        "includeFiles": "backend/requirements.txt"
+      }
     }
-  },
-  "rewrites": [
+  ],
+  "routes": [
     {
-      "source": "/api/(.*)",
-      "destination": {
-        "service": "backend"
-      }
-    },
-    {
-      "source": "/(.*)",
-      "destination": {
-        "service": "frontend"
-      }
+      "src": "/(.*)",
+      "dest": "backend/server.py"
     }
   ]
 }
