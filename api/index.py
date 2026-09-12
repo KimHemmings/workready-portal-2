@@ -69,7 +69,7 @@ class ProvisionProviderRequest(BaseModel):
     seat_capacity: int = 100
 
 class InviteLearnerRequest(BaseModel):
-    provider_id: str
+    provider_id: Optional[str] = "prov_default"
     first_name: str
     last_name: str
     assessed_capacity_hours: Optional[int] = 30
@@ -147,8 +147,8 @@ async def serve_portal_ui():
             </span>
         </div>
 
+        <!-- Metric Gauges Dashboard Grid -->
         <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-            
             <div class="card bg-slate-800 border border-slate-700 rounded-xl p-5 space-y-2">
                 <p id="metric-1-label" class="text-xs text-slate-400 font-medium">Monthly PBAS Points Target</p>
                 <div class="flex items-baseline justify-between">
@@ -179,6 +179,35 @@ async def serve_portal_ui():
             </div>
         </div>
 
+        <!-- Live Supabase Action Panel: Invite Learner Form -->
+        <div class="card bg-slate-800 border border-slate-700 rounded-xl p-6 space-y-4">
+            <div class="flex justify-between items-center border-b border-slate-700 pb-3">
+                <h3 class="text-md font-bold text-slate-200">➕ Add Learner to Live Database</h3>
+                <span class="text-xs text-teal-400 font-medium">Direct Supabase Read/Write</span>
+            </div>
+            
+            <form id="invite-form" onsubmit="handleInviteLearner(event)" class="grid grid-cols-1 md:grid-cols-4 gap-4 text-xs">
+                <div>
+                    <label class="block text-slate-400 mb-1">First Name</label>
+                    <input type="text" id="inv-first" required placeholder="Alex" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-slate-200 focus:border-teal-500 outline-none">
+                </div>
+                <div>
+                    <label class="block text-slate-400 mb-1">Last Name</label>
+                    <input type="text" id="inv-last" required placeholder="Taylor" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-slate-200 focus:border-teal-500 outline-none">
+                </div>
+                <div>
+                    <label class="block text-slate-400 mb-1">Assessed Capacity (Hrs)</label>
+                    <input type="number" id="inv-capacity" value="30" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-slate-200 focus:border-teal-500 outline-none">
+                </div>
+                <div class="flex items-end">
+                    <button type="submit" id="btn-invite" class="w-full bg-teal-600 hover:bg-teal-500 font-semibold text-white py-2 px-4 rounded-lg transition shadow-md">
+                        Save to Supabase
+                    </button>
+                </div>
+            </form>
+            <div id="invite-alert" class="hidden p-3 rounded-lg text-xs font-medium"></div>
+        </div>
+
         <div class="card bg-slate-800/50 border border-slate-700/60 rounded-xl p-4 flex justify-between items-center text-xs text-slate-400">
             <span>Unified API Platform Engine Live</span>
             <div class="flex gap-4 font-medium">
@@ -192,7 +221,6 @@ async def serve_portal_ui():
 
     <script>
         function switchProgram(program) {
-            const body = document.getElementById('app-body');
             const title = document.getElementById('banner-title');
             const desc = document.getElementById('banner-desc');
             const badge = document.getElementById('banner-badge');
@@ -231,6 +259,48 @@ async def serve_portal_ui():
 
         function toggleAccessibility() {
             document.body.classList.toggle('wcag-mode');
+        }
+
+        async function handleInviteLearner(e) {
+            e.preventDefault();
+            const alertBox = document.getElementById('invite-alert');
+            const btn = document.getElementById('btn-invite');
+            
+            btn.innerText = 'Saving...';
+            btn.disabled = true;
+
+            const payload = {
+                provider_id: "prov_default",
+                first_name: document.getElementById('inv-first').value,
+                last_name: document.getElementById('inv-last').value,
+                assessed_capacity_hours: parseInt(document.getElementById('inv-capacity').value),
+                active_pathway: "Employment"
+            };
+
+            try {
+                const res = await fetch('/api/casemanager/invite-learner', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                
+                const data = await res.json();
+                
+                if (res.ok) {
+                    alertBox.className = 'p-3 rounded-lg text-xs font-medium bg-emerald-950/60 border border-emerald-500/40 text-emerald-300';
+                    alertBox.innerText = `Success! Learner ${payload.first_name} ${payload.last_name} saved to Supabase.`;
+                    document.getElementById('invite-form').reset();
+                } else {
+                    throw new Error(data.detail || 'Failed to save record.');
+                }
+            } catch (err) {
+                alertBox.className = 'p-3 rounded-lg text-xs font-medium bg-rose-950/60 border border-rose-500/40 text-rose-300';
+                alertBox.innerText = `Error: ${err.message}`;
+            } finally {
+                alertBox.classList.remove('hidden');
+                btn.innerText = 'Save to Supabase';
+                btn.disabled = false;
+            }
         }
     </script>
 </body>
