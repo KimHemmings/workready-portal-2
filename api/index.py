@@ -2,17 +2,30 @@ import os
 import random
 import string
 from datetime import datetime
-from zoneinfo import ZoneInfo
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
 from supabase import create_client, Client
 
+# Try loading zoneinfo safely without breaking Vercel runtime
+try:
+    from zoneinfo import ZoneInfo
+    TIMEZONE = ZoneInfo("Australia/Sydney")
+except Exception:
+    TIMEZONE = None
+
 app = FastAPI(title="WorkReady Portal V2 API", version="2.0.0")
 
-# Initialize Supabase Client using Environment Variables
+# Fetch Supabase credentials safely
 SUPABASE_URL = os.environ.get("SUPABASE_URL", "")
 SUPABASE_SERVICE_ROLE_KEY = os.environ.get("SUPABASE_SERVICE_ROLE_KEY", "")
-supabase: Client = create_client(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY)
+
+def get_supabase() -> Client:
+    if not SUPABASE_URL or not SUPABASE_SERVICE_ROLE_KEY:
+        raise HTTPException(
+            status_code=500,
+            detail="Supabase credentials missing in Vercel environment variables."
+        )
+    return create_client(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY)
 
 
 class InviteCandidateRequest(BaseModel):
@@ -36,7 +49,7 @@ async def health_check():
 @app.post("/api/candidates/invite")
 async def invite_candidate(payload: InviteCandidateRequest):
     try:
-        # Enforces database RLS & quota triggers automatically upon insertion
+        supabase = get_supabase()
         response = supabase.table("learners").insert({
             "email": payload.email,
             "case_manager_id": payload.case_manager_id,
@@ -60,21 +73,21 @@ async def submit_quiz(payload: QuizSubmitRequest):
             "message": f"Score {payload.score}% did not meet passing threshold of {payload.passing_score}%."
         }
 
-    # Generate Audit Cryptographic Verification Hash
-    timestamp_str = datetime.now(ZoneInfo("Australia/Sydney")).strftime("%Y%m%d")
+    now = datetime.now(TIMEZONE) if TIMEZONE else datetime.utcnow()
+    timestamp_str = now.strftime("%Y%m%d")
     random_code = ''.join(random.choices(string.ascii_uppercase + string.digits, k=4))
     cert_hash = f"#WR-{timestamp_str}-{random_code}"
 
-    # Upsert module completion state into learner_modules
+    supabase = get_supabase()
+
     supabase.table("learner_modules").upsert({
         "learner_id": payload.learner_id,
         "module_id": payload.module_id,
         "status": "completed",
         "quiz_score": payload.score,
-        "completed_at": datetime.now(ZoneInfo("Australia/Sydney")).isoformat()
+        "completed_at": now.isoformat()
     }).execute()
 
-    # Store official audit certificate entry into certificates vault
     cert_response = supabase.table("certificates").insert({
         "learner_id": payload.learner_id,
         "module_id": payload.module_id,
@@ -84,6 +97,6 @@ async def submit_quiz(payload: QuizSubmitRequest):
     return {
         "passed": True,
         "certificate_code": cert_hash,
-        "issued_at": datetime.now(ZoneInfo("Australia/Sydney")).strftime("%d-%b-%Y %H:%M:%S %Z"),
+        "issued_at": now.strftime("%d-%b-%Y %H:%M:%S %Z") if TIMEZONE else now.strftime("%d-%b-%Y %H:%M:%S UTC"),
         "data": cert_response.data
     }
