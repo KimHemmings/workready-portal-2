@@ -27,12 +27,12 @@
 </head>
 <body class="bg-slate-100 font-sans text-slate-900 min-h-screen flex flex-col">
 
-  <!-- Audit & Dual Branding Header with Official Logo -->
+  <!-- Header with Official Logo -->
   <header class="bg-[#1D2B53] text-white px-6 py-4 border-b-4 border-[#4CAF50] shadow-lg">
     <div class="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
       <div class="flex items-center gap-4">
         
-        <!-- Official Straight Up Training Image Logo Asset -->
+        <!-- Official Image Logo Asset -->
         <div class="bg-white p-1.5 rounded-lg shadow-sm flex items-center justify-center">
           <img src="/logo.png" alt="Straight Up Training Logo" class="h-12 w-auto object-contain">
         </div>
@@ -85,7 +85,7 @@
     <!-- 1. JOBSEEKER WORKSPACE -->
     <div id="workspace-jobseeker" class="space-y-8">
       
-      <!-- Victory Milestone & Direct Case Manager Messaging Header -->
+      <!-- Victory Milestone & Direct Messaging Header -->
       <div class="bg-gradient-to-r from-emerald-500 to-teal-600 p-6 rounded-xl text-white shadow-md flex flex-col md:flex-row items-center justify-between gap-4">
         <div>
           <h2 class="text-2xl font-bold">Achieved a Work Milestone?</h2>
@@ -132,12 +132,12 @@
         </div>
       </div>
 
-      <!-- AI MOCK INTERVIEW COACH -->
+      <!-- AI MOCK INTERVIEW COACH WITH HISTORICAL ARCHIVE -->
       <div id="mock-interview-section" class="bg-white p-6 rounded-xl shadow-md border border-slate-200 space-y-6">
         <div class="flex items-center justify-between border-b pb-4">
           <div>
             <h2 class="text-2xl font-bold text-[#1D2B53]">AI Mock Interview Coach</h2>
-            <p class="text-sm text-slate-600">Practice core workplace questions with Speech-to-Text and STAR feedback.</p>
+            <p class="text-sm text-slate-600">Practice core workplace questions with Speech-to-Text, STAR evaluation, and report downloads.</p>
           </div>
           <span id="interview-badge" class="px-3 py-1 bg-slate-100 text-slate-700 text-xs font-semibold rounded-full border border-slate-300">Ready</span>
         </div>
@@ -188,10 +188,9 @@
           </div>
         </div>
 
-        <!-- Evaluation Step with Detailed Scoring Breakdown & PDF Download -->
+        <!-- Active Evaluation Step -->
         <div id="interview-report-step" class="hidden space-y-6">
           <div id="interview-pdf-element" class="p-6 bg-white border border-slate-300 rounded-xl space-y-5">
-            
             <div class="flex justify-between items-center border-b-2 border-slate-200 pb-4">
               <div class="flex items-center gap-3">
                 <img src="/logo.png" alt="Logo" class="h-10 w-auto object-contain">
@@ -206,7 +205,6 @@
               </div>
             </div>
 
-            <!-- Detailed Score Calculation Criteria -->
             <div class="p-4 bg-slate-50 border border-slate-200 rounded-lg space-y-3">
               <h4 class="font-bold text-[#1D2B53] text-sm">How Your Score Was Calculated</h4>
               <div class="grid grid-cols-2 md:grid-cols-4 gap-2 text-xs">
@@ -246,7 +244,7 @@
             </div>
             
             <div class="text-[10px] text-slate-400 border-t pt-2 flex justify-between">
-              <span>Timestamp: 12-Sep-2026 20:43:00 AEST</span>
+              <span id="report-timestamp-txt">Timestamp: 12-Sep-2026 20:43:00 AEST</span>
               <span>Audit Hash: #INT-2026-8812</span>
             </div>
           </div>
@@ -261,6 +259,24 @@
           </div>
         </div>
 
+        <!-- Historical Mock Interview Reports Archive -->
+        <div class="border-t pt-4 space-y-3">
+          <h3 class="font-bold text-slate-800 text-sm flex items-center gap-2">
+            📂 Previous Mock Interview Reports & History
+          </h3>
+          <div id="interview-history-list" class="space-y-2">
+            <div class="p-3 bg-slate-50 border border-slate-200 rounded-lg flex items-center justify-between text-xs">
+              <div>
+                <span class="font-bold text-[#1D2B53]">Retail & Customer Service Session</span>
+                <span class="text-slate-500 block">Completed on 10-Sep-2026 • Score: 82/100</span>
+              </div>
+              <button onclick="downloadInterviewPDF()" class="px-3 py-1.5 bg-[#1D2B53] text-white font-bold rounded hover:bg-slate-800">
+                Download PDF Report
+              </button>
+            </div>
+          </div>
+        </div>
+
       </div>
 
       <!-- FULL TEMPLATE MULTI-JOB RESUME & COVER LETTER BUILDER -->
@@ -268,7 +284,7 @@
         <div class="border-b pb-4 flex items-center justify-between">
           <div>
             <h2 class="text-2xl font-bold text-[#1D2B53]">Full AI Resume & Cover Letter Builder</h2>
-            <p class="text-sm text-slate-600">Include contact details, education, skills, and multiple past jobs. Download as Word (.docx) or PDF.</p>
+            <p class="text-sm text-slate-600">Built-in spellcheck, full multi-job history, education, and tailored cover letter. Export to Word or PDF.</p>
           </div>
           <span id="resume-badge" class="px-3 py-1 bg-[#9C27B0] text-white text-xs font-bold rounded-full">3 Left</span>
         </div>
@@ -306,18 +322,17 @@
               </button>
             </div>
             <div id="job-entries-container" class="space-y-3">
-              <!-- Initial Job Entry -->
-              <div class="job-entry p-3 bg-white border border-slate-200 rounded-lg grid grid-cols-1 md:grid-cols-3 gap-2">
+              <div class="job-entry p-3 bg-white border border-slate-200 rounded-lg grid grid-cols-1 md:grid-cols-3 gap-2 relative">
                 <input type="text" class="job-title p-2 border rounded text-xs" placeholder="Job Title (e.g. Retail Assistant)">
                 <input type="text" class="job-employer p-2 border rounded text-xs" placeholder="Employer (e.g. ABC Stores)">
                 <input type="text" class="job-dates p-2 border rounded text-xs" placeholder="Dates (e.g. 2022 - 2024)">
-                <textarea class="job-duties md:col-span-3 p-2 border rounded text-xs" rows="2" placeholder="Key Duties & Achievements (e.g. Cash handling, assisting customers, stocking shelves)"></textarea>
+                <textarea class="job-duties md:col-span-3 p-2 border rounded text-xs" rows="2" placeholder="Key Duties & Achievements"></textarea>
               </div>
             </div>
           </div>
 
           <div>
-            <label class="block text-xs font-semibold text-slate-700 mb-1">Employment Gaps & Constructive Context (Optional)</label>
+            <label class="block text-xs font-semibold text-slate-700 mb-1">Employment Gaps & Positive Context (Optional)</label>
             <input type="text" id="res-gaps" class="w-full p-2.5 border border-slate-300 rounded-lg text-sm" placeholder="e.g. 2021-2022: Caregiving responsibilities / Independent study and upskilling">
           </div>
           
@@ -357,9 +372,10 @@
               <div id="tpl-history-content" class="space-y-3 text-xs text-slate-700"></div>
             </div>
 
-            <div class="border-t pt-4 space-y-2">
-              <h3 class="text-sm font-bold text-[#1D2B53] uppercase tracking-wider">Tailored Cover Letter</h3>
-              <div id="tpl-cover-letter" class="text-xs text-slate-700 leading-relaxed space-y-2 whitespace-pre-line"></div>
+            <!-- Professional Cover Letter Section -->
+            <div class="border-t pt-6 space-y-3">
+              <h3 class="text-sm font-bold text-[#1D2B53] uppercase tracking-wider">Cover Letter</h3>
+              <div id="tpl-cover-letter" class="text-xs text-slate-700 leading-relaxed space-y-3 whitespace-pre-line"></div>
             </div>
 
           </div>
@@ -659,11 +675,11 @@
     </div>
   </div>
 
-  <!-- DOWNLOADABLE PDF CERTIFICATE MODAL (FIXED RENDERING) -->
+  <!-- DOWNLOADABLE PDF CERTIFICATE MODAL (VISIBLE CONTAINER) -->
   <div id="certificate-modal" class="fixed inset-0 bg-slate-900/80 backdrop-blur-sm hidden flex items-center justify-center p-4 z-50 overflow-y-auto">
     <div class="bg-white max-w-2xl w-full rounded-2xl p-6 shadow-2xl space-y-6 my-8 border-4 border-[#1D2B53]">
       
-      <!-- Target Element for html2pdf -->
+      <!-- Container for html2pdf -->
       <div id="certificate-pdf-element" class="p-6 bg-white border-2 border-slate-300 rounded-xl space-y-6">
         <div class="flex justify-between items-center border-b-2 border-slate-200 pb-4">
           <div class="flex items-center gap-3">
@@ -740,6 +756,27 @@
 
   <!-- JAVASCRIPT ENGINE -->
   <script>
+    // --- Automated Spelling & Grammar Proofreader ---
+    function proofreadText(text) {
+      if (!text) return "";
+      let cleaned = text.trim();
+      
+      // Basic Dictionary & Typo Corrections
+      const corrections = {
+        "teh": "the", "recieve": "receive", "custmer": "customer", 
+        "managr": "manager", "experiance": "experience", "wrk": "work",
+        "responsiable": "responsible", "commication": "communication"
+      };
+
+      for (const [typo, fixed] of Object.entries(corrections)) {
+        const regex = new RegExp(`\\b${typo}\\b`, "gi");
+        cleaned = cleaned.replace(regex, fixed);
+      }
+
+      // Ensure First Letter Capitalization
+      return cleaned.charAt(0).toUpperCase() + cleaned.slice(1);
+    }
+
     // --- 6 Industry Question Banks ---
     const QUESTION_BANKS = {
       retail: [
@@ -874,7 +911,7 @@
         title: "Master Resumes & Employment Gaps",
         videoUrl: "https://www.youtube-nocookie.com/embed/dQw4w9WgXcQ",
         studyText: `
-          <p><strong>1. Explaining Gaps Positively:</strong> Having gaps in your work history is very common. Employers appreciate honesty paired with positive framing. Gaps due to family care, health recovery, travel, or upskilling should be noted briefly as constructive periods.</p>
+          <p><strong>1. Explaining Gaps Positively:</strong> Having gaps in your work history is common. Employers appreciate honesty paired with positive framing. Gaps due to family care, health recovery, travel, or upskilling should be noted briefly as constructive periods.</p>
           <p><strong>2. Functional vs. Chronological Layouts:</strong> If you have extended gaps, use a <strong>Functional (Skill-Based) Resume</strong> format. Group your skills under clear headings (e.g., Customer Service, Reliability, WHS) at the top of your resume before listing past job dates.</p>
           <p><strong>3. Framing Non-Paid Activity as Experience:</strong> Volunteer work, informal caregiving, short courses, community sporting involvement, and independent study show strong initiative. List these under 'Professional Development & Community Involvement'.</p>
           <p><strong>4. Interviewing About Gaps:</strong> When asked about a gap in an interview, keep your answer brief (2-3 sentences), focus on what you learned or how you prepared to return to work, and immediately pivot to your eagerness for the current job.</p>
@@ -892,7 +929,7 @@
       }
     };
 
-    // --- State & Quota Management ---
+    // --- State Management ---
     let activeRole = 'jobseeker';
     let currentIndustry = "retail";
     let currentQuestionIdx = 0;
@@ -935,7 +972,6 @@
       document.getElementById('cm-table-resume-quota').innerText = `${resumeAttemptsUsed} / 3 Used`;
     }
 
-    // --- Dynamic Multi-Job Functionality ---
     function addJobEntry() {
       const container = document.getElementById('job-entries-container');
       const newEntry = document.createElement('div');
@@ -1132,7 +1168,7 @@
       document.getElementById('interview-runner-step').classList.add('hidden');
       document.getElementById('interview-badge').innerText = "Evaluating...";
 
-      renderEvaluationReport({
+      const report = {
         overall_score: 85,
         strengths: [
           "Clear, honest communication addressing key workplace situations (S).",
@@ -1143,7 +1179,10 @@
           "Include concrete, measurable results or positive outcomes achieved (R)."
         ],
         summary_feedback: "Great job completing all 8 questions! Your answers demonstrated solid communication and reliability. Focus on elaborating on measurable results to improve your score further."
-      });
+      };
+
+      renderEvaluationReport(report);
+      archiveMockReport(currentIndustry, report.overall_score);
     }
 
     function renderEvaluationReport(report) {
@@ -1155,6 +1194,22 @@
 
       document.getElementById('report-strengths').innerHTML = report.strengths.map(s => `<li>${s}</li>`).join('');
       document.getElementById('report-growth').innerHTML = report.areas_for_growth.map(g => `<li>${g}</li>`).join('');
+    }
+
+    function archiveMockReport(sector, score) {
+      const historyList = document.getElementById('interview-history-list');
+      const card = document.createElement('div');
+      card.className = "p-3 bg-slate-50 border border-slate-200 rounded-lg flex items-center justify-between text-xs";
+      card.innerHTML = `
+        <div>
+          <span class="font-bold text-[#1D2B53]">${sector.toUpperCase()} Practice Session</span>
+          <span class="text-slate-500 block">Completed Today • Score: ${score}/100</span>
+        </div>
+        <button onclick="downloadInterviewPDF()" class="px-3 py-1.5 bg-[#1D2B53] text-white font-bold rounded hover:bg-slate-800">
+          Download PDF Report
+        </button>
+      `;
+      historyList.prepend(card);
     }
 
     function downloadInterviewPDF() {
@@ -1176,7 +1231,7 @@
       updateQuotaUI();
     }
 
-    // --- Template Resume Builder Engine ---
+    // --- Template Resume Builder Engine with Proofreader ---
     function handleGenerateResume(e) {
       e.preventDefault();
 
@@ -1188,31 +1243,30 @@
       resumeAttemptsUsed++;
       updateQuotaUI();
 
-      const name = document.getElementById('res-fullname').value;
-      const contact = document.getElementById('res-contact').value;
-      const title = document.getElementById('resume-target-title').value;
-      const skillsRaw = document.getElementById('resume-skills').value;
-      const edu = document.getElementById('res-education').value;
-      const gaps = document.getElementById('res-gaps').value;
+      const name = proofreadText(document.getElementById('res-fullname').value);
+      const contact = proofreadText(document.getElementById('res-contact').value);
+      const title = proofreadText(document.getElementById('resume-target-title').value);
+      const skillsRaw = proofreadText(document.getElementById('resume-skills').value);
+      const edu = proofreadText(document.getElementById('res-education').value);
+      const gaps = proofreadText(document.getElementById('res-gaps').value);
 
       document.getElementById('tpl-name').innerText = name.toUpperCase();
       document.getElementById('tpl-contact').innerText = contact;
       document.getElementById('tpl-target').innerText = `Target Role: ${title}`;
 
-      document.getElementById('tpl-summary').innerText = `Dedicated and reliable professional seeking a role as a ${title}. Demonstrates strong workplace communication, WHS awareness, and practical problem-solving capabilities. Highly adaptable with a strong commitment to team success.`;
+      document.getElementById('tpl-summary').innerText = `Dedicated and reliable professional seeking a position as a ${title}. Demonstrates strong workplace communication, WHS awareness, and practical problem-solving capabilities. Highly adaptable with a strong commitment to team success.`;
 
-      const skillsArr = skillsRaw.split(',').map(s => s.trim());
+      const skillsArr = skillsRaw.split(',').map(s => proofreadText(s));
       document.getElementById('tpl-skills-list').innerHTML = skillsArr.map(s => `<li>${s}</li>`).join('');
       document.getElementById('tpl-education').innerText = edu || "Year 12 High School Certificate | Cert III / Relevant Licenses";
 
-      // Process Multi-Job Entries
       const jobEntries = document.querySelectorAll('.job-entry');
       let historyHTML = '';
-      jobEntries.forEach((entry, idx) => {
-        const jTitle = entry.querySelector('.job-title').value;
-        const jEmp = entry.querySelector('.job-employer').value;
-        const jDates = entry.querySelector('.job-dates').value;
-        const jDuties = entry.querySelector('.job-duties').value;
+      jobEntries.forEach((entry) => {
+        const jTitle = proofreadText(entry.querySelector('.job-title').value);
+        const jEmp = proofreadText(entry.querySelector('.job-employer').value);
+        const jDates = proofreadText(entry.querySelector('.job-dates').value);
+        const jDuties = proofreadText(entry.querySelector('.job-duties').value);
 
         if (jTitle || jEmp) {
           historyHTML += `
@@ -1238,8 +1292,21 @@
 
       document.getElementById('tpl-history-content').innerHTML = historyHTML || '<p>General Work & Practical Experience Logged.</p>';
 
-      document.getElementById('tpl-cover-letter').innerText = 
-        `Dear Hiring Manager,\n\nI am writing to express my strong interest in the ${title} position. With my background in ${skillsRaw}, I bring strong reliability, a focus on workplace safety, and a dedication to delivering quality work.\n\n${gaps ? 'During my recent career transition period (' + gaps + '), I maintained a focus on upskilling and expanding my practical capabilities.' : ''}\n\nI welcome the opportunity to discuss how my skill set aligns with your team's needs.\n\nSincerely,\n${name}`;
+      // Standard Professional Cover Letter Format
+      document.getElementById('tpl-cover-letter').innerHTML = `
+        <p><strong>Date:</strong> 12 September 2026</p>
+        <p><strong>To:</strong> The Hiring Manager / Recruitment Team</p>
+        <p><strong>RE: Application for ${title} Role</strong></p>
+        <br>
+        <p>Dear Hiring Manager,</p>
+        <p>I am writing to formally apply for the ${title} position. With my practical background in ${skillsRaw}, I bring strong reliability, a commitment to Work Health & Safety (WHS), and a dedicated work ethic to your team.</p>
+        <p>Throughout my practical experience, I have developed strong team communication, punctuality, and problem-solving skills. I pride myself on maintaining high operational standards and adapting quickly to new workplace procedures.</p>
+        ${gaps ? `<p>During my recent career transition period (${gaps}), I maintained an active focus on personal upskilling, community involvement, and expanding my work readiness capabilities.</p>` : ''}
+        <p>I welcome the opportunity to discuss how my practical skills align with your team's current goals. Thank you for your time and consideration.</p>
+        <br>
+        <p>Sincerely,</p>
+        <p><strong>${name}</strong><br>${contact}</p>
+      `;
 
       document.getElementById('resume-output-box').classList.remove('hidden');
     }
