@@ -76,7 +76,7 @@ class InviteLearnerRequest(BaseModel):
     active_pathway: Optional[str] = "Employment"
 
 class MockInterviewRequest(BaseModel):
-    learner_id: str
+    learner_id: Optional[str] = "learner_demo"
     job_title: str
     program_type: ProgramType = ProgramType.WORKFORCE_AUSTRALIA
 
@@ -176,6 +176,36 @@ async def serve_portal_ui():
                     <span id="metric-3-sub" class="text-xs text-amber-400 font-medium">Pending Audit</span>
                 </div>
                 <p class="text-xs text-slate-400">12-week & 26-week employment tracking.</p>
+            </div>
+        </div>
+
+        <!-- PHASE 2 FEATURE: Interactive AI Mock Interview Widget -->
+        <div class="card bg-slate-800 border border-teal-500/40 rounded-xl p-6 space-y-4">
+            <div class="flex justify-between items-center border-b border-slate-700 pb-3">
+                <div class="flex items-center gap-2">
+                    <span class="text-xl">🤖</span>
+                    <h3 class="text-md font-bold text-slate-100">Live AI Interview Coach (GPT-4o-mini)</h3>
+                </div>
+                <span class="text-xs bg-teal-500/20 text-teal-300 border border-teal-500/40 px-2 py-1 rounded font-semibold">
+                    Program Persona Active
+                </span>
+            </div>
+
+            <form onsubmit="handleGenerateInterview(event)" class="grid grid-cols-1 md:grid-cols-4 gap-4 text-xs">
+                <div class="md:col-span-3">
+                    <label class="block text-slate-400 mb-1 font-medium">Target Job Role</label>
+                    <input type="text" id="ai-job-title" required value="Retail Sales Assistant" placeholder="e.g. Apprentice Electrician, Hospitality Staff..." class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-slate-200 focus:border-teal-500 outline-none">
+                </div>
+                <div class="flex items-end">
+                    <button type="submit" id="btn-ai-generate" class="w-full bg-teal-600 hover:bg-teal-500 font-semibold text-white py-2 px-4 rounded-lg transition shadow-md flex justify-center items-center gap-2">
+                        <span>Generate Question</span>
+                    </button>
+                </div>
+            </form>
+
+            <div id="ai-output-box" class="hidden p-4 rounded-xl bg-slate-900/80 border border-slate-700 space-y-2">
+                <p class="text-xs font-bold text-teal-400 uppercase tracking-wider">AI Generated Coach Response:</p>
+                <div id="ai-response-text" class="text-sm text-slate-200 whitespace-pre-wrap leading-relaxed"></div>
             </div>
         </div>
 
@@ -299,6 +329,45 @@ async def serve_portal_ui():
             } finally {
                 alertBox.classList.remove('hidden');
                 btn.innerText = 'Save to Supabase';
+                btn.disabled = false;
+            }
+        }
+
+        async function handleGenerateInterview(e) {
+            e.preventDefault();
+            const btn = document.getElementById('btn-ai-generate');
+            const outputBox = document.getElementById('ai-output-box');
+            const responseText = document.getElementById('ai-response-text');
+            const programType = document.getElementById('program-select').value;
+            const jobTitle = document.getElementById('ai-job-title').value;
+
+            btn.innerText = 'Thinking...';
+            btn.disabled = true;
+            outputBox.classList.remove('hidden');
+            responseText.innerText = 'Connecting to GPT-4o-mini engine...';
+
+            try {
+                const res = await fetch('/api/ai/mock-interview', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        learner_id: "learner_demo",
+                        job_title: jobTitle,
+                        program_type: programType
+                    })
+                });
+
+                const data = await res.json();
+
+                if (res.ok) {
+                    responseText.innerText = data.ai_response;
+                } else {
+                    throw new Error(data.detail || 'Failed to generate question.');
+                }
+            } catch (err) {
+                responseText.innerText = `Error: ${err.message}`;
+            } finally {
+                btn.innerText = 'Generate Question';
                 btn.disabled = false;
             }
         }
