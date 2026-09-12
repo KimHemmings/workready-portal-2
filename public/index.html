@@ -132,29 +132,29 @@
         </div>
       </div>
 
-      <!-- ENTRY-LEVEL AI MOCK INTERVIEW COACH -->
+      <!-- AI MOCK INTERVIEW COACH -->
       <div id="mock-interview-section" class="bg-white p-6 rounded-xl shadow-md border border-slate-200 space-y-6">
         <div class="flex items-center justify-between border-b pb-4">
           <div>
-            <h2 class="text-2xl font-bold text-[#1D2B53]">AI Mock Interview Coach (Entry-Level)</h2>
-            <p class="text-sm text-slate-600">Practice simple, beginner-friendly questions tailored for entry-level jobs.</p>
+            <h2 class="text-2xl font-bold text-[#1D2B53]">AI Mock Interview Coach</h2>
+            <p class="text-sm text-slate-600">Practice core workplace questions with Speech-to-Text and STAR feedback.</p>
           </div>
           <span id="interview-badge" class="px-3 py-1 bg-slate-100 text-slate-700 text-xs font-semibold rounded-full border border-slate-300">Ready</span>
         </div>
 
         <!-- Setup Step -->
         <div id="interview-setup-step" class="space-y-4">
-          <label class="block text-sm font-medium text-slate-700">Select Target Entry-Level Sector:</label>
+          <label class="block text-sm font-medium text-slate-700">Select Target Industry Sector:</label>
           <select id="industry-select" class="w-full p-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-[#4CAF50] focus:outline-none bg-white">
-            <option value="retail">Retail & Shop Assistant</option>
-            <option value="hospitality">Hospitality & Food Service</option>
-            <option value="warehouse">Warehouse & Logistics Support</option>
-            <option value="cleaning">Commercial Cleaning & Facilities</option>
-            <option value="construction">Construction & General Laborer</option>
-            <option value="admin">Office Junior & Admin Support</option>
+            <option value="retail">Retail & Customer Service</option>
+            <option value="hospitality">Hospitality & Food Services</option>
+            <option value="warehouse">Warehouse & Operations</option>
+            <option value="cleaning">Commercial Facilities & Cleaning</option>
+            <option value="construction">Construction & Trades Support</option>
+            <option value="admin">Administration & Customer Support</option>
           </select>
           <button id="start-interview-btn" onclick="startInterview()" class="w-full py-3 bg-[#4CAF50] text-white font-bold rounded-lg hover:bg-emerald-600 transition shadow-sm disabled:opacity-50">
-            Start Entry-Level Mock Interview (Uses 1 Attempt)
+            Start 8-Question Mock Interview (Uses 1 Attempt)
           </button>
         </div>
 
@@ -188,11 +188,18 @@
           </div>
         </div>
 
-        <!-- Evaluation Step -->
+        <!-- Evaluation Step with Downloadable PDF Report -->
         <div id="interview-report-step" class="hidden space-y-6">
-          <div class="p-6 bg-slate-50 border border-slate-200 rounded-xl space-y-4">
-            <div class="flex items-center justify-between border-b pb-4">
-              <h3 class="text-xl font-bold text-[#1D2B53]">STAR Interview Evaluation Report</h3>
+          <div id="interview-pdf-element" class="p-6 bg-slate-50 border border-slate-200 rounded-xl space-y-4">
+            
+            <div class="flex justify-between items-center border-b pb-4">
+              <div class="flex items-center gap-3">
+                <img src="/logo.png" alt="Logo" class="h-10 w-auto object-contain">
+                <div>
+                  <h3 class="text-lg font-bold text-[#1D2B53]">STAR Interview Evaluation Report</h3>
+                  <p class="text-xs text-slate-500">Official Candidate Assessment Dossier</p>
+                </div>
+              </div>
               <div class="text-center">
                 <span class="text-xs text-slate-500 block font-semibold uppercase">Overall Score</span>
                 <span id="report-score" class="text-3xl font-extrabold text-[#4CAF50]">85/100</span>
@@ -211,24 +218,34 @@
             </div>
 
             <div class="p-4 bg-white rounded-lg border border-slate-200">
-              <h4 class="font-bold text-slate-800 mb-1">Coach Feedback</h4>
+              <h4 class="font-bold text-slate-800 mb-1">Coach Narrative Feedback</h4>
               <p id="report-summary" class="text-sm text-slate-700 leading-relaxed"></p>
             </div>
             
-            <button onclick="resetInterview()" class="w-full py-3 bg-[#1D2B53] text-white font-bold rounded-lg hover:bg-slate-900 transition">
-              Back to Interview Launcher
+            <div class="text-xs text-slate-400 border-t pt-2 flex justify-between">
+              <span>Timestamp: 12-Sep-2026 20:43:00 AEST</span>
+              <span>Hash: #INT-2026-8812</span>
+            </div>
+          </div>
+
+          <div class="flex gap-3">
+            <button onclick="downloadInterviewPDF()" class="w-1/2 py-3 bg-[#4CAF50] text-white font-bold rounded-lg hover:bg-emerald-600 transition flex items-center justify-center gap-2">
+              📄 Download PDF Assessment Report
+            </button>
+            <button onclick="resetInterview()" class="w-1/2 py-3 bg-[#1D2B53] text-white font-bold rounded-lg hover:bg-slate-900 transition">
+              Back to Launcher
             </button>
           </div>
         </div>
 
       </div>
 
-      <!-- AI RESUME & COVER LETTER BUILDER (3 ATTEMPTS PER MONTH) -->
+      <!-- FULL TEMPLATE AI RESUME & COVER LETTER BUILDER -->
       <div class="bg-white p-6 rounded-xl shadow-md border border-slate-200 space-y-6">
         <div class="border-b pb-4 flex items-center justify-between">
           <div>
-            <h2 class="text-2xl font-bold text-[#1D2B53]">AI Resume & Cover Letter Builder</h2>
-            <p class="text-sm text-slate-600">Generate a tailored resume draft and cover letter (Limited to 3 generations per month).</p>
+            <h2 class="text-2xl font-bold text-[#1D2B53]">Full AI Resume & Cover Letter Template Builder</h2>
+            <p class="text-sm text-slate-600">Build a structured resume including career gap explanations. Download as Word (.docx) or PDF.</p>
           </div>
           <span id="resume-badge" class="px-3 py-1 bg-[#9C27B0] text-white text-xs font-bold rounded-full">3 Left</span>
         </div>
@@ -236,43 +253,106 @@
         <form onsubmit="handleGenerateResume(event)" class="space-y-4">
           <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label class="block text-xs font-semibold text-slate-700 mb-1">Target Job Title</label>
-              <input type="text" id="resume-target-title" required class="w-full p-2.5 border border-slate-300 rounded-lg text-sm" placeholder="e.g. Retail Sales Assistant">
+              <label class="block text-xs font-semibold text-slate-700 mb-1">Full Name</label>
+              <input type="text" id="res-fullname" required class="w-full p-2.5 border border-slate-300 rounded-lg text-sm" placeholder="e.g. John Citizen">
             </div>
             <div>
-              <label class="block text-xs font-semibold text-slate-700 mb-1">Key Past Experience / Skills</label>
-              <input type="text" id="resume-skills" required class="w-full p-2.5 border border-slate-300 rounded-lg text-sm" placeholder="e.g. Cash handling, customer service, teamwork">
+              <label class="block text-xs font-semibold text-slate-700 mb-1">Contact Email & Phone</label>
+              <input type="text" id="res-contact" required class="w-full p-2.5 border border-slate-300 rounded-lg text-sm" placeholder="e.g. john@example.com | 0400 000 000">
+            </div>
+            <div>
+              <label class="block text-xs font-semibold text-slate-700 mb-1">Target Job Title</label>
+              <input type="text" id="resume-target-title" required class="w-full p-2.5 border border-slate-300 rounded-lg text-sm" placeholder="e.g. Retail Assistant / Warehouse Team Member">
+            </div>
+            <div>
+              <label class="block text-xs font-semibold text-slate-700 mb-1">Core Skills & Qualifications</label>
+              <input type="text" id="resume-skills" required class="w-full p-2.5 border border-slate-300 rounded-lg text-sm" placeholder="e.g. Customer service, WHS, cash handling, White Card">
+            </div>
+            <div class="md:col-span-2">
+              <label class="block text-xs font-semibold text-slate-700 mb-1">Recent Work History / Practical Experience</label>
+              <textarea id="res-history" rows="2" class="w-full p-2.5 border border-slate-300 rounded-lg text-sm" placeholder="e.g. 2023-2024: Customer Service Team Member at ABC Retail. Handled sales and stock inventory."></textarea>
+            </div>
+            <div class="md:col-span-2">
+              <label class="block text-xs font-semibold text-slate-700 mb-1">Employment Gaps & Positive Context (Optional)</label>
+              <input type="text" id="res-gaps" class="w-full p-2.5 border border-slate-300 rounded-lg text-sm" placeholder="e.g. 2022-2023: Full-time caregiving responsibilities / Upskilling and professional development">
             </div>
           </div>
+          
           <button id="generate-resume-btn" type="submit" class="w-full py-3 bg-[#9C27B0] text-white font-bold rounded-lg hover:bg-purple-800 transition shadow-sm disabled:opacity-50">
-            Generate Resume & Cover Letter (Uses 1 Attempt)
+            Generate Complete Resume & Cover Letter Template (Uses 1 Attempt)
           </button>
         </form>
 
-        <div id="resume-output-box" class="hidden p-4 bg-slate-50 border border-slate-200 rounded-lg space-y-3">
-          <h4 class="font-bold text-[#1D2B53] text-sm">Generated AI Draft Output:</h4>
-          <textarea id="resume-output-text" rows="6" class="w-full p-3 border border-slate-300 rounded-lg text-xs font-mono text-slate-800 bg-white" readonly></textarea>
+        <!-- Template Display Container -->
+        <div id="resume-output-box" class="hidden space-y-4">
+          
+          <div id="resume-document-template" class="p-8 bg-white border-2 border-slate-300 rounded-xl space-y-6 text-slate-800">
+            
+            <!-- Resume Header -->
+            <div class="border-b-2 border-[#1D2B53] pb-4">
+              <h1 id="tpl-name" class="text-3xl font-bold text-[#1D2B53]">JOHN CITIZEN</h1>
+              <p id="tpl-contact" class="text-xs text-slate-600 mt-1">john@example.com | 0400 000 000 | Brisbane QLD</p>
+              <p id="tpl-[#4CAF50]" id="tpl-target" class="text-sm font-bold text-[#4CAF50] mt-1">Target Role: Retail Sales Assistant</p>
+            </div>
+
+            <!-- Professional Summary -->
+            <div class="space-y-1">
+              <h3 class="text-sm font-bold text-[#1D2B53] uppercase tracking-wider">Professional Summary</h3>
+              <p id="tpl-summary" class="text-xs text-slate-700 leading-relaxed"></p>
+            </div>
+
+            <!-- Key Competencies -->
+            <div class="space-y-1">
+              <h3 class="text-sm font-bold text-[#1D2B53] uppercase tracking-wider">Key Competencies & Qualifications</h3>
+              <ul id="tpl-skills-list" class="list-disc list-inside text-xs text-slate-700 grid grid-cols-2 gap-1"></ul>
+            </div>
+
+            <!-- Experience & Gaps Section -->
+            <div class="space-y-2">
+              <h3 class="text-sm font-bold text-[#1D2B53] uppercase tracking-wider">Work Experience & Professional History</h3>
+              <div id="tpl-history-content" class="text-xs text-slate-700 leading-relaxed"></div>
+            </div>
+
+            <!-- Cover Letter Section -->
+            <div class="border-t pt-4 space-y-2">
+              <h3 class="text-sm font-bold text-[#1D2B53] uppercase tracking-wider">Tailored Cover Letter</h3>
+              <div id="tpl-cover-letter" class="text-xs text-slate-700 leading-relaxed space-y-2 whitespace-pre-line"></div>
+            </div>
+
+          </div>
+
+          <!-- Download Action Buttons -->
+          <div class="flex gap-3">
+            <button onclick="downloadResumeWord()" class="w-1/2 py-3 bg-blue-700 text-white font-bold rounded-lg hover:bg-blue-800 transition flex items-center justify-center gap-2">
+              📝 Download Word Document (.docx)
+            </button>
+            <button onclick="downloadResumePDF()" class="w-1/2 py-3 bg-[#4CAF50] text-white font-bold rounded-lg hover:bg-emerald-600 transition flex items-center justify-center gap-2">
+              📄 Download PDF Resume
+            </button>
+          </div>
+
         </div>
       </div>
 
-      <!-- DETAILED EMPLOYABILITY LMS MODULES -->
+      <!-- DETAILED EMPLOYABILITY MODULES -->
       <div id="lms-modules-section" class="bg-white p-6 rounded-xl shadow-md border border-slate-200 space-y-6">
         <div class="border-b pb-4">
-          <h2 class="text-2xl font-bold text-[#1D2B53]">Employability LMS Modules</h2>
-          <p class="text-sm text-slate-600">Review detailed study guides, watch tutorial videos, and take 8-question quizzes for official downloadable PDF certificates.</p>
+          <h2 class="text-2xl font-bold text-[#1D2B53]">Employability Modules</h2>
+          <p class="text-sm text-slate-600">Review detailed study guides, watch tutorial videos, and take 8-question quizzes for downloadable PDF certificates.</p>
         </div>
 
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          
           <div class="border border-slate-200 rounded-xl p-5 space-y-4 bg-slate-50 hover:shadow-md transition flex flex-col justify-between">
             <div class="space-y-3">
               <div class="flex justify-between items-center">
                 <span class="px-2 py-1 bg-blue-100 text-blue-800 text-xs font-bold rounded">Module 01</span>
                 <span class="text-xs font-semibold text-slate-500">8 Questions</span>
               </div>
-              <h3 class="font-bold text-slate-900 text-lg">Workplace Rights & Safety</h3>
-              <p class="text-xs text-slate-600 leading-relaxed">Comprehensive breakdown of National Employment Standards (NES), payslips, WHS duty of care, and worker entitlements.</p>
+              <h3 class="font-bold text-slate-900 text-base">Workplace Rights & Safety</h3>
+              <p class="text-xs text-slate-600 leading-relaxed">National Employment Standards (NES), payslips, WHS duty of care, and worker entitlements.</p>
             </div>
-            <button onclick="openModuleContent('mod-1')" class="w-full py-2 bg-[#1D2B53] text-white text-sm font-bold rounded-lg hover:bg-slate-800 transition">
+            <button onclick="openModuleContent('mod-1')" class="w-full py-2 bg-[#1D2B53] text-white text-xs font-bold rounded-lg hover:bg-slate-800 transition">
               Detailed Guide & 8-Q Quiz
             </button>
           </div>
@@ -283,10 +363,10 @@
                 <span class="px-2 py-1 bg-emerald-100 text-emerald-800 text-xs font-bold rounded">Module 02</span>
                 <span class="text-xs font-semibold text-slate-500">8 Questions</span>
               </div>
-              <h3 class="font-bold text-slate-900 text-lg">Entry-Level Interview Success</h3>
-              <p class="text-xs text-slate-600 leading-relaxed">In-depth guide covering punctuality, positive body language, handling unfamiliar questions, and using the STAR framework.</p>
+              <h3 class="font-bold text-slate-900 text-base">Interview Success</h3>
+              <p class="text-xs text-slate-600 leading-relaxed">Punctuality, positive body language, handling unfamiliar questions, and the STAR framework.</p>
             </div>
-            <button onclick="openModuleContent('mod-2')" class="w-full py-2 bg-[#1D2B53] text-white text-sm font-bold rounded-lg hover:bg-slate-800 transition">
+            <button onclick="openModuleContent('mod-2')" class="w-full py-2 bg-[#1D2B53] text-white text-xs font-bold rounded-lg hover:bg-slate-800 transition">
               Detailed Guide & 8-Q Quiz
             </button>
           </div>
@@ -297,17 +377,33 @@
                 <span class="px-2 py-1 bg-purple-100 text-purple-800 text-xs font-bold rounded">Module 03</span>
                 <span class="text-xs font-semibold text-slate-500">8 Questions</span>
               </div>
-              <h3 class="font-bold text-slate-900 text-lg">Customer & Team Communication</h3>
-              <p class="text-xs text-slate-600 leading-relaxed">Detailed study material on active listening, de-escalation, accepting constructive supervisor feedback, and teamwork.</p>
+              <h3 class="font-bold text-slate-900 text-base">Customer & Team Communication</h3>
+              <p class="text-xs text-slate-600 leading-relaxed">Active listening, de-escalation, accepting supervisor feedback, and workplace teamwork.</p>
             </div>
-            <button onclick="openModuleContent('mod-3')" class="w-full py-2 bg-[#1D2B53] text-white text-sm font-bold rounded-lg hover:bg-slate-800 transition">
+            <button onclick="openModuleContent('mod-3')" class="w-full py-2 bg-[#1D2B53] text-white text-xs font-bold rounded-lg hover:bg-slate-800 transition">
               Detailed Guide & 8-Q Quiz
             </button>
           </div>
+
+          <!-- Module 04: Master Resume Building & Employment Gaps -->
+          <div class="border border-purple-300 rounded-xl p-5 space-y-4 bg-purple-50 hover:shadow-md transition flex flex-col justify-between">
+            <div class="space-y-3">
+              <div class="flex justify-between items-center">
+                <span class="px-2 py-1 bg-purple-600 text-white text-xs font-bold rounded">Module 04</span>
+                <span class="text-xs font-semibold text-slate-500">8 Questions</span>
+              </div>
+              <h3 class="font-bold text-slate-900 text-base">Master Resumes & Gaps</h3>
+              <p class="text-xs text-slate-600 leading-relaxed">Explaining employment gaps, choosing functional formats, and highlighting transferable skills.</p>
+            </div>
+            <button onclick="openModuleContent('mod-4')" class="w-full py-2 bg-[#9C27B0] text-white text-xs font-bold rounded-lg hover:bg-purple-900 transition">
+              Detailed Guide & 8-Q Quiz
+            </button>
+          </div>
+
         </div>
       </div>
 
-      <!-- JOBSEEKER JOB SEARCH & EVIDENCE LOGGER (FIXED IMPLEMENTATION) -->
+      <!-- JOBSEEKER JOB SEARCH & EVIDENCE LOGGER -->
       <div class="bg-white p-6 rounded-xl shadow-md border border-slate-200 space-y-6">
         <div class="border-b pb-4">
           <h2 class="text-2xl font-bold text-[#1D2B53]">Job Search & Evidence Logger</h2>
@@ -366,7 +462,7 @@
                   <td class="p-2.5 font-medium text-slate-900">Bunnings Warehouse</td>
                   <td class="p-2.5">Team Member</td>
                   <td class="p-2.5">Online (SEEK)</td>
-                  <td class="p-2.5"><span class="px-2 py-0.5 bg-emerald-100 text-emerald-700 rounded-full font-bold">Verified</span></td>
+                  <td class="p-2.5"><span class="px-2 py-0.5 bg-emerald-100 text-emerald-700 rounded-full font-bold">Verified File</span></td>
                 </tr>
               </tbody>
             </table>
@@ -381,7 +477,6 @@
       <div class="bg-white p-6 rounded-xl shadow-md border border-slate-200 space-y-4">
         <h2 class="text-2xl font-bold text-[#1D2B53]">Case Manager Active Roster & Live Feed</h2>
         
-        <!-- Direct Messages & Victory Alerts Inbox -->
         <div class="p-4 bg-slate-50 border border-slate-200 rounded-lg space-y-3">
           <h3 class="font-bold text-slate-800 text-sm flex items-center gap-2">
             📩 Candidate Direct Messages & Milestone Feed
@@ -392,7 +487,7 @@
                 <span>Demonstration Jobseeker (DEMO-USER-001)</span>
                 <span class="text-slate-400 font-normal">Today, 2:15 PM</span>
               </div>
-              <p class="text-slate-600">"Hi Coach, I completed my 8-question Workplace Rights quiz and logged my Bunnings application evidence. Can we talk about interview tips?"</p>
+              <p class="text-slate-600">"Hi Coach, I completed my Workplace Rights quiz and logged my Bunnings application evidence. Can we talk about interview tips?"</p>
             </div>
           </div>
         </div>
@@ -481,7 +576,7 @@
     </div>
   </div>
 
-  <!-- LMS STUDY MATERIAL & TUTORIAL VIDEO MODAL -->
+  <!-- LMS STUDY MATERIAL MODAL -->
   <div id="module-content-modal" class="fixed inset-0 bg-slate-900/70 backdrop-blur-sm hidden flex items-center justify-center p-4 z-50 overflow-y-auto">
     <div class="bg-white max-w-3xl w-full rounded-2xl p-6 shadow-2xl space-y-6 my-8 border border-slate-200">
       <div class="flex items-center justify-between border-b pb-3">
@@ -602,7 +697,7 @@
 
   <!-- JAVASCRIPT ENGINE -->
   <script>
-    // --- 6 Entry-Level Industry Question Banks ---
+    // --- 6 Industry Question Banks ---
     const QUESTION_BANKS = {
       retail: [
         "Why would you like to work as a retail shop assistant with our team?",
@@ -625,7 +720,7 @@
         "Why is positive communication important in a kitchen or dining area?"
       ],
       warehouse: [
-        "Why are you interested in entry-level warehouse and logistics work?",
+        "Why are you interested in warehouse and logistics work?",
         "How do you make sure you follow safety rules and wear required PPE?",
         "What would you do if you noticed a broken box or safety hazard on the floor?",
         "How do you stay organized when packing or sorting multiple items?",
@@ -655,7 +750,7 @@
         "What steps do you take to ensure 100% punctual attendance every morning?"
       ],
       admin: [
-        "Why are you seeking an entry-level office support or junior admin role?",
+        "Why are you seeking an office support or junior admin role?",
         "How do you rate your basic computer, email, and typing skills?",
         "How would you answer a general phone inquiry politely?",
         "How do you keep paper files or digital folders organized?",
@@ -666,7 +761,7 @@
       ]
     };
 
-    // --- Detailed LMS Learning Guides ---
+    // --- Detailed Employability Learning Modules ---
     const LMS_DATA = {
       'mod-1': {
         title: "Workplace Rights & Safety",
@@ -683,13 +778,13 @@
           { q: "How should employees receive details of their pay and tax deductions?", options: ["Verbal promise", "Written or electronic pay slip within 1 working day", "End of year letter", "No record required"], correct: 1 },
           { q: "What should you do first if you identify a safety hazard at work?", options: ["Ignore it", "Report it to your supervisor or safety rep", "Post about it online", "Leave work immediately"], correct: 1 },
           { q: "What does PPE stand for in workplace safety?", options: ["Personal Protective Equipment", "Private Plan Evaluation", "Professional Practice Exam", "Public Prevention Enterprise"], correct: 0 },
-          { q: "Are entry-level employees entitled to rest breaks during full shifts?", options: ["No, breaks are only for managers", "Yes, as set out in applicable modern awards", "Only if work is finished", "Never"], correct: 1 },
+          { q: "Are employees entitled to rest breaks during full shifts?", options: ["No, breaks are only for managers", "Yes, as set out in applicable modern awards", "Only if work is finished", "Never"], correct: 1 },
           { q: "What is the purpose of an emergency evacuation plan?", options: ["Decoration", "To guide workers safely out of buildings during danger", "To track attendance", "For audit checks only"], correct: 1 },
           { q: "Can an employee be fired for raising a genuine WHS safety concern?", options: ["Yes, anytime", "No, employees are protected under fair work legislation", "Only on weekends", "Yes, if work slows down"], correct: 1 }
         ]
       },
       'mod-2': {
-        title: "Entry-Level Interview Success",
+        title: "Interview Success",
         videoUrl: "https://www.youtube-nocookie.com/embed/dQw4w9WgXcQ",
         studyText: `
           <p><strong>1. Preparation & Punctuality:</strong> First impressions matter. Plan your transport route to arrive 10-15 minutes early. Dress neatly according to the industry (e.g., smart casual for retail, clean workwear for trades).</p>
@@ -699,7 +794,7 @@
             <br>• <strong>Action:</strong> Detail the step-by-step actions YOU performed.
             <br>• <strong>Result:</strong> State the positive outcome achieved.</p>
           <p><strong>3. Handling Unfamiliar Questions:</strong> Never fake an answer. If asked about something you haven't done, admit it honestly, emphasize your eagerness to learn, and explain how you would quickly gain that skill.</p>
-          <p><strong>4. Asking Smart Questions:</strong> At the end of an interview, ask 1-2 positive questions (e.g., "What does a typical day look like here?" or "What training do entry-level team members receive?").</p>
+          <p><strong>4. Asking Smart Questions:</strong> At the end of an interview, ask 1-2 positive questions (e.g., "What does a typical day look like here?" or "What training do team members receive?").</p>
         `,
         questions: [
           { q: "How early should you ideally arrive for an job interview?", options: ["10-15 minutes early", "Exactly on the dot", "30 minutes late", "1 hour early"], correct: 0 },
@@ -707,7 +802,7 @@
           { q: "Which part of STAR explains the specific steps YOU took?", options: ["Task", "Action", "Result", "Situation"], correct: 1 },
           { q: "What is the best way to answer if you don't know a technical question?", options: ["Make up a fake story", "Be honest, show willingness to learn, and explain how you'd find out", "Refuse to answer", "Change the subject"], correct: 1 },
           { q: "Why is positive body language (eye contact, smiling) important?", options: ["It shows confidence and approachable communication", "It is legally required", "It replaces speaking", "It speeds up the interview"], correct: 0 },
-          { q: "What should you bring to an entry-level interview?", options: ["Nothing", "Copies of your resume, references, and a notepad", "Your lunch", "Gaming handheld"], correct: 1 },
+          { q: "What should you bring to an interview?", options: ["Nothing", "Copies of your resume, references, and a notepad", "Your lunch", "Gaming handheld"], correct: 1 },
           { q: "Why should you research the company before your interview?", options: ["To show genuine interest and understand what they do", "To correct their manager", "To negotiate salary first", "To memorize names"], correct: 0 },
           { q: "What is a great question to ask an employer at the end of an interview?", options: ["'What does a typical day look like in this role?'", "'Can I leave early?'", "'Do I get free food?'", "'How fast can I get promoted?'"], correct: 0 }
         ]
@@ -725,11 +820,31 @@
           { q: "What is the first step when listening to an unhappy customer?", options: ["Interrupt them", "Listen actively without interrupting", "Walk away", "Tell them they are wrong"], correct: 1 },
           { q: "What does active listening involve?", options: ["Focusing fully, nodding, and summarizing key points", "Looking at your phone", "Thinking about lunch", "Talking over the speaker"], correct: 0 },
           { q: "How should you respond to constructive feedback from a supervisor?", options: ["Take it personally", "Listen, thank them, and apply the advice", "Argue back", "Ignore it"], correct: 1 },
-          { q: "Why is teamwork essential in entry-level roles?", options: ["It ensures tasks are completed efficiently and safely together", "It lets one person do all work", "It reduces payroll", "It replaces training"], correct: 0 },
+          { q: "Why is teamwork essential in workplace roles?", options: ["It ensures tasks are completed efficiently and safely together", "It lets one person do all work", "It reduces payroll", "It replaces training"], correct: 0 },
           { q: "What is a key habit of professional workplace communication?", options: ["Using polite language and clear tone", "Using slang", "Shouting over noise", "Whispering"], correct: 0 },
           { q: "What should you do if you finish your tasks early on a shift?", options: ["Sit down and wait", "Ask your supervisor or team how you can assist", "Go home", "Hide in the break room"], correct: 1 },
           { q: "Why is punctuality important for team shifts?", options: ["Late arrivals put extra pressure on your co-workers", "It doesn't matter", "Only managers care", "It saves electricity"], correct: 0 },
           { q: "What does 'going above and beyond' mean for customers?", options: ["Providing extra helpful service that creates a positive experience", "Overcharging", "Breaching rules", "Doing minimum effort"], correct: 0 }
+        ]
+      },
+      'mod-4': {
+        title: "Master Resumes & Employment Gaps",
+        videoUrl: "https://www.youtube-nocookie.com/embed/dQw4w9WgXcQ",
+        studyText: `
+          <p><strong>1. Explaining Gaps Positively:</strong> Having gaps in your work history is very common. Employers appreciate honesty paired with positive framing. Gaps due to family care, health recovery, travel, or upskilling should be noted briefly as constructive periods.</p>
+          <p><strong>2. Functional vs. Chronological Layouts:</strong> If you have extended gaps, use a <strong>Functional (Skill-Based) Resume</strong> format. Group your skills under clear headings (e.g., Customer Service, Reliability, WHS) at the top of your resume before listing past job dates.</p>
+          <p><strong>3. Framing Non-Paid Activity as Experience:</strong> Volunteer work, informal caregiving, short courses, community sporting involvement, and independent study show strong initiative. List these under 'Professional Development & Community Involvement'.</p>
+          <p><strong>4. Interviewing About Gaps:</strong> When asked about a gap in an interview, keep your answer brief (2-3 sentences), focus on what you learned or how you prepared to return to work, and immediately pivot to your eagerness for the current job.</p>
+        `,
+        questions: [
+          { q: "How should you approach explaining an employment gap on a resume?", options: ["Hide all dates", "Frame it honestly and highlight constructive skills or personal growth", "Invent fake jobs", "Leave the resume blank"], correct: 1 },
+          { q: "Which resume format is recommended if you have extended work gaps?", options: ["Functional (Skill-Based) format", "Reverse chronological", "Photo gallery", "Infographic only"], correct: 0 },
+          { q: "Where should volunteer work and short courses be listed?", options: ["Do not list them", "Under Professional Development & Community Involvement", "Only on cover letters", "In the reference section"], correct: 1 },
+          { q: "How long should a spoken response about a work gap be in an interview?", options: ["Brief (2-3 sentences) then pivot to future work goals", "30 minutes long", "Refuse to talk about it", "A single word"], correct: 0 },
+          { q: "What soft skill does upskilling during a work gap demonstrate?", options: ["Initiative and commitment to growth", "Lack of interest", "Confusion", "Slow working"], correct: 0 },
+          { q: "What is the primary purpose of a cover letter?", options: ["To introduce yourself and connect your key skills directly to the job", "To repeat your phone number 10 times", "To ask for pay raises", "To list high school marks"], correct: 0 },
+          { q: "What should you avoid putting on an Australian resume?", options: ["Relevant skills", "Personal details like age, marital status, or full street address", "Contact phone number", "Past job titles"], correct: 1 },
+          { q: "Why are transferable skills valuable when changing industries?", options: ["They apply across multiple roles regardless of sector", "They are legally required", "They lower tax rates", "They replace interviews"], correct: 0 }
         ]
       }
     };
@@ -962,14 +1077,14 @@
       renderEvaluationReport({
         overall_score: 85,
         strengths: [
-          "Clear, honest communication suitable for entry-level roles.",
+          "Clear, honest communication suitable for target roles.",
           "Good demonstration of punctuality, teamwork, and willingness to learn."
         ],
         areas_for_growth: [
           "Practice giving slightly longer answers using the STAR format.",
-          "Mention specific examples of past teamwork or school projects."
+          "Mention specific examples of past teamwork or practical projects."
         ],
-        summary_feedback: "Great job completing the 8 entry-level interview questions! Your answers were communicated clearly and demonstrate solid work readiness."
+        summary_feedback: "Great job completing the 8 interview questions! Your answers were communicated clearly and demonstrate solid work readiness."
       });
     }
 
@@ -984,6 +1099,18 @@
       document.getElementById('report-growth').innerHTML = report.areas_for_growth.map(g => `<li>${g}</li>`).join('');
     }
 
+    function downloadInterviewPDF() {
+      const element = document.getElementById('interview-pdf-element');
+      const opt = {
+        margin:       0.5,
+        filename:     'Mock_Interview_STAR_Report.pdf',
+        image:        { type: 'jpeg', quality: 0.98 },
+        html2canvas:  { scale: 2 },
+        jsPDF:        { unit: 'in', format: 'letter', orientation: 'portrait' }
+      };
+      html2pdf().set(opt).from(element).save();
+    }
+
     function resetInterview() {
       document.getElementById('interview-report-step').classList.add('hidden');
       document.getElementById('interview-runner-step').classList.add('hidden');
@@ -991,7 +1118,7 @@
       updateQuotaUI();
     }
 
-    // --- AI Resume Builder ---
+    // --- Template Resume Builder Engine ---
     function handleGenerateResume(e) {
       e.preventDefault();
 
@@ -1003,15 +1130,68 @@
       resumeAttemptsUsed++;
       updateQuotaUI();
 
+      const name = document.getElementById('res-fullname').value;
+      const contact = document.getElementById('res-contact').value;
       const title = document.getElementById('resume-target-title').value;
-      const skills = document.getElementById('resume-skills').value;
+      const skillsRaw = document.getElementById('resume-skills').value;
+      const history = document.getElementById('res-history').value;
+      const gaps = document.getElementById('res-gaps').value;
 
-      const outputBox = document.getElementById('resume-output-box');
-      const outputText = document.getElementById('resume-output-text');
+      document.getElementById('tpl-name').innerText = name.toUpperCase();
+      document.getElementById('tpl-contact').innerText = contact;
+      document.getElementById('tpl-target').innerText = `Target Role: ${title}`;
 
-      outputText.value = `RESUME & COVER LETTER DRAFT (Target: ${title})\n--------------------------------------------------\nSUMMARY: Enthusiastic and reliable candidate seeking an entry-level position as a ${title}. Possesses strong communication, teamwork, and problem-solving abilities.\n\nKEY COMPETENCIES:\n- ${skills}\n- Punctual, dependable, and eager to learn\n- WHS awareness and active listening\n\nCOVER LETTER DRAFT:\nDear Hiring Manager,\n\nI am writing to express my strong interest in the ${title} position. With my background in ${skills}, I am confident in my ability to contribute positively to your team.\n\nThank you for considering my application.\n\nSincerely,\nDemonstration Jobseeker`;
+      document.getElementById('tpl-summary').innerText = `Dedicated and reliable professional seeking a role as a ${title}. Demonstrates strong workplace communication, WHS awareness, and practical problem-solving capabilities. Highly adaptable with a strong commitment to team success.`;
 
-      outputBox.classList.remove('hidden');
+      const skillsArr = skillsRaw.split(',').map(s => s.trim());
+      document.getElementById('tpl-skills-list').innerHTML = skillsArr.map(s => `<li>${s}</li>`).join('');
+
+      let historyHTML = `<p class="mb-2"><strong>${history || 'Practical Workplace Experience'}</strong></p>`;
+      if (gaps) {
+        historyHTML += `
+          <div class="p-3 bg-purple-50 border border-purple-200 rounded my-2">
+            <strong class="text-purple-900">Constructive Employment Period / Development:</strong>
+            <p class="text-purple-800 text-xs mt-0.5">${gaps}</p>
+          </div>
+        `;
+      }
+      document.getElementById('tpl-history-content').innerHTML = historyHTML;
+
+      document.getElementById('tpl-cover-letter').innerText = 
+        `Dear Hiring Manager,\n\nI am writing to express my strong interest in the ${title} position. With my background in ${skillsRaw}, I bring strong reliability, a focus on workplace safety, and a dedication to delivering quality work.\n\n${gaps ? 'During my recent career transition period (' + gaps + '), I maintained a focus on upskilling and expanding my practical capabilities.' : ''}\n\nI welcome the opportunity to discuss how my skill set aligns with your team's needs.\n\nSincerely,\n${name}`;
+
+      document.getElementById('resume-output-box').classList.remove('hidden');
+    }
+
+    // Word Document Blob Exporter (.docx)
+    function downloadResumeWord() {
+      const content = document.getElementById('resume-document-template').innerHTML;
+      const header = "<html xmlns:o='urn:schemas-microsoft-com:office:office' "+
+            "xmlns:w='urn:schemas-microsoft-com:office:word' "+
+            "xmlns='http://www.w3.org/TR/REC-html40'>"+
+            "<head><meta charset='utf-8'><title>Resume</title></head><body>";
+      const footer = "</body></html>";
+      const sourceHTML = header + content + footer;
+
+      const source = 'data:application/vnd.ms-word;charset=utf-8,' + encodeURIComponent(sourceHTML);
+      const fileDownload = document.createElement("a");
+      document.body.appendChild(fileDownload);
+      fileDownload.href = source;
+      fileDownload.download = 'Professional_Resume.doc';
+      fileDownload.click();
+      document.body.removeChild(fileDownload);
+    }
+
+    function downloadResumePDF() {
+      const element = document.getElementById('resume-document-template');
+      const opt = {
+        margin:       0.5,
+        filename:     'Professional_Resume.pdf',
+        image:        { type: 'jpeg', quality: 0.98 },
+        html2canvas:  { scale: 2 },
+        jsPDF:        { unit: 'in', format: 'letter', orientation: 'portrait' }
+      };
+      html2pdf().set(opt).from(element).save();
     }
 
     // --- Direct Messaging System ---
@@ -1139,7 +1319,6 @@
       html2pdf().set(opt).from(element).save();
     }
 
-    // --- FIXED Evidence Logger ---
     function handleLogEvidence(e) {
       e.preventDefault();
       const employer = document.getElementById('log-employer').value;
@@ -1191,4 +1370,4 @@
     };
   </script>
 </body>
-</html>
+</html>s
