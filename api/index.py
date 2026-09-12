@@ -2,6 +2,7 @@ import os
 from enum import Enum
 from typing import Optional, Dict, Any
 from fastapi import FastAPI, HTTPException, Depends
+from fastapi.responses import HTMLResponse
 from pydantic import BaseModel
 from openai import OpenAI
 
@@ -73,6 +74,51 @@ class LogEvidenceRequest(BaseModel):
     category: str
     hours_logged: Optional[float] = 0.0
     proof_file_url: Optional[str] = None
+
+# Root UI Endpoint
+@app.get("/", response_class=HTMLResponse)
+async def serve_portal_ui():
+    return """
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>WorkReady Portal - Multi-Program Platform</title>
+        <script src="https://cdn.tailwindcss.com"></script>
+    </head>
+    <body class="bg-slate-900 text-white min-h-screen flex flex-col justify-center items-center p-6">
+        <div class="max-w-2xl w-full bg-slate-800 border border-slate-700 rounded-2xl p-8 shadow-2xl text-center space-y-6">
+            <span class="inline-block px-3 py-1 bg-teal-500/10 text-teal-400 border border-teal-500/20 rounded-full text-xs font-semibold tracking-wide uppercase">
+                API Version 2.0-Multi-Program
+            </span>
+            <h1 class="text-3xl font-bold text-slate-100">WorkReady Portal API</h1>
+            <p class="text-slate-400 text-sm">
+                Unified SaaS platform engine configured for <strong class="text-slate-200">Workforce Australia</strong>, <strong class="text-slate-200">Transition to Work (TtW)</strong>, and <strong class="text-slate-200">Inclusive Employment Australia (IEA)</strong>.
+            </p>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-3 pt-4 text-left text-xs">
+                <div class="p-3 bg-slate-900 border border-slate-700 rounded-lg">
+                    <p class="font-bold text-teal-400 mb-1">Workforce Australia</p>
+                    <p class="text-slate-400">PBAS Points & Progress Payments Engine</p>
+                </div>
+                <div class="p-3 bg-slate-900 border border-slate-700 rounded-lg">
+                    <p class="font-bold text-amber-400 mb-1">Transition to Work</p>
+                    <p class="text-slate-400">Youth Pathways & TAFE Education Logs</p>
+                </div>
+                <div class="p-3 bg-slate-900 border border-slate-700 rounded-lg">
+                    <p class="font-bold text-indigo-400 mb-1">Inclusive Employment</p>
+                    <p class="text-slate-400">Capacity Hours & Workplace Adjustments</p>
+                </div>
+            </div>
+            <div class="pt-4 border-t border-slate-700 flex justify-center gap-4 text-xs font-medium text-slate-400">
+                <a href="/api/health" class="hover:text-teal-400 transition-colors">/api/health</a>
+                <span>•</span>
+                <a href="/docs" class="hover:text-teal-400 transition-colors">/docs (Interactive Swagger)</a>
+            </div>
+        </div>
+    </body>
+    </html>
+    """
 
 @app.get("/api/health")
 async def health_check():
