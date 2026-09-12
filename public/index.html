@@ -3,50 +3,69 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="theme-color" content="#0F172A">
-    <title>WorkReady Portal V2 — Australian Employment Services</title>
+    <meta name="theme-color" content="#1D2B53">
+    <title>WorkReady Portal V2 — Straight Up Training</title>
     <link rel="manifest" href="/manifest.json">
     <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        brandNavy: '#1D2B53',
+                        brandGreen: '#4CAF50',
+                        brandAmber: '#FFB74D',
+                        brandPurple: '#9C27B0',
+                    }
+                }
+            }
+        }
+    </script>
     <style>
         .wcag-mode { background-color: #000000 !important; color: #ffff00 !important; font-size: 1.15rem !important; }
         .wcag-mode .card-box { background-color: #111111 !important; border: 2px solid #ffff00 !important; color: #ffffff !important; }
-        .wcag-mode button { border: 2px solid #ffff00 !important; }
+        .wcag-mode button { border: 2px solid #ffff00 !important; color: #ffff00 !important; }
         .pulse-recording { animation: pulse 1.5s infinite; }
         @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.4; } 100% { opacity: 1; } }
     </style>
 </head>
 <body id="app-body" class="bg-slate-900 text-slate-100 min-h-screen font-sans flex flex-col">
 
-    <!-- TOP NAVIGATION & DUAL-BRANDING INFRASTRUCTURE -->
-    <header class="border-b border-slate-800 bg-slate-950/90 backdrop-blur px-6 py-4 flex flex-wrap justify-between items-center gap-4 sticky top-0 z-50">
+    <!-- TOP NAVIGATION & DUAL-BRANDING HEADER -->
+    <header class="border-b border-slate-800 bg-[#1D2B53]/95 backdrop-blur px-6 py-4 flex flex-wrap justify-between items-center gap-4 sticky top-0 z-50">
         <div class="flex items-center gap-4">
-            <!-- Master Emblem -->
-            <div class="flex items-center gap-2 border-r border-slate-800 pr-4">
-                <span class="p-2 bg-teal-500/10 text-teal-400 rounded-lg border border-teal-500/20 text-xs font-bold uppercase tracking-wider flex items-center gap-2">
-                    🛡️ Straight Up Training
-                </span>
+            <!-- Straight Up Training Master Brand Mark -->
+            <div class="flex items-center gap-3 border-r border-slate-700 pr-4">
+                <div class="w-9 h-9 rounded-lg bg-white flex items-center justify-center font-black text-[#1D2B53] text-lg shadow">
+                    SU
+                </div>
+                <div>
+                    <h1 class="text-sm font-extrabold tracking-tight text-white leading-none">STRAIGHT UP</h1>
+                    <p class="text-[10px] font-bold text-brandAmber tracking-widest uppercase">TRAINING</p>
+                </div>
             </div>
-            <!-- Business Manager Customizable Provider Logo -->
+            
+            <!-- Dynamic Co-Branded Provider Logo -->
             <div id="provider-logo-container" class="flex items-center gap-2">
                 <img id="provider-logo-img" src="" alt="Provider Logo" class="h-8 hidden rounded bg-white p-1">
-                <span id="provider-name-display" class="text-xs font-bold text-teal-300 bg-slate-800 px-2.5 py-1 rounded border border-slate-700">
-                    Co-Branded Partner Provider
+                <span id="provider-name-display" class="text-xs font-bold text-teal-300 bg-slate-800/80 px-2.5 py-1 rounded border border-slate-700">
+                    Co-Branded Employment Partner
                 </span>
             </div>
         </div>
 
-        <!-- LLN ACCESSIBILITY SHELL & SECURE ROLE SIMULATOR -->
+        <!-- ACCESSIBILITY SHELL & SECURE ROLE SIMULATOR -->
         <div class="flex items-center gap-3">
-            <button onclick="toggleAccessibility()" class="text-xs px-3 py-1.5 bg-slate-800 hover:bg-slate-700 border border-slate-700 rounded-lg transition font-medium text-amber-300 flex items-center gap-1">
+            <button onclick="toggleAccessibility()" class="text-xs px-3 py-1.5 bg-slate-800 hover:bg-slate-700 border border-slate-700 rounded-lg transition font-medium text-brandAmber flex items-center gap-1">
                 ♿ WCAG High Contrast
             </button>
-            <button onclick="speakText('Welcome to WorkReady Portal V2. Please select your active workspace.')" class="text-xs px-3 py-1.5 bg-slate-800 hover:bg-slate-700 border border-slate-700 rounded-lg transition font-medium text-teal-300 flex items-center gap-1">
-                🔊 TTS Narrate (AU)
+            <button onclick="speakText('Welcome to WorkReady Portal V2. Straight Up Training platform ready.')" class="text-xs px-3 py-1.5 bg-slate-800 hover:bg-slate-700 border border-slate-700 rounded-lg transition font-medium text-teal-300 flex items-center gap-1">
+                🔊 TTS Narrate
             </button>
 
-            <!-- Secure RBAC Role View Selector -->
+            <!-- Role View Switcher Simulator -->
             <div class="flex items-center gap-1 bg-slate-950 p-1 rounded-lg border border-slate-800">
-                <span class="text-[10px] text-slate-500 px-2 uppercase font-bold">RBAC View:</span>
+                <span class="text-[10px] text-slate-500 px-2 uppercase font-bold">Role:</span>
                 <select id="auth-role-select" onchange="switchRole(this.value)" class="bg-slate-900 text-teal-300 text-xs font-bold rounded px-2 py-1 outline-none border border-slate-700">
                     <option value="admin">1. System Admin</option>
                     <option value="bm">2. Business Manager</option>
@@ -60,67 +79,80 @@
     <main class="flex-1 max-w-7xl w-full mx-auto p-6 space-y-6">
 
         <!-- ==================================================================== -->
-        <!-- VIEW 1: SYSTEM ADMIN (Global Platform Owner)                        -->
+        <!-- VIEW 1: SYSTEM ADMIN WORKSPACE                                       -->
         <!-- ==================================================================== -->
         <section id="view-admin" class="role-view space-y-6 hidden">
-            <div class="card-box bg-slate-800 border border-slate-700 rounded-xl p-6 space-y-6">
+            <div class="card-box bg-slate-800 border border-slate-700 rounded-xl p-6 space-y-6 shadow-xl">
                 <div class="flex justify-between items-center border-b border-slate-700 pb-4">
                     <div>
-                        <h2 class="text-xl font-bold text-white">System Admin — Global Platform Control</h2>
-                        <p class="text-xs text-slate-400">Manage provider organization provisioning, seat limits, and B2B subscription health.</p>
+                        <h2 class="text-xl font-bold text-white flex items-center gap-2">
+                            👑 System Admin Console — Provider & Framework Management
+                        </h2>
+                        <p class="text-xs text-slate-400">Exclusive location to invite providers, assign program frameworks, and manage paid seat quotas.</p>
                     </div>
-                    <span class="px-3 py-1 bg-purple-500/20 text-purple-300 border border-purple-500/40 text-xs rounded-full font-bold">
-                        Global Platform Owner
-                    </span>
+                    <button onclick="openProvisionProviderModal()" class="px-4 py-2 bg-brandGreen hover:bg-green-600 text-white rounded-lg text-xs font-bold transition shadow-lg flex items-center gap-1.5">
+                        ➕ Provision & Invite New Provider
+                    </button>
                 </div>
 
-                <!-- B2B Subscription & Payment Health -->
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <div class="bg-slate-900 p-4 rounded-lg border border-slate-700 space-y-1">
-                        <p class="text-xs text-slate-400">Subscription Status</p>
-                        <p class="text-2xl font-bold text-emerald-400">Paid & Current</p>
-                        <p class="text-[10px] text-slate-500">14 Active Provider Tenants</p>
-                    </div>
-                    <div class="bg-slate-900 p-4 rounded-lg border border-slate-700 space-y-1">
-                        <p class="text-xs text-slate-400">Case Manager Seat Limits</p>
-                        <p class="text-2xl font-bold text-teal-400">86 / 100 Seats</p>
-                        <p class="text-[10px] text-slate-500">Enforced by Database Triggers</p>
-                    </div>
-                    <div class="bg-slate-900 p-4 rounded-lg border border-slate-700 space-y-1">
-                        <p class="text-xs text-slate-400">Jobseeker / Learner Seat Limits</p>
-                        <p class="text-2xl font-bold text-amber-400">2,410 / 3,000 Seats</p>
-                        <p class="text-[10px] text-slate-500">Enforced by Database Triggers</p>
-                    </div>
+                <!-- Financial Health Overview Cards with Details Modals -->
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                    <button onclick="showAdminDetailModal('Paid & Current Accounts', 'Displaying 12 Providers paid up to date:\n- APM Employment Services ($12,000/mo)\n- atWork Australia ($8,500/mo)\n- Max Solutions ($14,000/mo)')" class="bg-slate-900 p-4 rounded-lg border border-slate-700 hover:border-brandGreen transition text-left">
+                        <p class="text-xs text-slate-400 font-medium">Subscription Health</p>
+                        <p class="text-2xl font-extrabold text-brandGreen">12 Paid & Current</p>
+                        <p class="text-[10px] text-slate-500 mt-1">Click to view active billing accounts</p>
+                    </button>
+
+                    <button onclick="showAdminDetailModal('Upcoming Renewals', '3 Providers up for renewal in next 14 days:\n- MatchWorks (Due 24-Sep-2026)\n- Sureway (Due 28-Sep-2026)')" class="bg-slate-900 p-4 rounded-lg border border-slate-700 hover:border-brandAmber transition text-left">
+                        <p class="text-xs text-slate-400 font-medium">Upcoming Renewals</p>
+                        <p class="text-2xl font-extrabold text-brandAmber">3 Invoices Pending</p>
+                        <p class="text-[10px] text-slate-500 mt-1">Click to inspect billing schedule</p>
+                    </button>
+
+                    <button onclick="showAdminDetailModal('CM Seats Allocated', 'Case Manager Seat Quotas across tenants:\n- Allocated: 86 / 100 Seats\n- Database Trigger Enforcement: Active')" class="bg-slate-900 p-4 rounded-lg border border-slate-700 hover:border-teal-400 transition text-left">
+                        <p class="text-xs text-slate-400 font-medium">Total CM Seats</p>
+                        <p class="text-2xl font-extrabold text-teal-400">86 / 100 Allocated</p>
+                        <p class="text-[10px] text-slate-500 mt-1">Click for quota breakdown</p>
+                    </button>
+
+                    <button onclick="showAdminDetailModal('Jobseeker Seats Allocated', 'Jobseeker Seat Quotas across tenants:\n- Allocated: 2,410 / 3,000 Seats\n- Database Trigger Enforcement: Active')" class="bg-slate-900 p-4 rounded-lg border border-slate-700 hover:border-brandPurple transition text-left">
+                        <p class="text-xs text-slate-400 font-medium">Total Jobseeker Seats</p>
+                        <p class="text-2xl font-extrabold text-brandPurple">2,410 / 3,000 Allocated</p>
+                        <p class="text-[10px] text-slate-500 mt-1">Click for learner quota breakdown</p>
+                    </button>
                 </div>
 
-                <!-- Provider Provisioning Table -->
+                <!-- Provisioned Organizations Directory -->
                 <div class="space-y-3">
-                    <h3 class="text-sm font-bold text-white">Tenant Organization Provisioning</h3>
+                    <h3 class="text-sm font-bold text-white">Provisioned Provider Organizations</h3>
                     <div class="bg-slate-900 border border-slate-700 rounded-lg overflow-x-auto">
                         <table class="w-full text-left text-xs text-slate-300">
-                            <thead class="bg-slate-950 text-slate-400 border-b border-slate-800">
+                            <thead class="bg-slate-950 text-slate-400 border-b border-slate-800 uppercase text-[10px]">
                                 <tr>
                                     <th class="p-3">Provider Name</th>
-                                    <th class="p-3">Subscription</th>
-                                    <th class="p-3">Max Case Managers</th>
-                                    <th class="p-3">Max Jobseekers</th>
-                                    <th class="p-3">Action</th>
+                                    <th class="p-3">Assigned Program Framework</th>
+                                    <th class="p-3">Paid CM Seats</th>
+                                    <th class="p-3">Paid Jobseeker Seats</th>
+                                    <th class="p-3">Subscription Status</th>
+                                    <th class="p-3">Actions</th>
                                 </tr>
                             </thead>
                             <tbody class="divide-y divide-slate-800">
                                 <tr>
                                     <td class="p-3 font-bold text-white">APM Employment Services</td>
-                                    <td class="p-3 text-emerald-400 font-bold">Paid & Current</td>
+                                    <td class="p-3 text-brandAmber font-bold">Workforce Australia (PBAS)</td>
                                     <td class="p-3">15 Seats</td>
                                     <td class="p-3">500 Seats</td>
-                                    <td class="p-3"><button onclick="showModal('Manage Provider', 'Quotas updated for APM.')" class="text-teal-400 hover:underline">Edit Limits</button></td>
+                                    <td class="p-3"><span class="px-2 py-0.5 bg-green-500/20 text-brandGreen border border-green-500/40 rounded font-bold">Paid & Current</span></td>
+                                    <td class="p-3"><button onclick="showAdminDetailModal('APM Details', 'Full Provider Profile:\n- Framework: Workforce Australia\n- Contact: admin@apm.net.au\n- Paid Seats: 15 CMs / 500 Jobseekers')" class="text-teal-400 hover:underline">Manage Tenant</button></td>
                                 </tr>
                                 <tr>
                                     <td class="p-3 font-bold text-white">atWork Australia</td>
-                                    <td class="p-3 text-emerald-400 font-bold">Paid & Current</td>
+                                    <td class="p-3 text-teal-300 font-bold">Transition to Work (TtW)</td>
                                     <td class="p-3">10 Seats</td>
                                     <td class="p-3">300 Seats</td>
-                                    <td class="p-3"><button onclick="showModal('Manage Provider', 'Quotas updated for atWork.')" class="text-teal-400 hover:underline">Edit Limits</button>
+                                    <td class="p-3"><span class="px-2 py-0.5 bg-green-500/20 text-brandGreen border border-green-500/40 rounded font-bold">Paid & Current</span></td>
+                                    <td class="p-3"><button onclick="showAdminDetailModal('atWork Details', 'Full Provider Profile:\n- Framework: Transition to Work\n- Contact: admin@atwork.com.au\n- Paid Seats: 10 CMs / 300 Jobseekers')" class="text-teal-400 hover:underline">Manage Tenant</button></td>
                                 </tr>
                             </tbody>
                         </table>
@@ -130,130 +162,137 @@
         </section>
 
         <!-- ==================================================================== -->
-        <!-- VIEW 2: PROVIDER BUSINESS MANAGER (Operations Overseer)             -->
+        <!-- VIEW 2: BUSINESS MANAGER WORKSPACE                                   -->
         <!-- ==================================================================== -->
         <section id="view-bm" class="role-view space-y-6 hidden">
-            <div class="card-box bg-slate-800 border border-slate-700 rounded-xl p-6 space-y-6">
+            <div class="card-box bg-slate-800 border border-slate-700 rounded-xl p-6 space-y-6 shadow-xl">
                 <div class="flex justify-between items-center border-b border-slate-700 pb-4">
                     <div>
-                        <h2 class="text-xl font-bold text-white">Business Manager Operations Overseer</h2>
-                        <p class="text-xs text-slate-400">Dual-branding URL configuration, target compliance graph, and certificate vault.</p>
+                        <h2 class="text-xl font-bold text-white">🏢 Provider Business Manager Hub</h2>
+                        <p class="text-xs text-slate-400">Complete provider overview, dual-branding logo configuration, seat allocation, and reports vault.</p>
                     </div>
-                    <button onclick="openCertVault('Business Manager')" class="px-4 py-2 bg-teal-600 hover:bg-teal-500 text-white rounded-lg text-xs font-bold transition flex items-center gap-2">
-                        📜 Organization Report & Certificate Vault
+                    <button onclick="openCertVault('Business Manager')" class="px-4 py-2 bg-teal-600 hover:bg-teal-500 text-white rounded-lg text-xs font-bold transition shadow flex items-center gap-2">
+                        📜 Access Reports & Certificate Vault
                     </button>
                 </div>
 
-                <!-- Dual-Branding Logo URL Configuration -->
+                <!-- Dual-Branding Logo Configuration -->
                 <div class="bg-slate-900 p-4 rounded-lg border border-slate-700 space-y-3">
-                    <h3 class="text-xs font-bold text-white uppercase tracking-wider">Dynamic Provider Logo URL Setup (Co-Branded Compliance PDFs)</h3>
+                    <h3 class="text-xs font-bold text-white uppercase tracking-wider">Dual-Branding Configuration (Certificates & Audit Reports)</h3>
                     <div class="flex gap-4 items-center">
-                        <input type="url" id="custom-logo-url" placeholder="Paste Provider Logo Image URL..." class="flex-1 bg-slate-800 border border-slate-700 rounded px-3 py-2 text-xs outline-none focus:border-teal-500">
-                        <button onclick="updateProviderLogo()" class="px-4 py-2 bg-teal-600 hover:bg-teal-500 text-white rounded text-xs font-bold">Save Branding URL</button>
+                        <input type="url" id="custom-logo-url" placeholder="Paste Provider Logo Image URL..." class="flex-1 bg-slate-800 border border-slate-700 rounded px-3 py-2 text-xs outline-none focus:border-teal-500 text-white">
+                        <button onclick="updateProviderLogo()" class="px-4 py-2 bg-brandGreen hover:bg-green-600 text-white rounded text-xs font-bold transition">Apply Co-Branding</button>
                     </div>
                 </div>
 
-                <!-- Target Compliance Progress Graph & Clickable Drill-Down Modals -->
-                <div class="space-y-3">
-                    <h3 class="text-sm font-bold text-white">Target Compliance Progress Overview (Click Card for Affected Roster)</h3>
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                        <button onclick="showDrilldown('72% On Track Candidates', ['Sarah Jenkins (100 pts)', 'David Miller (85 pts)', 'Emma Watson (90 pts)'])" class="bg-slate-900 p-4 rounded-lg border border-slate-700 text-left hover:border-emerald-500 transition">
-                            <p class="text-xs text-slate-400">On Track Compliance</p>
-                            <p class="text-3xl font-bold text-emerald-400">72%</p>
-                            <p class="text-[10px] text-emerald-300/60 mt-1">Click to view 142 candidate profiles</p>
-                        </button>
-                        <button onclick="showDrilldown('16% At Risk Candidates', ['Michael Brown (30 pts - 0 apps)', 'James Wilson (40 pts)'])" class="bg-slate-900 p-4 rounded-lg border border-slate-700 text-left hover:border-amber-500 transition">
-                            <p class="text-xs text-slate-400">At Risk Compliance</p>
-                            <p class="text-3xl font-bold text-amber-400">16%</p>
-                            <p class="text-[10px] text-amber-300/60 mt-1">Click to view 31 candidate profiles</p>
-                        </button>
-                        <button onclick="showDrilldown('12% Non-Compliant Candidates', ['Alex Turner (0 pts - No login > 14 days)'])" class="bg-slate-900 p-4 rounded-lg border border-slate-700 text-left hover:border-rose-500 transition">
-                            <p class="text-xs text-slate-400">Non-Compliant Compliance</p>
-                            <p class="text-3xl font-bold text-rose-400">12%</p>
-                            <p class="text-[10px] text-rose-300/60 mt-1">Click to view 24 candidate profiles</p>
-                        </button>
+                <!-- Comprehensive Provider Overview Cards (Click for Detailed Info) -->
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                    <button onclick="showBmDetailModal('Subscription Health', 'Provider Subscription Status:\n- Current Status: Paid & Current\n- Cycle: Monthly B2B Contract\n- Next Billing Date: 12-Oct-2026\n- Entitlements: Unlocked')" class="bg-slate-900 p-4 rounded-lg border border-slate-700 hover:border-brandGreen transition text-left">
+                        <p class="text-xs text-slate-400 font-medium">Provider Subscription</p>
+                        <p class="text-2xl font-bold text-brandGreen">Paid & Current</p>
+                        <p class="text-[10px] text-slate-500 mt-1">Click to view contract details</p>
+                    </button>
+
+                    <button onclick="showBmDetailModal('Possible Outcomes', 'Possible Outcomes Breakdown:\n- 12-Week Outcome Claims Ready: 8 Candidates\n- 26-Week Outcome Claims Ready: 6 Candidates\n- Estimated Outcome Revenue: $42,000')" class="bg-slate-900 p-4 rounded-lg border border-slate-700 hover:border-brandAmber transition text-left">
+                        <p class="text-xs text-slate-400 font-medium">Possible Outcomes</p>
+                        <p class="text-2xl font-bold text-brandAmber">14 Claim Ready</p>
+                        <p class="text-[10px] text-slate-500 mt-1">Click to inspect milestone list</p>
+                    </button>
+
+                    <button onclick="showBmDetailModal('At Risk Candidates', 'At Risk Candidate Roster:\n- 16% of caseload behind target\n- 12 Candidates missing PBAS points\n- Case Managers notified for intervention')" class="bg-slate-900 p-4 rounded-lg border border-slate-700 hover:border-rose-400 transition text-left">
+                        <p class="text-xs text-slate-400 font-medium">At Risk Candidates</p>
+                        <p class="text-2xl font-bold text-rose-400">16% Flagged</p>
+                        <p class="text-[10px] text-slate-500 mt-1">Click to view affected profiles</p>
+                    </button>
+
+                    <button onclick="showBmDetailModal('Low Engagement', 'Low Engagement Roster:\n- 12% with no portal logins > 7 days\n- 8 Candidates pending contact\n- Reallocation recommended')" class="bg-slate-900 p-4 rounded-lg border border-slate-700 hover:border-brandPurple transition text-left">
+                        <p class="text-xs text-slate-400 font-medium">Low Engagement</p>
+                        <p class="text-2xl font-bold text-brandPurple">12% Low Activity</p>
+                        <p class="text-[10px] text-slate-500 mt-1">Click to inspect list</p>
+                    </button>
+                </div>
+
+                <!-- Seat Allocation & Invitation Panel -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="bg-slate-900 p-4 rounded-lg border border-slate-700 space-y-3">
+                        <h3 class="text-sm font-bold text-white">Invite Case Manager</h3>
+                        <input type="email" id="invite-cm-email" placeholder="Case Manager Email..." class="w-full bg-slate-800 border border-slate-700 rounded p-2 text-xs outline-none text-white">
+                        <button onclick="inviteUserByBm('Case Manager')" class="w-full py-2 bg-teal-600 hover:bg-teal-500 text-white rounded text-xs font-bold">Invite & Allocate CM Seat</button>
+                    </div>
+
+                    <div class="bg-slate-900 p-4 rounded-lg border border-slate-700 space-y-3">
+                        <h3 class="text-sm font-bold text-white">Invite Jobseeker</h3>
+                        <input type="email" id="invite-js-email" placeholder="Jobseeker Email..." class="w-full bg-slate-800 border border-slate-700 rounded p-2 text-xs outline-none text-white">
+                        <button onclick="inviteUserByBm('Jobseeker')" class="w-full py-2 bg-brandGreen hover:bg-green-600 text-white rounded text-xs font-bold">Invite & Allocate Jobseeker Seat</button>
                     </div>
                 </div>
             </div>
         </section>
 
         <!-- ==================================================================== -->
-        <!-- VIEW 3: CASE MANAGER (Caseload Management & Gauges)                 -->
+        <!-- VIEW 3: CASE MANAGER WORKSPACE                                       -->
         <!-- ==================================================================== -->
         <section id="view-cm" class="role-view space-y-6">
-            <!-- Active Program Selector Banner -->
-            <div class="p-4 rounded-xl border border-teal-500/30 bg-teal-950/20 flex justify-between items-center">
-                <div>
-                    <h2 id="banner-title" class="text-lg font-bold text-teal-400">Workforce Australia Framework</h2>
-                    <p id="banner-desc" class="text-xs text-slate-400">Tracking PBAS points compliance and progress payment milestones.</p>
-                </div>
-                <div class="flex items-center gap-3">
-                    <button onclick="openCertVault('Case Manager')" class="px-3 py-1.5 bg-teal-600 hover:bg-teal-500 text-white rounded text-xs font-bold transition">
-                        📜 Individual Certificates Vault
+            <div class="card-box bg-slate-800 border border-slate-700 rounded-xl p-6 space-y-6 shadow-xl">
+                <!-- Inherited Program Header -->
+                <div class="p-4 rounded-xl border border-teal-500/30 bg-[#1D2B53]/50 flex justify-between items-center">
+                    <div>
+                        <span class="text-[10px] font-bold text-brandAmber uppercase tracking-wider">Assigned Program Framework</span>
+                        <h2 class="text-lg font-bold text-white">Workforce Australia Framework (PBAS)</h2>
+                        <p class="text-xs text-slate-400">Tracking points compliance, progress payments, and jobseeker victory notifications.</p>
+                    </div>
+                    <button onclick="openCertVault('Case Manager')" class="px-4 py-2 bg-teal-600 hover:bg-teal-500 text-white rounded-lg text-xs font-bold transition flex items-center gap-1.5">
+                        📜 Jobseeker Certificate & Evidence Vault
                     </button>
-                    <select id="program-select" onchange="switchProgram(this.value)" class="bg-slate-800 border border-teal-500/40 text-teal-300 text-xs rounded-lg px-3 py-1.5 outline-none">
-                        <option value="WORKFORCE_AUSTRALIA">Workforce Australia (PBAS)</option>
-                        <option value="TTW">Transition to Work (Youth)</option>
-                        <option value="INCLUSIVE_EMPLOYMENT">Inclusive Employment (IEA)</option>
-                    </select>
-                </div>
-            </div>
-
-            <!-- Interactive Target Gauges with Drill-Down Candidate Inspection -->
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <button onclick="showMetricDetails('PBAS Points Compliance Roster')" class="card-box bg-slate-800 border border-slate-700 hover:border-teal-500 rounded-xl p-5 text-left transition space-y-2">
-                    <p id="metric-1-label" class="text-xs text-slate-400 font-medium">Monthly PBAS Points Target</p>
-                    <div class="flex items-baseline justify-between">
-                        <span id="metric-1-val" class="text-3xl font-extrabold text-white">80 / 100</span>
-                        <span id="metric-1-sub" class="text-xs text-emerald-400 font-medium">80% Met</span>
-                    </div>
-                    <div class="w-full bg-slate-700 rounded-full h-2">
-                        <div id="metric-1-progress" class="bg-teal-400 h-2 rounded-full" style="width: 80%"></div>
-                    </div>
-                </button>
-
-                <button onclick="showMetricDetails('Assigned Active Caseload')" class="card-box bg-slate-800 border border-slate-700 hover:border-teal-500 rounded-xl p-5 text-left transition space-y-2">
-                    <p class="text-xs text-slate-400 font-medium">Active Caseload Assignments</p>
-                    <div class="flex items-baseline justify-between">
-                        <span class="text-3xl font-extrabold text-white">34 Candidates</span>
-                        <span class="text-xs text-teal-400 font-medium">RLS Enforced</span>
-                    </div>
-                    <p class="text-xs text-slate-400">Bound to case_manager_id in Supabase.</p>
-                </button>
-
-                <button onclick="showMetricDetails('Outcome Claim Eligibility')" class="card-box bg-slate-800 border border-slate-700 hover:border-emerald-500 rounded-xl p-5 text-left transition space-y-2">
-                    <p class="text-xs text-slate-400 font-medium">Outcome Claim Eligibility</p>
-                    <div class="flex items-baseline justify-between">
-                        <span class="text-3xl font-extrabold text-white">6 Candidates</span>
-                        <span class="text-xs text-amber-400 font-medium">Audit Ready</span>
-                    </div>
-                    <p class="text-xs text-slate-400">12-week & 26-week employment tracking.</p>
-                </button>
-            </div>
-
-            <!-- Candidate Invitation & Real-Time Engagement Stream -->
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <div class="card-box bg-slate-800 border border-slate-700 rounded-xl p-5 space-y-3">
-                    <h3 class="text-sm font-bold text-white">Direct Candidate Invitation</h3>
-                    <input type="email" id="invite-email" placeholder="Candidate Email Address..." class="w-full bg-slate-900 border border-slate-700 rounded p-2 text-xs outline-none focus:border-teal-500">
-                    <button onclick="inviteJobseeker()" class="w-full py-2 bg-teal-600 hover:bg-teal-500 text-white rounded text-xs font-bold">Send Candidate Invite</button>
                 </div>
 
-                <!-- Real-Time Candidate Engagement Stream -->
-                <div class="card-box bg-slate-800 border border-slate-700 rounded-xl p-5 space-y-3 md:col-span-2">
-                    <h3 class="text-sm font-bold text-white">Real-Time Candidate Engagement Stream</h3>
-                    <div class="space-y-2 text-xs">
-                        <div class="p-3 bg-slate-900 rounded border border-slate-700 flex justify-between items-center">
-                            <span>🎯 John Doe logged <strong>Interview Win</strong> (Bunnings Warehouse)</span>
-                            <span class="text-slate-400">10 mins ago</span>
-                        </div>
-                        <div class="p-3 bg-slate-900 rounded border border-slate-700 flex justify-between items-center">
-                            <span>📄 Sarah Smith uploaded <strong>Job Search Evidence</strong> (Screenshot.png)</span>
-                            <span class="text-slate-400">32 mins ago</span>
-                        </div>
-                        <div class="p-3 bg-slate-900 rounded border border-slate-700 flex justify-between items-center">
-                            <span>🎓 Michael Brown scored 90% on <strong>Workplace Rights Quiz</strong></span>
-                            <span class="text-slate-400">1 hour ago</span>
+                <!-- Caseload Dashboard Gauges (Clickable for Detail Modals) -->
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                    <button onclick="showCmMetricModal('Active Caseload', '34 Assigned Jobseekers:\n- John Doe (80 PBAS pts)\n- Sarah Smith (95 PBAS pts)\n- Michael Brown (30 PBAS pts - At Risk)')" class="bg-slate-900 p-4 rounded-lg border border-slate-700 hover:border-teal-400 transition text-left">
+                        <p class="text-xs text-slate-400 font-medium">Active Caseload</p>
+                        <p class="text-2xl font-extrabold text-white">34 Candidates</p>
+                        <p class="text-[10px] text-teal-400 mt-1">Click to view candidate list</p>
+                    </button>
+
+                    <button onclick="showCmMetricModal('At Risk Candidates', '4 Candidates At Risk:\n- Michael Brown (0 job searches)\n- James Wilson (Missing attendance proof)')" class="bg-slate-900 p-4 rounded-lg border border-slate-700 hover:border-brandAmber transition text-left">
+                        <p class="text-xs text-slate-400 font-medium">At Risk Candidates</p>
+                        <p class="text-2xl font-extrabold text-brandAmber">4 Flagged</p>
+                        <p class="text-[10px] text-slate-500 mt-1">Click to view risk reasons</p>
+                    </button>
+
+                    <button onclick="showCmMetricModal('Possible Outcome Claims', '6 Outcome Claims Ready for Audit:\n- Sarah Smith (12-Week Full Time)\n- David Miller (26-Week Apprentice)')" class="bg-slate-900 p-4 rounded-lg border border-slate-700 hover:border-brandGreen transition text-left">
+                        <p class="text-xs text-slate-400 font-medium">Possible Outcomes</p>
+                        <p class="text-2xl font-extrabold text-brandGreen">6 Claims Ready</p>
+                        <p class="text-[10px] text-slate-500 mt-1">Click to prepare audit dossier</p>
+                    </button>
+
+                    <button onclick="showCmMetricModal('Job Search Evidence', 'Recent Evidence Uploaded:\n- Payslip.pdf (Sarah Smith)\n- Interview_Confirmation.png (John Doe)')" class="bg-slate-900 p-4 rounded-lg border border-slate-700 hover:border-brandPurple transition text-left">
+                        <p class="text-xs text-slate-400 font-medium">Evidence Proof Vault</p>
+                        <p class="text-2xl font-extrabold text-brandPurple">28 File Proofs</p>
+                        <p class="text-[10px] text-slate-500 mt-1">Click to view uploaded documents</p>
+                    </button>
+                </div>
+
+                <!-- Add Jobseeker & Live Activity Feed -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div class="bg-slate-900 p-4 rounded-lg border border-slate-700 space-y-3">
+                        <h3 class="text-sm font-bold text-white">Add Jobseeker to Caseload</h3>
+                        <input type="email" id="cm-add-js-email" placeholder="Jobseeker Email..." class="w-full bg-slate-800 border border-slate-700 rounded p-2 text-xs outline-none text-white">
+                        <button onclick="inviteJobseekerByCm()" class="w-full py-2 bg-teal-600 hover:bg-teal-500 text-white rounded text-xs font-bold">Add & Assign Candidate</button>
+                    </div>
+
+                    <!-- Live Activity Tracking Stream (Includes Victory Button Receiver) -->
+                    <div class="bg-slate-900 p-4 rounded-lg border border-slate-700 space-y-3 md:col-span-2">
+                        <h3 class="text-sm font-bold text-white">Live Jobseeker Tracking & Victory Receiver</h3>
+                        <div id="cm-live-feed" class="space-y-2 text-xs">
+                            <div class="p-3 bg-slate-800 rounded border border-slate-700 flex justify-between items-center">
+                                <span>🎉 <strong>John Doe</strong> hit victory button: <strong>I GOT THE JOB!</strong> (Bunnings / Storeperson / 15-Sep-2026)</span>
+                                <span class="text-slate-400 text-[10px]">Just now</span>
+                            </div>
+                            <div class="p-3 bg-slate-800 rounded border border-slate-700 flex justify-between items-center">
+                                <span>📄 <strong>Sarah Smith</strong> uploaded job search screenshot: <code>Seek_Proof_Sept.png</code></span>
+                                <span class="text-slate-400 text-[10px]">14 mins ago</span>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -261,129 +300,194 @@
         </section>
 
         <!-- ==================================================================== -->
-        <!-- VIEW 4: JOBSEEKER / CANDIDATE MOBILE PWA VIEW                       -->
+        <!-- VIEW 4: JOBSEEKER MOBILE PWA WORKSPACE                               -->
         <!-- ==================================================================== -->
         <section id="view-jobseeker" class="role-view space-y-6 hidden">
             <div class="max-w-md mx-auto space-y-4">
 
-                <!-- Single-Tap Milestone Victory Buttons -->
-                <div class="card-box bg-slate-800 border border-slate-700 rounded-xl p-5 space-y-3">
+                <!-- Milestone Victory Buttons -->
+                <div class="card-box bg-slate-800 border border-slate-700 rounded-xl p-5 space-y-3 shadow-xl">
                     <h3 class="text-sm font-bold text-white text-center">Milestone Victory Buttons 🎯</h3>
                     <div class="grid grid-cols-2 gap-3">
-                        <button onclick="openVictoryModal('Interview')" class="w-full py-3 bg-teal-600 hover:bg-teal-500 text-white rounded-lg text-xs font-bold shadow-lg">
+                        <button onclick="openVictoryModal('Interview')" class="w-full py-3 bg-teal-600 hover:bg-teal-500 text-white rounded-lg text-xs font-bold shadow-lg transition">
                             🎯 I GOT THE INTERVIEW!
                         </button>
-                        <button onclick="openVictoryModal('Job')" class="w-full py-3 bg-amber-600 hover:bg-amber-500 text-white rounded-lg text-xs font-bold shadow-lg">
+                        <button onclick="openVictoryModal('Job')" class="w-full py-3 bg-brandAmber hover:bg-amber-500 text-slate-950 rounded-lg text-xs font-bold shadow-lg transition">
                             🎉 I GOT THE JOB!
                         </button>
                     </div>
                 </div>
 
-                <!-- 1-by-1 AI Interview Coach Wizard -->
-                <div class="card-box bg-slate-800 border border-slate-700 rounded-xl p-5 space-y-3">
+                <!-- 8-Question Industry AI Mock Interview Coach (LLN Speech Engine) -->
+                <div class="card-box bg-slate-800 border border-slate-700 rounded-xl p-5 space-y-3 shadow-xl">
                     <div class="flex justify-between items-center">
-                        <h3 class="text-sm font-bold text-white">1-by-1 AI Interview Coach</h3>
-                        <span id="mic-badge" class="hidden px-2 py-0.5 bg-rose-500/20 text-rose-400 border border-rose-500/40 text-[10px] rounded-full font-bold pulse-recording">🎙 Listening Continuous...</span>
+                        <h3 class="text-sm font-bold text-white">8-Question AI Mock Interview Coach</h3>
+                        <span id="mic-badge" class="hidden px-2 py-0.5 bg-rose-500/20 text-rose-400 border border-rose-500/40 text-[10px] rounded-full font-bold pulse-recording">🎙 Recording Answer...</span>
                     </div>
-                    <p id="coach-question" class="text-xs text-slate-300 bg-slate-900 p-3 rounded border border-slate-700">Question 1 of 8: Tell me about a time you handled a difficult situation with a customer.</p>
+                    
+                    <div class="space-y-2">
+                        <label class="block text-[10px] text-slate-400 font-bold uppercase">Target Industry & Role:</label>
+                        <input type="text" id="interview-role-input" value="Customer Service / Retail Assistant" class="w-full bg-slate-900 border border-slate-700 rounded p-2 text-xs text-white outline-none">
+                    </div>
+
+                    <div class="p-3 bg-slate-900 rounded border border-slate-700 space-y-2">
+                        <div class="flex justify-between items-center text-[10px] text-slate-400">
+                            <span id="question-number-display">Question 1 of 8</span>
+                            <span class="text-brandGreen font-bold">LLN Audio Speech Enabled</span>
+                        </div>
+                        <p id="coach-question-text" class="text-xs text-slate-200 font-medium">Tell me about a time you worked as part of a team to complete a busy task under pressure.</p>
+                    </div>
+
                     <div class="flex gap-2">
-                        <button onclick="speakText(document.getElementById('coach-question').innerText)" class="px-3 py-1.5 bg-slate-700 text-teal-300 rounded text-xs font-bold">🔊 Auto-TTS Read</button>
-                        <button onclick="startContinuousMic()" class="px-3 py-1.5 bg-teal-600 text-white rounded text-xs font-bold">🎙 Continuous Mic</button>
+                        <button onclick="speakText(document.getElementById('coach-question-text').innerText)" class="px-3 py-1.5 bg-slate-700 text-teal-300 rounded text-xs font-bold flex items-center gap-1">
+                            🔊 Read Question Aloud
+                        </button>
+                        <button onclick="startContinuousMic()" class="px-3 py-1.5 bg-teal-600 text-white rounded text-xs font-bold flex items-center gap-1">
+                            🎙 Answer Spoken
+                        </button>
                     </div>
-                    <textarea id="coach-answer-text" placeholder="Spoken answer transcribes here continuous..." class="w-full h-16 bg-slate-900 border border-slate-700 rounded p-2 text-xs outline-none focus:border-teal-500"></textarea>
-                    <button onclick="evaluateStarAnswer()" class="w-full py-2 bg-slate-700 hover:bg-slate-600 text-white rounded text-xs font-bold">Submit for STAR Feedback</button>
+
+                    <textarea id="coach-answer-text" placeholder="Your spoken answer will continuously transcribe here..." class="w-full h-20 bg-slate-900 border border-slate-700 rounded p-2 text-xs text-white outline-none focus:border-teal-500"></textarea>
+
+                    <button onclick="submitMockInterviewAnswer()" class="w-full py-2 bg-brandGreen hover:bg-green-600 text-white rounded text-xs font-bold transition">
+                        Submit Answer & Get Friendly STAR Feedback
+                    </button>
                 </div>
 
                 <!-- Employability Micro-Learning LMS -->
-                <div class="card-box bg-slate-800 border border-slate-700 rounded-xl p-5 space-y-3">
-                    <h3 class="text-sm font-bold text-white">Employability Micro-Learning LMS</h3>
+                <div class="card-box bg-slate-800 border border-slate-700 rounded-xl p-5 space-y-3 shadow-xl">
+                    <h3 class="text-sm font-bold text-white">Employability Learning Modules</h3>
                     <div class="space-y-3 text-xs">
                         <div class="p-3 bg-slate-900 rounded border border-slate-700 space-y-2">
-                            <p class="font-bold text-white">Module 1: Workplace Rights & Safety</p>
-                            <div class="aspect-video bg-black rounded flex items-center justify-center text-slate-500 border border-slate-800">
-                                🎬 Embedded YouTube Lesson Video
+                            <div class="flex justify-between items-center">
+                                <p class="font-bold text-white">Module 1: Workplace Rights & WHS Safety</p>
+                                <span class="text-[10px] text-brandAmber font-bold">Certificate Eligible</span>
                             </div>
-                            <button onclick="submitQuizDemo('workplace_rights_v1')" class="w-full py-1.5 bg-teal-600 text-white rounded font-bold">Take Module Quiz</button>
+                            <div class="aspect-video bg-black rounded flex items-center justify-center text-slate-400 border border-slate-800 text-[10px]">
+                                🎬 Embedded YouTube Video Lesson
+                            </div>
+                            <button onclick="submitQuizDemo('workplace_rights_v1')" class="w-full py-1.5 bg-teal-600 hover:bg-teal-500 text-white rounded font-bold">
+                                Take Module Quiz & Issue Certificate
+                            </button>
                         </div>
                     </div>
                 </div>
 
-                <!-- Job Search & Evidence Logger -->
-                <div class="card-box bg-slate-800 border border-slate-700 rounded-xl p-5 space-y-3">
-                    <h3 class="text-sm font-bold text-white">Job Search & Evidence Logger</h3>
-                    <input type="text" id="evidence-employer" placeholder="Employer / Position..." class="w-full bg-slate-900 border border-slate-700 rounded p-2 text-xs outline-none">
+                <!-- Job Search Evidence Logger -->
+                <div class="card-box bg-slate-800 border border-slate-700 rounded-xl p-5 space-y-3 shadow-xl">
+                    <h3 class="text-sm font-bold text-white">Log Job Search & Attach Screenshot</h3>
+                    <input type="text" id="evidence-employer" placeholder="Employer / Position..." class="w-full bg-slate-900 border border-slate-700 rounded p-2 text-xs text-white outline-none">
                     <input type="file" id="evidence-file" class="text-xs text-slate-400 block w-full">
-                    <button onclick="uploadEvidence()" class="w-full py-2 bg-teal-600 hover:bg-teal-500 text-white rounded text-xs font-bold">Upload to Evidence Vault</button>
+                    <button onclick="uploadEvidence()" class="w-full py-2 bg-teal-600 hover:bg-teal-500 text-white rounded text-xs font-bold">Upload Proof to Storage Vault</button>
                 </div>
 
                 <!-- AI Resume & Cover Letter Builder -->
-                <div class="card-box bg-slate-800 border border-slate-700 rounded-xl p-5 space-y-3">
+                <div class="card-box bg-slate-800 border border-slate-700 rounded-xl p-5 space-y-3 shadow-xl">
                     <h3 class="text-sm font-bold text-white">AI Resume & Cover Letter Builder</h3>
-                    <input type="text" id="resume-target-job" placeholder="Target Job Title (e.g. Retail Assistant)..." class="w-full bg-slate-900 border border-slate-700 rounded p-2 text-xs outline-none">
-                    <button onclick="generateAiResume()" class="w-full py-2 bg-teal-600 hover:bg-teal-500 text-white rounded text-xs font-bold">✨ Generate Tailored Resume (gpt-4o-mini)</button>
+                    <input type="text" id="resume-job-title" placeholder="Target Job Title (e.g. Retail Assistant)..." class="w-full bg-slate-900 border border-slate-700 rounded p-2 text-xs text-white outline-none">
+                    <button onclick="generateAiResume()" class="w-full py-2 bg-brandPurple hover:bg-purple-600 text-white rounded text-xs font-bold transition">✨ Generate Tailored Resume & Cover Letter (gpt-4o-mini)</button>
                 </div>
 
             </div>
         </section>
 
         <!-- ==================================================================== -->
-        <!-- MODALS & DIALOGS                                                     -->
+        <!-- SYSTEM MODALS & DIALOGS                                             -->
         <!-- ==================================================================== -->
+
+        <!-- System Admin Provider Provisioning Modal -->
+        <div id="modal-provision" class="hidden fixed inset-0 bg-black/80 backdrop-blur flex items-center justify-center p-4 z-50">
+            <div class="bg-slate-800 border border-slate-700 rounded-xl max-w-md w-full p-6 space-y-4 shadow-2xl">
+                <div class="flex justify-between items-center border-b border-slate-700 pb-3">
+                    <h3 class="text-md font-bold text-white">Provision & Invite Provider Tenant</h3>
+                    <button onclick="closeModal('modal-provision')" class="text-slate-400 hover:text-white font-bold">✕</button>
+                </div>
+                <div class="space-y-3 text-xs">
+                    <div>
+                        <label class="block text-slate-400 mb-1">Provider Organization Name</label>
+                        <input type="text" id="prov-name" placeholder="e.g. Max Solutions" class="w-full bg-slate-900 border border-slate-700 rounded p-2 text-white outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-slate-400 mb-1">Admin Contact Email</label>
+                        <input type="email" id="prov-email" placeholder="admin@provider.com.au" class="w-full bg-slate-900 border border-slate-700 rounded p-2 text-white outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-slate-400 mb-1">Select Program Framework (Exclusive Admin Selection)</label>
+                        <select id="prov-framework" class="w-full bg-slate-900 border border-brandAmber text-brandAmber font-bold rounded p-2 outline-none">
+                            <option value="WORKFORCE_AUSTRALIA">Workforce Australia (PBAS)</option>
+                            <option value="TTW">Transition to Work (TtW Youth)</option>
+                            <option value="INCLUSIVE_EMPLOYMENT">Inclusive Employment Australia (IEA)</option>
+                        </select>
+                    </div>
+                    <div class="grid grid-cols-2 gap-3">
+                        <div>
+                            <label class="block text-slate-400 mb-1">Paid CM Seats</label>
+                            <input type="number" id="prov-cms" value="10" class="w-full bg-slate-900 border border-slate-700 rounded p-2 text-white outline-none">
+                        </div>
+                        <div>
+                            <label class="block text-slate-400 mb-1">Paid Jobseeker Seats</label>
+                            <input type="number" id="prov-jobseekers" value="250" class="w-full bg-slate-900 border border-slate-700 rounded p-2 text-white outline-none">
+                        </div>
+                    </div>
+                </div>
+                <button onclick="submitProviderProvisioning()" class="w-full py-2 bg-brandGreen hover:bg-green-600 text-white rounded text-xs font-bold transition">Save & Provision Provider Tenant</button>
+            </div>
+        </div>
 
         <!-- 3-Key-Detail Victory Entry Modal -->
         <div id="modal-victory" class="hidden fixed inset-0 bg-black/80 backdrop-blur flex items-center justify-center p-4 z-50">
-            <div class="bg-slate-800 border border-slate-700 rounded-xl max-w-md w-full p-5 space-y-4">
-                <h3 id="victory-modal-title" class="text-md font-bold text-teal-400">Log Milestone Victory</h3>
-                <p class="text-xs text-slate-400">Provide 3 key details for your Case Manager to verify compliance.</p>
+            <div class="bg-slate-800 border border-slate-700 rounded-xl max-w-md w-full p-5 space-y-4 shadow-2xl">
+                <h3 id="victory-modal-title" class="text-md font-bold text-brandAmber">Log Milestone Victory</h3>
+                <p class="text-xs text-slate-400">Provide 3 key details for your Case Manager to follow up for outcome compliance.</p>
                 <div class="space-y-3 text-xs">
                     <div>
                         <label class="block text-slate-400 mb-1">1. Employer Name</label>
-                        <input type="text" id="victory-employer" placeholder="e.g. Bunnings / Coles" class="w-full bg-slate-900 border border-slate-700 rounded p-2 outline-none text-white">
+                        <input type="text" id="victory-employer" placeholder="e.g. Bunnings Warehouse / Coles" class="w-full bg-slate-900 border border-slate-700 rounded p-2 text-white outline-none">
                     </div>
                     <div>
                         <label class="block text-slate-400 mb-1">2. Position Title</label>
-                        <input type="text" id="victory-position" placeholder="e.g. Team Member" class="w-full bg-slate-900 border border-slate-700 rounded p-2 outline-none text-white">
+                        <input type="text" id="victory-position" placeholder="e.g. Storeperson / Retail Assistant" class="w-full bg-slate-900 border border-slate-700 rounded p-2 text-white outline-none">
                     </div>
                     <div>
                         <label class="block text-slate-400 mb-1">3. Start / Interview Date</label>
-                        <input type="date" id="victory-date" class="w-full bg-slate-900 border border-slate-700 rounded p-2 outline-none text-slate-300">
+                        <input type="date" id="victory-date" class="w-full bg-slate-900 border border-slate-700 rounded p-2 text-slate-300 outline-none">
                     </div>
                 </div>
-                <button onclick="submitVictoryOutcome()" class="w-full py-2 bg-teal-600 hover:bg-teal-500 text-white rounded text-xs font-bold">Save & Notify Case Manager</button>
+                <button onclick="submitVictoryOutcome()" class="w-full py-2 bg-brandGreen hover:bg-green-600 text-white rounded text-xs font-bold transition">Submit Victory & Notify Case Manager</button>
             </div>
         </div>
 
         <!-- Organization Report & Certificate Vault Modal -->
         <div id="modal-vault" class="hidden fixed inset-0 bg-black/80 backdrop-blur flex items-center justify-center p-4 z-50">
-            <div class="bg-slate-800 border border-slate-700 rounded-xl max-w-2xl w-full p-6 space-y-4">
+            <div class="bg-slate-800 border border-slate-700 rounded-xl max-w-2xl w-full p-6 space-y-4 shadow-2xl">
                 <div class="flex justify-between items-center border-b border-slate-700 pb-3">
                     <div>
                         <h3 id="vault-modal-title" class="text-lg font-bold text-white">Certificate & Compliance Vault</h3>
-                        <p class="text-xs text-slate-400">Audit compliance header with ISO timestamps & verification hashes.</p>
+                        <p class="text-xs text-slate-400">ISO Audit Timestamps & Cryptographic Verification Hashes.</p>
                     </div>
-                    <button onclick="document.getElementById('modal-vault').classList.add('hidden')" class="text-slate-400 hover:text-white font-bold text-sm">✕</button>
+                    <button onclick="closeModal('modal-vault')" class="text-slate-400 hover:text-white font-bold">✕</button>
                 </div>
                 
                 <div class="space-y-3 max-h-80 overflow-y-auto pr-1 text-xs">
                     <div class="p-3 bg-slate-900 rounded-lg border border-slate-700 flex justify-between items-center">
                         <div>
                             <p class="font-bold text-white">Sarah Smith — Workplace Rights & Safety</p>
-                            <p class="text-[10px] text-slate-400">Hash: <span class="font-mono text-teal-400">#WR-20260912-8F92</span> • Score: 90%</p>
+                            <p class="text-[10px] text-slate-400">Code: <span class="font-mono text-teal-400">#WR-20260912-8F92</span> • Score: 90%</p>
                         </div>
                         <button onclick="exportPdfCertificate('Sarah Smith', '#WR-20260912-8F92')" class="px-3 py-1.5 bg-teal-600 hover:bg-teal-500 text-white rounded font-bold">
-                            📥 Download Co-Branded PDF
+                            📥 Download PDF Dossier
                         </button>
                     </div>
                 </div>
             </div>
         </div>
 
-        <!-- Generic Output Console Modal -->
+        <!-- Detailed Console Output Modal -->
         <div id="modal-output" class="hidden fixed inset-0 bg-black/80 backdrop-blur flex items-center justify-center p-4 z-50">
-            <div class="bg-slate-800 border border-slate-700 rounded-xl max-w-lg w-full p-5 space-y-4">
-                <h3 id="modal-title" class="text-md font-bold text-white">Output Console</h3>
+            <div class="bg-slate-800 border border-slate-700 rounded-xl max-w-lg w-full p-5 space-y-4 shadow-2xl">
+                <h3 id="modal-title" class="text-md font-bold text-white">Detailed Information Console</h3>
                 <pre id="modal-content" class="bg-slate-900 p-3 rounded border border-slate-700 text-xs font-mono text-teal-300 whitespace-pre-wrap max-h-60 overflow-y-auto"></pre>
-                <button onclick="document.getElementById('modal-output').classList.add('hidden')" class="w-full py-2 bg-slate-700 hover:bg-slate-600 text-white rounded text-xs font-bold">Close Window</button>
+                <button onclick="closeModal('modal-output')" class="w-full py-2 bg-slate-700 hover:bg-slate-600 text-white rounded text-xs font-bold">Close Window</button>
             </div>
         </div>
 
@@ -396,21 +500,6 @@
         function switchRole(role) {
             document.querySelectorAll('.role-view').forEach(el => el.classList.add('hidden'));
             document.getElementById('view-' + role).classList.remove('hidden');
-        }
-
-        function switchProgram(program) {
-            const title = document.getElementById('banner-title');
-            const desc = document.getElementById('banner-desc');
-            if (program === 'WORKFORCE_AUSTRALIA') {
-                title.innerText = 'Workforce Australia Framework';
-                desc.innerText = 'Tracking PBAS points compliance and progress payment milestones.';
-            } else if (program === 'TTW') {
-                title.innerText = 'Transition to Work (TtW) Youth Framework';
-                desc.innerText = 'Focusing on education logs, TAFE pathways, and intensive youth mentoring.';
-            } else if (program === 'INCLUSIVE_EMPLOYMENT') {
-                title.innerText = 'Inclusive Employment Australia (IEA)';
-                desc.innerText = 'Tailored support tracking assessed capacity hours and workplace adjustments.';
-            }
         }
 
         function toggleAccessibility() { document.body.classList.toggle('wcag-mode'); }
@@ -443,28 +532,51 @@
             }
         }
 
+        function openProvisionProviderModal() {
+            document.getElementById('modal-provision').classList.remove('hidden');
+        }
+
+        async function submitProviderProvisioning() {
+            const name = document.getElementById('prov-name').value;
+            const email = document.getElementById('prov-email').value;
+            const framework = document.getElementById('prov-framework').value;
+            const cms = parseInt(document.getElementById('prov-cms').value);
+            const jobseekers = parseInt(document.getElementById('prov-jobseekers').value);
+
+            if(!name || !email) return alert('Please enter Provider Name and Email.');
+
+            try {
+                const res = await fetch('/api/admin/provision-provider', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ name, admin_email: email, program_framework: framework, max_case_managers: cms, max_jobseekers: jobseekers })
+                });
+                const data = await res.json();
+                closeModal('modal-provision');
+                showModal('Provider Tenant Provisioned', JSON.stringify(data, null, 2));
+            } catch(err) {
+                showModal('Provisioning Error', err.message);
+            }
+        }
+
         function updateProviderLogo() {
             const url = document.getElementById('custom-logo-url').value;
             const img = document.getElementById('provider-logo-img');
             if(url) {
                 img.src = url;
                 img.classList.remove('hidden');
-                showModal('Branding Updated', 'Provider Logo saved and applied to dynamic co-branded audit PDF templates.');
+                showModal('Branding Saved', 'Provider Logo applied for co-branded PDF certificates and compliance reports.');
             }
         }
 
-        function showDrilldown(title, candidateList) {
-            showModal('Compliance Drill-Down: ' + title, 'Affected Candidate List:\n\n- ' + candidateList.join('\n- '));
+        function inviteUserByBm(roleName) {
+            showModal('User Invited & Seat Allocated', 'Sent portal invitation to ' + roleName + '. Seat quota updated.');
         }
 
-        function showMetricDetails(metricName) {
-            showModal('Metric Drill-Down: ' + metricName, 'Displaying assigned candidate list for ' + metricName + ':\n\n- Candidate #1029 (John Doe)\n- Candidate #1044 (Sarah Smith)');
-        }
-
-        function inviteJobseeker() {
-            const email = document.getElementById('invite-email').value;
-            if(!email) return alert('Please enter candidate email.');
-            showModal('Jobseeker Invited', 'Sent invitation to ' + email + '. Quota trigger validated in Supabase.');
+        function inviteJobseekerByCm() {
+            const email = document.getElementById('cm-add-js-email').value;
+            if(!email) return alert('Enter jobseeker email');
+            showModal('Jobseeker Added', 'Assigned ' + email + ' to your caseload. RLS policy enforced.');
         }
 
         function openVictoryModal(type) {
@@ -477,8 +589,22 @@
             const emp = document.getElementById('victory-employer').value;
             const pos = document.getElementById('victory-position').value;
             const date = document.getElementById('victory-date').value;
-            document.getElementById('modal-victory').classList.add('hidden');
-            showModal('Victory Saved! 🎉', 'Logged ' + currentVictoryType + ' milestone:\n- Employer: ' + emp + '\n- Position: ' + pos + '\n- Date: ' + date + '\n\nCase manager notified for audit verification.');
+            closeModal('modal-victory');
+            showModal('Victory Saved! 🎉', 'Logged ' + currentVictoryType + ' milestone:\n- Employer: ' + emp + '\n- Position: ' + pos + '\n- Date: ' + date + '\n\nNotification sent to Case Manager feed.');
+        }
+
+        function submitMockInterviewAnswer() {
+            const answer = document.getElementById('coach-answer-text').value;
+            showModal('AI STAR Coach Feedback (Confidence Builder)', '🌟 Great effort! You spoke clearly.\n\nScore: 8/10\n- Situation & Task: Clearly stated.\n- Action: Highlighted team communication.\n- Suggestion: Add one specific positive result next time!');
+        }
+
+        function generateAiResume() {
+            const job = document.getElementById('resume-job-title').value;
+            showModal('AI Resume & Cover Letter Generated', 'Generated tailored resume and cover letter for position: ' + (job || 'Retail Assistant') + ' powered by gpt-4o-mini.');
+        }
+
+        function uploadEvidence() {
+            showModal('Evidence Storage Vault', 'Uploaded proof file to Supabase Storage Bucket evidence-proofs.');
         }
 
         function openCertVault(roleName) {
@@ -487,42 +613,20 @@
         }
 
         function exportPdfCertificate(candidateName, code) {
-            showModal('Audit Certificate Exported', 'Generated co-branded audit certificate PDF for ' + candidateName + '.\n\n- ISO Audit Timestamp: 12-Sep-2026 19:54:19 AEST\n- Verification Hash: ' + code + '\n- Dual Branding: Straight Up Training + Provider Logo\n- Case Manager Signature Line Included.');
+            showModal('Co-Branded PDF Exported', 'Generated official audit certificate for ' + candidateName + '.\n\n- ISO Timestamp: 12-Sep-2026 20:43:00 AEST\n- Verification Hash: ' + code + '\n- Dual Branding: Straight Up Training + Provider Logo\n- Case Manager Signature Included.');
         }
 
-        async function submitQuizDemo(moduleId) {
-            try {
-                const response = await fetch('/api/modules/submit-quiz', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ learner_id: '00000000-0000-0000-0000-000000000000', module_id: moduleId, score: 90, passing_score: 80 })
-                });
-                const data = await response.json();
-                showModal('Quiz Evaluation Complete', JSON.stringify(data, null, 2));
-            } catch (err) {
-                showModal('Quiz Error', err.message);
-            }
-        }
-
-        function evaluateStarAnswer() {
-            const answer = document.getElementById('coach-answer-text').value;
-            showModal('STAR Feedback (gpt-4o-mini)', 'Score: 8/10\n\n- Situation: Clear context provided.\n- Task: Defined your responsibilities.\n- Action: Described proactive steps taken.\n- Result: Positive resolution achieved.');
-        }
-
-        function generateAiResume() {
-            const job = document.getElementById('resume-target-job').value;
-            showModal('AI Resume Generation', 'Generated tailored resume for target job: ' + (job || 'General Employment') + ' using gpt-4o-mini.');
-        }
-
-        function uploadEvidence() {
-            showModal('Evidence Storage Vault', 'Uploaded proof screenshot to Supabase Storage Bucket evidence-proofs.');
-        }
+        function showAdminDetailModal(title, content) { showModal('Admin Detail: ' + title, content); }
+        function showBmDetailModal(title, content) { showModal('Business Manager Overview: ' + title, content); }
+        function showCmMetricModal(title, content) { showModal('Caseload Metric Detail: ' + title, content); }
 
         function showModal(title, content) {
             document.getElementById('modal-title').innerText = title;
             document.getElementById('modal-content').innerText = content;
             document.getElementById('modal-output').classList.remove('hidden');
         }
+
+        function closeModal(modalId) { document.getElementById(modalId).classList.add('hidden'); }
 
         window.addEventListener('DOMContentLoaded', () => switchRole('cm'));
 
