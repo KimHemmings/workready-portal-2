@@ -8,7 +8,14 @@ from openai import OpenAI
 
 app = FastAPI(title="WorkReady Portal Multi-Program API")
 
-client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+def get_openai_client() -> OpenAI:
+    api_key = os.getenv("OPENAI_API_KEY")
+    if not api_key:
+        raise HTTPException(
+            status_code=500, 
+            detail="OPENAI_API_KEY environment variable is not set in Vercel settings."
+        )
+    return OpenAI(api_key=api_key)
 
 class ProgramType(str, Enum):
     WORKFORCE_AUSTRALIA = "WORKFORCE_AUSTRALIA"
@@ -75,7 +82,6 @@ class LogEvidenceRequest(BaseModel):
     hours_logged: Optional[float] = 0.0
     proof_file_url: Optional[str] = None
 
-# Root UI Endpoint
 @app.get("/", response_class=HTMLResponse)
 async def serve_portal_ui():
     return """
@@ -150,6 +156,7 @@ async def invite_learner(req: InviteLearnerRequest):
 
 @app.post("/api/ai/mock-interview")
 async def mock_interview(req: MockInterviewRequest):
+    client = get_openai_client()
     system_prompt = PROGRAM_AI_PROMPTS.get(
         req.program_type, 
         PROGRAM_AI_PROMPTS[ProgramType.WORKFORCE_AUSTRALIA]
