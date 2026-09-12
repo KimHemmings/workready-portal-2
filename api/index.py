@@ -9,7 +9,6 @@ from supabase import create_client, Client
 
 app = FastAPI(title="WorkReady Portal Multi-Program API")
 
-# Helper functions for safe environment variable loading
 def get_openai_client() -> OpenAI:
     api_key = os.getenv("OPENAI_API_KEY")
     if not api_key:
@@ -64,7 +63,6 @@ PROGRAM_AI_PROMPTS: Dict[ProgramType, str] = {
     )
 }
 
-# Request Data Schemas
 class ProvisionProviderRequest(BaseModel):
     provider_name: str
     program_type: ProgramType
@@ -88,20 +86,160 @@ class LogEvidenceRequest(BaseModel):
     hours_logged: Optional[float] = 0.0
     proof_file_url: Optional[str] = None
 
-# Root Route - Serves the index.html frontend file
 @app.get("/", response_class=HTMLResponse)
 async def serve_portal_ui():
-    index_path = os.path.join(os.path.dirname(__file__), "..", "index.html")
-    if os.path.exists(index_path):
-        with open(index_path, "r", encoding="utf-8") as f:
-            return f.read()
-    return "<h1>WorkReady Portal Engine Live</h1><p>Visit <a href='/docs'>/docs</a> for Swagger UI.</p>"
+    return """
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WorkReady Portal V2 - Case Manager Workspace</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .wcag-mode {
+            background-color: #000000 !important;
+            color: #ffff00 !important;
+            font-size: 1.15rem !important;
+        }
+        .wcag-mode .card {
+            background-color: #111111 !important;
+            border: 2px solid #ffff00 !important;
+            color: #ffffff !important;
+        }
+    </style>
+</head>
+<body id="app-body" class="bg-slate-900 text-slate-100 min-h-screen font-sans flex flex-col">
+
+    <header class="border-b border-slate-800 bg-slate-950/80 backdrop-blur px-6 py-4 flex flex-wrap justify-between items-center gap-4">
+        <div class="flex items-center gap-3">
+            <span class="p-2 bg-teal-500/10 text-teal-400 rounded-lg border border-teal-500/20 text-xs font-bold uppercase">
+                WorkReady V2
+            </span>
+            <h1 class="text-xl font-bold tracking-tight">Case Manager Portal</h1>
+        </div>
+
+        <div class="flex items-center gap-4">
+            <button onclick="toggleAccessibility()" class="text-xs px-3 py-2 bg-slate-800 hover:bg-slate-700 border border-slate-700 rounded-lg transition font-medium flex items-center gap-2">
+                ♿ WCAG High Contrast
+            </button>
+
+            <div class="flex items-center gap-2">
+                <label for="program-select" class="text-xs text-slate-400 font-medium">Active Program:</label>
+                <select id="program-select" onchange="switchProgram(this.value)" class="bg-slate-800 border border-teal-500/40 text-teal-300 text-sm rounded-lg px-3 py-2 focus:ring-2 focus:ring-teal-500 outline-none">
+                    <option value="WORKFORCE_AUSTRALIA">Workforce Australia (PBAS)</option>
+                    <option value="TTW">Transition to Work (Youth Pathways)</option>
+                    <option value="INCLUSIVE_EMPLOYMENT">Inclusive Employment (IEA)</option>
+                </select>
+            </div>
+        </div>
+    </header>
+
+    <main class="flex-1 max-w-6xl w-full mx-auto p-6 space-y-6">
+
+        <div id="program-banner" class="p-4 rounded-xl border border-teal-500/30 bg-teal-950/20 flex justify-between items-center">
+            <div>
+                <h2 id="banner-title" class="text-lg font-bold text-teal-400">Workforce Australia Framework</h2>
+                <p id="banner-desc" class="text-xs text-slate-400">Tracking PBAS points compliance and progress payment milestones.</p>
+            </div>
+            <span id="banner-badge" class="px-3 py-1 bg-teal-500/20 text-teal-300 border border-teal-500/40 text-xs rounded-full font-semibold">
+                Points-Based System
+            </span>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            
+            <div class="card bg-slate-800 border border-slate-700 rounded-xl p-5 space-y-2">
+                <p id="metric-1-label" class="text-xs text-slate-400 font-medium">Monthly PBAS Points Target</p>
+                <div class="flex items-baseline justify-between">
+                    <span id="metric-1-val" class="text-3xl font-extrabold text-white">80 / 100</span>
+                    <span id="metric-1-sub" class="text-xs text-emerald-400 font-medium">80% Met</span>
+                </div>
+                <div class="w-full bg-slate-700 rounded-full h-2">
+                    <div id="metric-1-progress" class="bg-teal-400 h-2 rounded-full" style="width: 80%"></div>
+                </div>
+            </div>
+
+            <div class="card bg-slate-800 border border-slate-700 rounded-xl p-5 space-y-2">
+                <p id="metric-2-label" class="text-xs text-slate-400 font-medium">Active Learner Roster</p>
+                <div class="flex items-baseline justify-between">
+                    <span id="metric-2-val" class="text-3xl font-extrabold text-white">124</span>
+                    <span id="metric-2-sub" class="text-xs text-teal-400 font-medium">Capacity: 150</span>
+                </div>
+                <p class="text-xs text-slate-400">Current provider seat quota utilisation.</p>
+            </div>
+
+            <div class="card bg-slate-800 border border-slate-700 rounded-xl p-5 space-y-2">
+                <p id="metric-3-label" class="text-xs text-slate-400 font-medium">Outcome Claim Eligibility</p>
+                <div class="flex items-baseline justify-between">
+                    <span id="metric-3-val" class="text-3xl font-extrabold text-white">18 Learners</span>
+                    <span id="metric-3-sub" class="text-xs text-amber-400 font-medium">Pending Audit</span>
+                </div>
+                <p class="text-xs text-slate-400">12-week & 26-week employment tracking.</p>
+            </div>
+        </div>
+
+        <div class="card bg-slate-800/50 border border-slate-700/60 rounded-xl p-4 flex justify-between items-center text-xs text-slate-400">
+            <span>Unified API Platform Engine Live</span>
+            <div class="flex gap-4 font-medium">
+                <a href="/api/health" target="_blank" class="text-teal-400 hover:underline">/api/health</a>
+                <span>•</span>
+                <a href="/docs" target="_blank" class="text-teal-400 hover:underline">/docs (Interactive Swagger)</a>
+            </div>
+        </div>
+
+    </main>
+
+    <script>
+        function switchProgram(program) {
+            const body = document.getElementById('app-body');
+            const title = document.getElementById('banner-title');
+            const desc = document.getElementById('banner-desc');
+            const badge = document.getElementById('banner-badge');
+            
+            const m1Label = document.getElementById('metric-1-label');
+            const m1Val = document.getElementById('metric-1-val');
+            const m1Sub = document.getElementById('metric-1-sub');
+            const m1Progress = document.getElementById('metric-1-progress');
+
+            if (program === 'WORKFORCE_AUSTRALIA') {
+                title.innerText = 'Workforce Australia Framework';
+                desc.innerText = 'Tracking PBAS points compliance and progress payment milestones.';
+                badge.innerText = 'Points-Based System';
+                m1Label.innerText = 'Monthly PBAS Points Target';
+                m1Val.innerText = '80 / 100';
+                m1Sub.innerText = '80% Met';
+                m1Progress.style.width = '80%';
+            } else if (program === 'TTW') {
+                title.innerText = 'Transition to Work (TtW) Youth Framework';
+                desc.innerText = 'Focusing on education logs, TAFE pathways, and intensive youth mentoring.';
+                badge.innerText = 'Youth Pathways';
+                m1Label.innerText = 'TAFE & Training Hours Logged';
+                m1Val.innerText = '45 / 50 Hrs';
+                m1Sub.innerText = '90% Progress';
+                m1Progress.style.width = '90%';
+            } else if (program === 'INCLUSIVE_EMPLOYMENT') {
+                title.innerText = 'Inclusive Employment Australia (IEA)';
+                desc.innerText = 'Tailored support tracking assessed capacity hours and workplace adjustments.';
+                badge.innerText = 'Custom Capacity Support';
+                m1Label.innerText = 'Assessed Capacity Target';
+                m1Val.innerText = '15 / 15 Hrs';
+                m1Sub.innerText = '100% Compliant';
+                m1Progress.style.width = '100%';
+            }
+        }
+
+        function toggleAccessibility() {
+            document.body.classList.toggle('wcag-mode');
+        }
+    </script>
+</body>
+</html>
+    """
 
 @app.get("/api/health")
 async def health_check():
     return {"status": "ok", "version": "2.0-multi-program"}
-
-# Live Supabase Database Endpoints
 
 @app.post("/api/admin/provision-provider")
 async def provision_provider(req: ProvisionProviderRequest):
