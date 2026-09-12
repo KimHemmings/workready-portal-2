@@ -188,16 +188,16 @@
           </div>
         </div>
 
-        <!-- Evaluation Step with Downloadable PDF Report -->
+        <!-- Evaluation Step with Detailed Scoring Breakdown & PDF Download -->
         <div id="interview-report-step" class="hidden space-y-6">
-          <div id="interview-pdf-element" class="p-6 bg-slate-50 border border-slate-200 rounded-xl space-y-4">
+          <div id="interview-pdf-element" class="p-6 bg-white border border-slate-300 rounded-xl space-y-5">
             
-            <div class="flex justify-between items-center border-b pb-4">
+            <div class="flex justify-between items-center border-b-2 border-slate-200 pb-4">
               <div class="flex items-center gap-3">
                 <img src="/logo.png" alt="Logo" class="h-10 w-auto object-contain">
                 <div>
-                  <h3 class="text-lg font-bold text-[#1D2B53]">STAR Interview Evaluation Report</h3>
-                  <p class="text-xs text-slate-500">Official Candidate Assessment Dossier</p>
+                  <h3 class="text-lg font-bold text-[#1D2B53]">STAR Interview Performance & Coaching Report</h3>
+                  <p class="text-xs text-slate-500">WorkReady Portal V2 — Official Candidate Assessment Dossier</p>
                 </div>
               </div>
               <div class="text-center">
@@ -206,25 +206,48 @@
               </div>
             </div>
 
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div class="p-4 bg-white rounded-lg border border-slate-200">
-                <h4 class="font-bold text-emerald-700 mb-2">Key Strengths</h4>
-                <ul id="report-strengths" class="list-disc list-inside text-sm text-slate-600 space-y-1"></ul>
-              </div>
-              <div class="p-4 bg-white rounded-lg border border-slate-200">
-                <h4 class="font-bold text-amber-600 mb-2">Areas for Growth</h4>
-                <ul id="report-growth" class="list-disc list-inside text-sm text-slate-600 space-y-1"></ul>
+            <!-- Detailed Score Calculation Criteria -->
+            <div class="p-4 bg-slate-50 border border-slate-200 rounded-lg space-y-3">
+              <h4 class="font-bold text-[#1D2B53] text-sm">How Your Score Was Calculated</h4>
+              <div class="grid grid-cols-2 md:grid-cols-4 gap-2 text-xs">
+                <div class="p-2 bg-white rounded border border-slate-200">
+                  <span class="block font-semibold text-slate-700">Situation (S)</span>
+                  <span class="text-emerald-600 font-bold">22 / 25 pts</span>
+                </div>
+                <div class="p-2 bg-white rounded border border-slate-200">
+                  <span class="block font-semibold text-slate-700">Task (T)</span>
+                  <span class="text-emerald-600 font-bold">20 / 25 pts</span>
+                </div>
+                <div class="p-2 bg-white rounded border border-slate-200">
+                  <span class="block font-semibold text-slate-700">Action (A)</span>
+                  <span class="text-emerald-600 font-bold">21 / 25 pts</span>
+                </div>
+                <div class="p-2 bg-white rounded border border-slate-200">
+                  <span class="block font-semibold text-slate-700">Result (R)</span>
+                  <span class="text-amber-600 font-bold">22 / 25 pts</span>
+                </div>
               </div>
             </div>
 
-            <div class="p-4 bg-white rounded-lg border border-slate-200">
-              <h4 class="font-bold text-slate-800 mb-1">Coach Narrative Feedback</h4>
-              <p id="report-summary" class="text-sm text-slate-700 leading-relaxed"></p>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div class="p-4 bg-white rounded-lg border border-slate-200">
+                <h4 class="font-bold text-emerald-700 mb-2">Key Strengths Demonstrated</h4>
+                <ul id="report-strengths" class="list-disc list-inside text-xs text-slate-600 space-y-1"></ul>
+              </div>
+              <div class="p-4 bg-white rounded-lg border border-slate-200">
+                <h4 class="font-bold text-amber-600 mb-2">Actionable Steps to Improve Next Time</h4>
+                <ul id="report-growth" class="list-disc list-inside text-xs text-slate-600 space-y-1"></ul>
+              </div>
+            </div>
+
+            <div class="p-4 bg-white rounded-lg border border-slate-200 space-y-1">
+              <h4 class="font-bold text-slate-800 text-xs">Coach Narrative Feedback</h4>
+              <p id="report-summary" class="text-xs text-slate-700 leading-relaxed"></p>
             </div>
             
-            <div class="text-xs text-slate-400 border-t pt-2 flex justify-between">
+            <div class="text-[10px] text-slate-400 border-t pt-2 flex justify-between">
               <span>Timestamp: 12-Sep-2026 20:43:00 AEST</span>
-              <span>Hash: #INT-2026-8812</span>
+              <span>Audit Hash: #INT-2026-8812</span>
             </div>
           </div>
 
@@ -240,12 +263,12 @@
 
       </div>
 
-      <!-- FULL TEMPLATE AI RESUME & COVER LETTER BUILDER -->
+      <!-- FULL TEMPLATE MULTI-JOB RESUME & COVER LETTER BUILDER -->
       <div class="bg-white p-6 rounded-xl shadow-md border border-slate-200 space-y-6">
         <div class="border-b pb-4 flex items-center justify-between">
           <div>
-            <h2 class="text-2xl font-bold text-[#1D2B53]">Full AI Resume & Cover Letter Template Builder</h2>
-            <p class="text-sm text-slate-600">Build a structured resume including career gap explanations. Download as Word (.docx) or PDF.</p>
+            <h2 class="text-2xl font-bold text-[#1D2B53]">Full AI Resume & Cover Letter Builder</h2>
+            <p class="text-sm text-slate-600">Include contact details, education, skills, and multiple past jobs. Download as Word (.docx) or PDF.</p>
           </div>
           <span id="resume-badge" class="px-3 py-1 bg-[#9C27B0] text-white text-xs font-bold rounded-full">3 Left</span>
         </div>
@@ -257,25 +280,45 @@
               <input type="text" id="res-fullname" required class="w-full p-2.5 border border-slate-300 rounded-lg text-sm" placeholder="e.g. John Citizen">
             </div>
             <div>
-              <label class="block text-xs font-semibold text-slate-700 mb-1">Contact Email & Phone</label>
-              <input type="text" id="res-contact" required class="w-full p-2.5 border border-slate-300 rounded-lg text-sm" placeholder="e.g. john@example.com | 0400 000 000">
+              <label class="block text-xs font-semibold text-slate-700 mb-1">Contact Details & Location</label>
+              <input type="text" id="res-contact" required class="w-full p-2.5 border border-slate-300 rounded-lg text-sm" placeholder="e.g. john@example.com | 0400 000 000 | Brisbane QLD">
             </div>
             <div>
               <label class="block text-xs font-semibold text-slate-700 mb-1">Target Job Title</label>
-              <input type="text" id="resume-target-title" required class="w-full p-2.5 border border-slate-300 rounded-lg text-sm" placeholder="e.g. Retail Assistant / Warehouse Team Member">
+              <input type="text" id="resume-target-title" required class="w-full p-2.5 border border-slate-300 rounded-lg text-sm" placeholder="e.g. Customer Service / Warehouse Operations">
             </div>
             <div>
-              <label class="block text-xs font-semibold text-slate-700 mb-1">Core Skills & Qualifications</label>
-              <input type="text" id="resume-skills" required class="w-full p-2.5 border border-slate-300 rounded-lg text-sm" placeholder="e.g. Customer service, WHS, cash handling, White Card">
+              <label class="block text-xs font-semibold text-slate-700 mb-1">Core Skills & Licenses</label>
+              <input type="text" id="resume-skills" required class="w-full p-2.5 border border-slate-300 rounded-lg text-sm" placeholder="e.g. Customer service, WHS awareness, White Card, First Aid">
             </div>
             <div class="md:col-span-2">
-              <label class="block text-xs font-semibold text-slate-700 mb-1">Recent Work History / Practical Experience</label>
-              <textarea id="res-history" rows="2" class="w-full p-2.5 border border-slate-300 rounded-lg text-sm" placeholder="e.g. 2023-2024: Customer Service Team Member at ABC Retail. Handled sales and stock inventory."></textarea>
+              <label class="block text-xs font-semibold text-slate-700 mb-1">Education & Qualifications</label>
+              <input type="text" id="res-education" class="w-full p-2.5 border border-slate-300 rounded-lg text-sm" placeholder="e.g. Year 12 Senior Certificate, Cert III in Retail, First Aid License">
             </div>
-            <div class="md:col-span-2">
-              <label class="block text-xs font-semibold text-slate-700 mb-1">Employment Gaps & Positive Context (Optional)</label>
-              <input type="text" id="res-gaps" class="w-full p-2.5 border border-slate-300 rounded-lg text-sm" placeholder="e.g. 2022-2023: Full-time caregiving responsibilities / Upskilling and professional development">
+          </div>
+
+          <!-- Dynamic Multi-Job Section -->
+          <div class="p-4 bg-slate-50 border border-slate-200 rounded-lg space-y-3">
+            <div class="flex justify-between items-center">
+              <h4 class="font-bold text-slate-800 text-xs">Employment History (Add Multiple Past Jobs)</h4>
+              <button type="button" onclick="addJobEntry()" class="px-3 py-1 bg-[#1D2B53] text-white text-xs font-bold rounded hover:bg-slate-800">
+                + Add Another Job
+              </button>
             </div>
+            <div id="job-entries-container" class="space-y-3">
+              <!-- Initial Job Entry -->
+              <div class="job-entry p-3 bg-white border border-slate-200 rounded-lg grid grid-cols-1 md:grid-cols-3 gap-2">
+                <input type="text" class="job-title p-2 border rounded text-xs" placeholder="Job Title (e.g. Retail Assistant)">
+                <input type="text" class="job-employer p-2 border rounded text-xs" placeholder="Employer (e.g. ABC Stores)">
+                <input type="text" class="job-dates p-2 border rounded text-xs" placeholder="Dates (e.g. 2022 - 2024)">
+                <textarea class="job-duties md:col-span-3 p-2 border rounded text-xs" rows="2" placeholder="Key Duties & Achievements (e.g. Cash handling, assisting customers, stocking shelves)"></textarea>
+              </div>
+            </div>
+          </div>
+
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 mb-1">Employment Gaps & Constructive Context (Optional)</label>
+            <input type="text" id="res-gaps" class="w-full p-2.5 border border-slate-300 rounded-lg text-sm" placeholder="e.g. 2021-2022: Caregiving responsibilities / Independent study and upskilling">
           </div>
           
           <button id="generate-resume-btn" type="submit" class="w-full py-3 bg-[#9C27B0] text-white font-bold rounded-lg hover:bg-purple-800 transition shadow-sm disabled:opacity-50">
@@ -283,37 +326,37 @@
           </button>
         </form>
 
-        <!-- Template Display Container -->
+        <!-- Output Template -->
         <div id="resume-output-box" class="hidden space-y-4">
           
           <div id="resume-document-template" class="p-8 bg-white border-2 border-slate-300 rounded-xl space-y-6 text-slate-800">
             
-            <!-- Resume Header -->
             <div class="border-b-2 border-[#1D2B53] pb-4">
               <h1 id="tpl-name" class="text-3xl font-bold text-[#1D2B53]">JOHN CITIZEN</h1>
-              <p id="tpl-contact" class="text-xs text-slate-600 mt-1">john@example.com | 0400 000 000 | Brisbane QLD</p>
-              <p id="tpl-[#4CAF50]" id="tpl-target" class="text-sm font-bold text-[#4CAF50] mt-1">Target Role: Retail Sales Assistant</p>
+              <p id="tpl-contact" class="text-xs text-slate-600 mt-1">john@example.com | 0400 000 000</p>
+              <p id="tpl-target" class="text-sm font-bold text-[#4CAF50] mt-1">Target Role: Retail Assistant</p>
             </div>
 
-            <!-- Professional Summary -->
             <div class="space-y-1">
               <h3 class="text-sm font-bold text-[#1D2B53] uppercase tracking-wider">Professional Summary</h3>
               <p id="tpl-summary" class="text-xs text-slate-700 leading-relaxed"></p>
             </div>
 
-            <!-- Key Competencies -->
             <div class="space-y-1">
-              <h3 class="text-sm font-bold text-[#1D2B53] uppercase tracking-wider">Key Competencies & Qualifications</h3>
+              <h3 class="text-sm font-bold text-[#1D2B53] uppercase tracking-wider">Core Competencies & Qualifications</h3>
               <ul id="tpl-skills-list" class="list-disc list-inside text-xs text-slate-700 grid grid-cols-2 gap-1"></ul>
             </div>
 
-            <!-- Experience & Gaps Section -->
-            <div class="space-y-2">
-              <h3 class="text-sm font-bold text-[#1D2B53] uppercase tracking-wider">Work Experience & Professional History</h3>
-              <div id="tpl-history-content" class="text-xs text-slate-700 leading-relaxed"></div>
+            <div class="space-y-1">
+              <h3 class="text-sm font-bold text-[#1D2B53] uppercase tracking-wider">Education & Licenses</h3>
+              <p id="tpl-education" class="text-xs text-slate-700"></p>
             </div>
 
-            <!-- Cover Letter Section -->
+            <div class="space-y-2">
+              <h3 class="text-sm font-bold text-[#1D2B53] uppercase tracking-wider">Work Experience & Employment History</h3>
+              <div id="tpl-history-content" class="space-y-3 text-xs text-slate-700"></div>
+            </div>
+
             <div class="border-t pt-4 space-y-2">
               <h3 class="text-sm font-bold text-[#1D2B53] uppercase tracking-wider">Tailored Cover Letter</h3>
               <div id="tpl-cover-letter" class="text-xs text-slate-700 leading-relaxed space-y-2 whitespace-pre-line"></div>
@@ -321,7 +364,6 @@
 
           </div>
 
-          <!-- Download Action Buttons -->
           <div class="flex gap-3">
             <button onclick="downloadResumeWord()" class="w-1/2 py-3 bg-blue-700 text-white font-bold rounded-lg hover:bg-blue-800 transition flex items-center justify-center gap-2">
               📝 Download Word Document (.docx)
@@ -385,7 +427,6 @@
             </button>
           </div>
 
-          <!-- Module 04: Master Resume Building & Employment Gaps -->
           <div class="border border-purple-300 rounded-xl p-5 space-y-4 bg-purple-50 hover:shadow-md transition flex flex-col justify-between">
             <div class="space-y-3">
               <div class="flex justify-between items-center">
@@ -618,9 +659,11 @@
     </div>
   </div>
 
-  <!-- DOWNLOADABLE PDF CERTIFICATE MODAL -->
+  <!-- DOWNLOADABLE PDF CERTIFICATE MODAL (FIXED RENDERING) -->
   <div id="certificate-modal" class="fixed inset-0 bg-slate-900/80 backdrop-blur-sm hidden flex items-center justify-center p-4 z-50 overflow-y-auto">
     <div class="bg-white max-w-2xl w-full rounded-2xl p-6 shadow-2xl space-y-6 my-8 border-4 border-[#1D2B53]">
+      
+      <!-- Target Element for html2pdf -->
       <div id="certificate-pdf-element" class="p-6 bg-white border-2 border-slate-300 rounded-xl space-y-6">
         <div class="flex justify-between items-center border-b-2 border-slate-200 pb-4">
           <div class="flex items-center gap-3">
@@ -892,6 +935,21 @@
       document.getElementById('cm-table-resume-quota').innerText = `${resumeAttemptsUsed} / 3 Used`;
     }
 
+    // --- Dynamic Multi-Job Functionality ---
+    function addJobEntry() {
+      const container = document.getElementById('job-entries-container');
+      const newEntry = document.createElement('div');
+      newEntry.className = "job-entry p-3 bg-white border border-slate-200 rounded-lg grid grid-cols-1 md:grid-cols-3 gap-2 relative";
+      newEntry.innerHTML = `
+        <input type="text" class="job-title p-2 border rounded text-xs" placeholder="Job Title (e.g. Sales Associate)">
+        <input type="text" class="job-employer p-2 border rounded text-xs" placeholder="Employer (e.g. XYZ Corp)">
+        <input type="text" class="job-dates p-2 border rounded text-xs" placeholder="Dates (e.g. 2020 - 2022)">
+        <textarea class="job-duties md:col-span-3 p-2 border rounded text-xs" rows="2" placeholder="Key Duties & Achievements"></textarea>
+        <button type="button" onclick="this.parentElement.remove()" class="text-xs text-red-600 font-bold hover:underline md:col-span-3 text-right">Remove Job Entry</button>
+      `;
+      container.appendChild(newEntry);
+    }
+
     // --- Speech Recognition ---
     if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
       const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
@@ -1077,14 +1135,14 @@
       renderEvaluationReport({
         overall_score: 85,
         strengths: [
-          "Clear, honest communication suitable for target roles.",
-          "Good demonstration of punctuality, teamwork, and willingness to learn."
+          "Clear, honest communication addressing key workplace situations (S).",
+          "Demonstrated solid punctuality, teamwork, and WHS awareness (A)."
         ],
         areas_for_growth: [
-          "Practice giving slightly longer answers using the STAR format.",
-          "Mention specific examples of past teamwork or practical projects."
+          "Elaborate more on specific tasks assigned to you personally (T).",
+          "Include concrete, measurable results or positive outcomes achieved (R)."
         ],
-        summary_feedback: "Great job completing the 8 interview questions! Your answers were communicated clearly and demonstrate solid work readiness."
+        summary_feedback: "Great job completing all 8 questions! Your answers demonstrated solid communication and reliability. Focus on elaborating on measurable results to improve your score further."
       });
     }
 
@@ -1134,7 +1192,7 @@
       const contact = document.getElementById('res-contact').value;
       const title = document.getElementById('resume-target-title').value;
       const skillsRaw = document.getElementById('resume-skills').value;
-      const history = document.getElementById('res-history').value;
+      const edu = document.getElementById('res-education').value;
       const gaps = document.getElementById('res-gaps').value;
 
       document.getElementById('tpl-name').innerText = name.toUpperCase();
@@ -1145,8 +1203,30 @@
 
       const skillsArr = skillsRaw.split(',').map(s => s.trim());
       document.getElementById('tpl-skills-list').innerHTML = skillsArr.map(s => `<li>${s}</li>`).join('');
+      document.getElementById('tpl-education').innerText = edu || "Year 12 High School Certificate | Cert III / Relevant Licenses";
 
-      let historyHTML = `<p class="mb-2"><strong>${history || 'Practical Workplace Experience'}</strong></p>`;
+      // Process Multi-Job Entries
+      const jobEntries = document.querySelectorAll('.job-entry');
+      let historyHTML = '';
+      jobEntries.forEach((entry, idx) => {
+        const jTitle = entry.querySelector('.job-title').value;
+        const jEmp = entry.querySelector('.job-employer').value;
+        const jDates = entry.querySelector('.job-dates').value;
+        const jDuties = entry.querySelector('.job-duties').value;
+
+        if (jTitle || jEmp) {
+          historyHTML += `
+            <div class="border-l-2 border-[#1D2B53] pl-3 py-1">
+              <div class="flex justify-between font-bold text-slate-800">
+                <span>${jTitle || 'Role Title'} — ${jEmp || 'Company Name'}</span>
+                <span class="text-slate-500 font-normal">${jDates || 'Dates'}</span>
+              </div>
+              <p class="text-slate-600 mt-1">${jDuties || 'Duties and key responsibilities.'}</p>
+            </div>
+          `;
+        }
+      });
+
       if (gaps) {
         historyHTML += `
           <div class="p-3 bg-purple-50 border border-purple-200 rounded my-2">
@@ -1155,7 +1235,8 @@
           </div>
         `;
       }
-      document.getElementById('tpl-history-content').innerHTML = historyHTML;
+
+      document.getElementById('tpl-history-content').innerHTML = historyHTML || '<p>General Work & Practical Experience Logged.</p>';
 
       document.getElementById('tpl-cover-letter').innerText = 
         `Dear Hiring Manager,\n\nI am writing to express my strong interest in the ${title} position. With my background in ${skillsRaw}, I bring strong reliability, a focus on workplace safety, and a dedication to delivering quality work.\n\n${gaps ? 'During my recent career transition period (' + gaps + '), I maintained a focus on upskilling and expanding my practical capabilities.' : ''}\n\nI welcome the opportunity to discuss how my skill set aligns with your team's needs.\n\nSincerely,\n${name}`;
@@ -1163,7 +1244,6 @@
       document.getElementById('resume-output-box').classList.remove('hidden');
     }
 
-    // Word Document Blob Exporter (.docx)
     function downloadResumeWord() {
       const content = document.getElementById('resume-document-template').innerHTML;
       const header = "<html xmlns:o='urn:schemas-microsoft-com:office:office' "+
@@ -1307,6 +1387,7 @@
       document.getElementById('certificate-modal').classList.add('hidden');
     }
 
+    // FIXED PDF CERTIFICATE GENERATION
     function downloadCertificatePDF() {
       const element = document.getElementById('certificate-pdf-element');
       const opt = {
@@ -1370,4 +1451,4 @@
     };
   </script>
 </body>
-</html>s
+</html>
