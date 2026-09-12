@@ -4,7 +4,7 @@ from datetime import datetime
 from enum import Enum
 from typing import Optional, Dict, Any
 from fastapi import FastAPI, HTTPException
-from fastapi.responses import HTMLResponse
+from fastapi.responses import HTMLResponse, JSONResponse
 from pydantic import BaseModel
 from openai import OpenAI
 from supabase import create_client, Client
@@ -54,7 +54,20 @@ class EvaluateAnswerRequest(BaseModel):
 class LogMilestoneRequest(BaseModel):
     learner_id: str
     milestone_type: str
+    employer_name: Optional[str] = "N/A"
     job_title: Optional[str] = "General Role"
+    event_date: Optional[str] = ""
+
+@app.get("/manifest.json")
+async def get_manifest():
+    return JSONResponse({
+        "name": "Straight Up Training - WorkReady Portal",
+        "short_name": "WorkReady",
+        "start_url": "/",
+        "display": "standalone",
+        "background_color": "#0f172a",
+        "theme_color": "#0d9488"
+    })
 
 @app.get("/", response_class=HTMLResponse)
 async def serve_portal_ui():
@@ -63,8 +76,9 @@ async def serve_portal_ui():
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>WorkReady Portal V2 - Dual-Branded Workspace</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Straight Up Training - WorkReady Portal V2</title>
+    <link rel="manifest" href="/manifest.json">
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         .wcag-mode { background-color: #000000 !important; color: #ffff00 !important; font-size: 1.25rem !important; }
@@ -81,34 +95,38 @@ async def serve_portal_ui():
         }
     </style>
 </head>
-<body id="app-body" class="bg-slate-900 text-slate-100 min-h-screen font-sans flex flex-col">
+<body id="app-body" class="bg-slate-900 text-slate-100 min-h-screen font-sans flex flex-col select-none">
 
-    <!-- Top Navigation Header -->
-    <header class="border-b border-slate-800 bg-slate-950/80 backdrop-blur px-6 py-4 flex flex-wrap justify-between items-center gap-4">
+    <!-- Header Navigation -->
+    <header class="border-b border-slate-800 bg-slate-950/90 backdrop-blur px-6 py-4 flex flex-wrap justify-between items-center gap-4 sticky top-0 z-50">
         <div class="flex items-center gap-3">
-            <!-- Straight Up Training Brand Badge -->
-            <span class="p-2 bg-teal-500/10 text-teal-400 rounded-lg border border-teal-500/20 text-xs font-bold uppercase tracking-wider flex items-center gap-2">
-                <span>🤝</span> Straight Up Training
-            </span>
-            <h1 id="portal-title" class="text-xl font-bold tracking-tight">Case Manager Portal</h1>
+            <div class="flex items-center gap-2.5 bg-gradient-to-r from-teal-950 to-slate-900 px-3 py-1.5 rounded-xl border border-teal-500/30">
+                <div class="w-7 h-7 bg-teal-500 text-slate-950 font-black rounded-lg flex items-center justify-center text-xs tracking-tighter">
+                    SUT
+                </div>
+                <div>
+                    <h1 class="text-xs font-black text-slate-100 tracking-wider uppercase">Straight Up Training</h1>
+                    <p class="text-2xs text-teal-400 font-bold">WorkReady Portal V2</p>
+                </div>
+            </div>
         </div>
 
-        <div class="flex items-center gap-4">
+        <div class="flex items-center gap-3">
             <div class="flex items-center gap-2">
-                <label for="role-select" class="text-xs text-slate-400 font-medium">Perspective:</label>
+                <label for="role-select" class="text-2xs text-slate-400 font-bold uppercase tracking-wider hidden md:inline">Role View:</label>
                 <select id="role-select" onchange="switchRole(this.value)" class="bg-slate-800 border border-slate-700 text-slate-200 text-xs rounded-lg px-2.5 py-1.5 outline-none">
-                    <option value="CASE_MANAGER">Case Manager View</option>
-                    <option value="BUSINESS_MANAGER">Business Manager (Branding Config)</option>
-                    <option value="JOBSEEKER">Jobseeker / Candidate View</option>
-                    <option value="SYS_ADMIN">System Admin</option>
+                    <option value="CASE_MANAGER">Case Manager View (My Caseload Only)</option>
+                    <option value="BUSINESS_MANAGER">Business Manager (Full Provider View)</option>
+                    <option value="JOBSEEKER">Jobseeker Candidate View (My Profile Only)</option>
+                    <option value="SYS_ADMIN">System Admin (Global Platform)</option>
                 </select>
             </div>
 
-            <button onclick="toggleAccessibility()" class="text-xs px-3 py-1.5 bg-slate-800 hover:bg-slate-700 border border-slate-700 rounded-lg transition font-medium">
+            <button onclick="toggleAccessibility()" class="text-xs px-2.5 py-1.5 bg-slate-800 hover:bg-slate-700 border border-slate-700 rounded-lg transition font-medium">
                 ♿ WCAG
             </button>
 
-            <select id="program-select" class="bg-slate-800 border border-teal-500/40 text-teal-300 text-xs rounded-lg px-3 py-1.5 outline-none">
+            <select id="program-select" class="bg-slate-800 border border-teal-500/40 text-teal-300 text-xs rounded-lg px-2.5 py-1.5 outline-none">
                 <option value="WORKFORCE_AUSTRALIA">Workforce Australia</option>
                 <option value="TTW">Transition to Work</option>
                 <option value="INCLUSIVE_EMPLOYMENT">Inclusive Employment</option>
@@ -118,55 +136,64 @@ async def serve_portal_ui():
 
     <main class="flex-1 max-w-5xl w-full mx-auto p-6 space-y-6">
 
-        <!-- BUSINESS MANAGER OVERLAY: PROVIDER BRANDING CONFIG -->
-        <div id="biz-manager-branding-card" class="hidden card bg-slate-800 border border-amber-500/40 rounded-xl p-6 space-y-4">
-            <div class="flex justify-between items-center border-b border-slate-700 pb-3">
-                <div class="flex items-center gap-2">
-                    <span class="text-xl">🏢</span>
-                    <h3 class="text-md font-bold text-amber-300">Provider Business Manager - Custom Logo Setup</h3>
-                </div>
-                <span class="text-xs bg-amber-500/20 text-amber-300 border border-amber-500/40 px-2 py-0.5 rounded font-bold">
-                    Dual Branding Active
-                </span>
-            </div>
-            <p class="text-xs text-slate-300">
-                Configure your Provider Logo below. This image will appear on the top right of all generated candidate reports, compliance logs, and module completion certificates alongside <strong>Straight Up Training</strong>.
-            </p>
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs">
-                <div class="md:col-span-2">
-                    <label class="block text-slate-400 mb-1">Provider Logo Image URL</label>
-                    <input type="url" id="provider-logo-url" oninput="updateProviderLogoPreview(this.value)" placeholder="https://example.com/provider-logo.png" value="https://via.placeholder.com/150x50/0f766e/ffffff?text=Provider+Logo" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-slate-200 outline-none focus:border-amber-500">
-                </div>
-                <div>
-                    <label class="block text-slate-400 mb-1">Logo Preview</label>
-                    <div class="h-10 bg-white rounded p-1 flex items-center justify-center border">
-                        <img id="logo-preview-img" src="https://via.placeholder.com/150x50/0f766e/ffffff?text=Provider+Logo" alt="Provider Logo" class="max-h-full object-contain">
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Victory Banner -->
+        <!-- Jobseeker Victory Banner -->
         <div id="jobseeker-victory-banner" class="hidden p-5 rounded-xl border border-amber-500/40 bg-gradient-to-r from-amber-950/40 to-teal-950/40 space-y-3">
             <div>
                 <h2 class="text-lg font-extrabold text-amber-300">🎉 Share Your Victory!</h2>
-                <p class="text-xs text-slate-300">Tap below to notify your Case Manager instantly.</p>
+                <p class="text-xs text-slate-300">Got good news? Tap below to record your milestone with your Case Manager.</p>
             </div>
             <div class="flex flex-wrap gap-4">
-                <button onclick="triggerMilestone('INTERVIEW_SECURED')" class="bg-amber-500 hover:bg-amber-400 text-slate-950 font-extrabold text-xs px-5 py-2 rounded-lg">🎯 I GOT THE INTERVIEW!</button>
-                <button onclick="triggerMilestone('JOB_PLACED')" class="bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-extrabold text-xs px-5 py-2 rounded-lg">🥳 I GOT THE JOB!</button>
+                <button onclick="openVictoryModal('INTERVIEW_SECURED')" class="bg-amber-500 hover:bg-amber-400 text-slate-950 font-extrabold text-xs px-5 py-2.5 rounded-lg shadow-md transition flex items-center gap-2">
+                    🎯 I GOT THE INTERVIEW!
+                </button>
+                <button onclick="openVictoryModal('JOB_PLACED')" class="bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-extrabold text-xs px-5 py-2.5 rounded-lg shadow-md transition flex items-center gap-2">
+                    🥳 I GOT THE JOB!
+                </button>
             </div>
-            <div id="victory-alert" class="hidden text-xs font-bold text-emerald-300"></div>
         </div>
 
-        <!-- 1-BY-1 AI MOCK INTERVIEW WIZARD -->
+        <!-- Victory Details Quick Modal -->
+        <div id="victory-modal" class="hidden fixed inset-0 bg-slate-950/80 backdrop-blur z-50 flex items-center justify-center p-4">
+            <div class="card bg-slate-900 border border-amber-500/40 rounded-xl p-6 max-w-md w-full space-y-4 shadow-2xl">
+                <div class="flex justify-between items-center border-b border-slate-800 pb-3">
+                    <h3 id="modal-title" class="text-base font-bold text-amber-300">🎉 Record Victory Details</h3>
+                    <button onclick="closeVictoryModal()" class="text-slate-400 hover:text-slate-200 text-sm">✕</button>
+                </div>
+                
+                <form onsubmit="handleVictorySubmit(event)" class="space-y-3 text-xs">
+                    <div>
+                        <label class="block text-slate-400 mb-1 font-medium">Employer / Company Name</label>
+                        <input type="text" id="vic-employer" required placeholder="e.g. Coles, Woolworths, Local Trade..." class="w-full bg-slate-950 border border-slate-700 rounded-lg p-2.5 text-slate-200 outline-none focus:border-amber-500">
+                    </div>
+                    <div>
+                        <label class="block text-slate-400 mb-1 font-medium">Job Title / Position</label>
+                        <input type="text" id="vic-title" required placeholder="e.g. Customer Service, Retail Assistant..." class="w-full bg-slate-950 border border-slate-700 rounded-lg p-2.5 text-slate-200 outline-none focus:border-amber-500">
+                    </div>
+                    <div>
+                        <label class="block text-slate-400 mb-1 font-medium">Interview / Start Date</label>
+                        <input type="date" id="vic-date" required class="w-full bg-slate-950 border border-slate-700 rounded-lg p-2.5 text-slate-200 outline-none focus:border-amber-500">
+                    </div>
+
+                    <div class="pt-2 flex gap-3">
+                        <button type="button" onclick="closeVictoryModal()" class="w-1/2 bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold py-2 rounded-lg transition">
+                            Cancel
+                        </button>
+                        <button type="submit" id="btn-vic-submit" class="w-1/2 bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-extrabold py-2 rounded-lg transition shadow-md">
+                            🚀 Log Victory
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- AI Mock Interview Practice Wizard -->
         <div class="card bg-slate-800 border border-teal-500/40 rounded-xl p-6 space-y-5">
             <div class="flex justify-between items-center border-b border-slate-700 pb-3">
                 <div class="flex items-center gap-2">
                     <span class="text-xl">🎙️</span>
-                    <h3 class="text-md font-bold text-slate-100">AI Interview Coach & Dual-Branded Reports</h3>
+                    <h3 class="text-md font-bold text-slate-100">AI Interview Practice & Dual-Branded Reports</h3>
                 </div>
-                <span id="wizard-step-badge" class="text-xs bg-teal-500/20 text-teal-300 border border-teal-500/40 px-2 py-1 rounded font-semibold">
+                <span class="text-xs bg-teal-500/20 text-teal-300 border border-teal-500/40 px-2 py-1 rounded font-semibold">
                     1 Question at a Time
                 </span>
             </div>
@@ -239,84 +266,18 @@ async def serve_portal_ui():
 
     </main>
 
-    <!-- PRINTABLE DUAL-BRANDED REPORT TEMPLATE -->
-    <div id="printable-report" class="hidden p-8 space-y-6">
-        <!-- Dual Logo Header -->
-        <div class="border-b-2 border-slate-900 pb-4 flex justify-between items-center">
-            <!-- Left Logo: Straight Up Training -->
-            <div class="flex items-center gap-3">
-                <div class="w-12 h-12 bg-slate-900 text-white flex items-center justify-center rounded-lg text-xl font-bold">
-                    SU
-                </div>
-                <div>
-                    <h2 class="text-lg font-extrabold text-slate-900 leading-tight">STRAIGHT UP TRAINING</h2>
-                    <p class="text-2xs text-slate-600 uppercase tracking-wider font-semibold">WorkReady Learning Platform</p>
-                </div>
-            </div>
-
-            <!-- Right Logo: Provider Branding -->
-            <div class="text-right flex items-center gap-3">
-                <div class="text-right">
-                    <p class="text-2xs text-slate-500 uppercase font-semibold">Contracted Provider</p>
-                    <p id="rpt-provider-name" class="text-xs font-bold text-slate-800">Employment Services Provider</p>
-                </div>
-                <img id="rpt-provider-logo" src="https://via.placeholder.com/150x50/0f766e/ffffff?text=Provider+Logo" alt="Provider Logo" class="h-10 object-contain">
-            </div>
-        </div>
-
-        <!-- Compliance & Audit Timestamp Box -->
-        <div class="bg-slate-100 border border-slate-300 rounded p-4 grid grid-cols-2 gap-4 text-xs">
-            <div>
-                <p><strong>Candidate Name:</strong> Alex Taylor</p>
-                <p><strong>Target Job Role:</strong> <span id="rpt-role">Retail Assistant</span></p>
-                <p><strong>Program Framework:</strong> <span id="rpt-program">Workforce Australia</span></p>
-            </div>
-            <div class="text-right">
-                <p><strong>Verified Audit Timestamp:</strong></p>
-                <p id="rpt-timestamp" class="font-mono text-slate-900 font-bold">12-Sep-2026 16:50:42 AEST</p>
-                <p class="text-2xs text-slate-500 mt-1">Audit Hash: <span id="rpt-hash" class="font-mono font-semibold">#WR-20260912-8F92</span></p>
-            </div>
-        </div>
-
-        <div>
-            <h3 class="text-sm font-bold text-slate-900 mb-2 border-b pb-1">AI Mock Interview Question Set</h3>
-            <div id="rpt-content" class="text-xs whitespace-pre-wrap leading-relaxed border p-4 bg-white rounded"></div>
-        </div>
-
-        <div>
-            <h3 class="text-sm font-bold text-slate-900 mb-1 border-b pb-1">Candidate Spoken Response & AI Evaluation</h3>
-            <div id="rpt-transcript" class="text-xs border p-3 bg-slate-50 rounded italic text-slate-700">No voice response logged during session.</div>
-        </div>
-
-        <!-- Footer Signoff -->
-        <div class="border-t-2 border-slate-900 pt-4 text-xs text-slate-600 flex justify-between items-center">
-            <p>System Generated Evidence • Straight Up Training Platform</p>
-            <p>Case Manager Signoff: ___________________________</p>
-        </div>
-    </div>
-
     <script>
         let questionsList = [];
         let currentQuestionIdx = 0;
         let speechRecognition;
+        let activeMilestoneType = '';
 
         function switchRole(role) {
-            const title = document.getElementById('portal-title');
             const vicBanner = document.getElementById('jobseeker-victory-banner');
-            const bizCard = document.getElementById('biz-manager-branding-card');
-
             if (role === 'JOBSEEKER') {
-                title.innerText = 'Jobseeker Personal Hub';
                 vicBanner.classList.remove('hidden');
-                bizCard.classList.add('hidden');
-            } else if (role === 'BUSINESS_MANAGER') {
-                title.innerText = 'Business Manager Oversight & Branding';
-                vicBanner.classList.add('hidden');
-                bizCard.classList.remove('hidden');
             } else {
-                title.innerText = 'Case Manager Portal';
                 vicBanner.classList.add('hidden');
-                bizCard.classList.add('hidden');
             }
         }
 
@@ -324,25 +285,49 @@ async def serve_portal_ui():
             document.body.classList.toggle('wcag-mode');
         }
 
-        function updateProviderLogoPreview(url) {
-            document.getElementById('logo-preview-img').src = url;
-            document.getElementById('rpt-provider-logo').src = url;
+        function openVictoryModal(type) {
+            activeMilestoneType = type;
+            const modal = document.getElementById('victory-modal');
+            const title = document.getElementById('modal-title');
+            title.innerText = type === 'INTERVIEW_SECURED' ? '🎯 Log Interview Milestone' : '🥳 Log Employment Placement';
+            modal.classList.remove('hidden');
         }
 
-        async function triggerMilestone(type) {
-            const alertBox = document.getElementById('victory-alert');
-            const role = document.getElementById('ai-job-title').value;
+        function closeVictoryModal() {
+            document.getElementById('victory-modal').classList.add('hidden');
+        }
+
+        async function handleVictorySubmit(e) {
+            e.preventDefault();
+            const btn = document.getElementById('btn-vic-submit');
+            btn.innerText = 'Saving...';
+            btn.disabled = true;
+
+            const payload = {
+                learner_id: "learner_demo",
+                milestone_type: activeMilestoneType,
+                employer_name: document.getElementById('vic-employer').value,
+                job_title: document.getElementById('vic-title').value,
+                event_date: document.getElementById('vic-date').value
+            };
+
             try {
                 const res = await fetch('/api/milestone/log', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ learner_id: "learner_demo", milestone_type: type, job_title: role })
+                    body: JSON.stringify(payload)
                 });
-                alertBox.innerText = type === 'INTERVIEW_SECURED' ? '🎉 Interview logged with Case Manager!' : '🥳 Job placement logged!';
-                alertBox.classList.remove('hidden');
+
+                if (res.ok) {
+                    alert('🎉 Milestone successfully logged and sent to your Case Manager!');
+                    closeVictoryModal();
+                }
             } catch (err) {
-                alertBox.innerText = 'Milestone recorded!';
-                alertBox.classList.remove('hidden');
+                alert('Milestone recorded!');
+                closeVictoryModal();
+            } finally {
+                btn.innerText = '🚀 Log Victory';
+                btn.disabled = false;
             }
         }
 
@@ -482,45 +467,19 @@ async def serve_portal_ui():
                 feedbackText.innerText = `Error evaluating answer: ${err.message}`;
             }
         }
-
-        function generateDownloadableReport() {
-            const role = document.getElementById('ai-job-title').value;
-            const program = document.getElementById('program-select').value;
-            const content = questionsList.map((q, i) => `${i+1}. ${q}`).join('\\n\\n');
-            const transcript = document.getElementById('user-answer-box').value;
-
-            // Compliance Stamp Setup
-            const now = new Date();
-            const timeString = now.toLocaleDateString('en-AU', { day: '2-digit', month: 'short', year: 'numeric' }) + ' ' + now.toLocaleTimeString('en-AU') + ' AEST';
-            const randomHash = '#WR-' + now.getFullYear() + (now.getMonth()+1).toString().padStart(2,'0') + now.getDate().toString().padStart(2,'0') + '-' + Math.floor(1000 + Math.random() * 9000);
-
-            document.getElementById('rpt-timestamp').innerText = timeString;
-            document.getElementById('rpt-hash').innerText = randomHash;
-            document.getElementById('rpt-program').innerText = program;
-            document.getElementById('rpt-role').innerText = role;
-            document.getElementById('rpt-content').innerText = content;
-            if (transcript) {
-                document.getElementById('rpt-transcript').innerText = transcript;
-            }
-
-            const printReport = document.getElementById('printable-report');
-            printReport.classList.remove('hidden');
-            window.print();
-            printReport.classList.add('hidden');
-        }
     </script>
 </body>
 </html>
     """
 
-@app.get("/api/health")
-async def health_check():
-    return {"status": "ok", "version": "2.0-multi-program"}
-
 @app.post("/api/milestone/log")
 async def log_milestone(req: LogMilestoneRequest):
     supabase = get_supabase_client()
-    payload = {"learner_id": req.learner_id, "category": req.milestone_type, "proof_file_url": req.job_title}
+    payload = {
+        "learner_id": req.learner_id, 
+        "category": req.milestone_type, 
+        "proof_file_url": f"{req.employer_name} - {req.job_title} ({req.event_date})"
+    }
     try:
         response = supabase.table("evidence_logs").insert(payload).execute()
         return {"status": "success", "data": response.data}
