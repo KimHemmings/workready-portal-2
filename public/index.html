@@ -29,9 +29,31 @@
   <header class="bg-[#1D2B53] text-white px-6 py-4 border-b-4 border-[#4CAF50] shadow-lg">
     <div class="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
       <div class="flex items-center gap-4">
-        <div class="bg-white text-[#1D2B53] px-3 py-1 rounded font-black text-xl tracking-wider">
-          SUT
+        
+        <!-- Official Straight Up Training Vector Logo -->
+        <div class="bg-white p-2 rounded-lg shadow-sm flex items-center justify-center">
+          <svg class="h-10 w-auto" viewBox="0 0 200 160" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <!-- Green Figure (Left) -->
+            <path d="M 45 35 A 12 12 0 1 0 45 11 A 12 12 0 1 0 45 35 Z" fill="#4CAF50"/>
+            <path d="M 25 32 C 20 55 35 90 35 125 M 35 70 C 50 70 65 70 80 70" stroke="#1D2B53" stroke-width="8" stroke-linecap="round"/>
+            <path d="M 28 30 C 23 53 38 88 38 123" stroke="#4CAF50" stroke-width="8" stroke-linecap="round"/>
+            
+            <!-- Amber Figure (Center) -->
+            <path d="M 100 35 A 12 12 0 1 0 100 11 A 12 12 0 1 0 100 35 Z" fill="#FFB74D"/>
+            <path d="M 75 70 C 75 100 65 125 65 125 M 125 70 C 125 100 135 125 135 125" stroke="#1D2B53" stroke-width="8" stroke-linecap="round"/>
+            <path d="M 78 70 C 78 100 68 125 68 125 M 122 70 C 122 100 132 125 132 125" stroke="#FFB74D" stroke-width="8" stroke-linecap="round"/>
+            
+            <!-- Purple Figure (Right) -->
+            <path d="M 155 35 A 12 12 0 1 0 155 11 A 12 12 0 1 0 155 35 Z" fill="#9C27B0"/>
+            <path d="M 175 32 C 180 55 165 90 165 125 M 120 70 C 135 70 150 70 165 70" stroke="#1D2B53" stroke-width="8" stroke-linecap="round"/>
+            <path d="M 172 30 C 177 53 162 88 162 123" stroke="#9C27B0" stroke-width="8" stroke-linecap="round"/>
+
+            <!-- Brand Typography -->
+            <text x="100" y="145" text-anchor="middle" fill="#1D2B53" font-family="sans-serif" font-weight="900" font-size="18" letter-spacing="2">STRAIGHT UP</text>
+            <text x="100" y="158" text-anchor="middle" fill="#1D2B53" font-family="sans-serif" font-weight="700" font-size="10" letter-spacing="4">TRAINING</text>
+          </svg>
         </div>
+
         <div>
           <h1 class="text-xl font-bold tracking-tight">WorkReady Portal V2</h1>
           <p class="text-xs text-slate-300">Straight Up Training & Co-Branded Employment Provider Shell</p>
@@ -349,7 +371,17 @@
       <!-- Certificate Header -->
       <div class="flex justify-between items-center border-b-2 border-slate-200 pb-4">
         <div class="flex items-center gap-3">
-          <div class="bg-[#1D2B53] text-white font-black text-xl px-3 py-1 rounded">SUT</div>
+          <div class="bg-slate-50 p-1.5 rounded border border-slate-200">
+            <svg class="h-8 w-auto" viewBox="0 0 200 160" fill="none">
+              <path d="M 45 35 A 12 12 0 1 0 45 11 A 12 12 0 1 0 45 35 Z" fill="#4CAF50"/>
+              <path d="M 25 32 C 20 55 35 90 35 125 M 35 70 C 50 70 65 70 80 70" stroke="#1D2B53" stroke-width="8" stroke-linecap="round"/>
+              <path d="M 100 35 A 12 12 0 1 0 100 11 A 12 12 0 1 0 100 35 Z" fill="#FFB74D"/>
+              <path d="M 75 70 C 75 100 65 125 65 125 M 125 70 C 125 100 135 125 135 125" stroke="#1D2B53" stroke-width="8" stroke-linecap="round"/>
+              <path d="M 155 35 A 12 12 0 1 0 155 11 A 12 12 0 1 0 155 35 Z" fill="#9C27B0"/>
+              <path d="M 175 32 C 180 55 165 90 165 125 M 120 70 C 135 70 150 70 165 70" stroke="#1D2B53" stroke-width="8" stroke-linecap="round"/>
+              <text x="100" y="145" text-anchor="middle" fill="#1D2B53" font-family="sans-serif" font-weight="900" font-size="18">STRAIGHT UP</text>
+            </svg>
+          </div>
           <div>
             <div class="text-xs font-bold text-slate-500 uppercase tracking-widest">Straight Up Training</div>
             <div class="text-xs text-emerald-600 font-semibold">Verifiable Compliance Dossier</div>
@@ -728,7 +760,6 @@
       const percentage = Math.round((scoreCount / mod.questions.length) * 100);
       const passed = percentage >= 80;
 
-      // Submit to Backend
       try {
         await fetch('/api/modules/submit-quiz', {
           method: 'POST',
