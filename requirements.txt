@@ -1,7 +1,6 @@
-fastapi==0.141.1
-uvicorn==0.52.1
-python-dotenv>=1.0.1
-pydantic>=2.6.4
+
+fastapi
+uvicorn
 supabase
-openai
-python-multipart>=0.0.9
+pydantic
+backports.zoneinfo;python_version<"3.9"
