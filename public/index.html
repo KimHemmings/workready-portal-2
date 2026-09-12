@@ -5,6 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>WorkReady Portal V2 — Australian Employment Services</title>
   <script src="https://cdn.tailwindcss.com"></script>
+  <!-- html2pdf Library for Client-Side PDF Generation -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
   <style>
     :root {
       --brand-navy: #1D2B53;
@@ -25,12 +27,12 @@
 </head>
 <body class="bg-slate-100 font-sans text-slate-900 min-h-screen flex flex-col">
 
-  <!-- Header with Official Logo & LLN Contrast Toggle -->
+  <!-- Audit & Dual Branding Header -->
   <header class="bg-[#1D2B53] text-white px-6 py-4 border-b-4 border-[#4CAF50] shadow-lg">
     <div class="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
       <div class="flex items-center gap-4">
         
-        <!-- Official Straight Up Training Vector Emblem -->
+        <!-- Straight Up Training Vector Logo -->
         <div class="bg-white p-2 rounded-lg shadow-sm flex items-center justify-center">
           <svg class="h-10 w-auto" viewBox="0 0 200 160" fill="none" xmlns="http://www.w3.org/2000/svg">
             <path d="M 45 35 A 12 12 0 1 0 45 11 A 12 12 0 1 0 45 35 Z" fill="#4CAF50"/>
@@ -46,11 +48,11 @@
 
         <div>
           <h1 class="text-xl font-bold tracking-tight">WorkReady Portal V2</h1>
-          <p class="text-xs text-slate-300">Straight Up Training & Co-Branded Employment Shell</p>
+          <p class="text-xs text-slate-300">Straight Up Training & Co-Branded Employment Provider Shell</p>
         </div>
       </div>
 
-      <!-- Security Switcher & Accessibility -->
+      <!-- Accessibility & Role Controls -->
       <div class="flex items-center gap-3">
         <button onclick="toggleHighContrast()" class="px-3 py-1.5 bg-amber-500 text-slate-950 text-xs font-bold rounded hover:bg-amber-400 transition">
           👁️ WCAG Contrast
@@ -86,7 +88,7 @@
     </div>
   </nav>
 
-  <!-- Main Workspaces Container -->
+  <!-- Main Workspaces -->
   <main class="flex-grow max-w-7xl w-full mx-auto p-6 space-y-8">
 
     <!-- 1. JOBSEEKER WORKSPACE -->
@@ -108,33 +110,33 @@
         </div>
       </div>
 
-      <!-- AI MOCK INTERVIEW COACH WITH LLN TTS & FEEDBACK -->
+      <!-- ENTRY-LEVEL AI MOCK INTERVIEW COACH -->
       <div id="mock-interview-section" class="bg-white p-6 rounded-xl shadow-md border border-slate-200 space-y-6">
         <div class="flex items-center justify-between border-b pb-4">
           <div>
-            <h2 class="text-2xl font-bold text-[#1D2B53]">AI Mock Interview Coach</h2>
-            <p class="text-sm text-slate-600">Practice 8 industry questions with speech recognition, LLN audio voiceovers, and STAR feedback.</p>
+            <h2 class="text-2xl font-bold text-[#1D2B53]">AI Mock Interview Coach (Entry-Level)</h2>
+            <p class="text-sm text-slate-600">Practice simple, beginner-friendly questions tailored for entry-level jobs.</p>
           </div>
-          <span id="interview-badge" class="px-3 py-1 bg-slate-100 text-slate-700 text-xs font-semibold rounded-full border border-slate-300">
-            Ready
-          </span>
+          <span id="interview-badge" class="px-3 py-1 bg-slate-100 text-slate-700 text-xs font-semibold rounded-full border border-slate-300">Ready</span>
         </div>
 
-        <!-- Step A: Setup -->
+        <!-- Setup Step -->
         <div id="interview-setup-step" class="space-y-4">
-          <label class="block text-sm font-medium text-slate-700">Select Target Industry Sector:</label>
+          <label class="block text-sm font-medium text-slate-700">Select Target Entry-Level Sector:</label>
           <select id="industry-select" class="w-full p-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-[#4CAF50] focus:outline-none bg-white">
-            <option value="retail">Retail & Customer Service</option>
-            <option value="construction">Construction & Trades</option>
-            <option value="hospitality">Hospitality & Food Services</option>
-            <option value="admin">Admin & Office Support</option>
+            <option value="retail">Retail & Shop Assistant</option>
+            <option value="hospitality">Hospitality & Food Service</option>
+            <option value="warehouse">Warehouse & Logistics Support</option>
+            <option value="cleaning">Commercial Cleaning & Facilities</option>
+            <option value="construction">Construction & General Laborer</option>
+            <option value="admin">Office Junior & Admin Support</option>
           </select>
           <button onclick="startInterview()" class="w-full py-3 bg-[#4CAF50] text-white font-bold rounded-lg hover:bg-emerald-600 transition shadow-sm">
-            Start 8-Question Mock Interview
+            Start Entry-Level Mock Interview
           </button>
         </div>
 
-        <!-- Step B: Question Runner -->
+        <!-- Runner Step -->
         <div id="interview-runner-step" class="hidden space-y-6">
           <div class="flex items-center justify-between border-b pb-3">
             <span id="question-tracker" class="text-sm font-semibold text-[#1D2B53]">Question 1 of 8</span>
@@ -155,7 +157,7 @@
               <span id="mic-status-indicator" class="text-xs text-slate-500 font-medium">Microphone idle</span>
             </div>
 
-            <textarea id="transcript-input" rows="4" class="w-full p-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-[#1D2B53] focus:outline-none text-slate-800 text-sm" placeholder="Your answer transcribes here automatically. You can also type manually..."></textarea>
+            <textarea id="transcript-input" rows="4" class="w-full p-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-[#1D2B53] focus:outline-none text-slate-800 text-sm" placeholder="Spoken text appends continuously without resetting on pause. You can also type or edit manually..."></textarea>
           </div>
 
           <div class="flex justify-between pt-4 border-t">
@@ -164,14 +166,14 @@
           </div>
         </div>
 
-        <!-- Step C: STAR Evaluation & Scoring Report -->
+        <!-- Evaluation Step -->
         <div id="interview-report-step" class="hidden space-y-6">
           <div class="p-6 bg-slate-50 border border-slate-200 rounded-xl space-y-4">
             <div class="flex items-center justify-between border-b pb-4">
-              <h3 class="text-xl font-bold text-[#1D2B53]">STAR Evaluation & Performance Report</h3>
+              <h3 class="text-xl font-bold text-[#1D2B53]">STAR Interview Evaluation Report</h3>
               <div class="text-center">
                 <span class="text-xs text-slate-500 block font-semibold uppercase">Overall Score</span>
-                <span id="report-score" class="text-3xl font-extrabold text-[#4CAF50]">88/100</span>
+                <span id="report-score" class="text-3xl font-extrabold text-[#4CAF50]">85/100</span>
               </div>
             </div>
 
@@ -187,7 +189,7 @@
             </div>
 
             <div class="p-4 bg-white rounded-lg border border-slate-200">
-              <h4 class="font-bold text-slate-800 mb-1">Coach Narrative Feedback</h4>
+              <h4 class="font-bold text-slate-800 mb-1">Coach Feedback</h4>
               <p id="report-summary" class="text-sm text-slate-700 leading-relaxed"></p>
             </div>
             
@@ -199,11 +201,11 @@
 
       </div>
 
-      <!-- EMPLOYABILITY LMS MODULES WITH VIDEO & LEARNING MATERIAL -->
+      <!-- EMPLOYABILITY LMS MODULES (8-QUESTION QUIZZES) -->
       <div id="lms-modules-section" class="bg-white p-6 rounded-xl shadow-md border border-slate-200 space-y-6">
         <div class="border-b pb-4">
           <h2 class="text-2xl font-bold text-[#1D2B53]">Employability LMS Modules</h2>
-          <p class="text-sm text-slate-600">Watch video guides, review core learning material, and complete quizzes for official certificates.</p>
+          <p class="text-sm text-slate-600">Review learning guides, watch tutorial videos, and take 8-question quizzes for official PDF certificates.</p>
         </div>
 
         <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -211,41 +213,118 @@
           <!-- Module 1 -->
           <div class="border border-slate-200 rounded-xl p-5 space-y-4 bg-slate-50 hover:shadow-md transition flex flex-col justify-between">
             <div class="space-y-3">
-              <span class="px-2 py-1 bg-blue-100 text-blue-800 text-xs font-bold rounded">Module 01</span>
-              <h3 class="font-bold text-slate-900 text-lg">Workplace Rights & Standards</h3>
-              <p class="text-xs text-slate-600">National Employment Standards (NES), Fair Work Ombudsman, WHS duties, and employee rights.</p>
+              <div class="flex justify-between items-center">
+                <span class="px-2 py-1 bg-blue-100 text-blue-800 text-xs font-bold rounded">Module 01</span>
+                <span class="text-xs font-semibold text-slate-500">8 Questions</span>
+              </div>
+              <h3 class="font-bold text-slate-900 text-lg">Workplace Rights & Safety</h3>
+              <p class="text-xs text-slate-600 leading-relaxed">Learn about the National Employment Standards (NES), payslips, WHS hazard safety, and employee entitlements.</p>
             </div>
             <button onclick="openModuleContent('mod-1')" class="w-full py-2 bg-[#1D2B53] text-white text-sm font-bold rounded-lg hover:bg-slate-800 transition">
-              Open Module & Study Guide
+              Study Guide & 8-Q Quiz
             </button>
           </div>
 
           <!-- Module 2 -->
           <div class="border border-slate-200 rounded-xl p-5 space-y-4 bg-slate-50 hover:shadow-md transition flex flex-col justify-between">
             <div class="space-y-3">
-              <span class="px-2 py-1 bg-emerald-100 text-emerald-800 text-xs font-bold rounded">Module 02</span>
-              <h3 class="font-bold text-slate-900 text-lg">Interview Preparation & STAR</h3>
-              <p class="text-xs text-slate-600">Master Situation, Task, Action, and Result (STAR) response structures for interviews.</p>
+              <div class="flex justify-between items-center">
+                <span class="px-2 py-1 bg-emerald-100 text-emerald-800 text-xs font-bold rounded">Module 02</span>
+                <span class="text-xs font-semibold text-slate-500">8 Questions</span>
+              </div>
+              <h3 class="font-bold text-slate-900 text-lg">Entry-Level Interview Success</h3>
+              <p class="text-xs text-slate-600 leading-relaxed">Master basic body language, punctuality, presenting your strengths, and using the STAR method.</p>
             </div>
             <button onclick="openModuleContent('mod-2')" class="w-full py-2 bg-[#1D2B53] text-white text-sm font-bold rounded-lg hover:bg-slate-800 transition">
-              Open Module & Study Guide
+              Study Guide & 8-Q Quiz
             </button>
           </div>
 
           <!-- Module 3 -->
           <div class="border border-slate-200 rounded-xl p-5 space-y-4 bg-slate-50 hover:shadow-md transition flex flex-col justify-between">
             <div class="space-y-3">
-              <span class="px-2 py-1 bg-purple-100 text-purple-800 text-xs font-bold rounded">Module 03</span>
-              <span class="text-xs text-slate-500 font-medium">3 Questions</span>
-              <h3 class="font-bold text-slate-900 text-lg">Customer Service Excellence</h3>
-              <p class="text-xs text-slate-600">De-escalation techniques, active listening, and workplace professional standards.</p>
+              <div class="flex justify-between items-center">
+                <span class="px-2 py-1 bg-purple-100 text-purple-800 text-xs font-bold rounded">Module 03</span>
+                <span class="text-xs font-semibold text-slate-500">8 Questions</span>
+              </div>
+              <h3 class="font-bold text-slate-900 text-lg">Customer & Team Communication</h3>
+              <p class="text-xs text-slate-600 leading-relaxed">Understand active listening, handling polite customer feedback, teamwork, and workplace etiquette.</p>
             </div>
             <button onclick="openModuleContent('mod-3')" class="w-full py-2 bg-[#1D2B53] text-white text-sm font-bold rounded-lg hover:bg-slate-800 transition">
-              Open Module & Study Guide
+              Study Guide & 8-Q Quiz
             </button>
           </div>
 
         </div>
+      </div>
+
+      <!-- JOBSEEKER JOB SEARCH & EVIDENCE LOGGER -->
+      <div class="bg-white p-6 rounded-xl shadow-md border border-slate-200 space-y-6">
+        <div class="border-b pb-4">
+          <h2 class="text-2xl font-bold text-[#1D2B53]">Job Search & Evidence Logger</h2>
+          <p class="text-sm text-slate-600">Log your job applications and upload proof of evidence for your Case Manager.</p>
+        </div>
+
+        <form onsubmit="handleLogEvidence(event)" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 mb-1">Employer / Company Name</label>
+            <input type="text" id="log-employer" required class="w-full p-2.5 border border-slate-300 rounded-lg text-sm" placeholder="e.g. Coles Supermarket">
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 mb-1">Position Applied For</label>
+            <input type="text" id="log-position" required class="w-full p-2.5 border border-slate-300 rounded-lg text-sm" placeholder="e.g. Customer Service Team Member">
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 mb-1">Application Date</label>
+            <input type="date" id="log-date" required class="w-full p-2.5 border border-slate-300 rounded-lg text-sm">
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 mb-1">Method / Platform</label>
+            <select id="log-method" class="w-full p-2.5 border border-slate-300 rounded-lg text-sm bg-white">
+              <option value="Online (SEEK/Indeed)">Online (SEEK / Indeed / JORA)</option>
+              <option value="In-Person Dropoff">In-Person Dropoff</option>
+              <option value="Company Website">Company Careers Website</option>
+              <option value="Email Application">Direct Email Application</option>
+            </select>
+          </div>
+          <div class="md:col-span-2">
+            <label class="block text-xs font-semibold text-slate-700 mb-1">Upload Confirmation Proof / Evidence File</label>
+            <input type="file" id="log-file" class="w-full p-2 border border-slate-300 rounded-lg text-sm text-slate-600 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-xs file:font-semibold file:bg-[#1D2B53] file:text-white hover:file:bg-slate-800">
+          </div>
+          <div class="md:col-span-2">
+            <button type="submit" class="w-full py-3 bg-[#4CAF50] text-white font-bold rounded-lg hover:bg-emerald-600 transition shadow-sm">
+              Log Job Application & Evidence
+            </button>
+          </div>
+        </form>
+
+        <!-- Logged Applications Roster -->
+        <div class="space-y-3 pt-4 border-t">
+          <h3 class="font-bold text-slate-800 text-sm">Logged Applications This Month</h3>
+          <div class="overflow-x-auto">
+            <table class="w-full text-left text-xs text-slate-600">
+              <thead class="bg-slate-100 text-slate-800 font-semibold">
+                <tr>
+                  <th class="p-2.5">Date</th>
+                  <th class="p-2.5">Employer</th>
+                  <th class="p-2.5">Position</th>
+                  <th class="p-2.5">Method</th>
+                  <th class="p-2.5">Evidence Status</th>
+                </tr>
+              </thead>
+              <tbody id="evidence-log-table" class="divide-y">
+                <tr>
+                  <td class="p-2.5">12-Sep-2026</td>
+                  <td class="p-2.5 font-medium text-slate-900">Bunnings Warehouse</td>
+                  <td class="p-2.5">Team Member</td>
+                  <td class="p-2.5">Online (SEEK)</td>
+                  <td class="p-2.5"><span class="px-2 py-0.5 bg-emerald-100 text-emerald-700 rounded-full font-bold">Verified</span></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
       </div>
 
     </div>
@@ -259,6 +338,7 @@
             <tr>
               <th class="p-3">Candidate ID</th>
               <th class="p-3">Name</th>
+              <th class="p-3">Logged Applications</th>
               <th class="p-3">Status</th>
               <th class="p-3">Action</th>
             </tr>
@@ -267,8 +347,9 @@
             <tr>
               <td class="p-3 font-mono text-xs">DEMO-USER-001</td>
               <td class="p-3 font-medium text-slate-900">Demonstration Jobseeker</td>
+              <td class="p-3">4 Applications</td>
               <td class="p-3"><span class="px-2 py-1 bg-emerald-100 text-emerald-700 text-xs font-bold rounded">Active</span></td>
-              <td class="p-3"><button onclick="alert('Viewing full file history for DEMO-USER-001')" class="text-blue-600 hover:underline font-bold">Inspect Individual File</button></td>
+              <td class="p-3"><button onclick="alert('Viewing full evidence file for DEMO-USER-001')" class="text-blue-600 hover:underline font-bold">Inspect Candidate File</button></td>
             </tr>
           </tbody>
         </table>
@@ -289,7 +370,7 @@
             <div class="text-3xl font-extrabold text-amber-500 mt-1">16%</div>
           </div>
           <div class="p-4 bg-slate-50 rounded-lg border border-slate-200">
-            <div class="text-xs font-bold text-slate-500">Average Quiz Pass Rate</div>
+            <div class="text-xs font-bold text-slate-500">Module Completion Rate</div>
             <div class="text-3xl font-extrabold text-purple-600 mt-1">94%</div>
           </div>
         </div>
@@ -300,14 +381,14 @@
     <div id="workspace-admin" class="hidden space-y-6">
       <div class="bg-red-50 border-2 border-red-500 p-6 rounded-xl space-y-4">
         <h2 class="text-2xl font-bold text-red-900">System Admin Restricted Console</h2>
-        <p class="text-sm text-red-800">Only accessible by verified system administrators for tenant provisioning.</p>
+        <p class="text-sm text-red-800">Accessible only by verified system administrators for tenant provisioning.</p>
         <button onclick="alert('Provider provisioned.')" class="px-4 py-2 bg-red-700 text-white font-bold rounded">Provision New Provider Tenant</button>
       </div>
     </div>
 
   </main>
 
-  <!-- MODULE LEARNING MATERIAL & VIDEO MODAL -->
+  <!-- LMS STUDY MATERIAL & TUTORIAL VIDEO MODAL -->
   <div id="module-content-modal" class="fixed inset-0 bg-slate-900/70 backdrop-blur-sm hidden flex items-center justify-center p-4 z-50 overflow-y-auto">
     <div class="bg-white max-w-3xl w-full rounded-2xl p-6 shadow-2xl space-y-6 my-8 border border-slate-200">
       <div class="flex items-center justify-between border-b pb-3">
@@ -315,102 +396,108 @@
         <button onclick="closeModuleModal()" class="text-slate-400 hover:text-slate-600 font-bold text-lg">✕</button>
       </div>
 
-      <!-- Responsive 16:9 Video Placeholder -->
+      <!-- Responsive 16:9 Video Placeholder Container -->
       <div class="relative w-full aspect-video bg-slate-900 rounded-xl overflow-hidden shadow-inner flex items-center justify-center text-white">
-        <iframe id="mod-modal-video" class="w-full h-full" src="" title="Module Video Placeholder" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+        <iframe id="mod-modal-video" class="w-full h-full" src="" title="Tutorial Video" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
       </div>
 
-      <!-- Learning Guide Text -->
+      <!-- Detailed Topic Material -->
       <div class="p-4 bg-slate-50 border border-slate-200 rounded-lg space-y-2">
-        <h4 class="font-bold text-slate-800 text-sm">Key Study Guide & Topic Material</h4>
+        <h4 class="font-bold text-slate-800 text-sm">Detailed Topic Information & Study Guide</h4>
         <p id="mod-modal-text" class="text-xs text-slate-600 leading-relaxed"></p>
       </div>
 
       <div class="flex gap-3 pt-2">
         <button onclick="closeModuleModal()" class="w-1/2 py-2.5 bg-slate-200 text-slate-800 font-bold rounded-lg hover:bg-slate-300">Close Guide</button>
-        <button onclick="launchModuleQuiz()" class="w-1/2 py-2.5 bg-[#4CAF50] text-white font-bold rounded-lg hover:bg-emerald-600 transition">Take Module Quiz & Earn Certificate</button>
+        <button onclick="launchModuleQuiz()" class="w-1/2 py-2.5 bg-[#4CAF50] text-white font-bold rounded-lg hover:bg-emerald-600 transition">Take 8-Question Quiz</button>
       </div>
     </div>
   </div>
 
-  <!-- LMS QUIZ MODAL -->
+  <!-- LMS 8-QUESTION QUIZ MODAL -->
   <div id="quiz-modal" class="fixed inset-0 bg-slate-900/70 backdrop-blur-sm hidden flex items-center justify-center p-4 z-50 overflow-y-auto">
-    <div class="bg-white max-w-xl w-full rounded-xl p-6 shadow-2xl space-y-6 my-8">
+    <div class="bg-white max-w-2xl w-full rounded-xl p-6 shadow-2xl space-y-6 my-8">
       <div class="flex items-center justify-between border-b pb-3">
-        <h3 id="quiz-title" class="text-xl font-bold text-[#1D2B53]">Module Quiz</h3>
+        <h3 id="quiz-title" class="text-xl font-bold text-[#1D2B53]">8-Question Assessment Quiz</h3>
         <button onclick="closeQuizModal()" class="text-slate-400 hover:text-slate-600 font-bold">✕</button>
       </div>
 
       <form id="quiz-form" onsubmit="handleQuizSubmit(event)" class="space-y-6">
-        <div id="quiz-questions-container" class="space-y-4"></div>
+        <div id="quiz-questions-container" class="space-y-4 max-h-[60vh] overflow-y-auto pr-2"></div>
         <div class="flex gap-3 pt-3 border-t">
           <button type="button" onclick="closeQuizModal()" class="w-1/2 py-2.5 bg-slate-200 text-slate-800 font-medium rounded-lg">Cancel</button>
-          <button type="submit" class="w-1/2 py-2.5 bg-[#4CAF50] text-white font-bold rounded-lg hover:bg-emerald-600">Submit Quiz</button>
+          <button type="submit" class="w-1/2 py-2.5 bg-[#4CAF50] text-white font-bold rounded-lg hover:bg-emerald-600">Submit Quiz & Generate PDF</button>
         </div>
       </form>
     </div>
   </div>
 
-  <!-- VERIFIABLE CERTIFICATE MODAL -->
+  <!-- DOWNLOADABLE PDF CERTIFICATE MODAL -->
   <div id="certificate-modal" class="fixed inset-0 bg-slate-900/80 backdrop-blur-sm hidden flex items-center justify-center p-4 z-50 overflow-y-auto">
-    <div class="bg-white max-w-2xl w-full rounded-2xl p-8 shadow-2xl space-y-6 my-8 border-4 border-[#1D2B53]">
+    <div class="bg-white max-w-2xl w-full rounded-2xl p-6 shadow-2xl space-y-6 my-8 border-4 border-[#1D2B53]">
       
-      <!-- Certificate Header with Official Logo -->
-      <div class="flex justify-between items-center border-b-2 border-slate-200 pb-4">
-        <div class="flex items-center gap-3">
-          <div class="bg-slate-50 p-1.5 rounded border border-slate-200">
-            <svg class="h-9 w-auto" viewBox="0 0 200 160" fill="none">
-              <path d="M 45 35 A 12 12 0 1 0 45 11 A 12 12 0 1 0 45 35 Z" fill="#4CAF50"/>
-              <path d="M 25 32 C 20 55 35 90 35 125 M 35 70 C 50 70 65 70 80 70" stroke="#1D2B53" stroke-width="8"/>
-              <path d="M 100 35 A 12 12 0 1 0 100 11 A 12 12 0 1 0 100 35 Z" fill="#FFB74D"/>
-              <path d="M 75 70 C 75 100 65 125 65 125 M 125 70 C 125 100 135 125 135 125" stroke="#1D2B53" stroke-width="8"/>
-              <path d="M 155 35 A 12 12 0 1 0 155 11 A 12 12 0 1 0 155 35 Z" fill="#9C27B0"/>
-              <path d="M 175 32 C 180 55 165 90 165 125 M 120 70 C 135 70 150 70 165 70" stroke="#1D2B53" stroke-width="8"/>
-              <text x="100" y="145" text-anchor="middle" fill="#1D2B53" font-family="sans-serif" font-weight="900" font-size="18">STRAIGHT UP</text>
-            </svg>
+      <!-- Target Container for PDF Export -->
+      <div id="certificate-pdf-element" class="p-6 bg-white border-2 border-slate-300 rounded-xl space-y-6">
+        <div class="flex justify-between items-center border-b-2 border-slate-200 pb-4">
+          <div class="flex items-center gap-3">
+            <div class="bg-slate-50 p-1.5 rounded border border-slate-200">
+              <svg class="h-10 w-auto" viewBox="0 0 200 160" fill="none">
+                <path d="M 45 35 A 12 12 0 1 0 45 11 A 12 12 0 1 0 45 35 Z" fill="#4CAF50"/>
+                <path d="M 25 32 C 20 55 35 90 35 125 M 35 70 C 50 70 65 70 80 70" stroke="#1D2B53" stroke-width="8"/>
+                <path d="M 100 35 A 12 12 0 1 0 100 11 A 12 12 0 1 0 100 35 Z" fill="#FFB74D"/>
+                <path d="M 75 70 C 75 100 65 125 65 125 M 125 70 C 125 100 135 125 135 125" stroke="#1D2B53" stroke-width="8"/>
+                <path d="M 155 35 A 12 12 0 1 0 155 11 A 12 12 0 1 0 155 35 Z" fill="#9C27B0"/>
+                <path d="M 175 32 C 180 55 165 90 165 125 M 120 70 C 135 70 150 70 165 70" stroke="#1D2B53" stroke-width="8"/>
+                <text x="100" y="145" text-anchor="middle" fill="#1D2B53" font-family="sans-serif" font-weight="900" font-size="18">STRAIGHT UP</text>
+              </svg>
+            </div>
+            <div>
+              <div class="text-xs font-bold text-slate-500 uppercase tracking-widest">Straight Up Training</div>
+              <div class="text-xs text-emerald-600 font-semibold">Verifiable Compliance Dossier</div>
+            </div>
           </div>
+          <div class="text-right text-[11px] text-slate-500">
+            <div>Issued: <span class="font-mono">12-Sep-2026</span></div>
+            <div>ID: <span id="cert-id" class="font-mono font-bold text-[#1D2B53]">#CERT-2026-8812</span></div>
+          </div>
+        </div>
+
+        <div class="text-center space-y-3 py-4">
+          <p class="text-xs uppercase tracking-widest text-slate-500 font-semibold">Official Certificate of Completion</p>
+          <h2 class="text-2xl font-extrabold text-[#1D2B53]">THIS IS AWARDED TO</h2>
+          <p class="text-xl font-bold text-emerald-600 border-b border-dashed border-slate-300 pb-2 inline-block px-8">Demonstration Jobseeker</p>
+          <p class="text-sm text-slate-600 pt-2">For successfully completing the 8-question compliance module:</p>
+          <h3 id="cert-module-title" class="text-lg font-bold text-slate-900">Workplace Rights & Safety</h3>
+          <p class="text-xs text-slate-500">Achieved Score: <span id="cert-score" class="font-bold text-emerald-600">100%</span> (Passing Grade: 80%)</p>
+        </div>
+
+        <div class="border-t border-slate-200 pt-4 flex justify-between items-end text-xs text-slate-500">
           <div>
-            <div class="text-xs font-bold text-slate-500 uppercase tracking-widest">Straight Up Training</div>
-            <div class="text-xs text-emerald-600 font-semibold">Verifiable Compliance Dossier</div>
+            <div class="font-bold text-slate-800">Straight Up Training & Co-Branded Provider</div>
+            <div>Workforce Australia / TtW / IEA Compliant</div>
+          </div>
+          <div class="text-right">
+            <div class="font-mono text-[10px]">Hash: #WR-20260912-8F92</div>
+            <div class="text-emerald-600 font-bold">Status: Verified & Logged</div>
           </div>
         </div>
-        <div class="text-right text-[11px] text-slate-500">
-          <div>Issued: <span class="font-mono">12-Sep-2026</span></div>
-          <div>ID: <span id="cert-id" class="font-mono font-bold text-[#1D2B53]">#CERT-2026-8812</span></div>
-        </div>
       </div>
 
-      <!-- Certificate Body -->
-      <div class="text-center space-y-3 py-4">
-        <p class="text-xs uppercase tracking-widest text-slate-500 font-semibold">Official Certificate of Completion</p>
-        <h2 class="text-2xl font-extrabold text-[#1D2B53]">THIS IS AWARDED TO</h2>
-        <p class="text-xl font-bold text-emerald-600 border-b border-dashed border-slate-300 pb-2 inline-block px-8">Demonstration Jobseeker</p>
-        <p class="text-sm text-slate-600 pt-2">For successfully completing the employability compliance module:</p>
-        <h3 id="cert-module-title" class="text-lg font-bold text-slate-900">Workplace Rights & Standards</h3>
-        <p class="text-xs text-slate-500">Achieved Score: <span id="cert-score" class="font-bold text-emerald-600">100%</span> (Passing Grade: 80%)</p>
+      <div class="flex gap-3">
+        <button onclick="downloadCertificatePDF()" class="w-1/2 py-3 bg-[#4CAF50] text-white font-bold rounded-xl hover:bg-emerald-600 transition flex items-center justify-center gap-2">
+          📄 Download PDF Certificate
+        </button>
+        <button onclick="closeCertificateModal()" class="w-1/2 py-3 bg-[#1D2B53] text-white font-bold rounded-xl hover:bg-slate-900 transition">
+          Close
+        </button>
       </div>
-
-      <div class="border-t border-slate-200 pt-4 flex justify-between items-end text-xs text-slate-500">
-        <div>
-          <div class="font-bold text-slate-800">Straight Up Training & Co-Branded Provider</div>
-          <div>Workforce Australia / TtW / IEA Compliant</div>
-        </div>
-        <div class="text-right">
-          <div class="font-mono text-[10px]">Hash: #WR-20260912-8F92</div>
-          <div class="text-emerald-600 font-bold">Status: Verified & Logged</div>
-        </div>
-      </div>
-
-      <button onclick="closeCertificateModal()" class="w-full py-3 bg-[#1D2B53] text-white font-bold rounded-xl hover:bg-slate-900 transition">
-        Close Certificate
-      </button>
     </div>
   </div>
 
   <!-- VICTORY MODAL -->
   <div id="victory-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden flex items-center justify-center p-4 z-50">
     <div class="bg-white max-w-md w-full rounded-xl p-6 shadow-2xl space-y-4">
-      <h3 id="victory-title" class="text-xl font-bold text-[#1D2B53]">Record Victory</h3>
+      <h3 id="victory-title" class="text-xl font-bold text-[#1D2B53]">Record Milestone Victory</h3>
       <form onsubmit="handleVictorySubmit(event)" class="space-y-3">
         <div>
           <label class="block text-xs font-semibold text-slate-700">Employer Name</label>
@@ -434,85 +521,120 @@
 
   <!-- JAVASCRIPT ENGINE -->
   <script>
-    // --- Industry Question Banks ---
+    // --- 6 Entry-Level Industry Question Banks (8 Easy Questions Each) ---
     const QUESTION_BANKS = {
       retail: [
-        "Tell me about a time you handled a difficult or angry customer.",
-        "How do you prioritize tasks during high-traffic busy shifts?",
-        "Describe a situation where you had to upsell a product or service.",
-        "How do you handle cash control and inventory accuracy discrepancies?",
-        "Give an example of working effectively in a retail team environment.",
-        "What would you do if you caught a co-worker breaking store policy?",
-        "How do you stay updated on product knowledge in a fast-changing line?",
-        "Describe a time you went above and beyond for a customer."
-      ],
-      construction: [
-        "How do you ensure WHS/OH&S compliance on an active worksite?",
-        "Describe a project where you had to adapt to sudden blueprint changes.",
-        "Tell me about a time you identified a safety hazard and addressed it.",
-        "How do you handle heavy workload demands in extreme weather conditions?",
-        "Give an example of resolving a dispute with a contractor or teammate.",
-        "How do you manage tool maintenance and site equipment inspections?",
-        "Describe a situation where you had to meet a tight build deadline.",
-        "Why is clear communication critical when operating heavy machinery?"
+        "Why would you like to work as a retail shop assistant with our team?",
+        "How would you greet a customer when they walk through the store entrance?",
+        "What would you do if a customer asks for an item that is out of stock?",
+        "How do you ensure you arrive on time for early morning or weekend shifts?",
+        "Tell me about a time you helped someone or worked well in a team.",
+        "How would you handle a situation where the store gets very busy?",
+        "Why is keeping store shelves neat and clean important for sales?",
+        "What strengths make you a great fit for customer service?"
       ],
       hospitality: [
-        "How do you manage order accuracy during peak service rushes?",
-        "Describe a time you resolved a guest complaint regarding food quality.",
-        "How do you enforce RSA (Responsible Service of Alcohol) guidelines calmly?",
-        "Tell me about a time you coordinated effectively with kitchen staff.",
-        "How do you handle multi-tasking between seating, orders, and payments?",
-        "Describe your approach to food safety and hygiene protocols (HACCP).",
-        "Give an example of working a high-stress shift as a cohesive team.",
-        "How do you handle feedback from supervisors during service reviews?"
+        "What interests you about working in food service or hospitality?",
+        "How do you maintain good personal hygiene and uniform standards at work?",
+        "How would you handle a friendly customer versus a customer in a hurry?",
+        "What steps do you take to follow basic food safety and cleanliness?",
+        "Tell me about a time you handled a stressful task calmly.",
+        "How do you respond when a supervisor gives you helpful feedback?",
+        "Are you comfortable standing for long periods and multi-tasking?",
+        "Why is positive communication important in a kitchen or dining area?"
+      ],
+      warehouse: [
+        "Why are you interested in entry-level warehouse and logistics work?",
+        "How do you make sure you follow safety rules and wear required PPE?",
+        "What would you do if you noticed a broken box or safety hazard on the floor?",
+        "How do you stay organized when packing or sorting multiple items?",
+        "Tell me about a physical task or job you completed successfully.",
+        "How do you ensure accuracy when reading order numbers or labels?",
+        "Why is working safely more important than rushing a task?",
+        "How do you communicate effectively with team members in a noisy area?"
+      ],
+      cleaning: [
+        "Why are you applying for a commercial cleaning role with us?",
+        "How do you ensure you follow chemical handling safety labels (SDS)?",
+        "What is your approach to completing repetitive tasks to a high standard?",
+        "How do you manage your time when cleaning multiple rooms or offices?",
+        "What would you do if you found a personal item left behind while cleaning?",
+        "How do you inspect your work to make sure nothing was missed?",
+        "Tell me about a time you worked independently without direct supervision.",
+        "Why is reliability and trustworthiness critical in cleaning roles?"
+      ],
+      construction: [
+        "Why do you want to start a career as a general construction laborer?",
+        "What safety gear (PPE) do you expect to wear daily on a site?",
+        "How would you handle physically demanding outdoor work in warm weather?",
+        "What steps do you take if you are unsure how to safely operate a tool?",
+        "Tell me about a time you worked as part of a hard-working team.",
+        "Why is taking instructions accurately important on an active site?",
+        "How do you ensure site cleanup and tool storage are done properly?",
+        "What steps do you take to ensure 100% punctual attendance every morning?"
       ],
       admin: [
-        "How do you organize daily administrative schedules and inbox priorities?",
-        "Describe a time you managed confidential records under strict privacy rules.",
-        "How do you resolve scheduling conflicts between senior executives?",
-        "Tell me about a complex document or report you formatted under a deadline.",
-        "Give an example of troubleshooting an office software or system error.",
-        "How do you communicate complex administrative instructions to clients?",
-        "Describe a time you streamlined an inefficient office process.",
-        "How do you handle multiple incoming phone inquiries while working on tasks?"
+        "Why are you seeking an entry-level office support or junior admin role?",
+        "How do you rate your basic computer, email, and typing skills?",
+        "How would you answer a general phone inquiry politely?",
+        "How do you keep paper files or digital folders organized?",
+        "Tell me about a time you paid close attention to detail.",
+        "How do you handle managing two small tasks assigned at the same time?",
+        "Why is keeping business and client information confidential important?",
+        "What makes you eager to learn new office procedures and software?"
       ]
     };
 
-    // --- LMS Learning Content, Videos & Quizzes ---
+    // --- LMS Learning Guides, Videos & 8-Question Quizzes ---
     const LMS_DATA = {
       'mod-1': {
-        title: "Workplace Rights & Standards",
-        videoUrl: "https://www.youtube-nocookie.com/embed/dQw4w9WgXcQ", // Replace with preferred video ID
-        studyText: "Australian National Employment Standards (NES) set 11 statutory entitlements for all full-time and part-time workers. Key rights include maximum weekly hours, flexible working arrangements, paid personal/carer's leave, and Work Health & Safety (WHS) protection against workplace hazards.",
+        title: "Workplace Rights & Safety",
+        videoUrl: "https://www.youtube-nocookie.com/embed/dQw4w9WgXcQ",
+        studyText: "Every worker in Australia is covered by National Employment Standards (NES). Key rights include receiving minimum award pay, receiving itemized pay slips, working in a safe environment free of hazards under Work Health & Safety (WHS) laws, and taking rest breaks during long shifts.",
         questions: [
-          { q: "What body sets the minimum National Employment Standards (NES) in Australia?", options: ["Fair Work Ombudsman", "Safe Work Australia", "Australian Tax Office", "Centrelink"], correct: 0 },
-          { q: "What is a primary employer duty under WHS laws?", options: ["Provide free transport", "Ensure a safe work environment without risks to health", "Pay daily bonuses", "Supply meals"], correct: 1 },
-          { q: "How much notice must full-time employees give when resigning?", options: ["Zero notice", "As set out in their modern award or contract", "Always 6 months", "24 hours"], correct: 1 }
+          { q: "What body sets minimum National Employment Standards (NES) in Australia?", options: ["Fair Work Ombudsman", "Safe Work Australia", "ATO", "Centrelink"], correct: 0 },
+          { q: "What is an employer's primary WHS duty?", options: ["Provide free transport", "Ensure a safe work environment without risks", "Pay daily bonuses", "Supply free meals"], correct: 1 },
+          { q: "How should employees receive details of their pay and tax deductions?", options: ["Verbal promise", "Written or electronic pay slip within 1 working day", "End of year letter", "No record required"], correct: 1 },
+          { q: "What should you do first if you identify a safety hazard at work?", options: ["Ignore it", "Report it to your supervisor or safety rep", "Post about it online", "Leave work immediately"], correct: 1 },
+          { q: "What does PPE stand for in workplace safety?", options: ["Personal Protective Equipment", "Private Plan Evaluation", "Professional Practice Exam", "Public Prevention Enterprise"], correct: 0 },
+          { q: "Are entry-level employees entitled to rest breaks during full shifts?", options: ["No, breaks are only for managers", "Yes, as set out in applicable modern awards", "Only if work is finished", "Never"], correct: 1 },
+          { q: "What is the purpose of an emergency evacuation plan?", options: ["Decoration", "To guide workers safely out of buildings during danger", "To track attendance", "For audit checks only"], correct: 1 },
+          { q: "Can an employee be fired for raising a genuine WHS safety concern?", options: ["Yes, anytime", "No, employees are protected under fair work legislation", "Only on weekends", "Yes, if work slows down"], correct: 1 }
         ]
       },
       'mod-2': {
-        title: "Interview Preparation & STAR Method",
+        title: "Entry-Level Interview Success",
         videoUrl: "https://www.youtube-nocookie.com/embed/dQw4w9WgXcQ",
-        studyText: "The STAR technique stands for Situation (set context), Task (describe your responsibility), Action (explain the specific steps YOU took), and Result (highlight quantifiable outcomes and lessons learned). Using STAR ensures structured, high-impact interview responses.",
+        studyText: "Succeeding in entry-level interviews relies on core soft skills: arriving 10 minutes early, offering a friendly greeting, dressing neatly, showing enthusiasm to learn, and giving clear answers using the STAR method (Situation, Task, Action, Result).",
         questions: [
-          { q: "What does the 'S' stand for in the STAR method?", options: ["Strategy", "Situation", "Skill", "System"], correct: 1 },
-          { q: "Which part of your answer demonstrates your specific personal steps?", options: ["Task", "Action", "Result", "Situation"], correct: 1 },
-          { q: "Why is including measurable Results critical in an interview?", options: ["It demonstrates direct work impact to employers", "It makes your answer longer", "It avoids direct questions", "It is legally required"], correct: 0 }
+          { q: "How early should you ideally arrive for an job interview?", options: ["10-15 minutes early", "Exactly on the dot", "30 minutes late", "1 hour early"], correct: 0 },
+          { q: "What does the 'S' stand for in STAR?", options: ["Strategy", "Situation", "Skill", "System"], correct: 1 },
+          { q: "Which part of STAR explains the specific steps YOU took?", options: ["Task", "Action", "Result", "Situation"], correct: 1 },
+          { q: "What is the best way to answer if you don't know a technical question?", options: ["Make up a fake story", "Be honest, show willingness to learn, and explain how you'd find out", "Refuse to answer", "Change the subject"], correct: 1 },
+          { q: "Why is positive body language (eye contact, smiling) important?", options: ["It shows confidence and approachable communication", "It is legally required", "It replaces speaking", "It speeds up the interview"], correct: 0 },
+          { q: "What should you bring to an entry-level interview?", options: ["Nothing", "Copies of your resume, references, and a notepad", "Your lunch", "Gaming handheld"], correct: 1 },
+          { q: "Why should you research the company before your interview?", options: ["To show genuine interest and understand what they do", "To correct their manager", "To negotiate salary first", "To memorize names"], correct: 0 },
+          { q: "What is a great question to ask an employer at the end of an interview?", options: ["'What does a typical day look like in this role?'", "'Can I leave early?'", "'Do I get free food?'", "'How fast can I get promoted?'"], correct: 0 }
         ]
       },
       'mod-3': {
-        title: "Customer Service Excellence",
+        title: "Customer & Team Communication",
         videoUrl: "https://www.youtube-nocookie.com/embed/dQw4w9WgXcQ",
-        studyText: "Customer service excellence relies on active listening, empathy, prompt problem resolution, and de-escalation of difficult situations. Remaining calm and focusing on solutions builds long-term client trust and reflects strong workplace standards.",
+        studyText: "Great customer service and teamwork require active listening, polite body language, clear verbal communication, staying calm when handling feedback, and supporting co-workers to achieve team goals.",
         questions: [
-          { q: "What is the primary step in de-escalating an upset customer?", options: ["Interrupting immediately", "Active listening without interrupting", "Directing them to leave", "Ignoring concerns"], correct: 1 },
-          { q: "What does 'going above and beyond' mean in customer service?", options: ["Exceeding expectations to deliver positive outcomes", "Charging extra fees", "Doing minimum steps", "Breaching policies"], correct: 0 },
-          { q: "Why is clear team communication vital in service roles?", options: ["Ensures high service quality and prevents errors", "Allows longer breaks", "Reduces team size", "Replaces training"], correct: 0 }
+          { q: "What is the first step when listening to an unhappy customer?", options: ["Interrupt them", "Listen actively without interrupting", "Walk away", "Tell them they are wrong"], correct: 1 },
+          { q: "What does active listening involve?", options: ["Focusing fully, nodding, and summarizing key points", "Looking at your phone", "Thinking about lunch", "Talking over the speaker"], correct: 0 },
+          { q: "How should you respond to constructive feedback from a supervisor?", options: ["Take it personally", "Listen, thank them, and apply the advice", "Argue back", "Ignore it"], correct: 1 },
+          { q: "Why is teamwork essential in entry-level roles?", options: ["It ensures tasks are completed efficiently and safely together", "It lets one person do all work", "It reduces payroll", "It replaces training"], correct: 0 },
+          { q: "What is a key habit of professional workplace communication?", options: ["Using polite language and clear tone", "Using slang", "Shouting over noise", "Whispering"], correct: 0 },
+          { q: "What should you do if you finish your tasks early on a shift?", options: ["Sit down and wait", "Ask your supervisor or team how you can assist", "Go home", "Hide in the break room"], correct: 1 },
+          { q: "Why is punctuality important for team shifts?", options: ["Late arrivals put extra pressure on your co-workers", "It doesn't matter", "Only managers care", "It saves electricity"], correct: 0 },
+          { q: "What does 'going above and beyond' mean for customers?", options: ["Providing extra helpful service that creates a positive experience", "Overcharging", "Breaching rules", "Doing minimum effort"], correct: 0 }
         ]
       }
     };
 
-    // --- State Variables ---
+    // --- State Management ---
     let activeRole = 'jobseeker';
     let currentIndustry = "retail";
     let currentQuestionIdx = 0;
@@ -521,7 +643,7 @@
     let isRecording = false;
     let activeModuleId = null;
 
-    // --- Web Speech API STT ---
+    // --- CONTINUOUS SPEECH RECOGNITION (FIXED: Continuous Append) ---
     if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
       const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
       recognition = new SpeechRecognition();
@@ -530,17 +652,29 @@
       recognition.lang = 'en-AU';
 
       recognition.onresult = (event) => {
-        let transcript = '';
+        let currentText = document.getElementById('transcript-input').value;
+        let finalTranscript = '';
+
         for (let i = event.resultIndex; i < event.results.length; ++i) {
-          transcript += event.results[i][0].transcript;
+          if (event.results[i].isFinal) {
+            finalTranscript += event.results[i][0].transcript + ' ';
+          }
         }
-        document.getElementById('transcript-input').value = transcript;
+
+        if (finalTranscript) {
+          // Append continuous transcript smoothly without clearing existing input
+          const inputEl = document.getElementById('transcript-input');
+          inputEl.value = (inputEl.value ? inputEl.value.trim() + ' ' : '') + finalTranscript.trim();
+        }
       };
 
-      recognition.onerror = () => stopMicrophone();
+      recognition.onerror = (e) => {
+        console.error("STT Error:", e);
+        stopMicrophone();
+      };
     }
 
-    // --- Security Hierarchy Engine ---
+    // --- Role & Tab Security Hierarchy ---
     function changeActiveRole(role) {
       activeRole = role;
       enforceSecurityHierarchy();
@@ -596,7 +730,7 @@
       document.body.classList.toggle('high-contrast');
     }
 
-    // --- Mock Interview Engine with LLN Audio & Scoring ---
+    // --- Entry-Level Mock Interview Engine ---
     function startInterview() {
       currentIndustry = document.getElementById('industry-select').value;
       currentQuestionIdx = 0;
@@ -641,7 +775,7 @@
       userAnswers[currentQuestionIdx] = document.getElementById('transcript-input').value;
     }
 
-    // --- LLN Text-To-Speech (AU Accent) ---
+    // --- LLN Text-To-Speech (AU Accent Audio) ---
     function readQuestionTTS() {
       if ('speechSynthesis' in window) {
         window.speechSynthesis.cancel();
@@ -666,11 +800,13 @@
     }
 
     function startMicrophone() {
-      recognition.start();
-      isRecording = true;
-      document.getElementById('mic-btn-label').innerText = "Stop Recording";
-      document.getElementById('mic-toggle-btn').classList.replace('bg-[#9C27B0]', 'bg-red-600');
-      document.getElementById('mic-status-indicator').innerText = "🔴 Recording... Speak into microphone";
+      try {
+        recognition.start();
+        isRecording = true;
+        document.getElementById('mic-btn-label').innerText = "Pause Microphone";
+        document.getElementById('mic-toggle-btn').classList.replace('bg-[#9C27B0]', 'bg-red-600');
+        document.getElementById('mic-status-indicator').innerText = "🔴 Listening... Speak naturally (Text appends continuously)";
+      } catch(e) { console.log(e); }
     }
 
     function stopMicrophone() {
@@ -679,7 +815,7 @@
         isRecording = false;
         document.getElementById('mic-btn-label').innerText = "Start Answering";
         document.getElementById('mic-toggle-btn').classList.replace('bg-red-600', 'bg-[#9C27B0]');
-        document.getElementById('mic-status-indicator').innerText = "Microphone idle";
+        document.getElementById('mic-status-indicator').innerText = "Microphone paused";
       }
     }
 
@@ -689,18 +825,17 @@
       document.getElementById('interview-runner-step').classList.add('hidden');
       document.getElementById('interview-badge').innerText = "Evaluating...";
 
-      // Client-Side STAR Evaluation Render
       renderEvaluationReport({
-        overall_score: 88,
+        overall_score: 85,
         strengths: [
-          "Structured clear responses addressing key workplace scenarios.",
-          "Demonstrated direct industry terminology for the selected sector."
+          "Clear, honest communication suitable for entry-level roles.",
+          "Good demonstration of punctuality, teamwork, and willingness to learn."
         ],
         areas_for_growth: [
-          "Incorporate more quantifiable metrics and outcomes (STAR Result).",
-          "Provide explicit step-by-step descriptions of your individual actions."
+          "Practice giving slightly longer answers using the STAR format.",
+          "Mention specific examples of past teamwork or school projects."
         ],
-        summary_feedback: "Excellent effort completing the full 8-question suite! Your answers demonstrate solid workplace knowledge and STAR structure."
+        summary_feedback: "Great job completing the 8 entry-level interview questions! You communicated clearly and showed excellent work readiness."
       });
     }
 
@@ -722,7 +857,7 @@
       document.getElementById('interview-badge').innerText = "Ready";
     }
 
-    // --- LMS Learning Content & Quiz Engine ---
+    // --- LMS Module Engine ---
     function openModuleContent(modId) {
       activeModuleId = modId;
       const mod = LMS_DATA[modId];
@@ -747,15 +882,15 @@
     function openQuizModal(modId) {
       activeModuleId = modId;
       const mod = LMS_DATA[modId];
-      document.getElementById('quiz-title').innerText = `${mod.title} — Quiz`;
+      document.getElementById('quiz-title').innerText = `${mod.title} — 8-Q Quiz`;
 
       const container = document.getElementById('quiz-questions-container');
       container.innerHTML = mod.questions.map((q, idx) => `
-        <div class="space-y-2 p-4 bg-slate-50 border border-slate-200 rounded-lg">
-          <p class="font-bold text-slate-900 text-sm">${idx + 1}. ${q.q}</p>
+        <div class="space-y-2 p-3 bg-slate-50 border border-slate-200 rounded-lg">
+          <p class="font-bold text-slate-900 text-xs">${idx + 1}. ${q.q}</p>
           <div class="space-y-1">
             ${q.options.map((opt, oIdx) => `
-              <label class="flex items-center gap-2 text-xs text-slate-700 cursor-pointer p-1.5 rounded hover:bg-slate-100">
+              <label class="flex items-center gap-2 text-xs text-slate-700 cursor-pointer p-1 rounded hover:bg-slate-100">
                 <input type="radio" name="q_${idx}" value="${oIdx}" required class="text-[#4CAF50] focus:ring-[#4CAF50]">
                 <span>${opt}</span>
               </label>
@@ -804,6 +939,44 @@
       document.getElementById('certificate-modal').classList.add('hidden');
     }
 
+    // --- CLIENT-SIDE PDF GENERATION (html2pdf.js) ---
+    function downloadCertificatePDF() {
+      const element = document.getElementById('certificate-pdf-element');
+      const opt = {
+        margin:       0.5,
+        filename:     'WorkReady_Compliance_Certificate.pdf',
+        image:        { type: 'jpeg', quality: 0.98 },
+        html2canvas:  { scale: 2 },
+        jsPDF:        { unit: 'in', format: 'letter', orientation: 'portrait' }
+      };
+
+      html2pdf().set(opt).from(element).save();
+    }
+
+    // --- Evidence Logger ---
+    function handleLogEvidence(e) {
+      e.preventDefault();
+      const employer = document.getElementById('log-employer').value;
+      const position = document.getElementById('log-position').value;
+      const date = document.getElementById('log-date').value;
+      const method = document.getElementById('log-[#1D2B53]' || 'log-method').value;
+
+      const tbody = document.getElementById('evidence-log-table');
+      const row = document.createElement('tr');
+      row.innerHTML = `
+        <td class="p-2.5">${date}</td>
+        <td class="p-2.5 font-medium text-slate-900">${employer}</td>
+        <td class="p-2.5">${position}</td>
+        <td class="p-2.5">${method}</td>
+        <td class="p-2.5"><span class="px-2 py-0.5 bg-emerald-100 text-emerald-700 rounded-full font-bold">Uploaded</span></td>
+      `;
+      tbody.prepend(row);
+
+      alert("Job application evidence successfully logged and transmitted to your Case Manager!");
+      document.getElementById('log-employer').value = '';
+      document.getElementById('log-position').value = '';
+    }
+
     // --- Victory Modal ---
     function openVictoryModal(type) {
       document.getElementById('victory-title').innerText = type === 'job' ? '🎉 Record Job Offer Victory' : '🎯 Record Interview Victory';
@@ -816,7 +989,7 @@
 
     function handleVictorySubmit(event) {
       event.preventDefault();
-      alert("Victory milestone saved and transmitted to your Case Manager!");
+      alert("Victory milestone saved and transmitted to your Case Manager's feed!");
       closeVictoryModal();
     }
 
