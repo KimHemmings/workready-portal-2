@@ -28,38 +28,24 @@ class ProgramType(str, Enum):
     INCLUSIVE_EMPLOYMENT = "INCLUSIVE_EMPLOYMENT"
 
 PROGRAM_FEATURE_DEFAULTS: Dict[ProgramType, Dict[str, bool]] = {
-    ProgramType.WORKFORCE_AUSTRALIA: {
-        "pbas_enabled": True, 
-        "education_tracking": False, 
-        "workplace_adjustments": False, 
-        "wcag_accessible_ui": False
-    },
-    ProgramType.TTW: {
-        "pbas_enabled": False, 
-        "education_tracking": True, 
-        "workplace_adjustments": False, 
-        "wcag_accessible_ui": False
-    },
-    ProgramType.INCLUSIVE_EMPLOYMENT: {
-        "pbas_enabled": False, 
-        "education_tracking": True, 
-        "workplace_adjustments": True, 
-        "wcag_accessible_ui": True
-    }
+    ProgramType.WORKFORCE_AUSTRALIA: {"pbas_enabled": True, "education_tracking": False, "workplace_adjustments": False, "wcag_accessible_ui": False},
+    ProgramType.TTW: {"pbas_enabled": False, "education_tracking": True, "workplace_adjustments": False, "wcag_accessible_ui": False},
+    ProgramType.INCLUSIVE_EMPLOYMENT: {"pbas_enabled": False, "education_tracking": True, "workplace_adjustments": True, "wcag_accessible_ui": True}
 }
 
 PROGRAM_AI_PROMPTS: Dict[ProgramType, str] = {
     ProgramType.WORKFORCE_AUSTRALIA: (
-        "You are an encouraging, pragmatic AI interview coach for an Australian Workforce Australia jobseeker. "
-        "Focus on practical work experience, addressing employment gaps, and building confidence for immediate hiring."
+        "You are an encouraging AI interview coach for a Workforce Australia jobseeker. "
+        "Generate EXACTLY 8 distinct, numbered interview questions suited for this job role. "
+        "Include brief, friendly tips on how to structure responses."
     ),
     ProgramType.TTW: (
-        "You are an engaging youth career mentor for a 15-24 year old in Australia (Transition to Work program). "
-        "Use supportive, clear language. Focus on entry-level roles, soft skills, or TAFE courses."
+        "You are an engaging youth career mentor for a Transition to Work jobseeker (15-24 yrs). "
+        "Generate EXACTLY 8 direct, entry-level mock interview questions using clear, simple language suitable for LLN candidates."
     ),
     ProgramType.INCLUSIVE_EMPLOYMENT: (
-        "You are an empathetic, highly structured AI career coach for candidates with varied abilities (Inclusive Employment Australia). "
-        "Keep questions short, direct, and accessible. Focus on strengths, comfortable routines, and required workplace adjustments."
+        "You are an empathetic, highly structured AI coach for Inclusive Employment Australia candidates. "
+        "Generate EXACTLY 8 short, accessible, supportive mock interview questions focusing on strengths and workplace routines."
     )
 }
 
@@ -100,7 +86,7 @@ async def serve_portal_ui():
         .wcag-mode {
             background-color: #000000 !important;
             color: #ffff00 !important;
-            font-size: 1.15rem !important;
+            font-size: 1.25rem !important;
         }
         .wcag-mode .card {
             background-color: #111111 !important;
@@ -179,15 +165,15 @@ async def serve_portal_ui():
             </div>
         </div>
 
-        <!-- PHASE 2 FEATURE: Interactive AI Mock Interview Widget -->
+        <!-- 8-QUESTION AI MOCK INTERVIEW & LLN SPEECH WIDGET -->
         <div class="card bg-slate-800 border border-teal-500/40 rounded-xl p-6 space-y-4">
             <div class="flex justify-between items-center border-b border-slate-700 pb-3">
                 <div class="flex items-center gap-2">
-                    <span class="text-xl">🤖</span>
-                    <h3 class="text-md font-bold text-slate-100">Live AI Interview Coach (GPT-4o-mini)</h3>
+                    <span class="text-xl">🎙️</span>
+                    <h3 class="text-md font-bold text-slate-100">8-Question AI Interview & LLN Voice Practice</h3>
                 </div>
                 <span class="text-xs bg-teal-500/20 text-teal-300 border border-teal-500/40 px-2 py-1 rounded font-semibold">
-                    Program Persona Active
+                    Voice & Audio Accessible
                 </span>
             </div>
 
@@ -198,14 +184,37 @@ async def serve_portal_ui():
                 </div>
                 <div class="flex items-end">
                     <button type="submit" id="btn-ai-generate" class="w-full bg-teal-600 hover:bg-teal-500 font-semibold text-white py-2 px-4 rounded-lg transition shadow-md flex justify-center items-center gap-2">
-                        <span>Generate Question</span>
+                        <span>Generate 8 Questions</span>
                     </button>
                 </div>
             </form>
 
-            <div id="ai-output-box" class="hidden p-4 rounded-xl bg-slate-900/80 border border-slate-700 space-y-2">
-                <p class="text-xs font-bold text-teal-400 uppercase tracking-wider">AI Generated Coach Response:</p>
-                <div id="ai-response-text" class="text-sm text-slate-200 whitespace-pre-wrap leading-relaxed"></div>
+            <!-- AI Generated Questions Output Display -->
+            <div id="ai-output-box" class="hidden p-4 rounded-xl bg-slate-900/90 border border-slate-700 space-y-4">
+                <div class="flex justify-between items-center">
+                    <p class="text-xs font-bold text-teal-400 uppercase tracking-wider">AI Generated Interview Practice Set:</p>
+                    <button onclick="readAloudQuestions()" class="bg-slate-800 hover:bg-slate-700 text-teal-300 border border-teal-500/30 text-xs px-3 py-1.5 rounded-lg flex items-center gap-2 transition font-medium">
+                        🔊 Read All Questions Out Loud
+                    </button>
+                </div>
+                
+                <div id="ai-response-text" class="text-sm text-slate-200 whitespace-pre-wrap leading-relaxed border-t border-b border-slate-800 py-3"></div>
+
+                <!-- LLN Spoken Answer Dictation Form -->
+                <div class="space-y-2 pt-2">
+                    <label class="block text-xs font-bold text-slate-300">🎤 Practice Your Spoken Response (LLN Voice Dictation):</label>
+                    <div class="flex gap-2">
+                        <textarea id="speech-answer-box" rows="2" placeholder="Click 'Start Speaking' and state your answer out loud..." class="w-full bg-slate-950 border border-slate-700 rounded-lg p-3 text-xs text-slate-200 outline-none focus:border-teal-500"></textarea>
+                    </div>
+                    <div class="flex gap-3">
+                        <button onclick="startDictation()" type="button" class="bg-emerald-600 hover:bg-emerald-500 text-white font-semibold text-xs px-4 py-2 rounded-lg transition flex items-center gap-2">
+                            🎤 Start Speaking
+                        </button>
+                        <button onclick="stopDictation()" type="button" class="bg-rose-600 hover:bg-rose-500 text-white font-semibold text-xs px-4 py-2 rounded-lg transition">
+                            ⏹️ Stop Dictation
+                        </button>
+                    </div>
+                </div>
             </div>
         </div>
 
@@ -250,6 +259,8 @@ async def serve_portal_ui():
     </main>
 
     <script>
+        let speechRecognition;
+
         function switchProgram(program) {
             const title = document.getElementById('banner-title');
             const desc = document.getElementById('banner-desc');
@@ -341,7 +352,7 @@ async def serve_portal_ui():
             const programType = document.getElementById('program-select').value;
             const jobTitle = document.getElementById('ai-job-title').value;
 
-            btn.innerText = 'Thinking...';
+            btn.innerText = 'Generating 8 Questions...';
             btn.disabled = true;
             outputBox.classList.remove('hidden');
             responseText.innerText = 'Connecting to GPT-4o-mini engine...';
@@ -362,13 +373,58 @@ async def serve_portal_ui():
                 if (res.ok) {
                     responseText.innerText = data.ai_response;
                 } else {
-                    throw new Error(data.detail || 'Failed to generate question.');
+                    throw new Error(data.detail || 'Failed to generate questions.');
                 }
             } catch (err) {
                 responseText.innerText = `Error: ${err.message}`;
             } finally {
-                btn.innerText = 'Generate Question';
+                btn.innerText = 'Generate 8 Questions';
                 btn.disabled = false;
+            }
+        }
+
+        /* LLN Speech Synthesis (Text-to-Speech) */
+        function readAloudQuestions() {
+            const text = document.getElementById('ai-response-text').innerText;
+            if (!text) return;
+            
+            window.speechSynthesis.cancel(); // Stop any active speech
+            const utterance = new SpeechSynthesisUtterance(text);
+            utterance.rate = 0.9; // Slightly calmer speech rate for LLN accessibility
+            window.speechSynthesis.speak(utterance);
+        }
+
+        /* LLN Speech Recognition (Microphone Dictation) */
+        function startDictation() {
+            const box = document.getElementById('speech-answer-box');
+            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+
+            if (!SpeechRecognition) {
+                alert('Speech recognition is not supported in this browser. Please try Google Chrome or Safari.');
+                return;
+            }
+
+            speechRecognition = new SpeechRecognition();
+            speechRecognition.continuous = true;
+            speechRecognition.interimResults = true;
+            speechRecognition.lang = 'en-AU';
+
+            speechRecognition.onresult = (event) => {
+                let transcript = '';
+                for (let i = event.resultIndex; i < event.results.length; i++) {
+                    transcript += event.results[i][0].transcript;
+                }
+                box.value = transcript;
+            };
+
+            speechRecognition.start();
+            box.placeholder = "Listening... Speak clearly into your microphone...";
+        }
+
+        function stopDictation() {
+            if (speechRecognition) {
+                speechRecognition.stop();
+                document.getElementById('speech-answer-box').placeholder = "Dictation stopped.";
             }
         }
     </script>
@@ -448,11 +504,11 @@ async def mock_interview(req: MockInterviewRequest):
                 {"role": "system", "content": system_prompt},
                 {
                     "role": "user", 
-                    "content": f"Conduct an initial mock interview question for the job role: '{req.job_title}'. Provide 1 question and 1 helpful tip."
+                    "content": f"Conduct an initial mock interview question set for the job role: '{req.job_title}'. Generate exactly 8 questions."
                 }
             ],
             temperature=0.7,
-            max_tokens=250
+            max_tokens=600
         )
         ai_message = response.choices[0].message.content
     except Exception as e:
