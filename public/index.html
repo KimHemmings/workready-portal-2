@@ -17,6 +17,7 @@
   <script src="/js/jobReadiness.js"></script>
   <script src="/js/pbasEngine.js"></script>
   <script src="/js/caseManagerEngine.js"></script>
+  <script src="/js/businessManagerEngine.js"></script>
   <script src="/js/pdfExporter.js"></script>
 
   <style>
@@ -900,10 +901,118 @@
     </div>
 
     <!-- 3. BUSINESS MANAGER WORKSPACE -->
-    <div id="workspace-business" class="hidden space-y-6">
-      <div class="bg-white p-6 rounded-xl shadow-md border border-slate-200">
-        <h2 class="text-2xl font-bold text-[#1D2B53] mb-4">Business Workspace Overview</h2>
+    <div id="workspace-business" class="hidden space-y-8">
+      
+      <!-- Executive Header & Seat Management Banner -->
+      <div class="bg-white p-6 rounded-xl shadow-md border border-slate-200 space-y-6">
+        <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b pb-4">
+          <div>
+            <h2 class="text-2xl font-bold text-[#1D2B53]">Business Manager Executive Command Center</h2>
+            <p class="text-xs text-slate-600">Enterprise oversight, seat allocations, provider health, and staff onboarding.</p>
+          </div>
+          <div class="flex items-center gap-3">
+            <span id="bm-sub-status" class="px-3 py-1 bg-emerald-100 text-emerald-800 border border-emerald-300 text-xs font-bold rounded-full">
+              Active / Paid Up • Enterprise Tier
+            </span>
+            <button onclick="window.BUSINESS_MANAGER.openOnboardModal()" class="px-4 py-2 bg-[#4CAF50] text-white text-xs font-bold rounded-lg hover:bg-emerald-600 transition shadow">
+              ➕ Onboard Candidate or Staff
+            </button>
+          </div>
+        </div>
+
+        <!-- Subscription & Seat Health Overview -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div class="p-4 bg-slate-50 border border-slate-200 rounded-lg space-y-2">
+            <div class="flex justify-between items-center">
+              <span class="text-xs font-bold text-slate-700">Candidate License Allocation</span>
+              <span id="bm-cand-seats-text" class="text-xs font-bold text-[#1D2B53]">24 / 50 Seats Used</span>
+            </div>
+            <div class="w-full bg-slate-200 h-2.5 rounded-full overflow-hidden">
+              <div id="bm-cand-seats-bar" class="bg-[#1D2B53] h-full w-[48%] transition-all"></div>
+            </div>
+            <p class="text-[11px] text-slate-500">26 Available Candidate Seats remaining on plan.</p>
+          </div>
+
+          <div class="p-4 bg-slate-50 border border-slate-200 rounded-lg space-y-2">
+            <div class="flex justify-between items-center">
+              <span class="text-xs font-bold text-slate-700">Case Manager Staff Licenses</span>
+              <span id="bm-cm-seats-text" class="text-xs font-bold text-[#9C27B0]">3 / 5 Staff Licenses Active</span>
+            </div>
+            <div class="w-full bg-slate-200 h-2.5 rounded-full overflow-hidden">
+              <div id="bm-cm-seats-bar" class="bg-[#9C27B0] h-full w-[60%] transition-all"></div>
+            </div>
+            <p class="text-[11px] text-slate-500">2 Available Case Manager licenses remaining.</p>
+          </div>
+        </div>
       </div>
+
+      <!-- CLICKABLE EXECUTIVE COMPLIANCE OVERVIEW CARDS -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        
+        <div onclick="switchTab('casemanager'); window.CASE_MANAGER.filterRoster('all');" class="p-5 bg-white border-2 border-slate-200 hover:border-[#1D2B53] rounded-xl shadow-sm cursor-pointer transition space-y-2">
+          <span class="text-xs font-bold text-slate-500 uppercase tracking-wider block">Total Caseload Oversight</span>
+          <div class="flex items-baseline justify-between">
+            <span class="text-3xl font-extrabold text-[#1D2B53]">24</span>
+            <span class="text-xs text-blue-600 font-bold">Inspect Roster →</span>
+          </div>
+          <p class="text-[11px] text-slate-500">Enrolled Across All CMs</p>
+        </div>
+
+        <div onclick="switchTab('casemanager'); window.CASE_MANAGER.filterRoster('pbas_ontrack');" class="p-5 bg-white border-2 border-slate-200 hover:border-[#4CAF50] rounded-xl shadow-sm cursor-pointer transition space-y-2">
+          <span class="text-xs font-bold text-slate-500 uppercase tracking-wider block">Caseload PBAS On Track</span>
+          <div class="flex items-baseline justify-between">
+            <span class="text-3xl font-extrabold text-[#4CAF50]">19</span>
+            <span class="text-xs text-emerald-600 font-bold">View Details →</span>
+          </div>
+          <p class="text-[11px] text-slate-500">79% Provider Compliance</p>
+        </div>
+
+        <div onclick="switchTab('casemanager'); window.CASE_MANAGER.filterRoster('pbas_atrisk');" class="p-5 bg-white border-2 border-slate-200 hover:border-rose-500 rounded-xl shadow-sm cursor-pointer transition space-y-2 bg-rose-50/50">
+          <span class="text-xs font-bold text-rose-800 uppercase tracking-wider block">🚨 Caseload PBAS At Risk</span>
+          <div class="flex items-baseline justify-between">
+            <span class="text-3xl font-extrabold text-rose-600">5</span>
+            <span class="text-xs text-rose-700 font-bold">View At-Risk →</span>
+          </div>
+          <p class="text-[11px] text-rose-700 font-semibold">Requires Staff Follow-up</p>
+        </div>
+
+        <div onclick="switchTab('casemanager'); window.CASE_MANAGER.filterRoster('milestone_jobs');" class="p-5 bg-white border-2 border-slate-200 hover:border-[#9C27B0] rounded-xl shadow-sm cursor-pointer transition space-y-2">
+          <span class="text-xs font-bold text-slate-500 uppercase tracking-wider block">Successful Job Placements</span>
+          <div class="flex items-baseline justify-between">
+            <span class="text-3xl font-extrabold text-[#9C27B0]">9</span>
+            <span class="text-xs text-purple-700 font-bold">View Placements →</span>
+          </div>
+          <p class="text-[11px] text-slate-500">Active Employment Milestones</p>
+        </div>
+
+      </div>
+
+      <!-- CASE MANAGER STAFF ROSTER & OVERVIEW -->
+      <div class="bg-white p-6 rounded-xl shadow-md border border-slate-200 space-y-4">
+        <div class="border-b pb-3 flex justify-between items-center">
+          <div>
+            <h3 class="font-bold text-[#1D2B53] text-base">Case Manager Staff & Caseload Allocations</h3>
+            <p class="text-xs text-slate-500">Monitor staff licenses, assigned caseloads, and access individual Case Manager workspaces.</p>
+          </div>
+          <button onclick="window.BUSINESS_MANAGER.openOnboardModal()" class="text-xs text-blue-600 font-bold hover:underline">+ Add Case Manager</button>
+        </div>
+        <div class="overflow-x-auto">
+          <table class="w-full text-left text-xs text-slate-600">
+            <thead class="bg-slate-100 text-slate-800 font-semibold">
+              <tr>
+                <th class="p-3">Staff Name & Contact</th>
+                <th class="p-3">Active Caseload</th>
+                <th class="p-3">License Status</th>
+                <th class="p-3">Executive Action</th>
+              </tr>
+            </thead>
+            <tbody id="bm-staff-table-body" class="divide-y">
+              <!-- Dynamically populated via businessManagerEngine.js -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+
     </div>
 
     <!-- 4. SYSTEM ADMIN WORKSPACE -->
@@ -916,6 +1025,37 @@
   </main>
 
   <!-- MODALS -->
+
+  <!-- BUSINESS MANAGER ONBOARDING MODAL -->
+  <div id="bm-onboard-modal" class="fixed inset-0 bg-slate-900/70 backdrop-blur-sm hidden flex items-center justify-center p-4 z-50">
+    <div class="bg-white max-w-md w-full rounded-xl p-6 shadow-2xl space-y-4 border-2 border-[#1D2B53]">
+      <div class="flex justify-between items-center border-b pb-3">
+        <h3 class="text-lg font-bold text-[#1D2B53]">Onboard Candidate or Staff Member</h3>
+        <button onclick="window.BUSINESS_MANAGER.closeOnboardModal()" class="text-slate-400 font-bold">✕</button>
+      </div>
+      <form onsubmit="window.BUSINESS_MANAGER.handleOnboardSubmit(event)" class="space-y-3">
+        <div>
+          <label class="block text-xs font-semibold text-slate-700 mb-1">Select User Role to Add</label>
+          <select id="bm-onboard-role" class="w-full p-2.5 border border-slate-300 rounded-lg text-sm bg-white">
+            <option value="candidate">Candidate (Consumes 1 Candidate Seat)</option>
+            <option value="case_manager">Case Manager (Consumes 1 Staff License)</option>
+          </select>
+        </div>
+        <div>
+          <label class="block text-xs font-semibold text-slate-700 mb-1">Full Name</label>
+          <input type="text" id="bm-onboard-name" required class="w-full p-2.5 border border-slate-300 rounded-lg text-sm" placeholder="e.g. David Miller">
+        </div>
+        <div>
+          <label class="block text-xs font-semibold text-slate-700 mb-1">Email Address</label>
+          <input type="email" id="bm-onboard-email" required class="w-full p-2.5 border border-slate-300 rounded-lg text-sm" placeholder="e.g. d.miller@example.com">
+        </div>
+        <div class="flex gap-2 pt-2">
+          <button type="button" onclick="window.BUSINESS_MANAGER.closeOnboardModal()" class="w-1/2 py-2 bg-slate-200 text-slate-800 font-medium rounded">Cancel</button>
+          <button type="submit" class="w-1/2 py-2 bg-[#4CAF50] text-white font-bold rounded hover:bg-emerald-600 transition shadow">Assign Seat & Invite</button>
+        </div>
+      </form>
+    </div>
+  </div>
 
   <!-- PBAS ACTIVITY / SHIFT HOURS LOGGER MODAL -->
   <div id="pbas-log-modal" class="fixed inset-0 bg-slate-900/70 backdrop-blur-sm hidden flex items-center justify-center p-4 z-50">
@@ -1293,6 +1433,9 @@
       } else if (activeRole === 'case_manager') {
         document.getElementById('nav-casemanager').classList.remove('hidden');
         switchTab('casemanager');
+      } else if (activeRole === 'business_manager') {
+        document.getElementById('nav-business').classList.remove('hidden');
+        switchTab('business');
       } else {
         switchTab('jobseeker');
       }
@@ -1681,6 +1824,10 @@
       if (window.PBAS_ENGINE) window.PBAS_ENGINE.updateCandidateUI();
       if (window.JOB_READINESS) window.JOB_READINESS.checkMonthlyStatus();
       if (window.CASE_MANAGER) window.CASE_MANAGER.filterRoster('all');
+      if (window.BUSINESS_MANAGER) {
+        window.BUSINESS_MANAGER.updateSubscriptionUI();
+        window.BUSINESS_MANAGER.renderStaffRoster();
+      }
     };
   </script>
 </body>
