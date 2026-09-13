@@ -5,10 +5,9 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>WorkReady Portal V2 — Australian Employment Services</title>
   <script src="https://cdn.tailwindcss.com"></script>
-  <!-- html2pdf Library for Client-Side PDF Export -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 
-  <!-- Externalized Learning Content, Question Data & Utility Engines -->
+  <!-- Utility Engine Scripts -->
   <script src="/js/modulesData.js"></script>
   <script src="/js/quizQuestions.js"></script>
   <script src="/js/interviewQuestions.js"></script>
@@ -46,7 +45,7 @@
 </head>
 <body class="bg-slate-100 font-sans text-slate-900 min-h-screen flex flex-col">
 
-  <!-- Header with Official Logo & Brand Styling -->
+  <!-- Header -->
   <header class="bg-[#1D2B53] text-white px-6 py-4 border-b-4 border-[#4CAF50] shadow-lg">
     <div class="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
       <div class="flex items-center gap-4">
@@ -59,7 +58,6 @@
         </div>
       </div>
 
-      <!-- Accessibility & Role Controls -->
       <div class="flex items-center gap-3">
         <button onclick="toggleHighContrast()" class="px-3 py-1.5 bg-[#FFB74D] text-slate-950 text-xs font-bold rounded hover:bg-amber-400 transition">
           👁️ WCAG Contrast
@@ -77,7 +75,7 @@
     </div>
   </header>
 
-  <!-- Navigation Tabs -->
+  <!-- Navigation -->
   <nav class="bg-white border-b border-slate-200 shadow-sm">
     <div class="max-w-7xl mx-auto flex overflow-x-auto text-sm font-semibold text-slate-600">
       <button id="nav-jobseeker" onclick="switchTab('jobseeker')" class="px-6 py-3 border-b-2 border-[#4CAF50] text-[#1D2B53]">
@@ -101,7 +99,7 @@
     <!-- 1. CANDIDATE WORKSPACE -->
     <div id="workspace-jobseeker" class="space-y-8">
       
-      <!-- Victory Milestone & Messaging Header with HELP BUTTON -->
+      <!-- Victory Milestone Header & Help Button -->
       <div class="bg-gradient-to-r from-[#1D2B53] to-[#4CAF50] p-6 rounded-xl text-white shadow-md flex flex-col md:flex-row items-center justify-between gap-4">
         <div>
           <h2 class="text-2xl font-bold">Achieved a Work Milestone?</h2>
@@ -114,13 +112,13 @@
           <button onclick="openVictoryModal('job')" class="px-4 py-2.5 bg-[#FFB74D] text-slate-950 font-bold rounded-lg shadow hover:bg-amber-400 transition">
             I GOT THE JOB! (+50 Pts) 🎉
           </button>
-          <button onclick="window.HELP_ENGINE.openHelpModal('jobseeker')" class="px-4 py-2.5 bg-[#9C27B0] text-white font-bold rounded-lg shadow hover:bg-purple-800 transition flex items-center gap-1.5">
+          <button onclick="window.HELP_ENGINE.openHelpModal('jobseeker')" class="px-4 py-2.5 bg-[#9C27B0] text-white font-bold rounded-lg shadow hover:bg-purple-800 transition flex items-center gap-1.5 cursor-pointer">
             ❓ Contact Case Manager
           </button>
         </div>
       </div>
 
-      <!-- WORKFORCE AUSTRALIA PBAS POINTS & HOURS TRACKER CARD -->
+      <!-- PBAS Target Tracker Card -->
       <div class="bg-white p-6 rounded-xl shadow-md border-2 border-[#1D2B53] space-y-4">
         <div class="flex flex-col md:flex-row items-start md:items-center justify-between border-b pb-3 gap-2">
           <div>
@@ -160,7 +158,7 @@
         </div>
       </div>
 
-      <!-- MONTHLY JOB READINESS MANDATORY TASK CARD -->
+      <!-- Monthly Job Readiness Task Card -->
       <div class="bg-white p-6 rounded-xl shadow-md border-2 border-[#9C27B0] space-y-4">
         <div class="flex items-center justify-between border-b pb-3">
           <div>
@@ -190,7 +188,7 @@
         </button>
       </div>
 
-      <!-- MONTHLY USAGE LIMITS SUMMARY CARD -->
+      <!-- Quota Limits -->
       <div class="bg-white p-6 rounded-xl shadow-md border border-slate-200">
         <h3 class="text-lg font-bold text-[#1D2B53] mb-3">Monthly Allocation & Tool Quotas</h3>
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -218,7 +216,7 @@
         </div>
       </div>
 
-      <!-- INTERVIEW COACH -->
+      <!-- Interview Coach Section -->
       <div id="mock-interview-section" class="bg-white p-6 rounded-xl shadow-md border border-slate-200 space-y-6">
         <div class="flex items-center justify-between border-b pb-4">
           <div>
@@ -355,7 +353,7 @@
         </div>
       </div>
 
-      <!-- RESUME & COVER LETTER MASTER BUILDER -->
+      <!-- Resume Builder -->
       <div class="bg-white p-6 rounded-xl shadow-md border border-slate-200 space-y-6">
         <div class="border-b pb-4 flex items-center justify-between">
           <div>
@@ -432,7 +430,6 @@
 
         <div id="resume-output-box" class="hidden space-y-8">
           
-          <!-- Document 1: Resume -->
           <div class="space-y-3">
             <h3 class="text-sm font-bold text-[#1D2B53] uppercase tracking-wider flex items-center justify-between">
               <span>📄 Document 1: Curated Professional Resume</span>
@@ -492,7 +489,6 @@
             </div>
           </div>
 
-          <!-- Document 2: Separate Cover Letter -->
           <div class="space-y-3 pt-6 border-t-2 border-slate-200">
             <h3 class="text-sm font-bold text-[#1D2B53] uppercase tracking-wider flex items-center justify-between">
               <span>✉️ Document 2: Tailored Cover Letter</span>
@@ -526,7 +522,7 @@
         </div>
       </div>
 
-      <!-- DETAILED EMPLOYABILITY MODULES GRID (8 MODULES WITH BRANDING) -->
+      <!-- LMS Modules Grid -->
       <div id="lms-modules-section" class="bg-white p-6 rounded-xl shadow-md border border-slate-200 space-y-6">
         <div class="border-b pb-4">
           <h2 class="text-2xl font-bold text-[#1D2B53]">Workplace Readiness & Compliance Modules</h2>
@@ -535,7 +531,6 @@
 
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           
-          <!-- Module 01 -->
           <div class="border border-slate-200 rounded-xl p-5 space-y-4 bg-slate-50 hover:shadow-md transition flex flex-col justify-between">
             <div class="space-y-3">
               <div class="flex justify-between items-center">
@@ -553,7 +548,6 @@
             </button>
           </div>
 
-          <!-- Module 02 -->
           <div class="border border-slate-200 rounded-xl p-5 space-y-4 bg-slate-50 hover:shadow-md transition flex flex-col justify-between">
             <div class="space-y-3">
               <div class="flex justify-between items-center">
@@ -571,7 +565,6 @@
             </button>
           </div>
 
-          <!-- Module 03 -->
           <div class="border border-slate-200 rounded-xl p-5 space-y-4 bg-slate-50 hover:shadow-md transition flex flex-col justify-between">
             <div class="space-y-3">
               <div class="flex justify-between items-center">
@@ -589,7 +582,6 @@
             </button>
           </div>
 
-          <!-- Module 04 -->
           <div class="border border-slate-200 rounded-xl p-5 space-y-4 bg-slate-50 hover:shadow-md transition flex flex-col justify-between">
             <div class="space-y-3">
               <div class="flex justify-between items-center">
@@ -607,7 +599,6 @@
             </button>
           </div>
 
-          <!-- Module 05 -->
           <div class="border border-slate-200 rounded-xl p-5 space-y-4 bg-slate-50 hover:shadow-md transition flex flex-col justify-between">
             <div class="space-y-3">
               <div class="flex justify-between items-center">
@@ -625,7 +616,6 @@
             </button>
           </div>
 
-          <!-- Module 06 -->
           <div class="border border-slate-200 rounded-xl p-5 space-y-4 bg-slate-50 hover:shadow-md transition flex flex-col justify-between">
             <div class="space-y-3">
               <div class="flex justify-between items-center">
@@ -643,7 +633,6 @@
             </button>
           </div>
 
-          <!-- Module 07 -->
           <div class="border border-slate-200 rounded-xl p-5 space-y-4 bg-slate-50 hover:shadow-md transition flex flex-col justify-between">
             <div class="space-y-3">
               <div class="flex justify-between items-center">
@@ -661,7 +650,6 @@
             </button>
           </div>
 
-          <!-- Module 08 -->
           <div class="border border-slate-200 rounded-xl p-5 space-y-4 bg-slate-50 hover:shadow-md transition flex flex-col justify-between">
             <div class="space-y-3">
               <div class="flex justify-between items-center">
@@ -682,7 +670,7 @@
         </div>
       </div>
 
-      <!-- JOB SEARCH EVIDENCE LOGGER (VERIFIABLE TEXT FIELDS) -->
+      <!-- Job Search Logger -->
       <div class="bg-white p-6 rounded-xl shadow-md border border-slate-200 space-y-6">
         <div class="border-b pb-4">
           <h2 class="text-2xl font-bold text-[#1D2B53]">Job Search & Activity Logger</h2>
@@ -753,10 +741,10 @@
 
     </div>
 
-    <!-- 2. CASE MANAGER WORKSPACE (PBAS AUDITING, ROSTER & REPOSITIONED FEED) -->
+    <!-- 2. CASE MANAGER WORKSPACE -->
     <div id="workspace-casemanager" class="hidden space-y-8">
       
-      <!-- Header Action Controls & Milestone Follow-Up Quick Buttons -->
+      <!-- Header Controls -->
       <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-white p-6 rounded-xl shadow-md border border-slate-200">
         <div>
           <h2 class="text-2xl font-bold text-[#1D2B53]">Case Manager Command Center</h2>
@@ -772,7 +760,7 @@
           <button onclick="window.CASE_MANAGER.filterRoster('messages_feed')" class="px-3.5 py-2 bg-[#9C27B0] text-white text-xs font-extrabold rounded-lg hover:bg-purple-800 transition shadow-sm">
             💬 Candidate Messages
           </button>
-          <button onclick="window.HELP_ENGINE.openHelpModal('case_manager')" class="px-3.5 py-2 bg-[#1D2B53] text-white text-xs font-bold rounded-lg hover:bg-slate-800 transition shadow-sm flex items-center gap-1">
+          <button onclick="window.HELP_ENGINE.openHelpModal('case_manager')" class="px-3.5 py-2 bg-[#1D2B53] text-white text-xs font-bold rounded-lg hover:bg-slate-800 transition shadow-sm flex items-center gap-1 cursor-pointer">
             ❓ Admin Support
           </button>
           <button onclick="window.CASE_MANAGER.downloadCaseloadReport()" class="px-3.5 py-2 bg-[#1D2B53] text-white text-xs font-bold rounded-lg hover:bg-slate-800 transition flex items-center gap-1.5 shadow">
@@ -784,7 +772,7 @@
         </div>
       </div>
 
-      <!-- CLICKABLE CASELOAD OVERVIEW CARDS (WITH REVIEW NEEDED METRIC) -->
+      <!-- Caseload Cards -->
       <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         
         <div onclick="window.CASE_MANAGER.filterRoster('all')" class="p-5 bg-white border-2 border-slate-200 hover:border-[#1D2B53] rounded-xl shadow-sm cursor-pointer transition space-y-2">
@@ -825,7 +813,7 @@
 
       </div>
 
-      <!-- MAIN CASELOAD ROSTER TABLE (EXPANDED COLUMN WIDTHS & INTERACTIVE BOUNCING BADGES) -->
+      <!-- Main Caseload Roster Table -->
       <div class="bg-white p-6 rounded-xl shadow-md border border-slate-200 space-y-4">
         <div class="border-b pb-3 flex justify-between items-center">
           <h3 id="cm-roster-title" class="font-bold text-[#1D2B53] text-base">Entire Caseload Roster</h3>
@@ -851,7 +839,7 @@
         </div>
       </div>
 
-      <!-- VERIFIABLE JOB SEARCH AUDIT TABLE -->
+      <!-- Job Search Verification Log -->
       <div class="bg-white p-6 rounded-xl shadow-md border border-slate-200 space-y-4">
         <div class="border-b pb-3 flex justify-between items-center">
           <div>
@@ -891,7 +879,7 @@
         </div>
       </div>
 
-      <!-- REPOSITIONED LIVE FEED (MOVED TO BOTTOM FOR CLEANER VISUAL FLOW) -->
+      <!-- Live Activity Feed -->
       <div class="bg-white p-6 rounded-xl shadow-md border border-slate-200 space-y-4">
         <h3 class="font-bold text-[#1D2B53] text-sm flex items-center justify-between border-b pb-3">
           <span>📩 Live Candidate Activity Feed (Messages, Milestones & Monthly Indicators)</span>
@@ -907,7 +895,7 @@
     <!-- 3. BUSINESS MANAGER WORKSPACE -->
     <div id="workspace-business" class="hidden space-y-8">
       
-      <!-- Executive Header & Seat Management Banner with HELP BUTTON -->
+      <!-- Executive Header -->
       <div class="bg-white p-6 rounded-xl shadow-md border border-slate-200 space-y-6">
         <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b pb-4">
           <div>
@@ -918,7 +906,7 @@
             <span id="bm-sub-status" class="px-3 py-1 bg-emerald-100 text-emerald-800 border border-emerald-300 text-xs font-bold rounded-full">
               Active / Paid Up • Enterprise Tier
             </span>
-            <button onclick="window.HELP_ENGINE.openHelpModal('business_manager')" class="px-3 py-2 bg-[#1D2B53] text-white text-xs font-bold rounded-lg hover:bg-slate-800 transition shadow flex items-center gap-1">
+            <button onclick="window.HELP_ENGINE.openHelpModal('business_manager')" class="px-3 py-2 bg-[#1D2B53] text-white text-xs font-bold rounded-lg hover:bg-slate-800 transition shadow flex items-center gap-1 cursor-pointer">
               ❓ System Admin Escalation
             </button>
             <button onclick="window.BUSINESS_MANAGER.openOnboardModal()" class="px-4 py-2 bg-[#4CAF50] text-white text-xs font-bold rounded-lg hover:bg-emerald-600 transition shadow">
@@ -927,7 +915,7 @@
           </div>
         </div>
 
-        <!-- Subscription & Seat Health Overview -->
+        <!-- Seat Allocation Status -->
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div class="p-4 bg-slate-50 border border-slate-200 rounded-lg space-y-2">
             <div class="flex justify-between items-center">
@@ -953,7 +941,7 @@
         </div>
       </div>
 
-      <!-- CLICKABLE EXECUTIVE COMPLIANCE OVERVIEW CARDS -->
+      <!-- Overview Cards -->
       <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         
         <div onclick="switchTab('casemanager'); window.CASE_MANAGER.filterRoster('all');" class="p-5 bg-white border-2 border-slate-200 hover:border-[#1D2B53] rounded-xl shadow-sm cursor-pointer transition space-y-2">
@@ -994,7 +982,7 @@
 
       </div>
 
-      <!-- CASE MANAGER STAFF ROSTER & OVERVIEW -->
+      <!-- Staff Roster -->
       <div class="bg-white p-6 rounded-xl shadow-md border border-slate-200 space-y-4">
         <div class="border-b pb-3 flex justify-between items-center">
           <div>
@@ -1067,12 +1055,14 @@
 
   </main>
 
-  <!-- UNIVERSAL HELP & ESCALATION MODAL -->
+  <!-- MODALS -->
+
+  <!-- UNIVERSAL HELP MODAL -->
   <div id="universal-help-modal" class="fixed inset-0 bg-slate-900/70 backdrop-blur-sm hidden flex items-center justify-center p-4 z-50">
     <div class="bg-white max-w-md w-full rounded-xl p-6 shadow-2xl space-y-4 border-2 border-[#1D2B53]">
       <div class="flex justify-between items-center border-b pb-3">
         <h3 id="help-modal-title" class="text-lg font-bold text-[#1D2B53]">Universal Support & Escalation</h3>
-        <button onclick="window.HELP_ENGINE.closeHelpModal()" class="text-slate-400 font-bold">✕</button>
+        <button onclick="window.HELP_ENGINE.closeHelpModal()" class="text-slate-400 font-bold text-lg hover:text-slate-600 cursor-pointer">✕</button>
       </div>
       <p id="help-modal-desc" class="text-xs text-slate-600 leading-relaxed"></p>
       
@@ -1137,7 +1127,7 @@
     </div>
   </div>
 
-  <!-- PBAS ACTIVITY / SHIFT HOURS LOGGER MODAL -->
+  <!-- PBAS ACTIVITY LOGGER MODAL -->
   <div id="pbas-log-modal" class="fixed inset-0 bg-slate-900/70 backdrop-blur-sm hidden flex items-center justify-center p-4 z-50">
     <div class="bg-white max-w-md w-full rounded-xl p-6 shadow-2xl space-y-4 border-2 border-[#1D2B53]">
       <div class="flex justify-between items-center border-b pb-3">
@@ -1170,7 +1160,7 @@
     </div>
   </div>
 
-  <!-- INVITE & ADD CANDIDATE MODAL (WITH CYCLE DATES) -->
+  <!-- INVITE CANDIDATE MODAL -->
   <div id="cm-invite-modal" class="fixed inset-0 bg-slate-900/70 backdrop-blur-sm hidden flex items-center justify-center p-4 z-50">
     <div class="bg-white max-w-md w-full rounded-xl p-6 shadow-2xl space-y-4 border-2 border-[#1D2B53]">
       <div class="flex justify-between items-center border-b pb-3">
@@ -1209,7 +1199,7 @@
     </div>
   </div>
 
-  <!-- LMS STUDY MATERIAL & CONFIDENCE RATING MODAL -->
+  <!-- LMS STUDY MATERIAL MODAL -->
   <div id="module-content-modal" class="fixed inset-0 bg-slate-900/70 backdrop-blur-sm hidden flex items-center justify-center p-4 z-50 overflow-y-auto">
     <div class="bg-white max-w-3xl w-full rounded-2xl p-6 shadow-2xl space-y-6 my-8 border border-slate-200">
       <div class="flex items-center justify-between border-b pb-3">
@@ -1244,7 +1234,7 @@
     </div>
   </div>
 
-  <!-- LMS 8-QUESTION QUIZ MODAL -->
+  <!-- LMS QUIZ MODAL -->
   <div id="quiz-modal" class="fixed inset-0 bg-slate-900/70 backdrop-blur-sm hidden flex items-center justify-center p-4 z-50 overflow-y-auto">
     <div class="bg-white max-w-2xl w-full rounded-xl p-6 shadow-2xl space-y-6 my-8">
       <div class="flex items-center justify-between border-b pb-3">
@@ -1262,12 +1252,11 @@
     </div>
   </div>
 
-  <!-- DOWNLOADABLE LANDSCAPE PDF CERTIFICATE MODAL WITH TIMESTAMP -->
+  <!-- CERTIFICATE MODAL -->
   <div id="certificate-modal" class="fixed inset-0 bg-slate-900/80 backdrop-blur-sm hidden flex items-center justify-center p-4 z-50 overflow-y-auto">
     <div class="bg-white max-w-5xl w-full rounded-2xl p-6 shadow-2xl space-y-6 my-8 border-4 border-[#1D2B53]">
       
       <div id="certificate-pdf-element" class="cert-landscape-wrapper p-10 bg-white border-8 border-[#1D2B53] rounded-xl space-y-6 flex flex-col justify-between shadow-inner">
-        
         <div class="flex justify-between items-center border-b-2 border-slate-300 pb-4">
           <div class="flex items-center gap-4">
             <img src="/logo.png" alt="Straight Up Training Logo" class="h-14 w-auto object-contain">
@@ -1301,7 +1290,6 @@
             <div class="text-[#4CAF50] font-bold text-sm">Status: Official Verified Record</div>
           </div>
         </div>
-
       </div>
 
       <div class="flex gap-3">
@@ -1315,7 +1303,7 @@
     </div>
   </div>
 
-  <!-- VICTORY MODAL (CONNECTED TO PBAS) -->
+  <!-- VICTORY MODAL -->
   <div id="victory-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden flex items-center justify-center p-4 z-50">
     <div class="bg-white max-w-md w-full rounded-xl p-6 shadow-2xl space-y-4">
       <div class="flex justify-between items-center border-b pb-3">
@@ -1344,7 +1332,7 @@
     </div>
   </div>
 
-  <!-- DIRECT MESSAGE CASE MANAGER MODAL -->
+  <!-- DIRECT MESSAGE MODAL -->
   <div id="dm-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden flex items-center justify-center p-4 z-50">
     <div class="bg-white max-w-md w-full rounded-xl p-6 shadow-2xl space-y-4">
       <div class="flex items-center justify-between border-b pb-3">
@@ -1373,7 +1361,7 @@
     </div>
   </div>
 
-  <!-- MONTHLY JOB READINESS ASSESSMENT MODAL -->
+  <!-- BASELINE MODAL -->
   <div id="baseline-modal" class="fixed inset-0 bg-slate-900/70 backdrop-blur-sm hidden flex items-center justify-center p-4 z-50">
     <div class="bg-white max-w-md w-full rounded-xl p-6 shadow-2xl space-y-4">
       <div class="flex justify-between items-center border-b pb-3">
@@ -1453,7 +1441,6 @@
       document.getElementById('resume-badge').innerText = `${resumeLeft} Left`;
     };
 
-    // Dynamic Module Completion Tracker (Stored in localStorage)
     function renderModuleCompletionBadges() {
       const completedMods = JSON.parse(localStorage.getItem('workready_completed_modules') || '[]');
       
@@ -1531,7 +1518,6 @@
 
     function toggleHighContrast() { document.body.classList.toggle('high-contrast'); }
 
-    // Interview Runner Engine
     function startInterview() {
       if (window.interviewAttemptsUsed >= window.MAX_ATTEMPTS) {
         alert("Monthly limit reached. Candidates are allocated 3 interview sessions per month.");
@@ -1582,7 +1568,6 @@
       userAnswers[currentQuestionIdx] = document.getElementById('transcript-input').value;
     }
 
-    // STAR Scoring Engine
     async function submitForEvaluation() {
       saveCurrentAnswer();
       document.getElementById('interview-runner-step').classList.add('hidden');
@@ -1666,7 +1651,6 @@
       window.updateQuotaUI();
     }
 
-    // --- LMS Module Guide & Quiz Engine Handlers ---
     function openModuleContent(modId) {
       activeModuleId = modId;
       const mod = window.LMS_DATA ? window.LMS_DATA[modId] : null;
@@ -1759,7 +1743,6 @@
 
     function closeCertificateModal() { document.getElementById('certificate-modal').classList.add('hidden'); }
 
-    // Victory & Messaging Handlers (CONNECTED TO PBAS)
     function openVictoryModal(type) {
       const modal = document.getElementById('victory-modal');
       document.getElementById('victory-type').value = type;
@@ -1776,7 +1759,6 @@
       const position = document.getElementById('victory-position').value;
       const date = document.getElementById('victory-date').value;
 
-      // Add points automatically to PBAS
       if (window.PBAS_ENGINE) {
         if (type === 'interview') {
           window.PBAS_ENGINE.addActivity('interview', `Interview at ${employer} (${position})`, 1);
@@ -1827,7 +1809,6 @@
       closeDirectMessageModal();
     }
 
-    // Job Search Logger (Verifiable Text Details)
     function handleLogEvidence(e) {
       e.preventDefault();
       const employer = document.getElementById('log-employer').value;
