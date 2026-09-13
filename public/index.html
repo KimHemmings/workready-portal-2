@@ -20,6 +20,7 @@
   <script src="/js/businessManagerEngine.js"></script>
   <script src="/js/systemAdminEngine.js"></script>
   <script src="/js/helpEngine.js"></script>
+  <script src="/js/authEngine.js"></script>
   <script src="/js/pdfExporter.js"></script>
 
   <style>
@@ -47,1502 +48,1561 @@
 </head>
 <body class="bg-slate-100 font-sans text-slate-900 min-h-screen flex flex-col">
 
-  <!-- Header with Official Logo & Brand Styling -->
-  <header class="bg-[#1D2B53] text-white px-6 py-4 border-b-4 border-[#4CAF50] shadow-lg">
-    <div class="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
-      <div class="flex items-center gap-4">
-        <div class="bg-white p-1.5 rounded-lg shadow-sm flex items-center justify-center">
-          <img src="/logo.png" alt="Straight Up Training Logo" class="h-12 w-auto object-contain">
-        </div>
-        <div>
-          <h1 class="text-xl font-bold tracking-tight">WorkReady Portal V2</h1>
-          <p class="text-xs text-slate-300">Straight Up Training & Co-Branded Employment Provider Shell</p>
-        </div>
-      </div>
-
-      <!-- Accessibility & Role Controls -->
-      <div class="flex items-center gap-3">
-        <button onclick="toggleHighContrast()" class="px-3 py-1.5 bg-[#FFB74D] text-slate-950 text-xs font-bold rounded hover:bg-amber-400 transition">
-          👁️ WCAG Contrast
-        </button>
-        <div class="bg-slate-800 p-2 rounded-lg border border-slate-700 flex items-center gap-2 text-xs">
-          <span class="text-slate-400">Role:</span>
-          <select id="role-switcher" onchange="changeActiveRole(this.value)" class="bg-[#1D2B53] text-[#4CAF50] font-bold focus:outline-none">
-            <option value="jobseeker">Candidate (Individual File)</option>
-            <option value="case_manager">Case Manager (Caseload)</option>
-            <option value="business_manager">Business Manager (Workspace)</option>
-            <option value="system_admin">System Admin (Full Access)</option>
-          </select>
-        </div>
-      </div>
-    </div>
-  </header>
-
-  <!-- Navigation Tabs -->
-  <nav class="bg-white border-b border-slate-200 shadow-sm">
-    <div class="max-w-7xl mx-auto flex overflow-x-auto text-sm font-semibold text-slate-600">
-      <button id="nav-jobseeker" onclick="switchTab('jobseeker')" class="px-6 py-3 border-b-2 border-[#4CAF50] text-[#1D2B53]">
-        Candidate Workspace
-      </button>
-      <button id="nav-casemanager" onclick="switchTab('casemanager')" class="px-6 py-3 border-b-2 border-transparent hover:text-[#1D2B53] hidden">
-        Case Manager Roster
-      </button>
-      <button id="nav-business" onclick="switchTab('business')" class="px-6 py-3 border-b-2 border-transparent hover:text-[#1D2B53] hidden">
-        Business Workspace
-      </button>
-      <button id="nav-admin" onclick="switchTab('admin')" class="px-6 py-3 border-b-2 border-transparent hover:text-[#1D2B53] hidden">
-        System Admin Console
-      </button>
-    </div>
-  </nav>
-
-  <!-- Main Workspaces Container -->
-  <main class="flex-grow max-w-7xl w-full mx-auto p-6 space-y-8">
-
-    <!-- 1. CANDIDATE WORKSPACE -->
-    <div id="workspace-jobseeker" class="space-y-8">
+  <!-- BRANDED SECURE AUTHENTICATION LOGIN OVERLAY -->
+  <div id="auth-login-overlay" class="fixed inset-0 bg-gradient-to-br from-[#1D2B53] via-slate-900 to-[#1D2B53] z-50 flex items-center justify-center p-4">
+    <div class="bg-white max-w-md w-full rounded-2xl p-8 shadow-2xl space-y-6 border-t-8 border-[#4CAF50]">
       
-      <!-- Victory Milestone Header with HELP BUTTON -->
-      <div class="bg-gradient-to-r from-[#1D2B53] to-[#4CAF50] p-6 rounded-xl text-white shadow-md flex flex-col md:flex-row items-center justify-between gap-4">
+      <!-- Brand Logo & Portal Title -->
+      <div class="text-center space-y-2">
+        <div class="inline-block bg-white p-2 rounded-xl shadow border border-slate-100 mb-2">
+          <img src="/logo.png" alt="Straight Up Training Logo" class="h-16 w-auto object-contain mx-auto">
+        </div>
+        <h2 class="text-2xl font-extrabold text-[#1D2B53] tracking-tight">WorkReady Portal V2</h2>
+        <p class="text-xs text-slate-500 font-medium">Workforce Australia Multi-Tenant Employment Management Shell</p>
+      </div>
+
+      <!-- Authentication Error Alert -->
+      <div id="auth-error-msg" class="hidden p-3 bg-rose-50 border border-rose-300 text-rose-800 text-xs font-bold rounded-lg text-center"></div>
+
+      <!-- Credentials Form -->
+      <form onsubmit="window.AUTH_ENGINE.handleLoginSubmit(event)" class="space-y-4">
         <div>
-          <h2 class="text-2xl font-bold">Achieved a Work Milestone?</h2>
-          <p class="text-sm text-emerald-100">Tap a button below to notify your Case Manager and earn instant PBAS points!</p>
+          <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">User Email / Login ID</label>
+          <input type="email" id="auth-username" required class="w-full p-3 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-[#4CAF50] focus:outline-none" placeholder="e.g. candidate@workready.org.au">
         </div>
-        <div class="flex flex-wrap gap-3">
-          <button onclick="openVictoryModal('interview')" class="px-4 py-2.5 bg-white text-[#1D2B53] font-bold rounded-lg shadow hover:bg-slate-100 transition">
-            I GOT THE INTERVIEW! (+25 Pts) 🎯
+        <div>
+          <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">Secure Password</label>
+          <input type="password" id="auth-password" required class="w-full p-3 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-[#4CAF50] focus:outline-none" placeholder="••••••••••••">
+        </div>
+        <button type="submit" class="w-full py-3 bg-[#4CAF50] hover:bg-emerald-600 text-white font-extrabold rounded-lg transition shadow-md flex items-center justify-center gap-2 text-sm">
+          🔒 Secure Portal Sign In
+        </button>
+      </form>
+
+      <!-- Instant Single-Click Testing Credentials -->
+      <div class="border-t pt-4 space-y-2">
+        <span class="block text-[11px] font-bold text-slate-400 uppercase tracking-wider text-center">Instant Single-Click Testing Credentials</span>
+        <div class="grid grid-cols-2 gap-2 text-xs">
+          <button onclick="window.AUTH_ENGINE.quickDemoLogin('jobseeker')" class="p-2 bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded text-left font-bold text-[#1D2B53] transition">
+            👤 Candidate
+            <span class="block font-normal text-[10px] text-slate-500">Individual File Access</span>
           </button>
-          <button onclick="openVictoryModal('job')" class="px-4 py-2.5 bg-[#FFB74D] text-slate-950 font-bold rounded-lg shadow hover:bg-amber-400 transition">
-            I GOT THE JOB! (+50 Pts) 🎉
+          <button onclick="window.AUTH_ENGINE.quickDemoLogin('case_manager')" class="p-2 bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded text-left font-bold text-[#4CAF50] transition">
+            📋 Case Manager
+            <span class="block font-normal text-[10px] text-slate-500">Caseload Command Center</span>
           </button>
-          <button onclick="window.HELP_ENGINE.openHelpModal('jobseeker')" class="px-4 py-2.5 bg-[#9C27B0] text-white font-bold rounded-lg shadow hover:bg-purple-800 transition flex items-center gap-1.5 cursor-pointer">
-            ❓ Contact Case Manager
+          <button onclick="window.AUTH_ENGINE.quickDemoLogin('business_manager')" class="p-2 bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded text-left font-bold text-[#9C27B0] transition">
+            🏢 Business Mgr
+            <span class="block font-normal text-[10px] text-slate-500">Executive & Seat Health</span>
+          </button>
+          <button onclick="window.AUTH_ENGINE.quickDemoLogin('system_admin')" class="p-2 bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded text-left font-bold text-rose-700 transition">
+            ⚙️ System Admin
+            <span class="block font-normal text-[10px] text-slate-500">Full Master Access</span>
           </button>
         </div>
       </div>
 
-      <!-- WORKFORCE AUSTRALIA PBAS POINTS & HOURS TRACKER CARD -->
-      <div class="bg-white p-6 rounded-xl shadow-md border-2 border-[#1D2B53] space-y-4">
-        <div class="flex flex-col md:flex-row items-start md:items-center justify-between border-b pb-3 gap-2">
-          <div>
-            <h3 class="text-xl font-bold text-[#1D2B53]">Workforce Australia PBAS Target Tracker</h3>
-            <p class="text-xs text-slate-600">Points-Based Activation System (PBAS) monthly progress. Earn points via work hours, interviews, job searches & training.</p>
+    </div>
+  </div>
+
+  <!-- MAIN APPLICATION CONTAINER (REVEALED UPON AUTHENTICATION) -->
+  <div id="main-app-container" class="hidden flex flex-col min-h-screen">
+
+    <!-- Header with Official Logo, User Avatar & Security Controls -->
+    <header class="bg-[#1D2B53] text-white px-6 py-4 border-b-4 border-[#4CAF50] shadow-lg">
+      <div class="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
+        <div class="flex items-center gap-4">
+          <div class="bg-white p-1.5 rounded-lg shadow-sm flex items-center justify-center">
+            <img src="/logo.png" alt="Straight Up Training Logo" class="h-12 w-auto object-contain">
           </div>
-          <div class="flex items-center gap-3">
-            <span id="pbas-status-badge" class="px-3 py-1 bg-[#4CAF50] text-white text-xs font-bold rounded-full shadow-sm">✓ PBAS Target Met</span>
-            <button onclick="window.PBAS_ENGINE.openLogActivityModal()" class="px-3 py-1.5 bg-[#1D2B53] text-white text-xs font-bold rounded-lg hover:bg-slate-800 transition shadow">
-              + Log Shift Hours / Activity
-            </button>
+          <div>
+            <h1 class="text-xl font-bold tracking-tight">WorkReady Portal V2</h1>
+            <p class="text-xs text-slate-300">Straight Up Training & Co-Branded Employment Provider Shell</p>
           </div>
         </div>
 
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div class="p-4 bg-slate-50 border border-slate-200 rounded-lg space-y-2">
-            <div class="flex justify-between items-center">
-              <span class="text-xs font-bold text-slate-700">Monthly PBAS Points Target</span>
-              <span id="pbas-points-text" class="text-xs font-bold text-[#1D2B53]">0 / 100 Points</span>
-            </div>
-            <div class="w-full bg-slate-200 h-3 rounded-full overflow-hidden">
-              <div id="pbas-points-bar" class="bg-[#4CAF50] h-full" style="width: 0%"></div>
-            </div>
-            <p class="text-[11px] text-slate-500">DEWR Values: Interview (25 pts), New Job (50 pts), Work Hours (5 pts/5 hrs), Job Search (5 pts).</p>
-          </div>
-
-          <div class="p-4 bg-slate-50 border border-slate-200 rounded-lg space-y-2">
-            <div class="flex justify-between items-center">
-              <span class="text-xs font-bold text-slate-700">Minimum Activity Hours Target</span>
-              <span id="pbas-hours-text" class="text-xs font-bold text-[#1D2B53]">0 / 15 Hours</span>
-            </div>
-            <div class="w-full bg-slate-200 h-3 rounded-full overflow-hidden">
-              <div id="pbas-hours-bar" class="bg-[#1D2B53] h-full" style="width: 0%"></div>
-            </div>
-            <p class="text-[11px] text-slate-500">Tracked from shift hours worked, module study, and job application effort.</p>
+        <!-- Authenticated User Profile Display & Controls -->
+        <div class="flex items-center gap-4">
+          <div id="auth-user-display"></div>
+          <button onclick="toggleHighContrast()" class="px-3 py-1.5 bg-[#FFB74D] text-slate-950 text-xs font-bold rounded hover:bg-amber-400 transition">
+            👁️ WCAG Contrast
+          </button>
+          <div class="bg-slate-800 p-2 rounded-lg border border-slate-700 flex items-center gap-2 text-xs">
+            <span class="text-slate-400">Role:</span>
+            <select id="role-switcher" onchange="changeActiveRole(this.value)" class="bg-[#1D2B53] text-[#4CAF50] font-bold focus:outline-none">
+              <option value="jobseeker">Candidate (Individual File)</option>
+              <option value="case_manager">Case Manager (Caseload)</option>
+              <option value="business_manager">Business Manager (Workspace)</option>
+              <option value="system_admin">System Admin (Full Access)</option>
+            </select>
           </div>
         </div>
       </div>
+    </header>
 
-      <!-- MONTHLY JOB READINESS MANDATORY TASK CARD -->
-      <div class="bg-white p-6 rounded-xl shadow-md border-2 border-[#9C27B0] space-y-4">
-        <div class="flex items-center justify-between border-b pb-3">
-          <div>
-            <h3 class="text-xl font-bold text-[#1D2B53]">Monthly Candidate Job Readiness Indicator</h3>
-            <p class="text-xs text-slate-600">Recurring 30-day self-assessment task. Submissions auto-transmit directly to your Case Manager's feed.</p>
-          </div>
-          <span id="baseline-status-tag" class="px-3 py-1 bg-amber-100 text-amber-800 text-xs font-bold rounded-full">Assessment Pending</span>
-        </div>
-
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div class="p-3 bg-slate-50 rounded-lg border text-center space-y-1">
-            <span class="text-xs font-bold text-slate-700 block">Interview Confidence</span>
-            <div id="baseline-interview-stars" class="text-[#FFB74D] text-lg">⭐⭐☆☆☆</div>
-          </div>
-          <div class="p-3 bg-slate-50 rounded-lg border text-center space-y-1">
-            <span class="text-xs font-bold text-slate-700 block">Resume Readiness</span>
-            <div id="baseline-resume-stars" class="text-[#FFB74D] text-lg">⭐⭐⭐☆☆</div>
-          </div>
-          <div class="p-3 bg-slate-50 rounded-lg border text-center space-y-1">
-            <span class="text-xs font-bold text-slate-700 block">Workplace Safety Knowledge</span>
-            <div id="baseline-safety-stars" class="text-[#FFB74D] text-lg">⭐⭐⭐⭐☆</div>
-          </div>
-        </div>
-
-        <button id="baseline-submit-btn" onclick="window.JOB_READINESS.openModal()" class="w-full py-2.5 bg-[#9C27B0] text-white font-bold rounded-lg hover:bg-purple-800 transition shadow-md">
-          ⚠️ Complete Monthly Job Readiness Assessment
+    <!-- Navigation Tabs -->
+    <nav class="bg-white border-b border-slate-200 shadow-sm">
+      <div class="max-w-7xl mx-auto flex overflow-x-auto text-sm font-semibold text-slate-600">
+        <button id="nav-jobseeker" onclick="switchTab('jobseeker')" class="px-6 py-3 border-b-2 border-[#4CAF50] text-[#1D2B53]">
+          Candidate Workspace
+        </button>
+        <button id="nav-casemanager" onclick="switchTab('casemanager')" class="px-6 py-3 border-b-2 border-transparent hover:text-[#1D2B53] hidden">
+          Case Manager Roster
+        </button>
+        <button id="nav-business" onclick="switchTab('business')" class="px-6 py-3 border-b-2 border-transparent hover:text-[#1D2B53] hidden">
+          Business Workspace
+        </button>
+        <button id="nav-admin" onclick="switchTab('admin')" class="px-6 py-3 border-b-2 border-transparent hover:text-[#1D2B53] hidden">
+          System Admin Console
         </button>
       </div>
+    </nav>
 
-      <!-- MONTHLY USAGE LIMITS SUMMARY CARD -->
-      <div class="bg-white p-6 rounded-xl shadow-md border border-slate-200">
-        <h3 class="text-lg font-bold text-[#1D2B53] mb-3">Monthly Allocation & Tool Quotas</h3>
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div class="p-4 bg-slate-50 border border-slate-200 rounded-lg space-y-2">
-            <div class="flex justify-between items-center">
-              <span class="text-xs font-bold text-slate-700">Interview Coach Sessions</span>
-              <span id="interview-quota-text" class="text-xs font-bold text-[#4CAF50]">3 of 3 Attempts Remaining</span>
-            </div>
-            <div class="w-full bg-slate-200 h-2 rounded-full overflow-hidden">
-              <div id="interview-quota-bar" class="bg-[#4CAF50] h-full w-full transition-all"></div>
-            </div>
-            <p class="text-[11px] text-slate-500">Resets on the 1st of next month.</p>
-          </div>
+    <!-- Main Workspaces Container -->
+    <main class="flex-grow max-w-7xl w-full mx-auto p-6 space-y-8">
 
-          <div class="p-4 bg-slate-50 border border-slate-200 rounded-lg space-y-2">
-            <div class="flex justify-between items-center">
-              <span class="text-xs font-bold text-slate-700">Resume & Cover Letter Generations</span>
-              <span id="resume-quota-text" class="text-xs font-bold text-[#9C27B0]">3 of 3 Attempts Remaining</span>
-            </div>
-            <div class="w-full bg-slate-200 h-2 rounded-full overflow-hidden">
-              <div id="resume-quota-bar" class="bg-[#9C27B0] h-full w-full transition-all"></div>
-            </div>
-            <p class="text-[11px] text-slate-500">Resets on the 1st of next month.</p>
-          </div>
-        </div>
-      </div>
-
-      <!-- INTERVIEW COACH -->
-      <div id="mock-interview-section" class="bg-white p-6 rounded-xl shadow-md border border-slate-200 space-y-6">
-        <div class="flex items-center justify-between border-b pb-4">
+      <!-- 1. CANDIDATE WORKSPACE -->
+      <div id="workspace-jobseeker" class="space-y-8">
+        
+        <!-- Victory Milestone Header with HELP BUTTON -->
+        <div class="bg-gradient-to-r from-[#1D2B53] to-[#4CAF50] p-6 rounded-xl text-white shadow-md flex flex-col md:flex-row items-center justify-between gap-4">
           <div>
-            <h2 class="text-2xl font-bold text-[#1D2B53]">Interview Coach</h2>
-            <p class="text-sm text-slate-600">Practice dynamic, randomized sector questions with speech recognition and personalized STAR feedback reports.</p>
+            <h2 class="text-2xl font-bold">Achieved a Work Milestone?</h2>
+            <p class="text-sm text-emerald-100">Tap a button below to notify your Case Manager and earn instant PBAS points!</p>
           </div>
-          <span id="interview-badge" class="px-3 py-1 bg-slate-100 text-slate-700 text-xs font-semibold rounded-full border border-slate-300">Ready</span>
+          <div class="flex flex-wrap gap-3">
+            <button onclick="openVictoryModal('interview')" class="px-4 py-2.5 bg-white text-[#1D2B53] font-bold rounded-lg shadow hover:bg-slate-100 transition">
+              I GOT THE INTERVIEW! (+25 Pts) 🎯
+            </button>
+            <button onclick="openVictoryModal('job')" class="px-4 py-2.5 bg-[#FFB74D] text-slate-950 font-bold rounded-lg shadow hover:bg-amber-400 transition">
+              I GOT THE JOB! (+50 Pts) 🎉
+            </button>
+            <button onclick="window.HELP_ENGINE.openHelpModal('jobseeker')" class="px-4 py-2.5 bg-[#9C27B0] text-white font-bold rounded-lg shadow hover:bg-purple-800 transition flex items-center gap-1.5 cursor-pointer">
+              ❓ Contact Case Manager
+            </button>
+          </div>
         </div>
 
-        <div id="interview-setup-step" class="space-y-4">
-          <label class="block text-sm font-medium text-slate-700">Select Target Industry Sector:</label>
-          <select id="industry-select" class="w-full p-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-[#4CAF50] focus:outline-none bg-white">
-            <option value="retail">Retail & Customer Service</option>
-            <option value="hospitality">Hospitality & Food Services</option>
-            <option value="warehouse">Warehouse & Operations</option>
-            <option value="cleaning">Commercial Facilities & Cleaning</option>
-            <option value="construction">Construction & Trades Support</option>
-            <option value="admin">Administration & Customer Support</option>
-          </select>
-          <button id="start-interview-btn" onclick="startInterview()" class="w-full py-3 bg-[#4CAF50] text-white font-bold rounded-lg hover:bg-emerald-600 transition shadow-sm">
-            Start Shuffled 8-Question Mock Interview (Uses 1 Attempt)
+        <!-- WORKFORCE AUSTRALIA PBAS POINTS & HOURS TRACKER CARD -->
+        <div class="bg-white p-6 rounded-xl shadow-md border-2 border-[#1D2B53] space-y-4">
+          <div class="flex flex-col md:flex-row items-start md:items-center justify-between border-b pb-3 gap-2">
+            <div>
+              <h3 class="text-xl font-bold text-[#1D2B53]">Workforce Australia PBAS Target Tracker</h3>
+              <p class="text-xs text-slate-600">Points-Based Activation System (PBAS) monthly progress. Earn points via work hours, interviews, job searches & training.</p>
+            </div>
+            <div class="flex items-center gap-3">
+              <span id="pbas-status-badge" class="px-3 py-1 bg-[#4CAF50] text-white text-xs font-bold rounded-full shadow-sm">✓ PBAS Target Met</span>
+              <button onclick="window.PBAS_ENGINE.openLogActivityModal()" class="px-3 py-1.5 bg-[#1D2B53] text-white text-xs font-bold rounded-lg hover:bg-slate-800 transition shadow">
+                + Log Shift Hours / Activity
+              </button>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div class="p-4 bg-slate-50 border border-slate-200 rounded-lg space-y-2">
+              <div class="flex justify-between items-center">
+                <span class="text-xs font-bold text-slate-700">Monthly PBAS Points Target</span>
+                <span id="pbas-points-text" class="text-xs font-bold text-[#1D2B53]">0 / 100 Points</span>
+              </div>
+              <div class="w-full bg-slate-200 h-3 rounded-full overflow-hidden">
+                <div id="pbas-points-bar" class="bg-[#4CAF50] h-full" style="width: 0%"></div>
+              </div>
+              <p class="text-[11px] text-slate-500">DEWR Values: Interview (25 pts), New Job (50 pts), Work Hours (5 pts/5 hrs), Job Search (5 pts).</p>
+            </div>
+
+            <div class="p-4 bg-slate-50 border border-slate-200 rounded-lg space-y-2">
+              <div class="flex justify-between items-center">
+                <span class="text-xs font-bold text-slate-700">Minimum Activity Hours Target</span>
+                <span id="pbas-hours-text" class="text-xs font-bold text-[#1D2B53]">0 / 15 Hours</span>
+              </div>
+              <div class="w-full bg-slate-200 h-3 rounded-full overflow-hidden">
+                <div id="pbas-hours-bar" class="bg-[#1D2B53] h-full" style="width: 0%"></div>
+              </div>
+              <p class="text-[11px] text-slate-500">Tracked from shift hours worked, module study, and job application effort.</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- MONTHLY JOB READINESS MANDATORY TASK CARD -->
+        <div class="bg-white p-6 rounded-xl shadow-md border-2 border-[#9C27B0] space-y-4">
+          <div class="flex items-center justify-between border-b pb-3">
+            <div>
+              <h3 class="text-xl font-bold text-[#1D2B53]">Monthly Candidate Job Readiness Indicator</h3>
+              <p class="text-xs text-slate-600">Recurring 30-day self-assessment task. Submissions auto-transmit directly to your Case Manager's feed.</p>
+            </div>
+            <span id="baseline-status-tag" class="px-3 py-1 bg-amber-100 text-amber-800 text-xs font-bold rounded-full">Assessment Pending</span>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div class="p-3 bg-slate-50 rounded-lg border text-center space-y-1">
+              <span class="text-xs font-bold text-slate-700 block">Interview Confidence</span>
+              <div id="baseline-interview-stars" class="text-[#FFB74D] text-lg">⭐⭐☆☆☆</div>
+            </div>
+            <div class="p-3 bg-slate-50 rounded-lg border text-center space-y-1">
+              <span class="text-xs font-bold text-slate-700 block">Resume Readiness</span>
+              <div id="baseline-resume-stars" class="text-[#FFB74D] text-lg">⭐⭐⭐☆☆</div>
+            </div>
+            <div class="p-3 bg-slate-50 rounded-lg border text-center space-y-1">
+              <span class="text-xs font-bold text-slate-700 block">Workplace Safety Knowledge</span>
+              <div id="baseline-safety-stars" class="text-[#FFB74D] text-lg">⭐⭐⭐⭐☆</div>
+            </div>
+          </div>
+
+          <button id="baseline-submit-btn" onclick="window.JOB_READINESS.openModal()" class="w-full py-2.5 bg-[#9C27B0] text-white font-bold rounded-lg hover:bg-purple-800 transition shadow-md">
+            ⚠️ Complete Monthly Job Readiness Assessment
           </button>
         </div>
 
-        <div id="interview-runner-step" class="hidden space-y-6">
-          <div class="flex items-center justify-between border-b pb-3">
-            <span id="question-tracker" class="text-sm font-semibold text-[#1D2B53]">Question 1 of 8</span>
-            <button onclick="readQuestionTTS()" class="px-3 py-1.5 bg-[#1D2B53] text-white text-xs rounded-md hover:bg-slate-800 flex items-center gap-1">
-              🔊 Read Question (AU Accent)
-            </button>
-          </div>
-
-          <div class="p-4 bg-slate-50 border border-slate-200 rounded-lg">
-            <p id="active-question-text" class="text-lg font-medium text-slate-800">Loading question...</p>
-          </div>
-
-          <div class="space-y-3">
-            <div class="flex items-center gap-3">
-              <button id="mic-toggle-btn" onclick="toggleMicrophone()" class="px-4 py-2 bg-[#9C27B0] text-white font-medium rounded-lg hover:bg-purple-800 transition flex items-center gap-2">
-                🎙️ <span id="mic-btn-label">Start Answering</span>
-              </button>
-              <span id="mic-status-indicator" class="text-xs text-slate-500 font-medium">Microphone idle</span>
+        <!-- MONTHLY USAGE LIMITS SUMMARY CARD -->
+        <div class="bg-white p-6 rounded-xl shadow-md border border-slate-200">
+          <h3 class="text-lg font-bold text-[#1D2B53] mb-3">Monthly Allocation & Tool Quotas</h3>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div class="p-4 bg-slate-50 border border-slate-200 rounded-lg space-y-2">
+              <div class="flex justify-between items-center">
+                <span class="text-xs font-bold text-slate-700">Interview Coach Sessions</span>
+                <span id="interview-quota-text" class="text-xs font-bold text-[#4CAF50]">3 of 3 Attempts Remaining</span>
+              </div>
+              <div class="w-full bg-slate-200 h-2 rounded-full overflow-hidden">
+                <div id="interview-quota-bar" class="bg-[#4CAF50] h-full w-full transition-all"></div>
+              </div>
+              <p class="text-[11px] text-slate-500">Resets on the 1st of next month.</p>
             </div>
 
-            <textarea id="transcript-input" rows="4" class="w-full p-3 border border-slate-300 rounded-lg text-slate-800 text-sm" placeholder="Spoken text appends continuously without resetting on pause. You can also type or edit manually..."></textarea>
-          </div>
-
-          <div class="flex justify-between pt-4 border-t">
-            <button id="prev-btn" onclick="navigateQuestion(-1)" class="px-4 py-2 bg-slate-200 text-slate-700 font-medium rounded-lg disabled:opacity-50" disabled>Previous</button>
-            <button id="next-btn" onclick="navigateQuestion(1)" class="px-6 py-2 bg-[#1D2B53] text-white font-medium rounded-lg hover:bg-slate-800 transition">Next Question</button>
+            <div class="p-4 bg-slate-50 border border-slate-200 rounded-lg space-y-2">
+              <div class="flex justify-between items-center">
+                <span class="text-xs font-bold text-slate-700">Resume & Cover Letter Generations</span>
+                <span id="resume-quota-text" class="text-xs font-bold text-[#9C27B0]">3 of 3 Attempts Remaining</span>
+              </div>
+              <div class="w-full bg-slate-200 h-2 rounded-full overflow-hidden">
+                <div id="resume-quota-bar" class="bg-[#9C27B0] h-full w-full transition-all"></div>
+              </div>
+              <p class="text-[11px] text-slate-500">Resets on the 1st of next month.</p>
+            </div>
           </div>
         </div>
 
-        <div id="interview-report-step" class="hidden space-y-6">
-          <div id="interview-pdf-target" class="p-6 bg-white border border-slate-300 rounded-xl space-y-5">
-            <div class="flex justify-between items-center border-b-2 border-slate-200 pb-4">
+        <!-- INTERVIEW COACH -->
+        <div id="mock-interview-section" class="bg-white p-6 rounded-xl shadow-md border border-slate-200 space-y-6">
+          <div class="flex items-center justify-between border-b pb-4">
+            <div>
+              <h2 class="text-2xl font-bold text-[#1D2B53]">Interview Coach</h2>
+              <p class="text-sm text-slate-600">Practice dynamic, randomized sector questions with speech recognition and personalized STAR feedback reports.</p>
+            </div>
+            <span id="interview-badge" class="px-3 py-1 bg-slate-100 text-slate-700 text-xs font-semibold rounded-full border border-slate-300">Ready</span>
+          </div>
+
+          <div id="interview-setup-step" class="space-y-4">
+            <label class="block text-sm font-medium text-slate-700">Select Target Industry Sector:</label>
+            <select id="industry-select" class="w-full p-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-[#4CAF50] focus:outline-none bg-white">
+              <option value="retail">Retail & Customer Service</option>
+              <option value="hospitality">Hospitality & Food Services</option>
+              <option value="warehouse">Warehouse & Operations</option>
+              <option value="cleaning">Commercial Facilities & Cleaning</option>
+              <option value="construction">Construction & Trades Support</option>
+              <option value="admin">Administration & Customer Support</option>
+            </select>
+            <button id="start-interview-btn" onclick="startInterview()" class="w-full py-3 bg-[#4CAF50] text-white font-bold rounded-lg hover:bg-emerald-600 transition shadow-sm">
+              Start Shuffled 8-Question Mock Interview (Uses 1 Attempt)
+            </button>
+          </div>
+
+          <div id="interview-runner-step" class="hidden space-y-6">
+            <div class="flex items-center justify-between border-b pb-3">
+              <span id="question-tracker" class="text-sm font-semibold text-[#1D2B53]">Question 1 of 8</span>
+              <button onclick="readQuestionTTS()" class="px-3 py-1.5 bg-[#1D2B53] text-white text-xs rounded-md hover:bg-slate-800 flex items-center gap-1">
+                🔊 Read Question (AU Accent)
+              </button>
+            </div>
+
+            <div class="p-4 bg-slate-50 border border-slate-200 rounded-lg">
+              <p id="active-question-text" class="text-lg font-medium text-slate-800">Loading question...</p>
+            </div>
+
+            <div class="space-y-3">
               <div class="flex items-center gap-3">
-                <img src="/logo.png" alt="Logo" class="h-10 w-auto object-contain">
-                <div>
-                  <h3 class="text-lg font-bold text-[#1D2B53]">STAR Interview Performance & Coaching Report</h3>
-                  <p class="text-xs text-slate-500">WorkReady Portal V2 — Official Candidate Assessment Dossier</p>
+                <button id="mic-toggle-btn" onclick="toggleMicrophone()" class="px-4 py-2 bg-[#9C27B0] text-white font-medium rounded-lg hover:bg-purple-800 transition flex items-center gap-2">
+                  🎙️ <span id="mic-btn-label">Start Answering</span>
+                </button>
+                <span id="mic-status-indicator" class="text-xs text-slate-500 font-medium">Microphone idle</span>
+              </div>
+
+              <textarea id="transcript-input" rows="4" class="w-full p-3 border border-slate-300 rounded-lg text-slate-800 text-sm" placeholder="Spoken text appends continuously without resetting on pause. You can also type or edit manually..."></textarea>
+            </div>
+
+            <div class="flex justify-between pt-4 border-t">
+              <button id="prev-btn" onclick="navigateQuestion(-1)" class="px-4 py-2 bg-slate-200 text-slate-700 font-medium rounded-lg disabled:opacity-50" disabled>Previous</button>
+              <button id="next-btn" onclick="navigateQuestion(1)" class="px-6 py-2 bg-[#1D2B53] text-white font-medium rounded-lg hover:bg-slate-800 transition">Next Question</button>
+            </div>
+          </div>
+
+          <div id="interview-report-step" class="hidden space-y-6">
+            <div id="interview-pdf-target" class="p-6 bg-white border border-slate-300 rounded-xl space-y-5">
+              <div class="flex justify-between items-center border-b-2 border-slate-200 pb-4">
+                <div class="flex items-center gap-3">
+                  <img src="/logo.png" alt="Logo" class="h-10 w-auto object-contain">
+                  <div>
+                    <h3 class="text-lg font-bold text-[#1D2B53]">STAR Interview Performance & Coaching Report</h3>
+                    <p class="text-xs text-slate-500">WorkReady Portal V2 — Official Candidate Assessment Dossier</p>
+                  </div>
+                </div>
+                <div class="text-center">
+                  <span class="text-xs text-slate-500 block font-semibold uppercase">Overall Score</span>
+                  <span id="report-score" class="text-3xl font-extrabold text-[#4CAF50]">--/100</span>
                 </div>
               </div>
-              <div class="text-center">
-                <span class="text-xs text-slate-500 block font-semibold uppercase">Overall Score</span>
-                <span id="report-score" class="text-3xl font-extrabold text-[#4CAF50]">--/100</span>
+
+              <div class="p-4 bg-slate-50 border border-slate-200 rounded-lg space-y-3">
+                <h4 class="font-bold text-[#1D2B53] text-sm">Detailed Criteria Scoring Breakdown</h4>
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-2 text-xs">
+                  <div class="p-2 bg-white rounded border border-slate-200">
+                    <span class="block font-semibold text-slate-700">Situation (S)</span>
+                    <span id="score-s" class="text-[#4CAF50] font-bold">-- / 25 pts</span>
+                  </div>
+                  <div class="p-2 bg-white rounded border border-slate-200">
+                    <span class="block font-semibold text-slate-700">Task (T)</span>
+                    <span id="score-t" class="text-[#4CAF50] font-bold">-- / 25 pts</span>
+                  </div>
+                  <div class="p-2 bg-white rounded border border-slate-200">
+                    <span class="block font-semibold text-slate-700">Action (A)</span>
+                    <span id="score-a" class="text-[#4CAF50] font-bold">-- / 25 pts</span>
+                  </div>
+                  <div class="p-2 bg-white rounded border border-slate-200">
+                    <span class="block font-semibold text-slate-700">Result (R)</span>
+                    <span id="score-r" class="text-amber-600 font-bold">-- / 25 pts</span>
+                  </div>
+                </div>
+              </div>
+
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div class="p-4 bg-white rounded-lg border border-slate-200">
+                  <h4 class="font-bold text-[#4CAF50] mb-2">Key Strengths Identified</h4>
+                  <ul id="report-strengths" class="list-disc list-inside text-xs text-slate-600 space-y-1"></ul>
+                </div>
+                <div class="p-4 bg-white rounded-lg border border-slate-200">
+                  <h4 class="font-bold text-amber-600 mb-2">Actionable Coaching Steps</h4>
+                  <ul id="report-growth" class="list-disc list-inside text-xs text-slate-600 space-y-1"></ul>
+                </div>
+              </div>
+
+              <div class="p-4 bg-white rounded-lg border border-slate-200 space-y-1">
+                <h4 class="font-bold text-slate-800 text-xs">Coach Evaluation Narrative</h4>
+                <p id="report-summary" class="text-xs text-slate-700 leading-relaxed"></p>
+              </div>
+            </div>
+
+            <div class="flex gap-3">
+              <button onclick="downloadInterviewPDF()" class="w-1/2 py-3 bg-[#4CAF50] text-white font-bold rounded-lg hover:bg-emerald-600 transition flex items-center justify-center gap-2">
+                📄 Download PDF Assessment Report
+              </button>
+              <button onclick="resetInterview()" class="w-1/2 py-3 bg-[#1D2B53] text-white font-bold rounded-lg hover:bg-slate-900 transition">
+                Back to Launcher
+              </button>
+            </div>
+          </div>
+
+          <div class="border-t pt-4 space-y-3">
+            <h3 class="font-bold text-slate-800 text-sm flex items-center gap-2">
+              📂 Previous Interviews Completed & History
+            </h3>
+            <div id="interview-history-list" class="space-y-2">
+              <div class="p-3 bg-slate-50 border border-slate-200 rounded-lg flex items-center justify-between text-xs">
+                <div>
+                  <span class="font-bold text-[#1D2B53]">Retail & Customer Service Session</span>
+                  <span class="text-slate-500 block">Completed on 11-Sep-2026 • Score: 82/100</span>
+                </div>
+                <button onclick="downloadInterviewPDF()" class="px-3 py-1.5 bg-[#1D2B53] text-white font-bold rounded hover:bg-slate-800">
+                  View & Download PDF
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- RESUME & COVER LETTER MASTER BUILDER -->
+        <div class="bg-white p-6 rounded-xl shadow-md border border-slate-200 space-y-6">
+          <div class="border-b pb-4 flex items-center justify-between">
+            <div>
+              <h2 class="text-2xl font-bold text-[#1D2B53]">Resume & Cover Letter Master Builder</h2>
+              <p class="text-sm text-slate-600">Built-in spellcheck, separate cover letter generator, licenses/tickets, references, and PDF/Word downloads.</p>
+            </div>
+            <span id="resume-badge" class="px-3 py-1 bg-[#9C27B0] text-white text-xs font-bold rounded-full">3 Left</span>
+          </div>
+
+          <form onsubmit="handleGenerateResume(event)" class="space-y-4">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label class="block text-xs font-semibold text-slate-700 mb-1">Full Name</label>
+                <input type="text" id="res-fullname" required class="w-full p-2.5 border border-slate-300 rounded-lg text-sm" placeholder="e.g. John Citizen">
+              </div>
+              <div>
+                <label class="block text-xs font-semibold text-slate-700 mb-1">Email / Location</label>
+                <input type="text" id="res-contact" required class="w-full p-2.5 border border-slate-300 rounded-lg text-sm" placeholder="e.g. john@example.com | Brisbane QLD">
+              </div>
+              <div>
+                <label class="block text-xs font-semibold text-slate-700 mb-1">Phone Number</label>
+                <input type="text" id="res-phone" required class="w-full p-2.5 border border-slate-300 rounded-lg text-sm" placeholder="e.g. 0400 000 000">
+              </div>
+              <div>
+                <label class="block text-xs font-semibold text-slate-700 mb-1">Target Job Title</label>
+                <input type="text" id="resume-target-title" required class="w-full p-2.5 border border-slate-300 rounded-lg text-sm" placeholder="e.g. Customer Service / Warehouse Operations">
+              </div>
+              <div>
+                <label class="block text-xs font-semibold text-slate-700 mb-1">Tickets, Licenses & Qualifications</label>
+                <input type="text" id="res-licenses" required class="w-full p-2.5 border border-slate-300 rounded-lg text-sm" placeholder="e.g. White Card, Forklift HR, First Aid / CPR, Driver License C Class">
+              </div>
+              <div>
+                <label class="block text-xs font-semibold text-slate-700 mb-1">Core Competencies & Key Skills</label>
+                <input type="text" id="resume-skills" required class="w-full p-2.5 border border-slate-300 rounded-lg text-sm" placeholder="e.g. Customer service, WHS awareness, Stock control, Teamwork">
+              </div>
+              <div class="md:col-span-2">
+                <label class="block text-xs font-semibold text-slate-700 mb-1">Education & Formal Qualifications</label>
+                <input type="text" id="res-education" class="w-full p-2.5 border border-slate-300 rounded-lg text-sm" placeholder="e.g. Year 12 Senior Certificate, Certificate III in Retail">
               </div>
             </div>
 
             <div class="p-4 bg-slate-50 border border-slate-200 rounded-lg space-y-3">
-              <h4 class="font-bold text-[#1D2B53] text-sm">Detailed Criteria Scoring Breakdown</h4>
-              <div class="grid grid-cols-2 md:grid-cols-4 gap-2 text-xs">
-                <div class="p-2 bg-white rounded border border-slate-200">
-                  <span class="block font-semibold text-slate-700">Situation (S)</span>
-                  <span id="score-s" class="text-[#4CAF50] font-bold">-- / 25 pts</span>
-                </div>
-                <div class="p-2 bg-white rounded border border-slate-200">
-                  <span class="block font-semibold text-slate-700">Task (T)</span>
-                  <span id="score-t" class="text-[#4CAF50] font-bold">-- / 25 pts</span>
-                </div>
-                <div class="p-2 bg-white rounded border border-slate-200">
-                  <span class="block font-semibold text-slate-700">Action (A)</span>
-                  <span id="score-a" class="text-[#4CAF50] font-bold">-- / 25 pts</span>
-                </div>
-                <div class="p-2 bg-white rounded border border-slate-200">
-                  <span class="block font-semibold text-slate-700">Result (R)</span>
-                  <span id="score-r" class="text-amber-600 font-bold">-- / 25 pts</span>
+              <div class="flex justify-between items-center">
+                <h4 class="font-bold text-[#1D2B53] text-xs">Employment History (Add Up to 5 Positions)</h4>
+                <button type="button" onclick="addJobEntry()" class="px-3 py-1 bg-[#1D2B53] text-white text-xs font-bold rounded hover:bg-slate-800 transition">
+                  + Add Another Job
+                </button>
+              </div>
+              <div id="job-entries-container" class="space-y-3">
+                <div class="job-entry p-3 bg-white border border-slate-200 rounded-lg grid grid-cols-1 md:grid-cols-3 gap-2 relative">
+                  <input type="text" class="job-title p-2 border rounded text-xs" placeholder="Job Title (e.g. Retail Assistant)">
+                  <input type="text" class="job-employer p-2 border rounded text-xs" placeholder="Employer (e.g. ABC Stores)">
+                  <input type="text" class="job-dates p-2 border rounded text-xs" placeholder="Dates (e.g. 2022 - 2024)">
+                  <textarea class="job-duties md:col-span-3 p-2 border rounded text-xs mt-1" rows="2" placeholder="Key Duties & Achievements"></textarea>
                 </div>
               </div>
             </div>
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div class="p-4 bg-white rounded-lg border border-slate-200">
-                <h4 class="font-bold text-[#4CAF50] mb-2">Key Strengths Identified</h4>
-                <ul id="report-strengths" class="list-disc list-inside text-xs text-slate-600 space-y-1"></ul>
+              <div>
+                <label class="block text-xs font-semibold text-slate-700 mb-1">Referees / References</label>
+                <input type="text" id="res-references" class="w-full p-2.5 border border-slate-300 rounded-lg text-sm" placeholder="e.g. Jane Doe (Manager - 0411 111 222) or 'Available upon request'">
               </div>
-              <div class="p-4 bg-white rounded-lg border border-slate-200">
-                <h4 class="font-bold text-amber-600 mb-2">Actionable Coaching Steps</h4>
-                <ul id="report-growth" class="list-disc list-inside text-xs text-slate-600 space-y-1"></ul>
+              <div>
+                <label class="block text-xs font-semibold text-slate-700 mb-1">Employment Gaps & Positive Context (Optional)</label>
+                <input type="text" id="res-gaps" class="w-full p-2.5 border border-slate-300 rounded-lg text-sm" placeholder="e.g. Caregiving responsibilities / Independent study">
+              </div>
+            </div>
+            
+            <button id="generate-resume-btn" type="submit" class="w-full py-3 bg-[#9C27B0] text-white font-bold rounded-lg hover:bg-purple-800 transition shadow-sm">
+              Generate Complete Resume & Cover Letter Documents (Uses 1 Attempt)
+            </button>
+          </form>
+
+          <div id="resume-output-box" class="hidden space-y-8">
+            
+            <!-- Document 1: Resume -->
+            <div class="space-y-3">
+              <h3 class="text-sm font-bold text-[#1D2B53] uppercase tracking-wider flex items-center justify-between">
+                <span>📄 Document 1: Curated Professional Resume</span>
+                <span class="text-xs text-slate-500 font-normal">Formatted A4 Page View</span>
+              </h3>
+              
+              <div id="resume-document-template" class="p-10 bg-white border-2 border-slate-400 rounded-xl space-y-6 text-slate-800 max-w-4xl mx-auto shadow-xl">
+                <div class="border-b-2 border-[#1D2B53] pb-4 flex justify-between items-end">
+                  <div>
+                    <h1 id="tpl-name" class="text-3xl font-extrabold text-[#1D2B53] tracking-wide">JOHN CITIZEN</h1>
+                    <p id="tpl-target" class="text-sm font-bold text-[#4CAF50] uppercase mt-1">TARGET ROLE: RETAIL ASSISTANT</p>
+                  </div>
+                  <div class="text-right text-xs text-slate-600 space-y-1">
+                    <p id="tpl-phone" class="font-semibold text-slate-800">📞 0400 000 000</p>
+                    <p id="tpl-contact">✉️ john@example.com</p>
+                  </div>
+                </div>
+
+                <div class="space-y-1.5">
+                  <h3 class="text-xs font-bold text-[#1D2B53] uppercase tracking-widest border-b pb-1">Professional Summary</h3>
+                  <p id="tpl-summary" class="text-xs text-slate-700 leading-relaxed text-justify"></p>
+                </div>
+
+                <div class="space-y-1.5">
+                  <h3 class="text-xs font-bold text-[#1D2B53] uppercase tracking-widest border-b pb-1">Tickets, Licenses & Certifications</h3>
+                  <p id="tpl-licenses" class="text-xs text-slate-800 font-medium"></p>
+                </div>
+
+                <div class="space-y-1.5">
+                  <h3 class="text-xs font-bold text-[#1D2B53] uppercase tracking-widest border-b pb-1">Core Competencies & Key Skills</h3>
+                  <ul id="tpl-skills-list" class="grid grid-cols-2 gap-x-6 gap-y-1 text-xs text-slate-700 list-disc list-inside"></ul>
+                </div>
+
+                <div class="space-y-1.5">
+                  <h3 class="text-xs font-bold text-[#1D2B53] uppercase tracking-widest border-b pb-1">Education & Qualifications</h3>
+                  <p id="tpl-education" class="text-xs text-slate-700 font-medium"></p>
+                </div>
+
+                <div class="space-y-2">
+                  <h3 class="text-xs font-bold text-[#1D2B53] uppercase tracking-widest border-b pb-1">Work History & Experience</h3>
+                  <div id="tpl-history-content" class="space-y-3 text-xs text-slate-700"></div>
+                </div>
+
+                <div class="space-y-1.5 pt-2">
+                  <h3 class="text-xs font-bold text-[#1D2B53] uppercase tracking-widest border-b pb-1">Professional References</h3>
+                  <p id="tpl-references" class="text-xs text-slate-700 font-medium"></p>
+                </div>
+              </div>
+
+              <div class="flex gap-3 max-w-4xl mx-auto">
+                <button onclick="downloadResumeWord()" class="w-1/2 py-2.5 bg-blue-700 text-white font-bold rounded-lg hover:bg-blue-800 transition flex items-center justify-center gap-2">
+                  📝 Download Resume (.doc)
+                </button>
+                <button onclick="downloadResumePDF()" class="w-1/2 py-2.5 bg-[#4CAF50] text-white font-bold rounded-lg hover:bg-emerald-600 transition flex items-center justify-center gap-2">
+                  📄 Download PDF Resume Only
+                </button>
               </div>
             </div>
 
-            <div class="p-4 bg-white rounded-lg border border-slate-200 space-y-1">
-              <h4 class="font-bold text-slate-800 text-xs">Coach Evaluation Narrative</h4>
-              <p id="report-summary" class="text-xs text-slate-700 leading-relaxed"></p>
-            </div>
-          </div>
+            <!-- Document 2: Separate Cover Letter -->
+            <div class="space-y-3 pt-6 border-t-2 border-slate-200">
+              <h3 class="text-sm font-bold text-[#1D2B53] uppercase tracking-wider flex items-center justify-between">
+                <span>✉️ Document 2: Tailored Cover Letter</span>
+                <span class="text-xs text-slate-500 font-normal">Independent Application Letter</span>
+              </h3>
 
-          <div class="flex gap-3">
-            <button onclick="downloadInterviewPDF()" class="w-1/2 py-3 bg-[#4CAF50] text-white font-bold rounded-lg hover:bg-emerald-600 transition flex items-center justify-center gap-2">
-              📄 Download PDF Assessment Report
-            </button>
-            <button onclick="resetInterview()" class="w-1/2 py-3 bg-[#1D2B53] text-white font-bold rounded-lg hover:bg-slate-900 transition">
-              Back to Launcher
-            </button>
+              <div id="cover-letter-document-template" class="p-10 bg-white border-2 border-slate-400 rounded-xl space-y-6 text-slate-800 max-w-4xl mx-auto shadow-xl">
+                <div class="border-b-2 border-[#1D2B53] pb-4 flex justify-between items-end">
+                  <div>
+                    <h1 id="tpl-cl-name" class="text-2xl font-extrabold text-[#1D2B53]">JOHN CITIZEN</h1>
+                    <p id="tpl-cl-contact" class="text-xs text-slate-600 mt-1">john@example.com | 0400 000 000</p>
+                  </div>
+                  <div class="text-right text-xs text-slate-500">
+                    <p id="tpl-cl-date">13 September 2026</p>
+                  </div>
+                </div>
+
+                <div id="tpl-cover-letter-body" class="text-xs text-slate-700 leading-relaxed space-y-4 whitespace-pre-line text-justify"></div>
+              </div>
+
+              <div class="flex gap-3 max-w-4xl mx-auto">
+                <button onclick="downloadCoverLetterWord()" class="w-1/2 py-2.5 bg-blue-700 text-white font-bold rounded-lg hover:bg-blue-800 transition flex items-center justify-center gap-2">
+                  📝 Download Cover Letter (.doc)
+                </button>
+                <button onclick="downloadCoverLetterPDF()" class="w-1/2 py-2.5 bg-[#9C27B0] text-white font-bold rounded-lg hover:bg-purple-800 transition flex items-center justify-center gap-2">
+                  📄 Download PDF Cover Letter
+                </button>
+              </div>
+            </div>
+
           </div>
         </div>
 
-        <div class="border-t pt-4 space-y-3">
-          <h3 class="font-bold text-slate-800 text-sm flex items-center gap-2">
-            📂 Previous Interviews Completed & History
-          </h3>
-          <div id="interview-history-list" class="space-y-2">
-            <div class="p-3 bg-slate-50 border border-slate-200 rounded-lg flex items-center justify-between text-xs">
-              <div>
-                <span class="font-bold text-[#1D2B53]">Retail & Customer Service Session</span>
-                <span class="text-slate-500 block">Completed on 11-Sep-2026 • Score: 82/100</span>
+        <!-- DETAILED EMPLOYABILITY MODULES GRID (8 MODULES WITH BRANDING) -->
+        <div id="lms-modules-section" class="bg-white p-6 rounded-xl shadow-md border border-slate-200 space-y-6">
+          <div class="border-b pb-4">
+            <h2 class="text-2xl font-bold text-[#1D2B53]">Workplace Readiness & Compliance Modules</h2>
+            <p class="text-sm text-slate-600">Build your competitive edge and earn verifiable compliance certificates! Complete all 8 modules below to prove your job readiness to top Australian employers.</p>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            
+            <!-- Module 01 -->
+            <div class="border border-slate-200 rounded-xl p-5 space-y-4 bg-slate-50 hover:shadow-md transition flex flex-col justify-between">
+              <div class="space-y-3">
+                <div class="flex justify-between items-center">
+                  <span class="px-2 py-1 bg-[#1D2B53]/10 text-[#1D2B53] text-xs font-bold rounded">Module 01</span>
+                  <span id="badge-mod-1" class="px-2 py-0.5 bg-amber-100 text-amber-800 text-[10px] font-extrabold rounded-full uppercase">In Progress</span>
+                </div>
+                <h3 class="font-bold text-[#1D2B53] text-base">Workplace Rights & Safety</h3>
+                <p class="text-xs text-slate-600 leading-relaxed">Master NES standards, payslip rules, WHS duty of care, PPE compliance, and candidate rights.</p>
+                <div class="pt-1">
+                  <span id="mod1-conf-indicator" class="text-xs font-bold text-[#FFB74D]">⭐⭐⭐☆☆</span>
+                </div>
               </div>
-              <button onclick="downloadInterviewPDF()" class="px-3 py-1.5 bg-[#1D2B53] text-white font-bold rounded hover:bg-slate-800">
-                View & Download PDF
+              <button onclick="openModuleContent('mod-1')" class="w-full py-2 bg-[#1D2B53] text-white text-xs font-bold rounded-lg hover:bg-slate-800 transition">
+                Detailed Guide & 8-Q Quiz
               </button>
             </div>
+
+            <!-- Module 02 -->
+            <div class="border border-slate-200 rounded-xl p-5 space-y-4 bg-slate-50 hover:shadow-md transition flex flex-col justify-between">
+              <div class="space-y-3">
+                <div class="flex justify-between items-center">
+                  <span class="px-2 py-1 bg-[#4CAF50]/10 text-[#4CAF50] text-xs font-bold rounded">Module 02</span>
+                  <span id="badge-mod-2" class="px-2 py-0.5 bg-amber-100 text-amber-800 text-[10px] font-extrabold rounded-full uppercase">In Progress</span>
+                </div>
+                <h3 class="font-bold text-[#1D2B53] text-base">Interview Success</h3>
+                <p class="text-xs text-slate-600 leading-relaxed">Master STAR technique, dress codes, body language, overcoming nerves, and closing questions.</p>
+                <div class="pt-1">
+                  <span id="mod2-conf-indicator" class="text-xs font-bold text-[#FFB74D]">⭐⭐☆☆☆</span>
+                </div>
+              </div>
+              <button onclick="openModuleContent('mod-2')" class="w-full py-2 bg-[#4CAF50] text-white text-xs font-bold rounded-lg hover:bg-emerald-600 transition">
+                Detailed Guide & 8-Q Quiz
+              </button>
+            </div>
+
+            <!-- Module 03 -->
+            <div class="border border-slate-200 rounded-xl p-5 space-y-4 bg-slate-50 hover:shadow-md transition flex flex-col justify-between">
+              <div class="space-y-3">
+                <div class="flex justify-between items-center">
+                  <span class="px-2 py-1 bg-[#9C27B0]/10 text-[#9C27B0] text-xs font-bold rounded">Module 03</span>
+                  <span id="badge-mod-3" class="px-2 py-0.5 bg-amber-100 text-amber-800 text-[10px] font-extrabold rounded-full uppercase">In Progress</span>
+                </div>
+                <h3 class="font-bold text-[#1D2B53] text-base">Customer & Team Communication</h3>
+                <p class="text-xs text-slate-600 leading-relaxed">Develop active listening, de-escalation skills, phone etiquette, and teamwork dynamics.</p>
+                <div class="pt-1">
+                  <span id="mod3-conf-indicator" class="text-xs font-bold text-[#FFB74D]">⭐⭐⭐⭐☆</span>
+                </div>
+              </div>
+              <button onclick="openModuleContent('mod-3')" class="w-full py-2 bg-[#9C27B0] text-white text-xs font-bold rounded-lg hover:bg-purple-800 transition">
+                Detailed Guide & 8-Q Quiz
+              </button>
+            </div>
+
+            <!-- Module 04 -->
+            <div class="border border-slate-200 rounded-xl p-5 space-y-4 bg-slate-50 hover:shadow-md transition flex flex-col justify-between">
+              <div class="space-y-3">
+                <div class="flex justify-between items-center">
+                  <span class="px-2 py-1 bg-[#FFB74D]/20 text-slate-900 text-xs font-bold rounded">Module 04</span>
+                  <span id="badge-mod-4" class="px-2 py-0.5 bg-amber-100 text-amber-800 text-[10px] font-extrabold rounded-full uppercase">In Progress</span>
+                </div>
+                <h3 class="font-bold text-[#1D2B53] text-base">Master Resumes & Career Gaps</h3>
+                <p class="text-xs text-slate-600 leading-relaxed">Construct high-impact resumes, frame work gaps positively, and highlight transferable tickets.</p>
+                <div class="pt-1">
+                  <span id="mod4-conf-indicator" class="text-xs font-bold text-[#FFB74D]">⭐⭐☆☆☆</span>
+                </div>
+              </div>
+              <button onclick="openModuleContent('mod-4')" class="w-full py-2 bg-[#FFB74D] text-slate-950 text-xs font-bold rounded-lg hover:bg-amber-400 transition">
+                Detailed Guide & 8-Q Quiz
+              </button>
+            </div>
+
+            <!-- Module 05 -->
+            <div class="border border-slate-200 rounded-xl p-5 space-y-4 bg-slate-50 hover:shadow-md transition flex flex-col justify-between">
+              <div class="space-y-3">
+                <div class="flex justify-between items-center">
+                  <span class="px-2 py-1 bg-[#4CAF50]/10 text-[#4CAF50] text-xs font-bold rounded">Module 05</span>
+                  <span id="badge-mod-5" class="px-2 py-0.5 bg-amber-100 text-amber-800 text-[10px] font-extrabold rounded-full uppercase">In Progress</span>
+                </div>
+                <h3 class="font-bold text-[#1D2B53] text-base">Goal Setting & Career Planning</h3>
+                <p class="text-xs text-slate-600 leading-relaxed">Set SMART milestones, overcome placement barriers, build daily habits, and track compliance.</p>
+                <div class="pt-1">
+                  <span id="mod5-conf-indicator" class="text-xs font-bold text-[#FFB74D]">⭐⭐⭐☆☆</span>
+                </div>
+              </div>
+              <button onclick="openModuleContent('mod-5')" class="w-full py-2 bg-[#4CAF50] text-white text-xs font-bold rounded-lg hover:bg-emerald-600 transition">
+                Detailed Guide & 8-Q Quiz
+              </button>
+            </div>
+
+            <!-- Module 06 -->
+            <div class="border border-slate-200 rounded-xl p-5 space-y-4 bg-slate-50 hover:shadow-md transition flex flex-col justify-between">
+              <div class="space-y-3">
+                <div class="flex justify-between items-center">
+                  <span class="px-2 py-1 bg-[#1D2B53]/10 text-[#1D2B53] text-xs font-bold rounded">Module 06</span>
+                  <span id="badge-mod-6" class="px-2 py-0.5 bg-amber-100 text-amber-800 text-[10px] font-extrabold rounded-full uppercase">In Progress</span>
+                </div>
+                <h3 class="font-bold text-[#1D2B53] text-base">Workplace Expectations & Etiquette</h3>
+                <p class="text-xs text-slate-600 leading-relaxed">Navigate mobile device policies, shift call-out rules, grooming standards, and probation retention.</p>
+                <div class="pt-1">
+                  <span id="mod6-conf-indicator" class="text-xs font-bold text-[#FFB74D]">⭐⭐⭐⭐☆</span>
+                </div>
+              </div>
+              <button onclick="openModuleContent('mod-6')" class="w-full py-2 bg-[#1D2B53] text-white text-xs font-bold rounded-lg hover:bg-slate-800 transition">
+                Detailed Guide & 8-Q Quiz
+              </button>
+            </div>
+
+            <!-- Module 07 -->
+            <div class="border border-slate-200 rounded-xl p-5 space-y-4 bg-slate-50 hover:shadow-md transition flex flex-col justify-between">
+              <div class="space-y-3">
+                <div class="flex justify-between items-center">
+                  <span class="px-2 py-1 bg-[#4CAF50]/10 text-[#4CAF50] text-xs font-bold rounded">Module 07</span>
+                  <span id="badge-mod-7" class="px-2 py-0.5 bg-amber-100 text-amber-800 text-[10px] font-extrabold rounded-full uppercase">In Progress</span>
+                </div>
+                <h3 class="font-bold text-[#1D2B53] text-base">Financial Literacy & Pay Transition</h3>
+                <p class="text-xs text-slate-600 leading-relaxed">Manage payment gaps, PAYG tax withholding, Centrelink income reporting, and payslip audits.</p>
+                <div class="pt-1">
+                  <span id="mod7-conf-indicator" class="text-xs font-bold text-[#FFB74D]">⭐⭐⭐☆☆</span>
+                </div>
+              </div>
+              <button onclick="openModuleContent('mod-7')" class="w-full py-2 bg-[#4CAF50] text-white text-xs font-bold rounded-lg hover:bg-emerald-600 transition">
+                Detailed Guide & 8-Q Quiz
+              </button>
+            </div>
+
+            <!-- Module 08 -->
+            <div class="border border-slate-200 rounded-xl p-5 space-y-4 bg-slate-50 hover:shadow-md transition flex flex-col justify-between">
+              <div class="space-y-3">
+                <div class="flex justify-between items-center">
+                  <span class="px-2 py-1 bg-[#9C27B0]/10 text-[#9C27B0] text-xs font-bold rounded">Module 08</span>
+                  <span id="badge-mod-8" class="px-2 py-0.5 bg-amber-100 text-amber-800 text-[10px] font-extrabold rounded-full uppercase">In Progress</span>
+                </div>
+                <h3 class="font-bold text-[#1D2B53] text-base">Personal Wellbeing & Resilience</h3>
+                <p class="text-xs text-slate-600 leading-relaxed">Handle application fatigue, shift sleep hygiene, EAP mental health services, and work-life balance.</p>
+                <div class="pt-1">
+                  <span id="mod8-conf-indicator" class="text-xs font-bold text-[#FFB74D]">⭐⭐⭐⭐☆</span>
+                </div>
+              </div>
+              <button onclick="openModuleContent('mod-8')" class="w-full py-2 bg-[#9C27B0] text-white text-xs font-bold rounded-lg hover:bg-purple-800 transition">
+                Detailed Guide & 8-Q Quiz
+              </button>
+            </div>
+
           </div>
         </div>
-      </div>
 
-      <!-- RESUME & COVER LETTER MASTER BUILDER -->
-      <div class="bg-white p-6 rounded-xl shadow-md border border-slate-200 space-y-6">
-        <div class="border-b pb-4 flex items-center justify-between">
-          <div>
-            <h2 class="text-2xl font-bold text-[#1D2B53]">Resume & Cover Letter Master Builder</h2>
-            <p class="text-sm text-slate-600">Built-in spellcheck, separate cover letter generator, licenses/tickets, references, and PDF/Word downloads.</p>
+        <!-- JOB SEARCH EVIDENCE LOGGER (VERIFIABLE TEXT FIELDS) -->
+        <div class="bg-white p-6 rounded-xl shadow-md border border-slate-200 space-y-6">
+          <div class="border-b pb-4">
+            <h2 class="text-2xl font-bold text-[#1D2B53]">Job Search & Activity Logger</h2>
+            <p class="text-sm text-slate-600">Log verifiable job searches (+5 PBAS Points). Enter contact details for Case Manager audit verification.</p>
           </div>
-          <span id="resume-badge" class="px-3 py-1 bg-[#9C27B0] text-white text-xs font-bold rounded-full">3 Left</span>
-        </div>
 
-        <form onsubmit="handleGenerateResume(event)" class="space-y-4">
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <form onsubmit="handleLogEvidence(event)" class="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label class="block text-xs font-semibold text-slate-700 mb-1">Full Name</label>
-              <input type="text" id="res-fullname" required class="w-full p-2.5 border border-slate-300 rounded-lg text-sm" placeholder="e.g. John Citizen">
+              <label class="block text-xs font-semibold text-slate-700 mb-1">Employer Name</label>
+              <input type="text" id="log-employer" required class="w-full p-2.5 border border-slate-300 rounded-lg text-sm" placeholder="e.g. Coles Supermarket">
             </div>
             <div>
-              <label class="block text-xs font-semibold text-slate-700 mb-1">Email / Location</label>
-              <input type="text" id="res-contact" required class="w-full p-2.5 border border-slate-300 rounded-lg text-sm" placeholder="e.g. john@example.com | Brisbane QLD">
+              <label class="block text-xs font-semibold text-slate-700 mb-1">Position Applied For</label>
+              <input type="text" id="log-position" required class="w-full p-2.5 border border-slate-300 rounded-lg text-sm" placeholder="e.g. Customer Service Team Member">
             </div>
             <div>
-              <label class="block text-xs font-semibold text-slate-700 mb-1">Phone Number</label>
-              <input type="text" id="res-phone" required class="w-full p-2.5 border border-slate-300 rounded-lg text-sm" placeholder="e.g. 0400 000 000">
+              <label class="block text-xs font-semibold text-slate-700 mb-1">Application Date</label>
+              <input type="date" id="log-date" required class="w-full p-2.5 border border-slate-300 rounded-lg text-sm">
             </div>
             <div>
-              <label class="block text-xs font-semibold text-slate-700 mb-1">Target Job Title</label>
-              <input type="text" id="resume-target-title" required class="w-full p-2.5 border border-slate-300 rounded-lg text-sm" placeholder="e.g. Customer Service / Warehouse Operations">
-            </div>
-            <div>
-              <label class="block text-xs font-semibold text-slate-700 mb-1">Tickets, Licenses & Qualifications</label>
-              <input type="text" id="res-licenses" required class="w-full p-2.5 border border-slate-300 rounded-lg text-sm" placeholder="e.g. White Card, Forklift HR, First Aid / CPR, Driver License C Class">
-            </div>
-            <div>
-              <label class="block text-xs font-semibold text-slate-700 mb-1">Core Competencies & Key Skills</label>
-              <input type="text" id="resume-skills" required class="w-full p-2.5 border border-slate-300 rounded-lg text-sm" placeholder="e.g. Customer service, WHS awareness, Stock control, Teamwork">
+              <label class="block text-xs font-semibold text-slate-700 mb-1">Method / Platform</label>
+              <select id="log-method" class="w-full p-2.5 border border-slate-300 rounded-lg text-sm bg-white">
+                <option value="Online (SEEK/Indeed)">Online (SEEK / Indeed / JORA)</option>
+                <option value="In-Person Dropoff">In-Person Dropoff</option>
+                <option value="Company Website">Company Careers Website</option>
+                <option value="Email Application">Direct Email Application</option>
+              </select>
             </div>
             <div class="md:col-span-2">
-              <label class="block text-xs font-semibold text-slate-700 mb-1">Education & Formal Qualifications</label>
-              <input type="text" id="res-education" class="w-full p-2.5 border border-slate-300 rounded-lg text-sm" placeholder="e.g. Year 12 Senior Certificate, Certificate III in Retail">
+              <label class="block text-xs font-semibold text-slate-700 mb-1">Verifiable Contact Person / Application Ref #</label>
+              <input type="text" id="log-contact-ref" required class="w-full p-2.5 border border-slate-300 rounded-lg text-sm" placeholder="e.g. Store Manager John / SEEK Ref #98765">
             </div>
-          </div>
-
-          <div class="p-4 bg-slate-50 border border-slate-200 rounded-lg space-y-3">
-            <div class="flex justify-between items-center">
-              <h4 class="font-bold text-[#1D2B53] text-xs">Employment History (Add Up to 5 Positions)</h4>
-              <button type="button" onclick="addJobEntry()" class="px-3 py-1 bg-[#1D2B53] text-white text-xs font-bold rounded hover:bg-slate-800 transition">
-                + Add Another Job
+            <div class="md:col-span-2">
+              <button type="submit" class="w-full py-3 bg-[#4CAF50] text-white font-bold rounded-lg hover:bg-emerald-600 transition shadow-sm">
+                Log Job Search (+5 PBAS Points)
               </button>
             </div>
-            <div id="job-entries-container" class="space-y-3">
-              <div class="job-entry p-3 bg-white border border-slate-200 rounded-lg grid grid-cols-1 md:grid-cols-3 gap-2 relative">
-                <input type="text" class="job-title p-2 border rounded text-xs" placeholder="Job Title (e.g. Retail Assistant)">
-                <input type="text" class="job-employer p-2 border rounded text-xs" placeholder="Employer (e.g. ABC Stores)">
-                <input type="text" class="job-dates p-2 border rounded text-xs" placeholder="Dates (e.g. 2022 - 2024)">
-                <textarea class="job-duties md:col-span-3 p-2 border rounded text-xs mt-1" rows="2" placeholder="Key Duties & Achievements"></textarea>
-              </div>
+          </form>
+
+          <div class="space-y-3 pt-4 border-t">
+            <h3 class="font-bold text-slate-800 text-sm">Logged Applications Table</h3>
+            <div class="overflow-x-auto">
+              <table class="w-full text-left text-xs text-slate-600">
+                <thead class="bg-slate-100 text-slate-800 font-semibold">
+                  <tr>
+                    <th class="p-2.5">Date</th>
+                    <th class="p-2.5">Employer</th>
+                    <th class="p-2.5">Position</th>
+                    <th class="p-2.5">Method</th>
+                    <th class="p-2.5">Contact / Ref #</th>
+                    <th class="p-2.5">Status</th>
+                  </tr>
+                </thead>
+                <tbody id="evidence-log-table" class="divide-y">
+                  <tr id="ev-row-demo">
+                    <td class="p-2.5">13-Sep-2026</td>
+                    <td class="p-2.5 font-medium text-slate-900">Bunnings Warehouse</td>
+                    <td class="p-2.5">Team Member</td>
+                    <td class="p-2.5">Online (SEEK)</td>
+                    <td class="p-2.5 font-mono text-slate-700">SEEK Ref #BN-8821</td>
+                    <td class="p-2.5"><span class="status-badge px-2.5 py-1 bg-amber-100 text-amber-800 rounded-full font-bold">Submitted</span></td>
+                  </tr>
+                </tbody>
+              </table>
             </div>
           </div>
-
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label class="block text-xs font-semibold text-slate-700 mb-1">Referees / References</label>
-              <input type="text" id="res-references" class="w-full p-2.5 border border-slate-300 rounded-lg text-sm" placeholder="e.g. Jane Doe (Manager - 0411 111 222) or 'Available upon request'">
-            </div>
-            <div>
-              <label class="block text-xs font-semibold text-slate-700 mb-1">Employment Gaps & Positive Context (Optional)</label>
-              <input type="text" id="res-gaps" class="w-full p-2.5 border border-slate-300 rounded-lg text-sm" placeholder="e.g. Caregiving responsibilities / Independent study">
-            </div>
-          </div>
-          
-          <button id="generate-resume-btn" type="submit" class="w-full py-3 bg-[#9C27B0] text-white font-bold rounded-lg hover:bg-purple-800 transition shadow-sm">
-            Generate Complete Resume & Cover Letter Documents (Uses 1 Attempt)
-          </button>
-        </form>
-
-        <div id="resume-output-box" class="hidden space-y-8">
-          
-          <!-- Document 1: Resume -->
-          <div class="space-y-3">
-            <h3 class="text-sm font-bold text-[#1D2B53] uppercase tracking-wider flex items-center justify-between">
-              <span>📄 Document 1: Curated Professional Resume</span>
-              <span class="text-xs text-slate-500 font-normal">Formatted A4 Page View</span>
-            </h3>
-            
-            <div id="resume-document-template" class="p-10 bg-white border-2 border-slate-400 rounded-xl space-y-6 text-slate-800 max-w-4xl mx-auto shadow-xl">
-              <div class="border-b-2 border-[#1D2B53] pb-4 flex justify-between items-end">
-                <div>
-                  <h1 id="tpl-name" class="text-3xl font-extrabold text-[#1D2B53] tracking-wide">JOHN CITIZEN</h1>
-                  <p id="tpl-target" class="text-sm font-bold text-[#4CAF50] uppercase mt-1">TARGET ROLE: RETAIL ASSISTANT</p>
-                </div>
-                <div class="text-right text-xs text-slate-600 space-y-1">
-                  <p id="tpl-phone" class="font-semibold text-slate-800">📞 0400 000 000</p>
-                  <p id="tpl-contact">✉️ john@example.com</p>
-                </div>
-              </div>
-
-              <div class="space-y-1.5">
-                <h3 class="text-xs font-bold text-[#1D2B53] uppercase tracking-widest border-b pb-1">Professional Summary</h3>
-                <p id="tpl-summary" class="text-xs text-slate-700 leading-relaxed text-justify"></p>
-              </div>
-
-              <div class="space-y-1.5">
-                <h3 class="text-xs font-bold text-[#1D2B53] uppercase tracking-widest border-b pb-1">Tickets, Licenses & Certifications</h3>
-                <p id="tpl-licenses" class="text-xs text-slate-800 font-medium"></p>
-              </div>
-
-              <div class="space-y-1.5">
-                <h3 class="text-xs font-bold text-[#1D2B53] uppercase tracking-widest border-b pb-1">Core Competencies & Key Skills</h3>
-                <ul id="tpl-skills-list" class="grid grid-cols-2 gap-x-6 gap-y-1 text-xs text-slate-700 list-disc list-inside"></ul>
-              </div>
-
-              <div class="space-y-1.5">
-                <h3 class="text-xs font-bold text-[#1D2B53] uppercase tracking-widest border-b pb-1">Education & Qualifications</h3>
-                <p id="tpl-education" class="text-xs text-slate-700 font-medium"></p>
-              </div>
-
-              <div class="space-y-2">
-                <h3 class="text-xs font-bold text-[#1D2B53] uppercase tracking-widest border-b pb-1">Work History & Experience</h3>
-                <div id="tpl-history-content" class="space-y-3 text-xs text-slate-700"></div>
-              </div>
-
-              <div class="space-y-1.5 pt-2">
-                <h3 class="text-xs font-bold text-[#1D2B53] uppercase tracking-widest border-b pb-1">Professional References</h3>
-                <p id="tpl-references" class="text-xs text-slate-700 font-medium"></p>
-              </div>
-            </div>
-
-            <div class="flex gap-3 max-w-4xl mx-auto">
-              <button onclick="downloadResumeWord()" class="w-1/2 py-2.5 bg-blue-700 text-white font-bold rounded-lg hover:bg-blue-800 transition flex items-center justify-center gap-2">
-                📝 Download Resume (.doc)
-              </button>
-              <button onclick="downloadResumePDF()" class="w-1/2 py-2.5 bg-[#4CAF50] text-white font-bold rounded-lg hover:bg-emerald-600 transition flex items-center justify-center gap-2">
-                📄 Download PDF Resume Only
-              </button>
-            </div>
-          </div>
-
-          <!-- Document 2: Separate Cover Letter -->
-          <div class="space-y-3 pt-6 border-t-2 border-slate-200">
-            <h3 class="text-sm font-bold text-[#1D2B53] uppercase tracking-wider flex items-center justify-between">
-              <span>✉️ Document 2: Tailored Cover Letter</span>
-              <span class="text-xs text-slate-500 font-normal">Independent Application Letter</span>
-            </h3>
-
-            <div id="cover-letter-document-template" class="p-10 bg-white border-2 border-slate-400 rounded-xl space-y-6 text-slate-800 max-w-4xl mx-auto shadow-xl">
-              <div class="border-b-2 border-[#1D2B53] pb-4 flex justify-between items-end">
-                <div>
-                  <h1 id="tpl-cl-name" class="text-2xl font-extrabold text-[#1D2B53]">JOHN CITIZEN</h1>
-                  <p id="tpl-cl-contact" class="text-xs text-slate-600 mt-1">john@example.com | 0400 000 000</p>
-                </div>
-                <div class="text-right text-xs text-slate-500">
-                  <p id="tpl-cl-date">13 September 2026</p>
-                </div>
-              </div>
-
-              <div id="tpl-cover-letter-body" class="text-xs text-slate-700 leading-relaxed space-y-4 whitespace-pre-line text-justify"></div>
-            </div>
-
-            <div class="flex gap-3 max-w-4xl mx-auto">
-              <button onclick="downloadCoverLetterWord()" class="w-1/2 py-2.5 bg-blue-700 text-white font-bold rounded-lg hover:bg-blue-800 transition flex items-center justify-center gap-2">
-                📝 Download Cover Letter (.doc)
-              </button>
-              <button onclick="downloadCoverLetterPDF()" class="w-1/2 py-2.5 bg-[#9C27B0] text-white font-bold rounded-lg hover:bg-purple-800 transition flex items-center justify-center gap-2">
-                📄 Download PDF Cover Letter
-              </button>
-            </div>
-          </div>
-
         </div>
+
       </div>
 
-      <!-- DETAILED EMPLOYABILITY MODULES GRID (8 MODULES WITH BRANDING) -->
-      <div id="lms-modules-section" class="bg-white p-6 rounded-xl shadow-md border border-slate-200 space-y-6">
-        <div class="border-b pb-4">
-          <h2 class="text-2xl font-bold text-[#1D2B53]">Workplace Readiness & Compliance Modules</h2>
-          <p class="text-sm text-slate-600">Build your competitive edge and earn verifiable compliance certificates! Complete all 8 modules below to prove your job readiness to top Australian employers.</p>
+      <!-- 2. CASE MANAGER WORKSPACE -->
+      <div id="workspace-casemanager" class="hidden space-y-8">
+        
+        <!-- Header Action Controls & Milestone Follow-Up Quick Buttons -->
+        <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-white p-6 rounded-xl shadow-md border border-slate-200">
+          <div>
+            <h2 class="text-2xl font-bold text-[#1D2B53]">Case Manager Command Center</h2>
+            <p class="text-xs text-slate-600">Audit PBAS compliance risk, review candidate actions, export dossiers, and onboard new candidates.</p>
+          </div>
+          <div class="flex flex-wrap gap-2.5">
+            <button onclick="window.CASE_MANAGER.filterRoster('milestone_interviews')" class="px-3.5 py-2 bg-white border-2 border-[#1D2B53] text-[#1D2B53] text-xs font-extrabold rounded-lg hover:bg-slate-50 transition shadow-sm">
+              🎯 Interview Follow-Ups
+            </button>
+            <button onclick="window.CASE_MANAGER.filterRoster('milestone_jobs')" class="px-3.5 py-2 bg-[#FFB74D] text-slate-950 text-xs font-extrabold rounded-lg hover:bg-amber-400 transition shadow-sm">
+              🎉 Placement Follow-Ups
+            </button>
+            <button onclick="window.CASE_MANAGER.filterRoster('messages_feed')" class="px-3.5 py-2 bg-[#9C27B0] text-white text-xs font-extrabold rounded-lg hover:bg-purple-800 transition shadow-sm">
+              💬 Candidate Messages
+            </button>
+            <button onclick="window.HELP_ENGINE.openHelpModal('case_manager')" class="px-3.5 py-2 bg-[#1D2B53] text-white text-xs font-bold rounded-lg hover:bg-slate-800 transition shadow-sm flex items-center gap-1 cursor-pointer">
+              ❓ Admin Support
+            </button>
+            <button onclick="window.CASE_MANAGER.downloadCaseloadReport()" class="px-3.5 py-2 bg-[#1D2B53] text-white text-xs font-bold rounded-lg hover:bg-slate-800 transition flex items-center gap-1.5 shadow">
+              📊 Export CSV
+            </button>
+            <button onclick="window.CASE_MANAGER.openInviteModal()" class="px-3.5 py-2 bg-[#4CAF50] text-white text-xs font-bold rounded-lg hover:bg-emerald-600 transition flex items-center gap-1.5 shadow">
+              ➕ Add Candidate
+            </button>
+          </div>
         </div>
 
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          
-          <!-- Module 01 -->
-          <div class="border border-slate-200 rounded-xl p-5 space-y-4 bg-slate-50 hover:shadow-md transition flex flex-col justify-between">
-            <div class="space-y-3">
-              <div class="flex justify-between items-center">
-                <span class="px-2 py-1 bg-[#1D2B53]/10 text-[#1D2B53] text-xs font-bold rounded">Module 01</span>
-                <span id="badge-mod-1" class="px-2 py-0.5 bg-amber-100 text-amber-800 text-[10px] font-extrabold rounded-full uppercase">In Progress</span>
-              </div>
-              <h3 class="font-bold text-[#1D2B53] text-base">Workplace Rights & Safety</h3>
-              <p class="text-xs text-slate-600 leading-relaxed">Master NES standards, payslip rules, WHS duty of care, PPE compliance, and candidate rights.</p>
-              <div class="pt-1">
-                <span id="mod1-conf-indicator" class="text-xs font-bold text-[#FFB74D]">⭐⭐⭐☆☆</span>
-              </div>
+        <!-- CLICKABLE CASELOAD OVERVIEW CARDS -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div onclick="window.CASE_MANAGER.filterRoster('all')" class="p-5 bg-white border-2 border-slate-200 hover:border-[#1D2B53] rounded-xl shadow-sm cursor-pointer transition space-y-2">
+            <span class="text-xs font-bold text-slate-500 uppercase tracking-wider block">Total Caseload</span>
+            <div class="flex items-baseline justify-between">
+              <span class="text-3xl font-extrabold text-[#1D2B53]">24</span>
+              <span class="text-xs text-blue-600 font-bold">View All →</span>
             </div>
-            <button onclick="openModuleContent('mod-1')" class="w-full py-2 bg-[#1D2B53] text-white text-xs font-bold rounded-lg hover:bg-slate-800 transition">
-              Detailed Guide & 8-Q Quiz
-            </button>
+            <p class="text-[11px] text-slate-500">Active & Placed Candidates</p>
           </div>
 
-          <!-- Module 02 -->
-          <div class="border border-slate-200 rounded-xl p-5 space-y-4 bg-slate-50 hover:shadow-md transition flex flex-col justify-between">
-            <div class="space-y-3">
-              <div class="flex justify-between items-center">
-                <span class="px-2 py-1 bg-[#4CAF50]/10 text-[#4CAF50] text-xs font-bold rounded">Module 02</span>
-                <span id="badge-mod-2" class="px-2 py-0.5 bg-amber-100 text-amber-800 text-[10px] font-extrabold rounded-full uppercase">In Progress</span>
-              </div>
-              <h3 class="font-bold text-[#1D2B53] text-base">Interview Success</h3>
-              <p class="text-xs text-slate-600 leading-relaxed">Master STAR technique, dress codes, body language, overcoming nerves, and closing questions.</p>
-              <div class="pt-1">
-                <span id="mod2-conf-indicator" class="text-xs font-bold text-[#FFB74D]">⭐⭐☆☆☆</span>
-              </div>
+          <div onclick="window.CASE_MANAGER.filterRoster('pbas_ontrack')" class="p-5 bg-white border-2 border-slate-200 hover:border-[#4CAF50] rounded-xl shadow-sm cursor-pointer transition space-y-2">
+            <span class="text-xs font-bold text-slate-500 uppercase tracking-wider block">PBAS On Track</span>
+            <div class="flex items-baseline justify-between">
+              <span class="text-3xl font-extrabold text-[#4CAF50]">19</span>
+              <span class="text-xs text-emerald-600 font-bold">View List →</span>
             </div>
-            <button onclick="openModuleContent('mod-2')" class="w-full py-2 bg-[#4CAF50] text-white text-xs font-bold rounded-lg hover:bg-emerald-600 transition">
-              Detailed Guide & 8-Q Quiz
-            </button>
+            <p class="text-[11px] text-slate-500">Meeting Monthly Points</p>
           </div>
 
-          <!-- Module 03 -->
-          <div class="border border-slate-200 rounded-xl p-5 space-y-4 bg-slate-50 hover:shadow-md transition flex flex-col justify-between">
-            <div class="space-y-3">
-              <div class="flex justify-between items-center">
-                <span class="px-2 py-1 bg-[#9C27B0]/10 text-[#9C27B0] text-xs font-bold rounded">Module 03</span>
-                <span id="badge-mod-3" class="px-2 py-0.5 bg-amber-100 text-amber-800 text-[10px] font-extrabold rounded-full uppercase">In Progress</span>
-              </div>
-              <h3 class="font-bold text-[#1D2B53] text-base">Customer & Team Communication</h3>
-              <p class="text-xs text-slate-600 leading-relaxed">Develop active listening, de-escalation skills, phone etiquette, and teamwork dynamics.</p>
-              <div class="pt-1">
-                <span id="mod3-conf-indicator" class="text-xs font-bold text-[#FFB74D]">⭐⭐⭐⭐☆</span>
-              </div>
+          <div onclick="window.CASE_MANAGER.filterRoster('pbas_atrisk')" class="p-5 bg-white border-2 border-slate-200 hover:border-rose-500 rounded-xl shadow-sm cursor-pointer transition space-y-2 bg-rose-50/50">
+            <span class="text-xs font-bold text-rose-800 uppercase tracking-wider block">🚨 PBAS At Risk</span>
+            <div class="flex items-baseline justify-between">
+              <span class="text-3xl font-extrabold text-rose-600">5</span>
+              <span class="text-xs text-rose-700 font-bold">Filter Risk →</span>
             </div>
-            <button onclick="openModuleContent('mod-3')" class="w-full py-2 bg-[#9C27B0] text-white text-xs font-bold rounded-lg hover:bg-purple-800 transition">
-              Detailed Guide & 8-Q Quiz
-            </button>
+            <p class="text-[11px] text-rose-700 font-semibold">Requires Intervention</p>
           </div>
 
-          <!-- Module 04 -->
-          <div class="border border-slate-200 rounded-xl p-5 space-y-4 bg-slate-50 hover:shadow-md transition flex flex-col justify-between">
-            <div class="space-y-3">
-              <div class="flex justify-between items-center">
-                <span class="px-2 py-1 bg-[#FFB74D]/20 text-slate-900 text-xs font-bold rounded">Module 04</span>
-                <span id="badge-mod-4" class="px-2 py-0.5 bg-amber-100 text-amber-800 text-[10px] font-extrabold rounded-full uppercase">In Progress</span>
-              </div>
-              <h3 class="font-bold text-[#1D2B53] text-base">Master Resumes & Career Gaps</h3>
-              <p class="text-xs text-slate-600 leading-relaxed">Construct high-impact resumes, frame work gaps positively, and highlight transferable tickets.</p>
-              <div class="pt-1">
-                <span id="mod4-conf-indicator" class="text-xs font-bold text-[#FFB74D]">⭐⭐☆☆☆</span>
-              </div>
+          <div onclick="window.CASE_MANAGER.filterRoster('review_needed')" class="p-5 bg-white border-2 border-[#FFB74D] rounded-xl shadow-sm cursor-pointer transition space-y-2 bg-amber-50/40">
+            <span class="text-xs font-bold text-amber-900 uppercase tracking-wider block">⚠️ Review Needed</span>
+            <div class="flex items-baseline justify-between">
+              <span class="text-3xl font-extrabold text-amber-600">2</span>
+              <span class="text-xs text-amber-800 font-bold">Sign Off →</span>
             </div>
-            <button onclick="openModuleContent('mod-4')" class="w-full py-2 bg-[#FFB74D] text-slate-950 text-xs font-bold rounded-lg hover:bg-amber-400 transition">
-              Detailed Guide & 8-Q Quiz
-            </button>
+            <p class="text-[11px] text-amber-800 font-medium">Pending Evidence / Monthly Task</p>
           </div>
-
-          <!-- Module 05 -->
-          <div class="border border-slate-200 rounded-xl p-5 space-y-4 bg-slate-50 hover:shadow-md transition flex flex-col justify-between">
-            <div class="space-y-3">
-              <div class="flex justify-between items-center">
-                <span class="px-2 py-1 bg-[#4CAF50]/10 text-[#4CAF50] text-xs font-bold rounded">Module 05</span>
-                <span id="badge-mod-5" class="px-2 py-0.5 bg-amber-100 text-amber-800 text-[10px] font-extrabold rounded-full uppercase">In Progress</span>
-              </div>
-              <h3 class="font-bold text-[#1D2B53] text-base">Goal Setting & Career Planning</h3>
-              <p class="text-xs text-slate-600 leading-relaxed">Set SMART milestones, overcome placement barriers, build daily habits, and track compliance.</p>
-              <div class="pt-1">
-                <span id="mod5-conf-indicator" class="text-xs font-bold text-[#FFB74D]">⭐⭐⭐☆☆</span>
-              </div>
-            </div>
-            <button onclick="openModuleContent('mod-5')" class="w-full py-2 bg-[#4CAF50] text-white text-xs font-bold rounded-lg hover:bg-emerald-600 transition">
-              Detailed Guide & 8-Q Quiz
-            </button>
-          </div>
-
-          <!-- Module 06 -->
-          <div class="border border-slate-200 rounded-xl p-5 space-y-4 bg-slate-50 hover:shadow-md transition flex flex-col justify-between">
-            <div class="space-y-3">
-              <div class="flex justify-between items-center">
-                <span class="px-2 py-1 bg-[#1D2B53]/10 text-[#1D2B53] text-xs font-bold rounded">Module 06</span>
-                <span id="badge-mod-6" class="px-2 py-0.5 bg-amber-100 text-amber-800 text-[10px] font-extrabold rounded-full uppercase">In Progress</span>
-              </div>
-              <h3 class="font-bold text-[#1D2B53] text-base">Workplace Expectations & Etiquette</h3>
-              <p class="text-xs text-slate-600 leading-relaxed">Navigate mobile device policies, shift call-out rules, grooming standards, and probation retention.</p>
-              <div class="pt-1">
-                <span id="mod6-conf-indicator" class="text-xs font-bold text-[#FFB74D]">⭐⭐⭐⭐☆</span>
-              </div>
-            </div>
-            <button onclick="openModuleContent('mod-6')" class="w-full py-2 bg-[#1D2B53] text-white text-xs font-bold rounded-lg hover:bg-slate-800 transition">
-              Detailed Guide & 8-Q Quiz
-            </button>
-          </div>
-
-          <!-- Module 07 -->
-          <div class="border border-slate-200 rounded-xl p-5 space-y-4 bg-slate-50 hover:shadow-md transition flex flex-col justify-between">
-            <div class="space-y-3">
-              <div class="flex justify-between items-center">
-                <span class="px-2 py-1 bg-[#4CAF50]/10 text-[#4CAF50] text-xs font-bold rounded">Module 07</span>
-                <span id="badge-mod-7" class="px-2 py-0.5 bg-amber-100 text-amber-800 text-[10px] font-extrabold rounded-full uppercase">In Progress</span>
-              </div>
-              <h3 class="font-bold text-[#1D2B53] text-base">Financial Literacy & Pay Transition</h3>
-              <p class="text-xs text-slate-600 leading-relaxed">Manage payment gaps, PAYG tax withholding, Centrelink income reporting, and payslip audits.</p>
-              <div class="pt-1">
-                <span id="mod7-conf-indicator" class="text-xs font-bold text-[#FFB74D]">⭐⭐⭐☆☆</span>
-              </div>
-            </div>
-            <button onclick="openModuleContent('mod-7')" class="w-full py-2 bg-[#4CAF50] text-white text-xs font-bold rounded-lg hover:bg-emerald-600 transition">
-              Detailed Guide & 8-Q Quiz
-            </button>
-          </div>
-
-          <!-- Module 08 -->
-          <div class="border border-slate-200 rounded-xl p-5 space-y-4 bg-slate-50 hover:shadow-md transition flex flex-col justify-between">
-            <div class="space-y-3">
-              <div class="flex justify-between items-center">
-                <span class="px-2 py-1 bg-[#9C27B0]/10 text-[#9C27B0] text-xs font-bold rounded">Module 08</span>
-                <span id="badge-mod-8" class="px-2 py-0.5 bg-amber-100 text-amber-800 text-[10px] font-extrabold rounded-full uppercase">In Progress</span>
-              </div>
-              <h3 class="font-bold text-[#1D2B53] text-base">Personal Wellbeing & Resilience</h3>
-              <p class="text-xs text-slate-600 leading-relaxed">Handle application fatigue, shift sleep hygiene, EAP mental health services, and work-life balance.</p>
-              <div class="pt-1">
-                <span id="mod8-conf-indicator" class="text-xs font-bold text-[#FFB74D]">⭐⭐⭐⭐☆</span>
-              </div>
-            </div>
-            <button onclick="openModuleContent('mod-8')" class="w-full py-2 bg-[#9C27B0] text-white text-xs font-bold rounded-lg hover:bg-purple-800 transition">
-              Detailed Guide & 8-Q Quiz
-            </button>
-          </div>
-
-        </div>
-      </div>
-
-      <!-- JOB SEARCH EVIDENCE LOGGER (VERIFIABLE TEXT FIELDS) -->
-      <div class="bg-white p-6 rounded-xl shadow-md border border-slate-200 space-y-6">
-        <div class="border-b pb-4">
-          <h2 class="text-2xl font-bold text-[#1D2B53]">Job Search & Activity Logger</h2>
-          <p class="text-sm text-slate-600">Log verifiable job searches (+5 PBAS Points). Enter contact details for Case Manager audit verification.</p>
         </div>
 
-        <form onsubmit="handleLogEvidence(event)" class="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div>
-            <label class="block text-xs font-semibold text-slate-700 mb-1">Employer Name</label>
-            <input type="text" id="log-employer" required class="w-full p-2.5 border border-slate-300 rounded-lg text-sm" placeholder="e.g. Coles Supermarket">
+        <!-- MAIN CASELOAD ROSTER TABLE -->
+        <div class="bg-white p-6 rounded-xl shadow-md border border-slate-200 space-y-4">
+          <div class="border-b pb-3 flex justify-between items-center">
+            <h3 id="cm-roster-title" class="font-bold text-[#1D2B53] text-base">Entire Caseload Roster</h3>
+            <button onclick="window.CASE_MANAGER.filterRoster('all')" class="text-xs text-blue-600 font-bold hover:underline">Reset Roster Filters</button>
           </div>
-          <div>
-            <label class="block text-xs font-semibold text-slate-700 mb-1">Position Applied For</label>
-            <input type="text" id="log-position" required class="w-full p-2.5 border border-slate-300 rounded-lg text-sm" placeholder="e.g. Customer Service Team Member">
+          <div class="overflow-x-auto">
+            <table class="w-full text-left text-xs text-slate-600">
+              <thead class="bg-slate-100 text-slate-800 font-semibold">
+                <tr>
+                  <th class="p-3 min-w-[200px]">Candidate & Cycle Details</th>
+                  <th class="p-3 min-w-[120px]">Status</th>
+                  <th class="p-3 min-w-[170px]">PBAS Points</th>
+                  <th class="p-3 min-w-[150px]">Action Status</th>
+                  <th class="p-3">LMS Progress</th>
+                  <th class="p-3">Last Active</th>
+                  <th class="p-3">Case Manager Dossier Actions</th>
+                </tr>
+              </thead>
+              <tbody id="cm-roster-table-body" class="divide-y">
+                <!-- Dynamically populated via caseManagerEngine.js -->
+              </tbody>
+            </table>
           </div>
-          <div>
-            <label class="block text-xs font-semibold text-slate-700 mb-1">Application Date</label>
-            <input type="date" id="log-date" required class="w-full p-2.5 border border-slate-300 rounded-lg text-sm">
-          </div>
-          <div>
-            <label class="block text-xs font-semibold text-slate-700 mb-1">Method / Platform</label>
-            <select id="log-method" class="w-full p-2.5 border border-slate-300 rounded-lg text-sm bg-white">
-              <option value="Online (SEEK/Indeed)">Online (SEEK / Indeed / JORA)</option>
-              <option value="In-Person Dropoff">In-Person Dropoff</option>
-              <option value="Company Website">Company Careers Website</option>
-              <option value="Email Application">Direct Email Application</option>
-            </select>
-          </div>
-          <div class="md:col-span-2">
-            <label class="block text-xs font-semibold text-slate-700 mb-1">Verifiable Contact Person / Application Ref #</label>
-            <input type="text" id="log-contact-ref" required class="w-full p-2.5 border border-slate-300 rounded-lg text-sm" placeholder="e.g. Store Manager John / SEEK Ref #98765">
-          </div>
-          <div class="md:col-span-2">
-            <button type="submit" class="w-full py-3 bg-[#4CAF50] text-white font-bold rounded-lg hover:bg-emerald-600 transition shadow-sm">
-              Log Job Search (+5 PBAS Points)
-            </button>
-          </div>
-        </form>
+        </div>
 
-        <div class="space-y-3 pt-4 border-t">
-          <h3 class="font-bold text-slate-800 text-sm">Logged Applications Table</h3>
+        <!-- VERIFIABLE JOB SEARCH AUDIT TABLE -->
+        <div class="bg-white p-6 rounded-xl shadow-md border border-slate-200 space-y-4">
+          <div class="border-b pb-3 flex justify-between items-center">
+            <div>
+              <h3 class="font-bold text-[#1D2B53] text-base">Candidate Job Search Verification Log</h3>
+              <p class="text-xs text-slate-500">Audit text-based application details and grant official compliance verification.</p>
+            </div>
+          </div>
           <div class="overflow-x-auto">
             <table class="w-full text-left text-xs text-slate-600">
               <thead class="bg-slate-100 text-slate-800 font-semibold">
                 <tr>
                   <th class="p-2.5">Date</th>
+                  <th class="p-2.5">Candidate</th>
                   <th class="p-2.5">Employer</th>
                   <th class="p-2.5">Position</th>
-                  <th class="p-2.5">Method</th>
                   <th class="p-2.5">Contact / Ref #</th>
                   <th class="p-2.5">Status</th>
+                  <th class="p-2.5">Case Manager Verification Action</th>
                 </tr>
               </thead>
-              <tbody id="evidence-log-table" class="divide-y">
-                <tr id="ev-row-demo">
+              <tbody id="cm-evidence-verification-table" class="divide-y">
+                <tr id="cm-row-demo">
                   <td class="p-2.5">13-Sep-2026</td>
-                  <td class="p-2.5 font-medium text-slate-900">Bunnings Warehouse</td>
+                  <td class="p-2.5 font-bold text-[#1D2B53]">Demonstration Candidate</td>
+                  <td class="p-2.5">Bunnings Warehouse</td>
                   <td class="p-2.5">Team Member</td>
-                  <td class="p-2.5">Online (SEEK)</td>
-                  <td class="p-2.5 font-mono text-slate-700">SEEK Ref #BN-8821</td>
-                  <td class="p-2.5"><span class="status-badge px-2.5 py-1 bg-amber-100 text-amber-800 rounded-full font-bold">Submitted</span></td>
+                  <td class="p-2.5 font-mono text-[11px] text-blue-700">SEEK Ref #BN-8821</td>
+                  <td class="p-2.5"><span class="cm-status-badge px-2.5 py-1 bg-amber-100 text-amber-800 rounded-full font-bold">Submitted</span></td>
+                  <td class="p-2.5">
+                    <button onclick="verifyEvidenceRecord('ev-row-demo', 'cm-row-demo')" class="px-3 py-1 bg-[#4CAF50] text-white font-bold rounded hover:bg-emerald-600 transition">
+                      ✓ Mark Verified
+                    </button>
+                  </td>
                 </tr>
               </tbody>
             </table>
           </div>
         </div>
+
+        <!-- REPOSITIONED LIVE FEED -->
+        <div class="bg-white p-6 rounded-xl shadow-md border border-slate-200 space-y-4">
+          <h3 class="font-bold text-[#1D2B53] text-sm flex items-center justify-between border-b pb-3">
+            <span>📩 Live Candidate Activity Feed (Messages, Milestones & Monthly Indicators)</span>
+            <span class="text-xs text-slate-500 font-normal">Real-Time Transmission Log</span>
+          </h3>
+          <div id="cm-messages-feed" class="space-y-2 max-h-60 overflow-y-auto pr-1">
+            <div class="p-3 bg-slate-50 border rounded text-xs text-slate-500 italic">No incoming transmissions yet. Candidate milestone reports and monthly assessments will populate here dynamically.</div>
+          </div>
+        </div>
+
       </div>
 
-    </div>
-
-    <!-- 2. CASE MANAGER WORKSPACE (PBAS AUDITING, ROSTER & REPOSITIONED FEED) -->
-    <div id="workspace-casemanager" class="hidden space-y-8">
-      
-      <!-- Header Action Controls & Milestone Follow-Up Quick Buttons -->
-      <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-white p-6 rounded-xl shadow-md border border-slate-200">
-        <div>
-          <h2 class="text-2xl font-bold text-[#1D2B53]">Case Manager Command Center</h2>
-          <p class="text-xs text-slate-600">Audit PBAS compliance risk, review candidate actions, export dossiers, and onboard new candidates.</p>
-        </div>
-        <div class="flex flex-wrap gap-2.5">
-          <button onclick="window.CASE_MANAGER.filterRoster('milestone_interviews')" class="px-3.5 py-2 bg-white border-2 border-[#1D2B53] text-[#1D2B53] text-xs font-extrabold rounded-lg hover:bg-slate-50 transition shadow-sm">
-            🎯 Interview Follow-Ups
-          </button>
-          <button onclick="window.CASE_MANAGER.filterRoster('milestone_jobs')" class="px-3.5 py-2 bg-[#FFB74D] text-slate-950 text-xs font-extrabold rounded-lg hover:bg-amber-400 transition shadow-sm">
-            🎉 Placement Follow-Ups
-          </button>
-          <button onclick="window.CASE_MANAGER.filterRoster('messages_feed')" class="px-3.5 py-2 bg-[#9C27B0] text-white text-xs font-extrabold rounded-lg hover:bg-purple-800 transition shadow-sm">
-            💬 Candidate Messages
-          </button>
-          <button onclick="window.HELP_ENGINE.openHelpModal('case_manager')" class="px-3.5 py-2 bg-[#1D2B53] text-white text-xs font-bold rounded-lg hover:bg-slate-800 transition shadow-sm flex items-center gap-1 cursor-pointer">
-            ❓ Admin Support
-          </button>
-          <button onclick="window.CASE_MANAGER.downloadCaseloadReport()" class="px-3.5 py-2 bg-[#1D2B53] text-white text-xs font-bold rounded-lg hover:bg-slate-800 transition flex items-center gap-1.5 shadow">
-            📊 Export CSV
-          </button>
-          <button onclick="window.CASE_MANAGER.openInviteModal()" class="px-3.5 py-2 bg-[#4CAF50] text-white text-xs font-bold rounded-lg hover:bg-emerald-600 transition flex items-center gap-1.5 shadow">
-            ➕ Add Candidate
-          </button>
-        </div>
-      </div>
-
-      <!-- CLICKABLE CASELOAD OVERVIEW CARDS (WITH REVIEW NEEDED METRIC) -->
-      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <!-- 3. BUSINESS MANAGER WORKSPACE -->
+      <div id="workspace-business" class="hidden space-y-8">
         
-        <div onclick="window.CASE_MANAGER.filterRoster('all')" class="p-5 bg-white border-2 border-slate-200 hover:border-[#1D2B53] rounded-xl shadow-sm cursor-pointer transition space-y-2">
-          <span class="text-xs font-bold text-slate-500 uppercase tracking-wider block">Total Caseload</span>
-          <div class="flex items-baseline justify-between">
-            <span class="text-3xl font-extrabold text-[#1D2B53]">24</span>
-            <span class="text-xs text-blue-600 font-bold">View All →</span>
-          </div>
-          <p class="text-[11px] text-slate-500">Active & Placed Candidates</p>
-        </div>
-
-        <div onclick="window.CASE_MANAGER.filterRoster('pbas_ontrack')" class="p-5 bg-white border-2 border-slate-200 hover:border-[#4CAF50] rounded-xl shadow-sm cursor-pointer transition space-y-2">
-          <span class="text-xs font-bold text-slate-500 uppercase tracking-wider block">PBAS On Track</span>
-          <div class="flex items-baseline justify-between">
-            <span class="text-3xl font-extrabold text-[#4CAF50]">19</span>
-            <span class="text-xs text-emerald-600 font-bold">View List →</span>
-          </div>
-          <p class="text-[11px] text-slate-500">Meeting Monthly Points</p>
-        </div>
-
-        <div onclick="window.CASE_MANAGER.filterRoster('pbas_atrisk')" class="p-5 bg-white border-2 border-slate-200 hover:border-rose-500 rounded-xl shadow-sm cursor-pointer transition space-y-2 bg-rose-50/50">
-          <span class="text-xs font-bold text-rose-800 uppercase tracking-wider block">🚨 PBAS At Risk</span>
-          <div class="flex items-baseline justify-between">
-            <span class="text-3xl font-extrabold text-rose-600">5</span>
-            <span class="text-xs text-rose-700 font-bold">Filter Risk →</span>
-          </div>
-          <p class="text-[11px] text-rose-700 font-semibold">Requires Intervention</p>
-        </div>
-
-        <div onclick="window.CASE_MANAGER.filterRoster('review_needed')" class="p-5 bg-white border-2 border-[#FFB74D] rounded-xl shadow-sm cursor-pointer transition space-y-2 bg-amber-50/40">
-          <span class="text-xs font-bold text-amber-900 uppercase tracking-wider block">⚠️ Review Needed</span>
-          <div class="flex items-baseline justify-between">
-            <span class="text-3xl font-extrabold text-amber-600">2</span>
-            <span class="text-xs text-amber-800 font-bold">Sign Off →</span>
-          </div>
-          <p class="text-[11px] text-amber-800 font-medium">Pending Evidence / Monthly Task</p>
-        </div>
-
-      </div>
-
-      <!-- MAIN CASELOAD ROSTER TABLE (EXPANDED COLUMN WIDTHS & INTERACTIVE BOUNCING BADGES) -->
-      <div class="bg-white p-6 rounded-xl shadow-md border border-slate-200 space-y-4">
-        <div class="border-b pb-3 flex justify-between items-center">
-          <h3 id="cm-roster-title" class="font-bold text-[#1D2B53] text-base">Entire Caseload Roster</h3>
-          <button onclick="window.CASE_MANAGER.filterRoster('all')" class="text-xs text-blue-600 font-bold hover:underline">Reset Roster Filters</button>
-        </div>
-        <div class="overflow-x-auto">
-          <table class="w-full text-left text-xs text-slate-600">
-            <thead class="bg-slate-100 text-slate-800 font-semibold">
-              <tr>
-                <th class="p-3 min-w-[200px]">Candidate & Cycle Details</th>
-                <th class="p-3 min-w-[120px]">Status</th>
-                <th class="p-3 min-w-[170px]">PBAS Points</th>
-                <th class="p-3 min-w-[150px]">Action Status</th>
-                <th class="p-3">LMS Progress</th>
-                <th class="p-3">Last Active</th>
-                <th class="p-3">Case Manager Dossier Actions</th>
-              </tr>
-            </thead>
-            <tbody id="cm-roster-table-body" class="divide-y">
-              <!-- Dynamically populated via caseManagerEngine.js -->
-            </tbody>
-          </table>
-        </div>
-      </div>
-
-      <!-- VERIFIABLE JOB SEARCH AUDIT TABLE -->
-      <div class="bg-white p-6 rounded-xl shadow-md border border-slate-200 space-y-4">
-        <div class="border-b pb-3 flex justify-between items-center">
-          <div>
-            <h3 class="font-bold text-[#1D2B53] text-base">Candidate Job Search Verification Log</h3>
-            <p class="text-xs text-slate-500">Audit text-based application details and grant official compliance verification.</p>
-          </div>
-        </div>
-        <div class="overflow-x-auto">
-          <table class="w-full text-left text-xs text-slate-600">
-            <thead class="bg-slate-100 text-slate-800 font-semibold">
-              <tr>
-                <th class="p-2.5">Date</th>
-                <th class="p-2.5">Candidate</th>
-                <th class="p-2.5">Employer</th>
-                <th class="p-2.5">Position</th>
-                <th class="p-2.5">Contact / Ref #</th>
-                <th class="p-2.5">Status</th>
-                <th class="p-2.5">Case Manager Verification Action</th>
-              </tr>
-            </thead>
-            <tbody id="cm-evidence-verification-table" class="divide-y">
-              <tr id="cm-row-demo">
-                <td class="p-2.5">13-Sep-2026</td>
-                <td class="p-2.5 font-bold text-[#1D2B53]">Demonstration Candidate</td>
-                <td class="p-2.5">Bunnings Warehouse</td>
-                <td class="p-2.5">Team Member</td>
-                <td class="p-2.5 font-mono text-[11px] text-blue-700">SEEK Ref #BN-8821</td>
-                <td class="p-2.5"><span class="cm-status-badge px-2.5 py-1 bg-amber-100 text-amber-800 rounded-full font-bold">Submitted</span></td>
-                <td class="p-2.5">
-                  <button onclick="verifyEvidenceRecord('ev-row-demo', 'cm-row-demo')" class="px-3 py-1 bg-[#4CAF50] text-white font-bold rounded hover:bg-emerald-600 transition">
-                    ✓ Mark Verified
-                  </button>
-                </td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-      </div>
-
-      <!-- REPOSITIONED LIVE FEED (MOVED TO BOTTOM FOR CLEANER VISUAL FLOW) -->
-      <div class="bg-white p-6 rounded-xl shadow-md border border-slate-200 space-y-4">
-        <h3 class="font-bold text-[#1D2B53] text-sm flex items-center justify-between border-b pb-3">
-          <span>📩 Live Candidate Activity Feed (Messages, Milestones & Monthly Indicators)</span>
-          <span class="text-xs text-slate-500 font-normal">Real-Time Transmission Log</span>
-        </h3>
-        <div id="cm-messages-feed" class="space-y-2 max-h-60 overflow-y-auto pr-1">
-          <div class="p-3 bg-slate-50 border rounded text-xs text-slate-500 italic">No incoming transmissions yet. Candidate milestone reports and monthly assessments will populate here dynamically.</div>
-        </div>
-      </div>
-
-    </div>
-
-    <!-- 3. BUSINESS MANAGER WORKSPACE -->
-    <div id="workspace-business" class="hidden space-y-8">
-      
-      <!-- Executive Header & Seat Management Banner with HELP BUTTON -->
-      <div class="bg-white p-6 rounded-xl shadow-md border border-slate-200 space-y-6">
-        <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b pb-4">
-          <div>
-            <h2 class="text-2xl font-bold text-[#1D2B53]">Business Manager Executive Command Center</h2>
-            <p class="text-xs text-slate-600">Enterprise oversight, seat allocations, provider health, and staff onboarding.</p>
-          </div>
-          <div class="flex items-center gap-3">
-            <span id="bm-sub-status" class="px-3 py-1 bg-emerald-100 text-emerald-800 border border-emerald-300 text-xs font-bold rounded-full">
-              Active / Paid Up • Enterprise Tier
-            </span>
-            <button onclick="window.HELP_ENGINE.openHelpModal('business_manager')" class="px-3 py-2 bg-[#1D2B53] text-white text-xs font-bold rounded-lg hover:bg-slate-800 transition shadow flex items-center gap-1 cursor-pointer">
-              ❓ System Admin Escalation
-            </button>
-            <button onclick="window.BUSINESS_MANAGER.openOnboardModal()" class="px-4 py-2 bg-[#4CAF50] text-white text-xs font-bold rounded-lg hover:bg-emerald-600 transition shadow">
-              ➕ Onboard Candidate or Staff
-            </button>
-          </div>
-        </div>
-
-        <!-- Subscription & Seat Health Overview -->
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div class="p-4 bg-slate-50 border border-slate-200 rounded-lg space-y-2">
-            <div class="flex justify-between items-center">
-              <span class="text-xs font-bold text-slate-700">Candidate License Allocation</span>
-              <span id="bm-cand-seats-text" class="text-xs font-bold text-[#1D2B53]">24 / 50 Seats Used</span>
+        <!-- Executive Header & Seat Management Banner -->
+        <div class="bg-white p-6 rounded-xl shadow-md border border-slate-200 space-y-6">
+          <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b pb-4">
+            <div>
+              <h2 class="text-2xl font-bold text-[#1D2B53]">Business Manager Executive Command Center</h2>
+              <p class="text-xs text-slate-600">Enterprise oversight, seat allocations, provider health, and staff onboarding.</p>
             </div>
-            <div class="w-full bg-slate-200 h-2.5 rounded-full overflow-hidden">
-              <div id="bm-cand-seats-bar" class="bg-[#1D2B53] h-full" style="width: 48%"></div>
+            <div class="flex items-center gap-3">
+              <span id="bm-sub-status" class="px-3 py-1 bg-emerald-100 text-emerald-800 border border-emerald-300 text-xs font-bold rounded-full">
+                Active / Paid Up • Enterprise Tier
+              </span>
+              <button onclick="window.HELP_ENGINE.openHelpModal('business_manager')" class="px-3 py-2 bg-[#1D2B53] text-white text-xs font-bold rounded-lg hover:bg-slate-800 transition shadow flex items-center gap-1 cursor-pointer">
+                ❓ System Admin Escalation
+              </button>
+              <button onclick="window.BUSINESS_MANAGER.openOnboardModal()" class="px-4 py-2 bg-[#4CAF50] text-white text-xs font-bold rounded-lg hover:bg-emerald-600 transition shadow">
+                ➕ Onboard Candidate or Staff
+              </button>
             </div>
-            <p class="text-[11px] text-slate-500">26 Available Candidate Seats remaining on plan.</p>
           </div>
 
-          <div class="p-4 bg-slate-50 border border-slate-200 rounded-lg space-y-2">
-            <div class="flex justify-between items-center">
-              <span class="text-xs font-bold text-slate-700">Case Manager Staff Licenses</span>
-              <span id="bm-cm-seats-text" class="text-xs font-bold text-[#9C27B0]">3 / 5 Staff Licenses Active</span>
+          <!-- Subscription & Seat Health Overview -->
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div class="p-4 bg-slate-50 border border-slate-200 rounded-lg space-y-2">
+              <div class="flex justify-between items-center">
+                <span class="text-xs font-bold text-slate-700">Candidate License Allocation</span>
+                <span id="bm-cand-seats-text" class="text-xs font-bold text-[#1D2B53]">24 / 50 Seats Used</span>
+              </div>
+              <div class="w-full bg-slate-200 h-2.5 rounded-full overflow-hidden">
+                <div id="bm-cand-seats-bar" class="bg-[#1D2B53] h-full" style="width: 48%"></div>
+              </div>
+              <p class="text-[11px] text-slate-500">26 Available Candidate Seats remaining on plan.</p>
             </div>
-            <div class="w-full bg-slate-200 h-2.5 rounded-full overflow-hidden">
-              <div id="bm-cm-seats-bar" class="bg-[#9C27B0] h-full" style="width: 60%"></div>
+
+            <div class="p-4 bg-slate-50 border border-slate-200 rounded-lg space-y-2">
+              <div class="flex justify-between items-center">
+                <span class="text-xs font-bold text-slate-700">Case Manager Staff Licenses</span>
+                <span id="bm-cm-seats-text" class="text-xs font-bold text-[#9C27B0]">3 / 5 Staff Licenses Active</span>
+              </div>
+              <div class="w-full bg-slate-200 h-2.5 rounded-full overflow-hidden">
+                <div id="bm-cm-seats-bar" class="bg-[#9C27B0] h-full" style="width: 60%"></div>
+              </div>
+              <p class="text-[11px] text-slate-500">2 Available Case Manager licenses remaining.</p>
             </div>
-            <p class="text-[11px] text-slate-500">2 Available Case Manager licenses remaining.</p>
-          </div>
-        </div>
-      </div>
-
-      <!-- CLICKABLE EXECUTIVE COMPLIANCE OVERVIEW CARDS -->
-      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        
-        <div onclick="switchTab('casemanager'); window.CASE_MANAGER.filterRoster('all');" class="p-5 bg-white border-2 border-slate-200 hover:border-[#1D2B53] rounded-xl shadow-sm cursor-pointer transition space-y-2">
-          <span class="text-xs font-bold text-slate-500 uppercase tracking-wider block">Total Caseload Oversight</span>
-          <div class="flex items-baseline justify-between">
-            <span class="text-3xl font-extrabold text-[#1D2B53]">24</span>
-            <span class="text-xs text-blue-600 font-bold">Inspect Roster →</span>
-          </div>
-          <p class="text-[11px] text-slate-500">Enrolled Across All CMs</p>
-        </div>
-
-        <div onclick="switchTab('casemanager'); window.CASE_MANAGER.filterRoster('pbas_ontrack');" class="p-5 bg-white border-2 border-slate-200 hover:border-[#4CAF50] rounded-xl shadow-sm cursor-pointer transition space-y-2">
-          <span class="text-xs font-bold text-slate-500 uppercase tracking-wider block">Caseload PBAS On Track</span>
-          <div class="flex items-baseline justify-between">
-            <span class="text-3xl font-extrabold text-[#4CAF50]">19</span>
-            <span class="text-xs text-emerald-600 font-bold">View Details →</span>
-          </div>
-          <p class="text-[11px] text-slate-500">79% Provider Compliance</p>
-        </div>
-
-        <div onclick="switchTab('casemanager'); window.CASE_MANAGER.filterRoster('pbas_atrisk');" class="p-5 bg-white border-2 border-slate-200 hover:border-rose-500 rounded-xl shadow-sm cursor-pointer transition space-y-2 bg-rose-50/50">
-          <span class="text-xs font-bold text-rose-800 uppercase tracking-wider block">🚨 Caseload PBAS At Risk</span>
-          <div class="flex items-baseline justify-between">
-            <span class="text-3xl font-extrabold text-rose-600">5</span>
-            <span class="text-xs text-rose-700 font-bold">View At-Risk →</span>
-          </div>
-          <p class="text-[11px] text-rose-700 font-semibold">Requires Staff Follow-up</p>
-        </div>
-
-        <div onclick="switchTab('casemanager'); window.CASE_MANAGER.filterRoster('milestone_jobs');" class="p-5 bg-white border-2 border-slate-200 hover:border-[#9C27B0] rounded-xl shadow-sm cursor-pointer transition space-y-2">
-          <span class="text-xs font-bold text-slate-500 uppercase tracking-wider block">Successful Job Placements</span>
-          <div class="flex items-baseline justify-between">
-            <span class="text-3xl font-extrabold text-[#9C27B0]">9</span>
-            <span class="text-xs text-purple-700 font-bold">View Placements →</span>
-          </div>
-          <p class="text-[11px] text-slate-500">Active Employment Milestones</p>
-        </div>
-
-      </div>
-
-      <!-- CASE MANAGER STAFF ROSTER & OVERVIEW -->
-      <div class="bg-white p-6 rounded-xl shadow-md border border-slate-200 space-y-4">
-        <div class="border-b pb-3 flex justify-between items-center">
-          <div>
-            <h3 class="font-bold text-[#1D2B53] text-base">Case Manager Staff & Caseload Allocations</h3>
-            <p class="text-xs text-slate-500">Monitor staff licenses, assigned caseloads, and access individual Case Manager workspaces.</p>
-          </div>
-          <button onclick="window.BUSINESS_MANAGER.openOnboardModal()" class="text-xs text-blue-600 font-bold hover:underline">+ Add Case Manager</button>
-        </div>
-        <div class="overflow-x-auto">
-          <table class="w-full text-left text-xs text-slate-600">
-            <thead class="bg-slate-100 text-slate-800 font-semibold">
-              <tr>
-                <th class="p-3">Staff Name & Contact</th>
-                <th class="p-3">Active Caseload</th>
-                <th class="p-3">License Status</th>
-                <th class="p-3">Executive Action</th>
-              </tr>
-            </thead>
-            <tbody id="bm-staff-table-body" class="divide-y">
-              <!-- Dynamically populated via businessManagerEngine.js -->
-            </tbody>
-          </table>
-        </div>
-      </div>
-
-    </div>
-
-    <!-- 4. SYSTEM ADMIN WORKSPACE (PROVISIONING, CAPACITY & AUDIT LOGS) -->
-    <div id="workspace-admin" class="hidden space-y-8">
-      
-      <!-- System Admin Executive Header & Provisioning Control Bar -->
-      <div class="bg-white p-6 rounded-xl shadow-md border-2 border-red-500 space-y-6">
-        <div class="border-b pb-4 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-          <div>
-            <h2 class="text-2xl font-bold text-red-900">System Admin Master Command Console</h2>
-            <p class="text-xs text-slate-600">Provision Employment Providers, monitor seat capacity, track billing renewals, and inspect system audit logs.</p>
-          </div>
-          <div class="flex items-center gap-3">
-            <button onclick="window.SYSTEM_ADMIN.exportAuditLogsCSV()" class="px-4 py-2 bg-[#1D2B53] text-white text-xs font-bold rounded-lg hover:bg-slate-800 transition flex items-center gap-1.5 shadow">
-              📄 Export Security Audit Log (.CSV)
-            </button>
-            <button onclick="window.SYSTEM_ADMIN.openProviderModal()" class="px-4 py-2 bg-red-700 text-white text-xs font-bold rounded-lg hover:bg-red-800 transition shadow flex items-center gap-1.5">
-              ➕ Invite & Provision Provider
-            </button>
           </div>
         </div>
 
-        <!-- Master Seat Capacity & Subscription Health Banner -->
+        <!-- CLICKABLE EXECUTIVE COMPLIANCE OVERVIEW CARDS -->
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          <div class="p-4 bg-slate-50 border border-slate-200 rounded-lg space-y-1">
-            <span class="text-[10px] font-bold text-slate-500 uppercase block">Active Provider Orgs</span>
-            <div id="admin-prov-count" class="text-2xl font-extrabold text-[#1D2B53]">0</div>
-            <p class="text-[10px] text-slate-500">Employment Service Providers Enrolled</p>
-          </div>
-
-          <div class="p-4 bg-slate-50 border border-slate-200 rounded-lg space-y-1">
-            <span class="text-[10px] font-bold text-slate-500 uppercase block">Candidate Capacity Utilization</span>
-            <div id="admin-cand-capacity-text" class="text-xl font-bold text-[#1D2B53]">0 / 0 (0%)</div>
-            <div class="w-full bg-slate-200 h-2 rounded-full overflow-hidden mt-1">
-              <div id="admin-cand-capacity-bar" class="bg-[#1D2B53] h-full" style="width: 0%"></div>
+          <div onclick="switchTab('casemanager'); window.CASE_MANAGER.filterRoster('all');" class="p-5 bg-white border-2 border-slate-200 hover:border-[#1D2B53] rounded-xl shadow-sm cursor-pointer transition space-y-2">
+            <span class="text-xs font-bold text-slate-500 uppercase tracking-wider block">Total Caseload Oversight</span>
+            <div class="flex items-baseline justify-between">
+              <span class="text-3xl font-extrabold text-[#1D2B53]">24</span>
+              <span class="text-xs text-blue-600 font-bold">Inspect Roster →</span>
             </div>
+            <p class="text-[11px] text-slate-500">Enrolled Across All CMs</p>
           </div>
 
-          <div class="p-4 bg-slate-50 border border-slate-200 rounded-lg space-y-1">
-            <span class="text-[10px] font-bold text-slate-500 uppercase block">Case Manager Staff Licenses</span>
-            <div id="admin-cm-capacity-text" class="text-xl font-bold text-[#9C27B0]">0 / 0 (0%)</div>
-            <div class="w-full bg-slate-200 h-2 rounded-full overflow-hidden mt-1">
-              <div id="admin-cm-capacity-bar" class="bg-[#9C27B0] h-full" style="width: 0%"></div>
+          <div onclick="switchTab('casemanager'); window.CASE_MANAGER.filterRoster('pbas_ontrack');" class="p-5 bg-white border-2 border-slate-200 hover:border-[#4CAF50] rounded-xl shadow-sm cursor-pointer transition space-y-2">
+            <span class="text-xs font-bold text-slate-500 uppercase tracking-wider block">Caseload PBAS On Track</span>
+            <div class="flex items-baseline justify-between">
+              <span class="text-3xl font-extrabold text-[#4CAF50]">19</span>
+              <span class="text-xs text-emerald-600 font-bold">View Details →</span>
             </div>
+            <p class="text-[11px] text-slate-500">79% Provider Compliance</p>
           </div>
 
-          <div class="p-4 bg-amber-50/50 border border-amber-300 rounded-lg space-y-1">
-            <span class="text-[10px] font-bold text-amber-900 uppercase block">Subscription Renewal Alerts</span>
-            <div id="admin-renewals-text" class="text-lg font-bold text-amber-800">0 Due Soon • 0 Overdue</div>
-            <p class="text-[10px] text-amber-700">Billing Expirations Tracked</p>
+          <div onclick="switchTab('casemanager'); window.CASE_MANAGER.filterRoster('pbas_atrisk');" class="p-5 bg-white border-2 border-slate-200 hover:border-rose-500 rounded-xl shadow-sm cursor-pointer transition space-y-2 bg-rose-50/50">
+            <span class="text-xs font-bold text-rose-800 uppercase tracking-wider block">🚨 Caseload PBAS At Risk</span>
+            <div class="flex items-baseline justify-between">
+              <span class="text-3xl font-extrabold text-rose-600">5</span>
+              <span class="text-xs text-rose-700 font-bold">View At-Risk →</span>
+            </div>
+            <p class="text-[11px] text-rose-700 font-semibold">Requires Staff Follow-up</p>
+          </div>
+
+          <div onclick="switchTab('casemanager'); window.CASE_MANAGER.filterRoster('milestone_jobs');" class="p-5 bg-white border-2 border-slate-200 hover:border-[#9C27B0] rounded-xl shadow-sm cursor-pointer transition space-y-2">
+            <span class="text-xs font-bold text-slate-500 uppercase tracking-wider block">Successful Job Placements</span>
+            <div class="flex items-baseline justify-between">
+              <span class="text-3xl font-extrabold text-[#9C27B0]">9</span>
+              <span class="text-xs text-purple-700 font-bold">View Placements →</span>
+            </div>
+            <p class="text-[11px] text-slate-500">Active Employment Milestones</p>
           </div>
         </div>
+
+        <!-- CASE MANAGER STAFF ROSTER -->
+        <div class="bg-white p-6 rounded-xl shadow-md border border-slate-200 space-y-4">
+          <div class="border-b pb-3 flex justify-between items-center">
+            <div>
+              <h3 class="font-bold text-[#1D2B53] text-base">Case Manager Staff & Caseload Allocations</h3>
+              <p class="text-xs text-slate-500">Monitor staff licenses, assigned caseloads, and access individual Case Manager workspaces.</p>
+            </div>
+            <button onclick="window.BUSINESS_MANAGER.openOnboardModal()" class="text-xs text-blue-600 font-bold hover:underline">+ Add Case Manager</button>
+          </div>
+          <div class="overflow-x-auto">
+            <table class="w-full text-left text-xs text-slate-600">
+              <thead class="bg-slate-100 text-slate-800 font-semibold">
+                <tr>
+                  <th class="p-3">Staff Name & Contact</th>
+                  <th class="p-3">Active Caseload</th>
+                  <th class="p-3">License Status</th>
+                  <th class="p-3">Executive Action</th>
+                </tr>
+              </thead>
+              <tbody id="bm-staff-table-body" class="divide-y">
+                <!-- Dynamically populated via businessManagerEngine.js -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+
       </div>
 
-      <!-- MASTER PROVIDER PROVISIONING & CAPACITY ROSTER -->
-      <div class="bg-white p-6 rounded-xl shadow-md border border-slate-200 space-y-4">
-        <div class="border-b pb-3 flex justify-between items-center">
-          <div>
-            <h3 class="font-bold text-[#1D2B53] text-base">Employment Service Providers & License Allocations</h3>
-            <p class="text-xs text-slate-500">Monitor active seat usage, adjust capacity limits, and extend subscription renewals.</p>
-          </div>
-          <button onclick="window.SYSTEM_ADMIN.openProviderModal()" class="text-xs text-red-700 font-bold hover:underline">+ Provision New Provider</button>
-        </div>
-        <div class="overflow-x-auto">
-          <table class="w-full text-left text-xs text-slate-600">
-            <thead class="bg-slate-100 text-slate-800 font-semibold">
-              <tr>
-                <th class="p-3 min-w-[200px]">Provider Organization & Contact</th>
-                <th class="p-3 min-w-[150px]">Subscription & Billing Health</th>
-                <th class="p-3 min-w-[160px]">Candidate Capacity</th>
-                <th class="p-3">Staff Licenses</th>
-                <th class="p-3">System Actions</th>
-              </tr>
-            </thead>
-            <tbody id="admin-provider-table-body" class="divide-y">
-              <!-- Dynamically populated via systemAdminEngine.js -->
-            </tbody>
-          </table>
-        </div>
-      </div>
-
-      <!-- MASTER SECURITY AUDIT LOGS TABLE -->
-      <div class="bg-white p-6 rounded-xl shadow-md border border-slate-200 space-y-4">
-        <div class="border-b pb-3 flex flex-col md:flex-row justify-between items-start md:items-center gap-2">
-          <div>
-            <h3 id="admin-logs-title" class="font-bold text-[#1D2B53] text-base">Master Security Audit Log (Append-Only)</h3>
-            <p class="text-xs text-slate-500">Tamper-evident system activity, seat provisioning, and PBAS overrides.</p>
-          </div>
-          <div class="flex items-center gap-2">
-            <button onclick="window.SYSTEM_ADMIN.filterLogs('security_overrides')" class="px-2.5 py-1 bg-slate-100 hover:bg-slate-200 text-slate-800 text-xs font-semibold rounded border">
-              Security Overrides
-            </button>
-            <button onclick="window.SYSTEM_ADMIN.filterLogs('seat_provisioning')" class="px-2.5 py-1 bg-slate-100 hover:bg-slate-200 text-slate-800 text-xs font-semibold rounded border">
-              Seat Provisioning
-            </button>
-            <button onclick="window.SYSTEM_ADMIN.filterLogs('all')" class="px-2.5 py-1 bg-[#1D2B53] text-white text-xs font-bold rounded">
-              Reset Log Filters
-            </button>
-          </div>
-        </div>
-
-        <div class="overflow-x-auto">
-          <table class="w-full text-left text-xs text-slate-600">
-            <thead class="bg-slate-100 text-slate-800 font-semibold">
-              <tr>
-                <th class="p-2.5">Log ID</th>
-                <th class="p-2.5">Timestamp</th>
-                <th class="p-2.5">Actor & Role</th>
-                <th class="p-2.5">Action Code</th>
-                <th class="p-2.5">Target Resource</th>
-                <th class="p-2.5">IP Address</th>
-                <th class="p-2.5">Status</th>
-                <th class="p-2.5">Integrity Hash</th>
-              </tr>
-            </thead>
-            <tbody id="admin-audit-logs-table-body" class="divide-y">
-              <!-- Dynamically populated via systemAdminEngine.js -->
-            </tbody>
-          </table>
-        </div>
-      </div>
-
-    </div>
-
-  </main>
-
-  <!-- MODALS -->
-
-  <!-- UNIVERSAL HELP MODAL -->
-  <div id="universal-help-modal" class="fixed inset-0 bg-slate-900/70 backdrop-blur-sm hidden flex items-center justify-center p-4 z-50">
-    <div class="bg-white max-w-md w-full rounded-xl p-6 shadow-2xl space-y-4 border-2 border-[#1D2B53]">
-      <div class="flex justify-between items-center border-b pb-3">
-        <h3 id="help-modal-title" class="text-lg font-bold text-[#1D2B53]">Universal Support & Escalation</h3>
-        <button onclick="window.HELP_ENGINE.closeHelpModal()" class="text-slate-400 font-bold text-lg hover:text-slate-600 cursor-pointer">✕</button>
-      </div>
-      <p id="help-modal-desc" class="text-xs text-slate-600 leading-relaxed"></p>
-      
-      <form onsubmit="window.HELP_ENGINE.submitHelpTicket(event)" class="space-y-3">
-        <input type="hidden" id="help-sender-role" value="jobseeker">
+      <!-- 4. SYSTEM ADMIN WORKSPACE -->
+      <div id="workspace-admin" class="hidden space-y-8">
         
-        <div class="p-2 bg-slate-50 border rounded text-[11px] font-bold text-slate-700" id="help-target-label">
-          Assigned Recipient: Support
+        <!-- Executive Header & Provisioning Controls -->
+        <div class="bg-white p-6 rounded-xl shadow-md border-2 border-red-500 space-y-6">
+          <div class="border-b pb-4 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+            <div>
+              <h2 class="text-2xl font-bold text-red-900">System Admin Master Command Console</h2>
+              <p class="text-xs text-slate-600">Provision Employment Providers, monitor seat capacity, track billing renewals, and inspect system audit logs.</p>
+            </div>
+            <div class="flex items-center gap-3">
+              <button onclick="window.SYSTEM_ADMIN.exportAuditLogsCSV()" class="px-4 py-2 bg-[#1D2B53] text-white text-xs font-bold rounded-lg hover:bg-slate-800 transition shadow flex items-center gap-1.5">
+                📄 Export Security Audit Log (.CSV)
+              </button>
+              <button onclick="window.SYSTEM_ADMIN.openProviderModal()" class="px-4 py-2 bg-red-700 text-white text-xs font-bold rounded-lg hover:bg-red-800 transition shadow flex items-center gap-1.5">
+                ➕ Invite & Provision Provider
+              </button>
+            </div>
+          </div>
+
+          <!-- Capacity Utilization Indicators -->
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div class="p-4 bg-slate-50 border border-slate-200 rounded-lg space-y-1">
+              <span class="text-[10px] font-bold text-slate-500 uppercase block">Active Provider Orgs</span>
+              <div id="admin-prov-count" class="text-2xl font-extrabold text-[#1D2B53]">0</div>
+              <p class="text-[10px] text-slate-500">Employment Service Providers Enrolled</p>
+            </div>
+
+            <div class="p-4 bg-slate-50 border border-slate-200 rounded-lg space-y-1">
+              <span class="text-[10px] font-bold text-slate-500 uppercase block">Candidate Capacity Utilization</span>
+              <div id="admin-cand-capacity-text" class="text-xl font-bold text-[#1D2B53]">0 / 0 (0%)</div>
+              <div class="w-full bg-slate-200 h-2 rounded-full overflow-hidden mt-1">
+                <div id="admin-cand-capacity-bar" class="bg-[#1D2B53] h-full" style="width: 0%"></div>
+              </div>
+            </div>
+
+            <div class="p-4 bg-slate-50 border border-slate-200 rounded-lg space-y-1">
+              <span class="text-[10px] font-bold text-slate-500 uppercase block">Case Manager Staff Licenses</span>
+              <div id="admin-cm-capacity-text" class="text-xl font-bold text-[#9C27B0]">0 / 0 (0%)</div>
+              <div class="w-full bg-slate-200 h-2 rounded-full overflow-hidden mt-1">
+                <div id="admin-cm-capacity-bar" class="bg-[#9C27B0] h-full" style="width: 0%"></div>
+              </div>
+            </div>
+
+            <div class="p-4 bg-amber-50/50 border border-amber-300 rounded-lg space-y-1">
+              <span class="text-[10px] font-bold text-amber-900 uppercase block">Subscription Renewal Alerts</span>
+              <div id="admin-renewals-text" class="text-lg font-bold text-amber-800">0 Due Soon • 0 Overdue</div>
+              <p class="text-[10px] text-amber-700">Billing Expirations Tracked</p>
+            </div>
+          </div>
         </div>
 
-        <div>
-          <label class="block text-xs font-semibold text-slate-700 mb-1">Select Support Category</label>
-          <select id="help-topic-select" class="w-full p-2.5 border border-slate-300 rounded-lg text-sm bg-white">
-            <option value="General Query">General Question / Guidance</option>
-            <option value="PBAS / Points Help">PBAS Points & Hours Question</option>
-            <option value="Technical Issue">Technical Problem / Bug Report</option>
-            <option value="Account / Seat Request">Account Access / Seat License Request</option>
-          </select>
+        <!-- Provider Provisioning Roster Table -->
+        <div class="bg-white p-6 rounded-xl shadow-md border border-slate-200 space-y-4">
+          <div class="border-b pb-3 flex justify-between items-center">
+            <div>
+              <h3 class="font-bold text-[#1D2B53] text-base">Employment Service Providers & License Allocations</h3>
+              <p class="text-xs text-slate-500">Monitor active seat usage, adjust capacity limits, and extend subscription renewals.</p>
+            </div>
+            <button onclick="window.SYSTEM_ADMIN.openProviderModal()" class="text-xs text-red-700 font-bold hover:underline">+ Provision New Provider</button>
+          </div>
+          <div class="overflow-x-auto">
+            <table class="w-full text-left text-xs text-slate-600">
+              <thead class="bg-slate-100 text-slate-800 font-semibold">
+                <tr>
+                  <th class="p-3 min-w-[200px]">Provider Organization & Contact</th>
+                  <th class="p-3 min-w-[150px]">Subscription & Billing Health</th>
+                  <th class="p-3 min-w-[160px]">Candidate Capacity</th>
+                  <th class="p-3">Staff Licenses</th>
+                  <th class="p-3">System Actions</th>
+                </tr>
+              </thead>
+              <tbody id="admin-provider-table-body" class="divide-y">
+                <!-- Dynamically populated via systemAdminEngine.js -->
+              </tbody>
+            </table>
+          </div>
         </div>
 
-        <div>
-          <label class="block text-xs font-semibold text-slate-700 mb-1">Your Message Details</label>
-          <textarea id="help-message-text" rows="4" required class="w-full p-2.5 border border-slate-300 rounded-lg text-sm" placeholder="Type message details or support question here..."></textarea>
+        <!-- Master Security Audit Log -->
+        <div class="bg-white p-6 rounded-xl shadow-md border border-slate-200 space-y-4">
+          <div class="border-b pb-3 flex flex-col md:flex-row justify-between items-start md:items-center gap-2">
+            <div>
+              <h3 id="admin-logs-title" class="font-bold text-[#1D2B53] text-base">Master Security Audit Log (Append-Only)</h3>
+              <p class="text-xs text-slate-500">Tamper-evident system activity, seat provisioning, and PBAS overrides.</p>
+            </div>
+            <div class="flex items-center gap-2">
+              <button onclick="window.SYSTEM_ADMIN.filterLogs('security_overrides')" class="px-2.5 py-1 bg-slate-100 hover:bg-slate-200 text-slate-800 text-xs font-semibold rounded border">
+                Security Overrides
+              </button>
+              <button onclick="window.SYSTEM_ADMIN.filterLogs('seat_provisioning')" class="px-2.5 py-1 bg-slate-100 hover:bg-slate-200 text-slate-800 text-xs font-semibold rounded border">
+                Seat Provisioning
+              </button>
+              <button onclick="window.SYSTEM_ADMIN.filterLogs('all')" class="px-2.5 py-1 bg-[#1D2B53] text-white text-xs font-bold rounded">
+                Reset Log Filters
+              </button>
+            </div>
+          </div>
+
+          <div class="overflow-x-auto">
+            <table class="w-full text-left text-xs text-slate-600">
+              <thead class="bg-slate-100 text-slate-800 font-semibold">
+                <tr>
+                  <th class="p-2.5">Log ID</th>
+                  <th class="p-2.5">Timestamp</th>
+                  <th class="p-2.5">Actor & Role</th>
+                  <th class="p-2.5">Action Code</th>
+                  <th class="p-2.5">Target Resource</th>
+                  <th class="p-2.5">IP Address</th>
+                  <th class="p-2.5">Status</th>
+                  <th class="p-2.5">Integrity Hash</th>
+                </tr>
+              </thead>
+              <tbody id="admin-audit-logs-table-body" class="divide-y">
+                <!-- Dynamically populated via systemAdminEngine.js -->
+              </tbody>
+            </table>
+          </div>
         </div>
 
-        <div class="flex gap-2 pt-2">
-          <button type="button" onclick="window.HELP_ENGINE.closeHelpModal()" class="w-1/2 py-2 bg-slate-200 text-slate-800 font-medium rounded">Cancel</button>
-          <button type="submit" class="w-1/2 py-2 bg-[#1D2B53] text-white font-bold rounded hover:bg-slate-800 transition shadow">Transmit Ticket</button>
-        </div>
-      </form>
-    </div>
-  </div>
-
-  <!-- PROVIDER PROVISIONING MODAL -->
-  <div id="admin-provider-modal" class="fixed inset-0 bg-slate-900/70 backdrop-blur-sm hidden flex items-center justify-center p-4 z-50">
-    <div class="bg-white max-w-md w-full rounded-xl p-6 shadow-2xl space-y-4 border-2 border-red-700">
-      <div class="flex justify-between items-center border-b pb-3">
-        <h3 class="text-lg font-bold text-red-900">Provision Employment Provider Organization</h3>
-        <button onclick="window.SYSTEM_ADMIN.closeProviderModal()" class="text-slate-400 font-bold">✕</button>
       </div>
-      <form onsubmit="window.SYSTEM_ADMIN.handleCreateProvider(event)" class="space-y-3">
-        <div>
-          <label class="block text-xs font-semibold text-slate-700 mb-1">Provider Organization Name</label>
-          <input type="text" id="prov-name" required class="w-full p-2.5 border border-slate-300 rounded-lg text-sm" placeholder="e.g. Apex Employment Solutions">
+
+    </main>
+
+    <!-- MODALS -->
+
+    <!-- UNIVERSAL HELP MODAL -->
+    <div id="universal-help-modal" class="fixed inset-0 bg-slate-900/70 backdrop-blur-sm hidden flex items-center justify-center p-4 z-50">
+      <div class="bg-white max-w-md w-full rounded-xl p-6 shadow-2xl space-y-4 border-2 border-[#1D2B53]">
+        <div class="flex justify-between items-center border-b pb-3">
+          <h3 id="help-modal-title" class="text-lg font-bold text-[#1D2B53]">Universal Support & Escalation</h3>
+          <button onclick="window.HELP_ENGINE.closeHelpModal()" class="text-slate-400 font-bold text-lg hover:text-slate-600 cursor-pointer">✕</button>
         </div>
-        <div>
-          <label class="block text-xs font-semibold text-slate-700 mb-1">Primary Contact Full Name</label>
-          <input type="text" id="prov-contact-name" required class="w-full p-2.5 border border-slate-300 rounded-lg text-sm" placeholder="e.g. Mark Robinson">
-        </div>
-        <div>
-          <label class="block text-xs font-semibold text-slate-700 mb-1">Contact Email Address</label>
-          <input type="email" id="prov-email" required class="w-full p-2.5 border border-slate-300 rounded-lg text-sm" placeholder="e.g. m.robinson@apex.org.au">
-        </div>
-        <div class="grid grid-cols-2 gap-2">
+        <p id="help-modal-desc" class="text-xs text-slate-600 leading-relaxed"></p>
+        
+        <form onsubmit="window.HELP_ENGINE.submitHelpTicket(event)" class="space-y-3">
+          <input type="hidden" id="help-sender-role" value="jobseeker">
+          
+          <div class="p-2 bg-slate-50 border rounded text-[11px] font-bold text-slate-700" id="help-target-label">
+            Assigned Recipient: Support
+          </div>
+
           <div>
-            <label class="block text-xs font-semibold text-slate-700 mb-1">Subscription Plan Tier</label>
-            <select id="prov-tier" class="w-full p-2 border border-slate-300 rounded-lg text-xs bg-white">
-              <option value="Enterprise Provider">Enterprise Tier (50+ Seats)</option>
-              <option value="Standard Provider">Standard Tier (25-50 Seats)</option>
-              <option value="Starter Provider">Starter Tier (1-25 Seats)</option>
+            <label class="block text-xs font-semibold text-slate-700 mb-1">Select Support Category</label>
+            <select id="help-topic-select" class="w-full p-2.5 border border-slate-300 rounded-lg text-sm bg-white">
+              <option value="General Query">General Question / Guidance</option>
+              <option value="PBAS / Points Help">PBAS Points & Hours Question</option>
+              <option value="Technical Issue">Technical Problem / Bug Report</option>
+              <option value="Account / Seat Request">Account Access / Seat License Request</option>
+            </select>
+          </div>
+
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 mb-1">Your Message Details</label>
+            <textarea id="help-message-text" rows="4" required class="w-full p-2.5 border border-slate-300 rounded-lg text-sm" placeholder="Type message details or support question here..."></textarea>
+          </div>
+
+          <div class="flex gap-2 pt-2">
+            <button type="button" onclick="window.HELP_ENGINE.closeHelpModal()" class="w-1/2 py-2 bg-slate-200 text-slate-800 font-medium rounded">Cancel</button>
+            <button type="submit" class="w-1/2 py-2 bg-[#1D2B53] text-white font-bold rounded hover:bg-slate-800 transition shadow">Transmit Ticket</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- PROVIDER PROVISIONING MODAL -->
+    <div id="admin-provider-modal" class="fixed inset-0 bg-slate-900/70 backdrop-blur-sm hidden flex items-center justify-center p-4 z-50">
+      <div class="bg-white max-w-md w-full rounded-xl p-6 shadow-2xl space-y-4 border-2 border-red-700">
+        <div class="flex justify-between items-center border-b pb-3">
+          <h3 class="text-lg font-bold text-red-900">Provision Employment Provider Organization</h3>
+          <button onclick="window.SYSTEM_ADMIN.closeProviderModal()" class="text-slate-400 font-bold">✕</button>
+        </div>
+        <form onsubmit="window.SYSTEM_ADMIN.handleCreateProvider(event)" class="space-y-3">
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 mb-1">Provider Organization Name</label>
+            <input type="text" id="prov-name" required class="w-full p-2.5 border border-slate-300 rounded-lg text-sm" placeholder="e.g. Apex Employment Solutions">
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 mb-1">Primary Contact Full Name</label>
+            <input type="text" id="prov-contact-name" required class="w-full p-2.5 border border-slate-300 rounded-lg text-sm" placeholder="e.g. Mark Robinson">
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 mb-1">Contact Email Address</label>
+            <input type="email" id="prov-email" required class="w-full p-2.5 border border-slate-300 rounded-lg text-sm" placeholder="e.g. m.robinson@apex.org.au">
+          </div>
+          <div class="grid grid-cols-2 gap-2">
+            <div>
+              <label class="block text-xs font-semibold text-slate-700 mb-1">Subscription Plan Tier</label>
+              <select id="prov-tier" class="w-full p-2 border border-slate-300 rounded-lg text-xs bg-white">
+                <option value="Enterprise Provider">Enterprise Tier (50+ Seats)</option>
+                <option value="Standard Provider">Standard Tier (25-50 Seats)</option>
+                <option value="Starter Provider">Starter Tier (1-25 Seats)</option>
+              </select>
+            </div>
+            <div>
+              <label class="block text-xs font-semibold text-slate-700 mb-1">Candidate Seat Limit</label>
+              <input type="number" id="prov-cand-seats" required min="5" value="50" class="w-full p-2 border border-slate-300 rounded-lg text-xs">
+            </div>
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 mb-1">Case Manager Licenses Allowed</label>
+            <input type="number" id="prov-cm-seats" required min="1" value="5" class="w-full p-2.5 border border-slate-300 rounded-lg text-sm">
+          </div>
+          <div class="flex gap-2 pt-2">
+            <button type="button" onclick="window.SYSTEM_ADMIN.closeProviderModal()" class="w-1/2 py-2 bg-slate-200 text-slate-800 font-medium rounded">Cancel</button>
+            <button type="submit" class="w-1/2 py-2 bg-red-700 text-white font-bold rounded hover:bg-red-800 transition shadow">Provision & Setup Access</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- BUSINESS MANAGER ONBOARDING MODAL -->
+    <div id="bm-onboard-modal" class="fixed inset-0 bg-slate-900/70 backdrop-blur-sm hidden flex items-center justify-center p-4 z-50">
+      <div class="bg-white max-w-md w-full rounded-xl p-6 shadow-2xl space-y-4 border-2 border-[#1D2B53]">
+        <div class="flex justify-between items-center border-b pb-3">
+          <h3 class="text-lg font-bold text-[#1D2B53]">Onboard Candidate or Staff Member</h3>
+          <button onclick="window.BUSINESS_MANAGER.closeOnboardModal()" class="text-slate-400 font-bold">✕</button>
+        </div>
+        <form onsubmit="window.BUSINESS_MANAGER.handleOnboardSubmit(event)" class="space-y-3">
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 mb-1">Select User Role to Add</label>
+            <select id="bm-onboard-role" class="w-full p-2.5 border border-slate-300 rounded-lg text-sm bg-white">
+              <option value="candidate">Candidate (Consumes 1 Candidate Seat)</option>
+              <option value="case_manager">Case Manager (Consumes 1 Staff License)</option>
             </select>
           </div>
           <div>
-            <label class="block text-xs font-semibold text-slate-700 mb-1">Candidate Seat Limit</label>
-            <input type="number" id="prov-cand-seats" required min="5" value="50" class="w-full p-2 border border-slate-300 rounded-lg text-xs">
-          </div>
-        </div>
-        <div>
-          <label class="block text-xs font-semibold text-slate-700 mb-1">Case Manager Licenses Allowed</label>
-          <input type="number" id="prov-cm-seats" required min="1" value="5" class="w-full p-2.5 border border-slate-300 rounded-lg text-sm">
-        </div>
-        <div class="flex gap-2 pt-2">
-          <button type="button" onclick="window.SYSTEM_ADMIN.closeProviderModal()" class="w-1/2 py-2 bg-slate-200 text-slate-800 font-medium rounded">Cancel</button>
-          <button type="submit" class="w-1/2 py-2 bg-red-700 text-white font-bold rounded hover:bg-red-800 transition shadow">Provision & Setup Access</button>
-        </div>
-      </form>
-    </div>
-  </div>
-
-  <!-- BUSINESS MANAGER ONBOARDING MODAL -->
-  <div id="bm-onboard-modal" class="fixed inset-0 bg-slate-900/70 backdrop-blur-sm hidden flex items-center justify-center p-4 z-50">
-    <div class="bg-white max-w-md w-full rounded-xl p-6 shadow-2xl space-y-4 border-2 border-[#1D2B53]">
-      <div class="flex justify-between items-center border-b pb-3">
-        <h3 class="text-lg font-bold text-[#1D2B53]">Onboard Candidate or Staff Member</h3>
-        <button onclick="window.BUSINESS_MANAGER.closeOnboardModal()" class="text-slate-400 font-bold">✕</button>
-      </div>
-      <form onsubmit="window.BUSINESS_MANAGER.handleOnboardSubmit(event)" class="space-y-3">
-        <div>
-          <label class="block text-xs font-semibold text-slate-700 mb-1">Select User Role to Add</label>
-          <select id="bm-onboard-role" class="w-full p-2.5 border border-slate-300 rounded-lg text-sm bg-white">
-            <option value="candidate">Candidate (Consumes 1 Candidate Seat)</option>
-            <option value="case_manager">Case Manager (Consumes 1 Staff License)</option>
-          </select>
-        </div>
-        <div>
-          <label class="block text-xs font-semibold text-slate-700 mb-1">Full Name</label>
-          <input type="text" id="bm-onboard-name" required class="w-full p-2.5 border border-slate-300 rounded-lg text-sm" placeholder="e.g. David Miller">
-        </div>
-        <div>
-          <label class="block text-xs font-semibold text-slate-700 mb-1">Email Address</label>
-          <input type="email" id="bm-onboard-email" required class="w-full p-2.5 border border-slate-300 rounded-lg text-sm" placeholder="e.g. d.miller@example.com">
-        </div>
-        <div class="flex gap-2 pt-2">
-          <button type="button" onclick="window.BUSINESS_MANAGER.closeOnboardModal()" class="w-1/2 py-2 bg-slate-200 text-slate-800 font-medium rounded">Cancel</button>
-          <button type="submit" class="w-1/2 py-2 bg-[#4CAF50] text-white font-bold rounded hover:bg-emerald-600 transition shadow">Assign Seat & Invite</button>
-        </div>
-      </form>
-    </div>
-  </div>
-
-  <!-- PBAS ACTIVITY LOGGER MODAL -->
-  <div id="pbas-log-modal" class="fixed inset-0 bg-slate-900/70 backdrop-blur-sm hidden flex items-center justify-center p-4 z-50">
-    <div class="bg-white max-w-md w-full rounded-xl p-6 shadow-2xl space-y-4 border-2 border-[#1D2B53]">
-      <div class="flex justify-between items-center border-b pb-3">
-        <h3 class="text-lg font-bold text-[#1D2B53]">Log Shift Hours or Activity</h3>
-        <button onclick="window.PBAS_ENGINE.closeLogActivityModal()" class="text-slate-400 font-bold">✕</button>
-      </div>
-      <form onsubmit="window.PBAS_ENGINE.handleLogActivitySubmit(event)" class="space-y-3">
-        <div>
-          <label class="block text-xs font-semibold text-slate-700 mb-1">Select Activity Type</label>
-          <select id="pbas-act-type" class="w-full p-2.5 border border-slate-300 rounded-lg text-sm bg-white">
-            <option value="paid_work">Paid Work (5 pts per 5 hours)</option>
-            <option value="interview">Attended Job Interview (25 pts)</option>
-            <option value="license">Work License / Ticket Earned (20 pts)</option>
-            <option value="voluntary">Voluntary Work (5 pts per 5 hours)</option>
-          </select>
-        </div>
-        <div>
-          <label class="block text-xs font-semibold text-slate-700 mb-1">Description / Employer</label>
-          <input type="text" id="pbas-act-desc" required class="w-full p-2.5 border border-slate-300 rounded-lg text-sm" placeholder="e.g. Retail Casual Shift at Coles">
-        </div>
-        <div>
-          <label class="block text-xs font-semibold text-slate-700 mb-1">Shift Hours / Count</label>
-          <input type="number" id="pbas-act-val" required min="1" step="0.5" class="w-full p-2.5 border border-slate-300 rounded-lg text-sm" placeholder="e.g. 10 (for 10 hours worked)">
-        </div>
-        <div class="flex gap-2 pt-2">
-          <button type="button" onclick="window.PBAS_ENGINE.closeLogActivityModal()" class="w-1/2 py-2 bg-slate-200 text-slate-800 font-medium rounded">Cancel</button>
-          <button type="submit" class="w-1/2 py-2 bg-[#4CAF50] text-white font-bold rounded hover:bg-emerald-600 transition shadow">Log Shift & Earn Points</button>
-        </div>
-      </form>
-    </div>
-  </div>
-
-  <!-- INVITE CANDIDATE MODAL -->
-  <div id="cm-invite-modal" class="fixed inset-0 bg-slate-900/70 backdrop-blur-sm hidden flex items-center justify-center p-4 z-50">
-    <div class="bg-white max-w-md w-full rounded-xl p-6 shadow-2xl space-y-4 border-2 border-[#1D2B53]">
-      <div class="flex justify-between items-center border-b pb-3">
-        <h3 class="text-lg font-bold text-[#1D2B53]">Invite Candidate & Set Reporting Cycle</h3>
-        <button onclick="window.CASE_MANAGER.closeInviteModal()" class="text-slate-400 font-bold">✕</button>
-      </div>
-      <form onsubmit="window.CASE_MANAGER.handleSendInvite(event)" class="space-y-3">
-        <div>
-          <label class="block text-xs font-semibold text-slate-700 mb-1">Candidate Full Name</label>
-          <input type="text" id="inv-fullname" required class="w-full p-2.5 border border-slate-300 rounded-lg text-sm" placeholder="e.g. Michael Taylor">
-        </div>
-        <div>
-          <label class="block text-xs font-semibold text-slate-700 mb-1">Email Address</label>
-          <input type="email" id="inv-email" required class="w-full p-2.5 border border-slate-300 rounded-lg text-sm" placeholder="e.g. m.taylor@example.com">
-        </div>
-        <div>
-          <label class="block text-xs font-semibold text-slate-700 mb-1">Mobile Phone (Optional)</label>
-          <input type="text" id="inv-phone" class="w-full p-2.5 border border-slate-300 rounded-lg text-sm" placeholder="e.g. 0411 222 333">
-        </div>
-        <div class="grid grid-cols-2 gap-2 p-3 bg-slate-50 border rounded-lg">
-          <div class="col-span-2 text-[11px] font-bold text-[#1D2B53]">Assigned PBAS Reporting Cycle (30 Days)</div>
-          <div>
-            <label class="block text-[10px] font-semibold text-slate-600 mb-0.5">Cycle Start Date</label>
-            <input type="date" id="inv-cycle-start" required class="w-full p-2 border rounded text-xs bg-white">
+            <label class="block text-xs font-semibold text-slate-700 mb-1">Full Name</label>
+            <input type="text" id="bm-onboard-name" required class="w-full p-2.5 border border-slate-300 rounded-lg text-sm" placeholder="e.g. David Miller">
           </div>
           <div>
-            <label class="block text-[10px] font-semibold text-slate-600 mb-0.5">Cycle End Date</label>
-            <input type="date" id="inv-cycle-end" required class="w-full p-2 border rounded text-xs bg-white">
+            <label class="block text-xs font-semibold text-slate-700 mb-1">Email Address</label>
+            <input type="email" id="bm-onboard-email" required class="w-full p-2.5 border border-slate-300 rounded-lg text-sm" placeholder="e.g. d.miller@example.com">
           </div>
-        </div>
-        <div class="flex gap-2 pt-2">
-          <button type="button" onclick="window.CASE_MANAGER.closeInviteModal()" class="w-1/2 py-2 bg-slate-200 text-slate-800 font-medium rounded">Cancel</button>
-          <button type="submit" class="w-1/2 py-2 bg-[#4CAF50] text-white font-bold rounded hover:bg-emerald-600 transition shadow">Send Portal Access Link</button>
-        </div>
-      </form>
-    </div>
-  </div>
-
-  <!-- LMS STUDY MATERIAL MODAL -->
-  <div id="module-content-modal" class="fixed inset-0 bg-slate-900/70 backdrop-blur-sm hidden flex items-center justify-center p-4 z-50 overflow-y-auto">
-    <div class="bg-white max-w-3xl w-full rounded-2xl p-6 shadow-2xl space-y-6 my-8 border border-slate-200">
-      <div class="flex items-center justify-between border-b pb-3">
-        <h3 id="mod-modal-title" class="text-xl font-bold text-[#1D2B53]">Module Material</h3>
-        <button onclick="closeModuleModal()" class="text-slate-400 hover:text-slate-600 font-bold text-lg">✕</button>
-      </div>
-
-      <div class="relative w-full aspect-video bg-slate-900 rounded-xl overflow-hidden shadow-inner flex items-center justify-center text-white">
-        <iframe id="mod-modal-video" class="w-full h-full" src="" title="Tutorial Video" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
-      </div>
-
-      <div class="p-5 bg-slate-50 border border-slate-200 rounded-lg space-y-4 max-h-[40vh] overflow-y-auto">
-        <h4 class="font-bold text-[#1D2B53] text-base border-b pb-2">15 Key Learning Points & In-Depth Guide</h4>
-        <div id="mod-modal-text" class="text-xs text-slate-700 leading-relaxed space-y-2"></div>
-      </div>
-
-      <div class="p-3 bg-purple-50 border border-purple-200 rounded-lg flex items-center justify-between text-xs">
-        <span class="font-bold text-purple-900">Rate Your Confidence Level for This Topic:</span>
-        <select id="mod-confidence-rating" onchange="saveModuleConfidence(this.value)" class="p-1 border border-purple-300 rounded bg-white text-slate-800">
-          <option value="1">⭐☆☆☆☆ Needs Review</option>
-          <option value="2">⭐⭐☆☆☆ Developing</option>
-          <option value="3" selected>⭐⭐⭐☆☆ Moderate</option>
-          <option value="4">⭐⭐⭐⭐☆ High</option>
-          <option value="5">⭐⭐⭐⭐⭐ Fully Prepared</option>
-        </select>
-      </div>
-
-      <div class="flex gap-3 pt-2">
-        <button onclick="closeModuleModal()" class="w-1/2 py-2.5 bg-slate-200 text-slate-800 font-bold rounded-lg hover:bg-slate-300">Close Guide</button>
-        <button onclick="launchModuleQuiz()" class="w-1/2 py-2.5 bg-[#4CAF50] text-white font-bold rounded-lg hover:bg-emerald-600 transition">Take 8-Question Quiz</button>
+          <div class="flex gap-2 pt-2">
+            <button type="button" onclick="window.BUSINESS_MANAGER.closeOnboardModal()" class="w-1/2 py-2 bg-slate-200 text-slate-800 font-medium rounded">Cancel</button>
+            <button type="submit" class="w-1/2 py-2 bg-[#4CAF50] text-white font-bold rounded hover:bg-emerald-600 transition shadow">Assign Seat & Invite</button>
+          </div>
+        </form>
       </div>
     </div>
-  </div>
 
-  <!-- LMS QUIZ MODAL -->
-  <div id="quiz-modal" class="fixed inset-0 bg-slate-900/70 backdrop-blur-sm hidden flex items-center justify-center p-4 z-50 overflow-y-auto">
-    <div class="bg-white max-w-2xl w-full rounded-xl p-6 shadow-2xl space-y-6 my-8">
-      <div class="flex items-center justify-between border-b pb-3">
-        <h3 id="quiz-title" class="text-xl font-bold text-[#1D2B53]">8-Question Assessment Quiz</h3>
-        <button onclick="closeQuizModal()" class="text-slate-400 hover:text-slate-600 font-bold">✕</button>
-      </div>
-
-      <form id="quiz-form" onsubmit="handleQuizSubmit(event)" class="space-y-6">
-        <div id="quiz-questions-container" class="space-y-4 max-h-[60vh] overflow-y-auto pr-2"></div>
-        <div class="flex gap-3 pt-3 border-t">
-          <button type="button" onclick="closeQuizModal()" class="w-1/2 py-2.5 bg-slate-200 text-slate-800 font-medium rounded-lg">Cancel</button>
-          <button type="submit" class="w-1/2 py-2.5 bg-[#4CAF50] text-white font-bold rounded-lg hover:bg-emerald-600">Submit Quiz & Generate Certificate</button>
+    <!-- PBAS ACTIVITY LOGGER MODAL -->
+    <div id="pbas-log-modal" class="fixed inset-0 bg-slate-900/70 backdrop-blur-sm hidden flex items-center justify-center p-4 z-50">
+      <div class="bg-white max-w-md w-full rounded-xl p-6 shadow-2xl space-y-4 border-2 border-[#1D2B53]">
+        <div class="flex justify-between items-center border-b pb-3">
+          <h3 class="text-lg font-bold text-[#1D2B53]">Log Shift Hours or Activity</h3>
+          <button onclick="window.PBAS_ENGINE.closeLogActivityModal()" class="text-slate-400 font-bold">✕</button>
         </div>
-      </form>
+        <form onsubmit="window.PBAS_ENGINE.handleLogActivitySubmit(event)" class="space-y-3">
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 mb-1">Select Activity Type</label>
+            <select id="pbas-act-type" class="w-full p-2.5 border border-slate-300 rounded-lg text-sm bg-white">
+              <option value="paid_work">Paid Work (5 pts per 5 hours)</option>
+              <option value="interview">Attended Job Interview (25 pts)</option>
+              <option value="license">Work License / Ticket Earned (20 pts)</option>
+              <option value="voluntary">Voluntary Work (5 pts per 5 hours)</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 mb-1">Description / Employer</label>
+            <input type="text" id="pbas-act-desc" required class="w-full p-2.5 border border-slate-300 rounded-lg text-sm" placeholder="e.g. Retail Casual Shift at Coles">
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 mb-1">Shift Hours / Count</label>
+            <input type="number" id="pbas-act-val" required min="1" step="0.5" class="w-full p-2.5 border border-slate-300 rounded-lg text-sm" placeholder="e.g. 10 (for 10 hours worked)">
+          </div>
+          <div class="flex gap-2 pt-2">
+            <button type="button" onclick="window.PBAS_ENGINE.closeLogActivityModal()" class="w-1/2 py-2 bg-slate-200 text-slate-800 font-medium rounded">Cancel</button>
+            <button type="submit" class="w-1/2 py-2 bg-[#4CAF50] text-white font-bold rounded hover:bg-emerald-600 transition shadow">Log Shift & Earn Points</button>
+          </div>
+        </form>
+      </div>
     </div>
-  </div>
 
-  <!-- CERTIFICATE MODAL -->
-  <div id="certificate-modal" class="fixed inset-0 bg-slate-900/80 backdrop-blur-sm hidden flex items-center justify-center p-4 z-50 overflow-y-auto">
-    <div class="bg-white max-w-5xl w-full rounded-2xl p-6 shadow-2xl space-y-6 my-8 border-4 border-[#1D2B53]">
-      
-      <div id="certificate-pdf-element" class="cert-landscape-wrapper p-10 bg-white border-8 border-[#1D2B53] rounded-xl space-y-6 flex flex-col justify-between shadow-inner">
-        <div class="flex justify-between items-center border-b-2 border-slate-300 pb-4">
-          <div class="flex items-center gap-4">
-            <img src="/logo.png" alt="Straight Up Training Logo" class="h-14 w-auto object-contain">
+    <!-- INVITE CANDIDATE MODAL -->
+    <div id="cm-invite-modal" class="fixed inset-0 bg-slate-900/70 backdrop-blur-sm hidden flex items-center justify-center p-4 z-50">
+      <div class="bg-white max-w-md w-full rounded-xl p-6 shadow-2xl space-y-4 border-2 border-[#1D2B53]">
+        <div class="flex justify-between items-center border-b pb-3">
+          <h3 class="text-lg font-bold text-[#1D2B53]">Invite Candidate & Set Reporting Cycle</h3>
+          <button onclick="window.CASE_MANAGER.closeInviteModal()" class="text-slate-400 font-bold">✕</button>
+        </div>
+        <form onsubmit="window.CASE_MANAGER.handleSendInvite(event)" class="space-y-3">
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 mb-1">Candidate Full Name</label>
+            <input type="text" id="inv-fullname" required class="w-full p-2.5 border border-slate-300 rounded-lg text-sm" placeholder="e.g. Michael Taylor">
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 mb-1">Email Address</label>
+            <input type="email" id="inv-email" required class="w-full p-2.5 border border-slate-300 rounded-lg text-sm" placeholder="e.g. m.taylor@example.com">
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 mb-1">Mobile Phone (Optional)</label>
+            <input type="text" id="inv-phone" class="w-full p-2.5 border border-slate-300 rounded-lg text-sm" placeholder="e.g. 0411 222 333">
+          </div>
+          <div class="grid grid-cols-2 gap-2 p-3 bg-slate-50 border rounded-lg">
+            <div class="col-span-2 text-[11px] font-bold text-[#1D2B53]">Assigned PBAS Reporting Cycle (30 Days)</div>
             <div>
-              <div class="text-base font-extrabold text-[#1D2B53] uppercase tracking-widest">Straight Up Training</div>
-              <div class="text-xs text-emerald-600 font-semibold">Registered Employment & Compliance Training Provider Shell</div>
+              <label class="block text-[10px] font-semibold text-slate-600 mb-0.5">Cycle Start Date</label>
+              <input type="date" id="inv-cycle-start" required class="w-full p-2 border rounded text-xs bg-white">
+            </div>
+            <div>
+              <label class="block text-[10px] font-semibold text-slate-600 mb-0.5">Cycle End Date</label>
+              <input type="date" id="inv-cycle-end" required class="w-full p-2 border rounded text-xs bg-white">
             </div>
           </div>
-          <div class="text-right text-xs text-slate-600 space-y-1">
-            <div><strong>Issued Date & Time:</strong> <span id="cert-timestamp" class="font-mono text-slate-800 font-bold">13-Sep-2026 12:54 AEST</span></div>
-            <div><strong>Verification ID:</strong> <span id="cert-id" class="font-mono font-bold text-[#1D2B53]">#CERT-2026-8812</span></div>
+          <div class="flex gap-2 pt-2">
+            <button type="button" onclick="window.CASE_MANAGER.closeInviteModal()" class="w-1/2 py-2 bg-slate-200 text-slate-800 font-medium rounded">Cancel</button>
+            <button type="submit" class="w-1/2 py-2 bg-[#4CAF50] text-white font-bold rounded hover:bg-emerald-600 transition shadow">Send Portal Access Link</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- LMS STUDY MATERIAL MODAL -->
+    <div id="module-content-modal" class="fixed inset-0 bg-slate-900/70 backdrop-blur-sm hidden flex items-center justify-center p-4 z-50 overflow-y-auto">
+      <div class="bg-white max-w-3xl w-full rounded-2xl p-6 shadow-2xl space-y-6 my-8 border border-slate-200">
+        <div class="flex items-center justify-between border-b pb-3">
+          <h3 id="mod-modal-title" class="text-xl font-bold text-[#1D2B53]">Module Material</h3>
+          <button onclick="closeModuleModal()" class="text-slate-400 hover:text-slate-600 font-bold text-lg">✕</button>
+        </div>
+
+        <div class="relative w-full aspect-video bg-slate-900 rounded-xl overflow-hidden shadow-inner flex items-center justify-center text-white">
+          <iframe id="mod-modal-video" class="w-full h-full" src="" title="Tutorial Video" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+        </div>
+
+        <div class="p-5 bg-slate-50 border border-slate-200 rounded-lg space-y-4 max-h-[40vh] overflow-y-auto">
+          <h4 class="font-bold text-[#1D2B53] text-base border-b pb-2">15 Key Learning Points & In-Depth Guide</h4>
+          <div id="mod-modal-text" class="text-xs text-slate-700 leading-relaxed space-y-2"></div>
+        </div>
+
+        <div class="p-3 bg-purple-50 border border-purple-200 rounded-lg flex items-center justify-between text-xs">
+          <span class="font-bold text-purple-900">Rate Your Confidence Level for This Topic:</span>
+          <select id="mod-confidence-rating" onchange="saveModuleConfidence(this.value)" class="p-1 border border-purple-300 rounded bg-white text-slate-800">
+            <option value="1">⭐☆☆☆☆ Needs Review</option>
+            <option value="2">⭐⭐☆☆☆ Developing</option>
+            <option value="3" selected>⭐⭐⭐☆☆ Moderate</option>
+            <option value="4">⭐⭐⭐⭐☆ High</option>
+            <option value="5">⭐⭐⭐⭐⭐ Fully Prepared</option>
+          </select>
+        </div>
+
+        <div class="flex gap-3 pt-2">
+          <button onclick="closeModuleModal()" class="w-1/2 py-2.5 bg-slate-200 text-slate-800 font-bold rounded-lg hover:bg-slate-300">Close Guide</button>
+          <button onclick="launchModuleQuiz()" class="w-1/2 py-2.5 bg-[#4CAF50] text-white font-bold rounded-lg hover:bg-emerald-600 transition">Take 8-Question Quiz</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- LMS QUIZ MODAL -->
+    <div id="quiz-modal" class="fixed inset-0 bg-slate-900/70 backdrop-blur-sm hidden flex items-center justify-center p-4 z-50 overflow-y-auto">
+      <div class="bg-white max-w-2xl w-full rounded-xl p-6 shadow-2xl space-y-6 my-8">
+        <div class="flex items-center justify-between border-b pb-3">
+          <h3 id="quiz-title" class="text-xl font-bold text-[#1D2B53]">8-Question Assessment Quiz</h3>
+          <button onclick="closeQuizModal()" class="text-slate-400 hover:text-slate-600 font-bold">✕</button>
+        </div>
+
+        <form id="quiz-form" onsubmit="handleQuizSubmit(event)" class="space-y-6">
+          <div id="quiz-questions-container" class="space-y-4 max-h-[60vh] overflow-y-auto pr-2"></div>
+          <div class="flex gap-3 pt-3 border-t">
+            <button type="button" onclick="closeQuizModal()" class="w-1/2 py-2.5 bg-slate-200 text-slate-800 font-medium rounded-lg">Cancel</button>
+            <button type="submit" class="w-1/2 py-2.5 bg-[#4CAF50] text-white font-bold rounded-lg hover:bg-emerald-600">Submit Quiz & Generate Certificate</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- CERTIFICATE MODAL -->
+    <div id="certificate-modal" class="fixed inset-0 bg-slate-900/80 backdrop-blur-sm hidden flex items-center justify-center p-4 z-50 overflow-y-auto">
+      <div class="bg-white max-w-5xl w-full rounded-2xl p-6 shadow-2xl space-y-6 my-8 border-4 border-[#1D2B53]">
+        
+        <div id="certificate-pdf-element" class="cert-landscape-wrapper p-10 bg-white border-8 border-[#1D2B53] rounded-xl space-y-6 flex flex-col justify-between shadow-inner">
+          <div class="flex justify-between items-center border-b-2 border-slate-300 pb-4">
+            <div class="flex items-center gap-4">
+              <img src="/logo.png" alt="Straight Up Training Logo" class="h-14 w-auto object-contain">
+              <div>
+                <div class="text-base font-extrabold text-[#1D2B53] uppercase tracking-widest">Straight Up Training</div>
+                <div class="text-xs text-emerald-600 font-semibold">Registered Employment & Compliance Training Provider Shell</div>
+              </div>
+            </div>
+            <div class="text-right text-xs text-slate-600 space-y-1">
+              <div><strong>Issued Date & Time:</strong> <span id="cert-timestamp" class="font-mono text-slate-800 font-bold">13-Sep-2026 12:54 AEST</span></div>
+              <div><strong>Verification ID:</strong> <span id="cert-id" class="font-mono font-bold text-[#1D2B53]">#CERT-2026-8812</span></div>
+            </div>
+          </div>
+
+          <div class="text-center space-y-4 py-8">
+            <p class="text-xs uppercase tracking-widest text-slate-500 font-bold">Official Verifiable Compliance Certificate</p>
+            <h2 class="text-3xl font-extrabold text-[#1D2B53]">THIS IS PROUDLY PRESENTED TO</h2>
+            <p class="text-3xl font-bold text-[#4CAF50] border-b-2 border-slate-400 pb-2 inline-block px-12">Demonstration Candidate</p>
+            <p class="text-sm text-slate-700 pt-2">For successfully completing the 8-question workforce compliance assessment module:</p>
+            <h3 id="cert-module-title" class="text-2xl font-extrabold text-slate-900">Workplace Rights & Safety</h3>
+            <p class="text-xs text-slate-600">Achieved Score: <span id="cert-score" class="font-bold text-[#4CAF50] text-sm">100%</span> (Minimum Passing Grade: 80%)</p>
+          </div>
+
+          <div class="border-t-2 border-slate-300 pt-4 flex justify-between items-end text-xs text-slate-600">
+            <div>
+              <div class="font-bold text-slate-900 text-sm">Straight Up Training & Co-Branded Employment Provider Shell</div>
+              <div>Workforce Australia / Transition to Work / ParentsNext Compliant</div>
+            </div>
+            <div class="text-right">
+              <div id="cert-audit-hash" class="font-mono text-[11px] text-slate-500">Audit Hash: #WR-20260913-8F92</div>
+              <div class="text-[#4CAF50] font-bold text-sm">Status: Official Verified Record</div>
+            </div>
           </div>
         </div>
 
-        <div class="text-center space-y-4 py-8">
-          <p class="text-xs uppercase tracking-widest text-slate-500 font-bold">Official Verifiable Compliance Certificate</p>
-          <h2 class="text-3xl font-extrabold text-[#1D2B53]">THIS IS PROUDLY PRESENTED TO</h2>
-          <p class="text-3xl font-bold text-[#4CAF50] border-b-2 border-slate-400 pb-2 inline-block px-12">Demonstration Candidate</p>
-          <p class="text-sm text-slate-700 pt-2">For successfully completing the 8-question workforce compliance assessment module:</p>
-          <h3 id="cert-module-title" class="text-2xl font-extrabold text-slate-900">Workplace Rights & Safety</h3>
-          <p class="text-xs text-slate-600">Achieved Score: <span id="cert-score" class="font-bold text-[#4CAF50] text-sm">100%</span> (Minimum Passing Grade: 80%)</p>
+        <div class="flex gap-3">
+          <button onclick="downloadCertificatePDF()" class="w-1/2 py-3 bg-[#4CAF50] text-white font-bold rounded-xl hover:bg-emerald-600 transition flex items-center justify-center gap-2">
+            📄 Download Landscape PDF Certificate
+          </button>
+          <button onclick="closeCertificateModal()" class="w-1/2 py-3 bg-[#1D2B53] text-white font-bold rounded-xl hover:bg-slate-900 transition">
+            Close
+          </button>
         </div>
+      </div>
+    </div>
 
-        <div class="border-t-2 border-slate-300 pt-4 flex justify-between items-end text-xs text-slate-600">
+    <!-- VICTORY MODAL -->
+    <div id="victory-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden flex items-center justify-center p-4 z-50">
+      <div class="bg-white max-w-md w-full rounded-xl p-6 shadow-2xl space-y-4">
+        <div class="flex justify-between items-center border-b pb-3">
+          <h3 id="victory-title" class="text-xl font-bold text-[#1D2B53]">Record Milestone Victory</h3>
+          <button onclick="closeVictoryModal()" class="text-slate-400 font-bold hover:text-slate-600">✕</button>
+        </div>
+        <form onsubmit="handleVictorySubmit(event)" class="space-y-3">
+          <input type="hidden" id="victory-type" value="job">
           <div>
-            <div class="font-bold text-slate-900 text-sm">Straight Up Training & Co-Branded Employment Provider Shell</div>
-            <div>Workforce Australia / Transition to Work / ParentsNext Compliant</div>
+            <label class="block text-xs font-semibold text-slate-700 mb-1">Employer Name</label>
+            <input type="text" id="victory-employer" required class="w-full p-2.5 border border-slate-300 rounded-lg text-sm" placeholder="e.g. Bunnings Warehouse">
           </div>
-          <div class="text-right">
-            <div id="cert-audit-hash" class="font-mono text-[11px] text-slate-500">Audit Hash: #WR-20260913-8F92</div>
-            <div class="text-[#4CAF50] font-bold text-sm">Status: Official Verified Record</div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 mb-1">Position Title</label>
+            <input type="text" id="victory-position" required class="w-full p-2.5 border border-slate-300 rounded-lg text-sm" placeholder="e.g. Customer Service Team Member">
           </div>
-        </div>
-      </div>
-
-      <div class="flex gap-3">
-        <button onclick="downloadCertificatePDF()" class="w-1/2 py-3 bg-[#4CAF50] text-white font-bold rounded-xl hover:bg-emerald-600 transition flex items-center justify-center gap-2">
-          📄 Download Landscape PDF Certificate
-        </button>
-        <button onclick="closeCertificateModal()" class="w-1/2 py-3 bg-[#1D2B53] text-white font-bold rounded-xl hover:bg-slate-900 transition">
-          Close
-        </button>
+          <div>
+            <label id="victory-date-label" class="block text-xs font-semibold text-slate-700 mb-1">Date</label>
+            <input type="date" id="victory-date" required class="w-full p-2.5 border border-slate-300 rounded-lg text-sm">
+          </div>
+          <div class="flex gap-2 pt-2">
+            <button type="button" onclick="closeVictoryModal()" class="w-1/2 py-2.5 bg-slate-200 text-slate-800 font-medium rounded-lg">Cancel</button>
+            <button type="submit" class="w-1/2 py-2.5 bg-[#4CAF50] text-white font-bold rounded-lg hover:bg-emerald-600">Transmit & Claim PBAS Points</button>
+          </div>
+        </form>
       </div>
     </div>
-  </div>
 
-  <!-- VICTORY MODAL -->
-  <div id="victory-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden flex items-center justify-center p-4 z-50">
-    <div class="bg-white max-w-md w-full rounded-xl p-6 shadow-2xl space-y-4">
-      <div class="flex justify-between items-center border-b pb-3">
-        <h3 id="victory-title" class="text-xl font-bold text-[#1D2B53]">Record Milestone Victory</h3>
-        <button onclick="closeVictoryModal()" class="text-slate-400 font-bold hover:text-slate-600">✕</button>
+    <!-- DIRECT MESSAGE MODAL -->
+    <div id="dm-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden flex items-center justify-center p-4 z-50">
+      <div class="bg-white max-w-md w-full rounded-xl p-6 shadow-2xl space-y-4">
+        <div class="flex items-center justify-between border-b pb-3">
+          <h3 class="text-xl font-bold text-[#1D2B53]">Message Your Case Manager</h3>
+          <button onclick="closeDirectMessageModal()" class="text-slate-400 font-bold hover:text-slate-600">✕</button>
+        </div>
+        <form onsubmit="handleSendDirectMessage(event)" class="space-y-3">
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 mb-1">Select Topic</label>
+            <select id="dm-topic" class="w-full p-2.5 border border-slate-300 rounded-lg text-sm bg-white">
+              <option value="General Question">General Question</option>
+              <option value="Job Evidence Help">Job Search / Evidence Assistance</option>
+              <option value="Interview Advice">Interview Preparation Advice</option>
+              <option value="Resume Review">Resume & Cover Letter Review Request</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 mb-1">Your Message</label>
+            <textarea id="dm-message-text" rows="4" required class="w-full p-2.5 border border-slate-300 rounded-lg text-sm" placeholder="Type your message to your Case Manager here..."></textarea>
+          </div>
+          <div class="flex gap-2 pt-2">
+            <button type="button" onclick="closeDirectMessageModal()" class="w-1/2 py-2 bg-slate-200 text-slate-800 font-medium rounded-lg">Cancel</button>
+            <button type="submit" class="w-1/2 py-2 bg-[#9C27B0] text-white font-bold rounded-lg hover:bg-purple-800 transition">Send Message</button>
+          </div>
+        </form>
       </div>
-      <form onsubmit="handleVictorySubmit(event)" class="space-y-3">
-        <input type="hidden" id="victory-type" value="job">
-        <div>
-          <label class="block text-xs font-semibold text-slate-700 mb-1">Employer Name</label>
-          <input type="text" id="victory-employer" required class="w-full p-2.5 border border-slate-300 rounded-lg text-sm" placeholder="e.g. Bunnings Warehouse">
-        </div>
-        <div>
-          <label class="block text-xs font-semibold text-slate-700 mb-1">Position Title</label>
-          <input type="text" id="victory-position" required class="w-full p-2.5 border border-slate-300 rounded-lg text-sm" placeholder="e.g. Customer Service Team Member">
-        </div>
-        <div>
-          <label id="victory-date-label" class="block text-xs font-semibold text-slate-700 mb-1">Date</label>
-          <input type="date" id="victory-date" required class="w-full p-2.5 border border-slate-300 rounded-lg text-sm">
-        </div>
-        <div class="flex gap-2 pt-2">
-          <button type="button" onclick="closeVictoryModal()" class="w-1/2 py-2.5 bg-slate-200 text-slate-800 font-medium rounded-lg">Cancel</button>
-          <button type="submit" class="w-1/2 py-2.5 bg-[#4CAF50] text-white font-bold rounded-lg hover:bg-emerald-600">Transmit & Claim PBAS Points</button>
-        </div>
-      </form>
     </div>
-  </div>
 
-  <!-- DIRECT MESSAGE MODAL -->
-  <div id="dm-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden flex items-center justify-center p-4 z-50">
-    <div class="bg-white max-w-md w-full rounded-xl p-6 shadow-2xl space-y-4">
-      <div class="flex items-center justify-between border-b pb-3">
-        <h3 class="text-xl font-bold text-[#1D2B53]">Message Your Case Manager</h3>
-        <button onclick="closeDirectMessageModal()" class="text-slate-400 font-bold hover:text-slate-600">✕</button>
+    <!-- BASELINE MODAL -->
+    <div id="baseline-modal" class="fixed inset-0 bg-slate-900/70 backdrop-blur-sm hidden flex items-center justify-center p-4 z-50">
+      <div class="bg-white max-w-md w-full rounded-xl p-6 shadow-2xl space-y-4">
+        <div class="flex justify-between items-center border-b pb-3">
+          <h3 class="text-lg font-bold text-[#1D2B53]">Monthly Candidate Job Readiness Assessment</h3>
+          <button onclick="window.JOB_READINESS.closeModal()" class="text-slate-400 font-bold">✕</button>
+        </div>
+        <form onsubmit="window.JOB_READINESS.submitAssessment(event)" class="space-y-3">
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 mb-1">Interview Skills Confidence</label>
+            <select id="sel-base-interview" class="w-full p-2 border rounded text-xs bg-white">
+              <option value="1">1 Star — Low Confidence</option>
+              <option value="2">2 Stars — Below Average</option>
+              <option value="3" selected>3 Stars — Moderate Confidence</option>
+              <option value="4">4 Stars — Confident</option>
+              <option value="5">5 Stars — Highly Confident</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 mb-1">Resume Readiness</label>
+            <select id="sel-base-resume" class="w-full p-2 border rounded text-xs bg-white">
+              <option value="1">1 Star — Low Confidence</option>
+              <option value="2">2 Stars — Below Average</option>
+              <option value="3" selected>3 Stars — Moderate Confidence</option>
+              <option value="4">4 Stars — Confident</option>
+              <option value="5">5 Stars — Highly Confident</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 mb-1">WHS Safety Knowledge</label>
+            <select id="sel-base-safety" class="w-full p-2 border rounded text-xs bg-white">
+              <option value="1">1 Star — Low Confidence</option>
+              <option value="2">2 Stars — Below Average</option>
+              <option value="3">3 Stars — Moderate Confidence</option>
+              <option value="4" selected>4 Stars — Confident</option>
+              <option value="5">5 Stars — Highly Confident</option>
+            </select>
+          </div>
+          <div class="flex gap-2 pt-2">
+            <button type="button" onclick="window.JOB_READINESS.closeModal()" class="w-1/2 py-2 bg-slate-200 text-slate-800 font-medium rounded">Cancel</button>
+            <button type="submit" class="w-1/2 py-2 bg-[#9C27B0] text-white font-bold rounded shadow">Submit & Transmit Report</button>
+          </div>
+        </form>
       </div>
-      <form onsubmit="handleSendDirectMessage(event)" class="space-y-3">
-        <div>
-          <label class="block text-xs font-semibold text-slate-700 mb-1">Select Topic</label>
-          <select id="dm-topic" class="w-full p-2.5 border border-slate-300 rounded-lg text-sm bg-white">
-            <option value="General Question">General Question</option>
-            <option value="Job Evidence Help">Job Search / Evidence Assistance</option>
-            <option value="Interview Advice">Interview Preparation Advice</option>
-            <option value="Resume Review">Resume & Cover Letter Review Request</option>
-          </select>
-        </div>
-        <div>
-          <label class="block text-xs font-semibold text-slate-700 mb-1">Your Message</label>
-          <textarea id="dm-message-text" rows="4" required class="w-full p-2.5 border border-slate-300 rounded-lg text-sm" placeholder="Type your message to your Case Manager here..."></textarea>
-        </div>
-        <div class="flex gap-2 pt-2">
-          <button type="button" onclick="closeDirectMessageModal()" class="w-1/2 py-2 bg-slate-200 text-slate-800 font-medium rounded-lg">Cancel</button>
-          <button type="submit" class="w-1/2 py-2 bg-[#9C27B0] text-white font-bold rounded-lg hover:bg-purple-800 transition">Send Message</button>
-        </div>
-      </form>
     </div>
-  </div>
 
-  <!-- BASELINE MODAL -->
-  <div id="baseline-modal" class="fixed inset-0 bg-slate-900/70 backdrop-blur-sm hidden flex items-center justify-center p-4 z-50">
-    <div class="bg-white max-w-md w-full rounded-xl p-6 shadow-2xl space-y-4">
-      <div class="flex justify-between items-center border-b pb-3">
-        <h3 class="text-lg font-bold text-[#1D2B53]">Monthly Candidate Job Readiness Assessment</h3>
-        <button onclick="window.JOB_READINESS.closeModal()" class="text-slate-400 font-bold">✕</button>
-      </div>
-      <form onsubmit="window.JOB_READINESS.submitAssessment(event)" class="space-y-3">
-        <div>
-          <label class="block text-xs font-semibold text-slate-700 mb-1">Interview Skills Confidence</label>
-          <select id="sel-base-interview" class="w-full p-2 border rounded text-xs bg-white">
-            <option value="1">1 Star — Low Confidence</option>
-            <option value="2">2 Stars — Below Average</option>
-            <option value="3" selected>3 Stars — Moderate Confidence</option>
-            <option value="4">4 Stars — Confident</option>
-            <option value="5">5 Stars — Highly Confident</option>
-          </select>
-        </div>
-        <div>
-          <label class="block text-xs font-semibold text-slate-700 mb-1">Resume Readiness</label>
-          <select id="sel-base-resume" class="w-full p-2 border rounded text-xs bg-white">
-            <option value="1">1 Star — Low Confidence</option>
-            <option value="2">2 Stars — Below Average</option>
-            <option value="3" selected>3 Stars — Moderate Confidence</option>
-            <option value="4">4 Stars — Confident</option>
-            <option value="5">5 Stars — Highly Confident</option>
-          </select>
-        </div>
-        <div>
-          <label class="block text-xs font-semibold text-slate-700 mb-1">WHS Safety Knowledge</label>
-          <select id="sel-base-safety" class="w-full p-2 border rounded text-xs bg-white">
-            <option value="1">1 Star — Low Confidence</option>
-            <option value="2">2 Stars — Below Average</option>
-            <option value="3">3 Stars — Moderate Confidence</option>
-            <option value="4" selected>4 Stars — Confident</option>
-            <option value="5">5 Stars — Highly Confident</option>
-          </select>
-        </div>
-        <div class="flex gap-2 pt-2">
-          <button type="button" onclick="window.JOB_READINESS.closeModal()" class="w-1/2 py-2 bg-slate-200 text-slate-800 font-medium rounded">Cancel</button>
-          <button type="submit" class="w-1/2 py-2 bg-[#9C27B0] text-white font-bold rounded shadow">Submit & Transmit Report</button>
-        </div>
-      </form>
-    </div>
   </div>
 
   <!-- JAVASCRIPT ENGINE -->
@@ -2029,6 +2089,9 @@
       }
       if (window.SYSTEM_ADMIN) {
         window.SYSTEM_ADMIN.initConsole();
+      }
+      if (window.AUTH_ENGINE) {
+        window.AUTH_ENGINE.enforceAccessControl();
       }
     };
   </script>
