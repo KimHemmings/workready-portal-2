@@ -1915,7 +1915,7 @@
     }
 
     function enforceSecurityHierarchy() {
-      // 1. Hide all workspace navigation tabs first
+      // 1. Hide all navigation tabs first
       ['jobseeker', 'casemanager', 'business', 'admin'].forEach(tab => {
         document.getElementById(`nav-${tab}`)?.classList.add('hidden');
       });
@@ -1927,8 +1927,13 @@
         // Show ONLY System Admin Console tab up top
         document.getElementById('nav-admin')?.classList.remove('hidden');
         
-        // Hide Active Provider Domain selector (System Admin manages all orgs)
+        // Hide Active Provider Domain selector (System Admin manages all orgs centrally)
         if (domainSelector) domainSelector.classList.add('hidden');
+        
+        // Render System Admin live data tables
+        if (window.SYSTEM_ADMIN && typeof window.SYSTEM_ADMIN.initConsole === 'function') {
+          window.SYSTEM_ADMIN.initConsole();
+        }
         
         switchTab('admin');
       } else if (activeRole === 'sales_rep' || activeRole === 'case_manager') {
