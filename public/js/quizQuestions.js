@@ -1,3 +1,6 @@
+// public/js/quizQuestions.js
+// 8-Question Assessment Quiz Banks for Modules 01 to 06
+
 window.QUIZ_DATA = {
   'mod-1': [
     { q: "What body sets minimum National Employment Standards (NES) in Australia?", options: ["Fair Work Ombudsman", "Safe Work Australia", "ATO", "Centrelink"], correct: 0 },
@@ -38,5 +41,25 @@ window.QUIZ_DATA = {
     { q: "What is the primary purpose of a cover letter?", options: ["To introduce yourself and connect your key skills directly to the job", "To repeat your phone number 10 times", "To ask for pay raises", "To list high school marks"], correct: 0 },
     { q: "What should you avoid putting on an Australian resume?", options: ["Relevant skills", "Personal details like age, marital status, or full street address", "Contact phone number", "Past job titles"], correct: 1 },
     { q: "Why are transferable skills valuable when changing industries?", options: ["They apply across multiple roles regardless of sector", "They are legally required", "They lower tax rates", "They replace interviews"], correct: 0 }
+  ],
+  'mod-5': [
+    { q: "What does the 'S' in SMART goal setting stand for?", options: ["Specific", "Simple", "Standard", "Secret"], correct: 0 },
+    { q: "Why should goals be time-bound with clear deadlines?", options: ["To create urgency and track whether milestones are met on schedule", "To impress friends", "It is legally required", "To avoid planning"], correct: 0 },
+    { q: "What is a short-term employment goal example?", options: ["Securing a White Card and applying for 5 jobs this week", "Retiring at 65", "Becoming CEO in 10 years", "Buying a commercial building"], correct: 0 },
+    { q: "How should you handle identified barriers like lack of transport?", options: ["Give up on working", "Identify solutions with your Provider (e.g. public transport routes, fuel support)", "Ignore it", "Wait for someone to fix it"], correct: 1 },
+    { q: "Why is tracking job applications in a logbook beneficial?", options: ["It provides clear proof for mutual obligation compliance and tracks callbacks", "It uses up paper", "It guarantees job offers", "It is unnecessary"], correct: 0 },
+    { q: "What is the benefit of breaking big career goals into daily micro-habits?", options: ["It builds steady momentum without causing overwhelm", "It takes more time", "It causes confusion", "It slows down progress"], correct: 0 },
+    { q: "What should you do if your application callbacks stall after 3 weeks?", options: ["Review your resume and adjust your target job search strategy with your Case Manager", "Stop applying", "Blame employers", "Delete your resume"], correct: 0 },
+    { q: "Why are micro-credentials and short courses valuable during work gaps?", options: ["They demonstrate continuous learning initiative to hiring managers", "They replace high school diplomas", "They lower tax rates", "They are only for hobbies"], correct: 0 }
+  ],
+  'mod-6': [
+    { q: "What is the expected protocol if you are sick and cannot attend your shift?", options: ["Call your supervisor as early as possible before shift start", "Send a casual text during your shift", "Have a friend call late", "Do not report it"], correct: 0 },
+    { q: "When should personal mobile phones generally be used at work?", options: ["During designated scheduled meal and rest breaks", "Continuously during work duties", "While operating machinery", "In front of customers"], correct: 0 },
+    { q: "What does showing initiative during quiet shift periods involve?", options: ["Restocking supplies or asking your team leader how to assist", "Sitting in the break room", "Leaving early", "Checking social media"], correct: 0 },
+    { q: "How should you respond to constructive manager feedback during your probation period?", options: ["Listen attentively, ask clarifying questions, and apply the advice", "Argue back", "Take it as a personal insult", "Ignore instructions"], correct: 0 },
+    { q: "Why is break room cleanliness important in shared workplaces?", options: ["It demonstrates respect for co-workers and maintains health standards", "Only cleaners are allowed in break rooms", "It is an audit test", "It isn't important"], correct: 0 },
+    { q: "How early should you ideally be dressed and ready before shift start?", options: ["5–10 minutes early", "30 minutes late", "At exact shift start while changing", "1 hour late"], correct: 0 },
+    { q: "What should you do with confidential customer or business information?", options: ["Keep it strictly private and never share it publicly or on social media", "Post about it online", "Share it with friends", "Sell it"], correct: 0 },
+    { q: "Why is avoiding workplace gossip essential for professional success?", options: ["It fosters a positive, respectful, and safe team environment", "It makes shifts longer", "It is monitored by police", "It lowers pay rates"], correct: 0 }
   ]
 };

@@ -481,14 +481,16 @@
         </div>
       </div>
 
-      <!-- DETAILED EMPLOYABILITY MODULES -->
+      <!-- DETAILED EMPLOYABILITY MODULES GRID (6 MODULES) -->
       <div id="lms-modules-section" class="bg-white p-6 rounded-xl shadow-md border border-slate-200 space-y-6">
         <div class="border-b pb-4">
           <h2 class="text-2xl font-bold text-[#1D2B53]">Employability Modules</h2>
           <p class="text-sm text-slate-600">Review 15 detailed learning points, watch aligned YouTube tutorials, rate your confidence, and complete 8-question quizzes.</p>
         </div>
 
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          
+          <!-- Module 01 -->
           <div class="border border-slate-200 rounded-xl p-5 space-y-4 bg-slate-50 hover:shadow-md transition flex flex-col justify-between">
             <div class="space-y-3">
               <div class="flex justify-between items-center">
@@ -503,6 +505,7 @@
             </button>
           </div>
 
+          <!-- Module 02 -->
           <div class="border border-slate-200 rounded-xl p-5 space-y-4 bg-slate-50 hover:shadow-md transition flex flex-col justify-between">
             <div class="space-y-3">
               <div class="flex justify-between items-center">
@@ -517,6 +520,7 @@
             </button>
           </div>
 
+          <!-- Module 03 -->
           <div class="border border-slate-200 rounded-xl p-5 space-y-4 bg-slate-50 hover:shadow-md transition flex flex-col justify-between">
             <div class="space-y-3">
               <div class="flex justify-between items-center">
@@ -531,6 +535,7 @@
             </button>
           </div>
 
+          <!-- Module 04 -->
           <div class="border border-purple-300 rounded-xl p-5 space-y-4 bg-purple-50 hover:shadow-md transition flex flex-col justify-between">
             <div class="space-y-3">
               <div class="flex justify-between items-center">
@@ -544,6 +549,37 @@
               Detailed Guide & 8-Q Quiz
             </button>
           </div>
+
+          <!-- Module 05 -->
+          <div class="border border-teal-300 rounded-xl p-5 space-y-4 bg-teal-50 hover:shadow-md transition flex flex-col justify-between">
+            <div class="space-y-3">
+              <div class="flex justify-between items-center">
+                <span class="px-2 py-1 bg-teal-600 text-white text-xs font-bold rounded">Module 05</span>
+                <span id="mod5-conf-indicator" class="text-xs font-bold text-amber-600">⭐⭐⭐☆☆</span>
+              </div>
+              <h3 class="font-bold text-slate-900 text-base">Goal Setting & Career Planning</h3>
+              <p class="text-xs text-slate-600 leading-relaxed">15 expanded points covering SMART goals, action plans, overcoming barriers, and tracking compliance.</p>
+            </div>
+            <button onclick="openModuleContent('mod-5')" class="w-full py-2 bg-teal-700 text-white text-xs font-bold rounded-lg hover:bg-teal-800 transition">
+              Detailed Guide & 8-Q Quiz
+            </button>
+          </div>
+
+          <!-- Module 06 -->
+          <div class="border border-indigo-300 rounded-xl p-5 space-y-4 bg-indigo-50 hover:shadow-md transition flex flex-col justify-between">
+            <div class="space-y-3">
+              <div class="flex justify-between items-center">
+                <span class="px-2 py-1 bg-indigo-600 text-white text-xs font-bold rounded">Module 06</span>
+                <span id="mod6-conf-indicator" class="text-xs font-bold text-amber-600">⭐⭐⭐⭐☆</span>
+              </div>
+              <h3 class="font-bold text-slate-900 text-base">Workplace Expectations & Etiquette</h3>
+              <p class="text-xs text-slate-600 leading-relaxed">15 expanded points covering punctuality, mobile phone policies, shift call-outs, and conduct standards.</p>
+            </div>
+            <button onclick="openModuleContent('mod-6')" class="w-full py-2 bg-indigo-700 text-white text-xs font-bold rounded-lg hover:bg-indigo-800 transition">
+              Detailed Guide & 8-Q Quiz
+            </button>
+          </div>
+
         </div>
       </div>
 
@@ -975,6 +1011,8 @@
       if (activeModuleId === 'mod-2') document.getElementById('mod2-conf-indicator').innerText = starStr;
       if (activeModuleId === 'mod-3') document.getElementById('mod3-conf-indicator').innerText = starStr;
       if (activeModuleId === 'mod-4') document.getElementById('mod4-conf-indicator').innerText = starStr;
+      if (activeModuleId === 'mod-5') document.getElementById('mod5-conf-indicator').innerText = starStr;
+      if (activeModuleId === 'mod-6') document.getElementById('mod6-conf-indicator').innerText = starStr;
     }
 
     function changeActiveRole(role) {
