@@ -1300,11 +1300,11 @@
     </div>
 
     <!-- PROVIDER PROVISIONING MODAL -->
-    <div id="admin-provider-modal" class="fixed inset-0 bg-slate-900/70 backdrop-blur-sm hidden flex items-center justify-center p-4 z-50">
+    <div id="admin-provider-modal" class="fixed inset-0 bg-slate-900/70 backdrop-blur-sm hidden flex items-center justify-center p-4 z-[100]">
       <div class="bg-white max-w-md w-full rounded-xl p-6 shadow-2xl space-y-4 border-2 border-red-700">
         <div class="flex justify-between items-center border-b pb-3">
           <h3 class="text-lg font-bold text-red-900">Provision Employment Provider Organization</h3>
-          <button onclick="window.SYSTEM_ADMIN.closeProviderModal()" class="text-slate-400 font-bold">✕</button>
+          <button onclick="window.SYSTEM_ADMIN.closeProviderModal()" class="text-slate-400 font-bold text-lg">✕</button>
         </div>
         <form onsubmit="window.SYSTEM_ADMIN.handleCreateProvider(event)" class="space-y-3">
           <div>
