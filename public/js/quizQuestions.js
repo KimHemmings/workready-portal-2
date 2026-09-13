@@ -1,5 +1,5 @@
 // public/js/quizQuestions.js
-// 8-Question Assessment Quiz Banks for Modules 01 to 06
+// 8-Question Assessment Quiz Banks for Modules 01 to 08
 
 window.QUIZ_DATA = {
   'mod-1': [
@@ -61,5 +61,25 @@ window.QUIZ_DATA = {
     { q: "How early should you ideally be dressed and ready before shift start?", options: ["5–10 minutes early", "30 minutes late", "At exact shift start while changing", "1 hour late"], correct: 0 },
     { q: "What should you do with confidential customer or business information?", options: ["Keep it strictly private and never share it publicly or on social media", "Post about it online", "Share it with friends", "Sell it"], correct: 0 },
     { q: "Why is avoiding workplace gossip essential for professional success?", options: ["It fosters a positive, respectful, and safe team environment", "It makes shifts longer", "It is monitored by police", "It lowers pay rates"], correct: 0 }
+  ],
+  'mod-7': [
+    { q: "What is the difference between gross pay and net pay?", options: ["Gross pay is total pay before tax; net pay is your actual take-home pay after tax", "Gross pay is after tax", "They are identical", "Net pay excludes super"], correct: 0 },
+    { q: "Why should you prepare for a payment gap when starting a new job?", options: ["Employers often pay 2–4 weeks in arrears after shift commencement", "Payroll is optional", "Tax is double-charged initially", "Centrelink stops instantly without notice"], correct: 0 },
+    { q: "How should income earned during a shift be reported to Centrelink?", options: ["Report gross income earned during the specific reporting fortnight", "Report net pay after tax", "Do not report until cash is spent", "Estimate half"], correct: 0 },
+    { q: "What is the primary benefit of claiming the Tax-Free Threshold ($18,200) on your TFN declaration?", options: ["You pay less tax withheld on your primary job income", "You pay zero tax forever", "It pays your super early", "It gives you free uniform allowances"], correct: 0 },
+    { q: "Why should personal budgets be based on guaranteed base hours rather than overtime?", options: ["Overtime and penalty rates fluctuate and are not guaranteed every week", "Overtime is taxed at 100%", "Base pay is optional", "Overtime isn't paid"], correct: 0 },
+    { q: "What support can Employment Providers offer for upfront work costs?", options: ["Funding assistance for required safety boots, uniforms, and tickets", "Free vehicles", "Guaranteed promotions", "Unlimited cash loans"], correct: 0 },
+    { q: "Why is keeping digital receipts for work gear beneficial?", options: ["You can claim eligible work expenses as deductions at end-of-year tax time", "It increases your hourly pay rate", "It is sent to your manager", "It replaces payslips"], correct: 0 },
+    { q: "What should you check on your weekly payslip?", options: ["Hourly rate, hours worked, gross pay, tax withheld, and super contributions", "Only the final total dollar amount", "Your supervisor's name", "Company profit margins"], correct: 0 }
+  ],
+  'mod-8': [
+    { q: "How should jobseekers approach application knockbacks and rejection fatigue?", options: ["Reframe rejections as routine steps in the hiring process rather than personal failure", "Give up searching", "Take it personally", "Stop preparing for interviews"], correct: 0 },
+    { q: "What is an Employee Assistance Program (EAP)?", options: ["Free, confidential professional counseling provided by many Australian employers", "A pay-deduction scheme", "A shift punishment program", "A union meeting"], correct: 0 },
+    { q: "What is a key practice for healthy shift sleep hygiene?", options: ["Prioritizing 7–9 hours of rest in a quiet, dark room with screen limits", "Drinking energy drinks before bed", "Sleeping 3 hours", "Skipping rest"], correct: 0 },
+    { q: "What quick technique helps de-escalate acute shift anxiety?", options: ["Box breathing and taking a 60-second controlled pause", "Shouting", "Walking off shift without notice", "Ignoring it completely"], correct: 0 },
+    { q: "How can jobseekers access bulk-billed professional mental health support in Australia?", options: ["Via a GP Mental Health Care Plan, Headspace, or Beyond Blue", "Only through private health insurance", "It is unavailable", "Through Centrelink debt services"], correct: 0 },
+    { q: "What is 'imposter syndrome' during early probation?", options: ["Temporary self-doubt about your abilities that improves through daily experience", "A permanent skill gap", "A physical illness", "A reason to resign immediately"], correct: 0 },
+    { q: "Why is decompressing after a demanding shift important?", options: ["It transitions you smoothly out of work mode and prevents personal burnout", "It increases overtime pay", "It is legally required on timesheets", "It speeds up promotion"], correct: 0 },
+    { q: "Why is proper hydration and nutrition vital on physical shifts?", options: ["It sustains physical stamina, alertness, and prevents fatigue accidents", "It satisfies supervisors", "It replaces breaks", "It isn't important"], correct: 0 }
   ]
 };

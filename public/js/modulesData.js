@@ -1,5 +1,5 @@
 // public/js/modulesData.js
-// 15 Expanded Australian Compliance Study Guides & Aligned Video Embeds
+// 15 Expanded Australian Compliance Study Guides & Aligned Video Embeds (Modules 01-08)
 
 window.LMS_DATA = {
   'mod-1': {
@@ -178,6 +178,66 @@ window.LMS_DATA = {
           <li><strong>Respecting Diverse Team Backgrounds:</strong> Support an inclusive environment free from harassment, discrimination, or offensive humor regarding culture, age, gender, or background.</li>
           <li><strong>Professional Email & Written Communication:</strong> Use clear subject lines, polite greetings, and proper grammar when sending internal workplace emails or digital messages.</li>
           <li><strong>Probation Period Excellence:</strong> Treat the initial 3–6 month probation period as an extended demonstration of your reliability, safety focus, and alignment with company values.</li>
+        </ol>
+      </div>
+    `
+  },
+  'mod-7': {
+    title: "Financial Literacy & Transition Budgeting",
+    videoUrl: "https://www.youtube-nocookie.com/embed/sVKQn2I4HDM",
+    studyText: `
+      <div class="space-y-4 text-xs text-slate-700 leading-relaxed">
+        <div class="p-3 bg-emerald-50 border-l-4 border-emerald-600 rounded">
+          <h5 class="font-bold text-emerald-900 text-sm mb-1">Module Overview</h5>
+          <p>Master practical budgeting strategies, understand tax withholding, navigate the income support to wage transition, and manage shift work finances.</p>
+        </div>
+
+        <ol class="list-decimal list-inside space-y-3">
+          <li><strong>Understanding the Payment Gap:</strong> Plan for the 2–4 week lag between starting a new job and receiving your first full paycheck.</li>
+          <li><strong>Calculating Net vs. Gross Income:</strong> Differentiate gross pay from net take-home pay after PAYG income tax withholding and Medicare levies.</li>
+          <li><strong>Navigating Income Support Reporting:</strong> Accurately report gross income earned during Centrelink reporting periods to prevent overpayment debts.</li>
+          <li><strong>Upfront Work Transition Costs:</strong> Budget for initial employment expenses like hi-vis workwear, steel-cap boots, transit passes, or fuel before your first payday.</li>
+          <li><strong>Tax File Number (TFN) Declaration:</strong> Complete TFN declarations accurately to ensure you claim the $18,200 tax-free threshold with your primary employer.</li>
+          <li><strong>Superannuation Fundamentals:</strong> Understand how employer super contributions (11.5%+) build long-term wealth and how to consolidate multiple funds.</li>
+          <li><strong>Building a Emergency Buffer:</strong> Set aside small weekly savings from earned wages to build a financial buffer for unexpected vehicle repairs or illness.</li>
+          <li><strong>Budgeting for Irregular Shift Hours:</strong> Base household budgets on guaranteed base hours rather than variable overtime or weekend penalty rates.</li>
+          <li><strong>Checking Payslip Accuracy:</strong> Audit weekly payslips to confirm hourly rates, overtime calculations, super contributions, and allowances match your award.</li>
+          <li><strong>Managing Work-Related Deductions:</strong> Keep digital receipts for tax-deductible items like uniforms, safety gear, and job-specific training courses.</li>
+          <li><strong>Avoiding High-Interest Debt Traps:</strong> Recognize the hidden costs of payday loans, consumer leases, and "buy-now-pay-later" schemes during job transitions.</li>
+          <li><strong>Accessing Provider Employment Assistance:</strong> Work with your Employment Provider to access funding support for required tickets, tools, and work clothes.</li>
+          <li><strong>Banking & Account Setup:</strong> Ensure active bank accounts accept direct electronic payroll deposits (BSB and account number verification).</li>
+          <li><strong>Concession Card Transition Thresholds:</strong> Understand grace periods and income thresholds for retaining Health Care Cards when re-entering work.</li>
+          <li><strong>Long-Term Career Financial Planning:</strong> Shift from survival-budgeting to goal-based saving for major milestones once stable work is established.</li>
+        </ol>
+      </div>
+    `
+  },
+  'mod-8': {
+    title: "Personal Wellbeing & Mental Resilience",
+    videoUrl: "https://www.youtube-nocookie.com/embed/15GaKTP0gFE",
+    studyText: `
+      <div class="space-y-4 text-xs text-slate-700 leading-relaxed">
+        <div class="p-3 bg-rose-50 border-l-4 border-rose-600 rounded">
+          <h5 class="font-bold text-rose-900 text-sm mb-1">Module Overview</h5>
+          <p>Develop mental stamina, stress de-escalation skills, healthy shift routines, and self-care strategies to sustain long-term employment.</p>
+        </div>
+
+        <ol class="list-decimal list-inside space-y-3">
+          <li><strong>Managing Job Search Rejection Fatigue:</strong> Reframe unanswered applications or interview knockbacks as standard steps in the recruitment pipeline rather than personal failures.</li>
+          <li><strong>Recognizing Stress & Burnout Signals:</strong> Identify early physical and emotional signs of chronic fatigue, anxiety, or irritability.</li>
+          <li><strong>Establishing Healthy Sleep & Shift Hygiene:</strong> Prioritize 7–9 hours of sleep, using blackout curtains and screen limits when adjusting to early morning or night shifts.</li>
+          <li><strong>Employee Assistance Programs (EAP):</strong> Utilize confidential, employer-funded counseling services available in many medium-to-large Australian workplaces.</li>
+          <li><strong>De-escalating In-the-Moment Shift Anxiety:</strong> Practice quick grounding techniques (e.g., box breathing, stepping back for 60 seconds) during high-pressure work moments.</li>
+          <li><strong>Maintaining Physical Health & Nutrition:</strong> Pack nutritious meals and stay hydrated during shifts to sustain physical energy during demanding labor.</li>
+          <li><strong>Setting Professional Boundaries:</strong> Maintain healthy boundaries between work duties and home life to prevent shift burnout.</li>
+          <li><strong>Building a Supportive Peer Network:</strong> Connect with positive co-workers, family members, or community groups to share experiences and encouragement.</li>
+          <li><strong>Navigating Mental Health Support Services:</strong> Access bulk-billed GP Mental Health Care Plans, Headspace, Lifeline (13 11 14), and Beyond Blue resources.</li>
+          <li><strong>Overcoming Imposter Syndrome during Probation:</strong> Recognize that initial self-doubt in a new role is normal and builds into confidence through daily practice.</li>
+          <li><strong>Communicating Health Needs Legally:</strong> Understand how and when to disclose medical conditions or request reasonable workplace adjustments under WHS laws.</li>
+          <li><strong>Balancing Work and Personal Commitments:</strong> Manage household responsibilities, family care, and shift rosters without sacrificing personal rest.</li>
+          <li><strong>Decompressing After Demanding Shifts:</strong> Establish post-work decompression rituals (e.g., walking, listening to music) to transition smoothly out of work mode.</li>
+          <li><strong>Fostering Emotional Intelligence:</strong> Develop self-awareness and empathy to navigate diverse workplace personalities and shift pressures calmly.</li>
+          <li><strong>Sustaining Long-Term Motivation:</strong> Reflect regularly on how maintaining employment supports your broader personal independence and life goals.</li>
         </ol>
       </div>
     `
