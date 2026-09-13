@@ -102,7 +102,7 @@
     <!-- 1. CANDIDATE WORKSPACE -->
     <div id="workspace-jobseeker" class="space-y-8">
       
-      <!-- Victory Milestone & Messaging Header with HELP BUTTON -->
+      <!-- Victory Milestone Header with HELP BUTTON -->
       <div class="bg-gradient-to-r from-[#1D2B53] to-[#4CAF50] p-6 rounded-xl text-white shadow-md flex flex-col md:flex-row items-center justify-between gap-4">
         <div>
           <h2 class="text-2xl font-bold">Achieved a Work Milestone?</h2>
@@ -143,7 +143,7 @@
               <span id="pbas-points-text" class="text-xs font-bold text-[#1D2B53]">0 / 100 Points</span>
             </div>
             <div class="w-full bg-slate-200 h-3 rounded-full overflow-hidden">
-              <div id="pbas-points-bar" class="bg-[#4CAF50] h-full w-[0%] transition-all duration-500"></div>
+              <div id="pbas-points-bar" class="bg-[#4CAF50] h-full" style="width: 0%"></div>
             </div>
             <p class="text-[11px] text-slate-500">DEWR Values: Interview (25 pts), New Job (50 pts), Work Hours (5 pts/5 hrs), Job Search (5 pts).</p>
           </div>
@@ -154,7 +154,7 @@
               <span id="pbas-hours-text" class="text-xs font-bold text-[#1D2B53]">0 / 15 Hours</span>
             </div>
             <div class="w-full bg-slate-200 h-3 rounded-full overflow-hidden">
-              <div id="pbas-hours-bar" class="bg-[#1D2B53] h-full w-[0%] transition-all duration-500"></div>
+              <div id="pbas-hours-bar" class="bg-[#1D2B53] h-full" style="width: 0%"></div>
             </div>
             <p class="text-[11px] text-slate-500">Tracked from shift hours worked, module study, and job application effort.</p>
           </div>
@@ -356,7 +356,7 @@
         </div>
       </div>
 
-      <!-- Resume Builder -->
+      <!-- RESUME & COVER LETTER MASTER BUILDER -->
       <div class="bg-white p-6 rounded-xl shadow-md border border-slate-200 space-y-6">
         <div class="border-b pb-4 flex items-center justify-between">
           <div>
@@ -433,6 +433,7 @@
 
         <div id="resume-output-box" class="hidden space-y-8">
           
+          <!-- Document 1: Resume -->
           <div class="space-y-3">
             <h3 class="text-sm font-bold text-[#1D2B53] uppercase tracking-wider flex items-center justify-between">
               <span>📄 Document 1: Curated Professional Resume</span>
@@ -492,6 +493,7 @@
             </div>
           </div>
 
+          <!-- Document 2: Separate Cover Letter -->
           <div class="space-y-3 pt-6 border-t-2 border-slate-200">
             <h3 class="text-sm font-bold text-[#1D2B53] uppercase tracking-wider flex items-center justify-between">
               <span>✉️ Document 2: Tailored Cover Letter</span>
@@ -525,7 +527,7 @@
         </div>
       </div>
 
-      <!-- LMS Modules Grid -->
+      <!-- DETAILED EMPLOYABILITY MODULES GRID (8 MODULES WITH BRANDING) -->
       <div id="lms-modules-section" class="bg-white p-6 rounded-xl shadow-md border border-slate-200 space-y-6">
         <div class="border-b pb-4">
           <h2 class="text-2xl font-bold text-[#1D2B53]">Workplace Readiness & Compliance Modules</h2>
@@ -534,6 +536,7 @@
 
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           
+          <!-- Module 01 -->
           <div class="border border-slate-200 rounded-xl p-5 space-y-4 bg-slate-50 hover:shadow-md transition flex flex-col justify-between">
             <div class="space-y-3">
               <div class="flex justify-between items-center">
@@ -551,6 +554,7 @@
             </button>
           </div>
 
+          <!-- Module 02 -->
           <div class="border border-slate-200 rounded-xl p-5 space-y-4 bg-slate-50 hover:shadow-md transition flex flex-col justify-between">
             <div class="space-y-3">
               <div class="flex justify-between items-center">
@@ -568,6 +572,7 @@
             </button>
           </div>
 
+          <!-- Module 03 -->
           <div class="border border-slate-200 rounded-xl p-5 space-y-4 bg-slate-50 hover:shadow-md transition flex flex-col justify-between">
             <div class="space-y-3">
               <div class="flex justify-between items-center">
@@ -585,6 +590,7 @@
             </button>
           </div>
 
+          <!-- Module 04 -->
           <div class="border border-slate-200 rounded-xl p-5 space-y-4 bg-slate-50 hover:shadow-md transition flex flex-col justify-between">
             <div class="space-y-3">
               <div class="flex justify-between items-center">
@@ -602,6 +608,7 @@
             </button>
           </div>
 
+          <!-- Module 05 -->
           <div class="border border-slate-200 rounded-xl p-5 space-y-4 bg-slate-50 hover:shadow-md transition flex flex-col justify-between">
             <div class="space-y-3">
               <div class="flex justify-between items-center">
@@ -619,6 +626,7 @@
             </button>
           </div>
 
+          <!-- Module 06 -->
           <div class="border border-slate-200 rounded-xl p-5 space-y-4 bg-slate-50 hover:shadow-md transition flex flex-col justify-between">
             <div class="space-y-3">
               <div class="flex justify-between items-center">
@@ -636,6 +644,7 @@
             </button>
           </div>
 
+          <!-- Module 07 -->
           <div class="border border-slate-200 rounded-xl p-5 space-y-4 bg-slate-50 hover:shadow-md transition flex flex-col justify-between">
             <div class="space-y-3">
               <div class="flex justify-between items-center">
@@ -653,6 +662,7 @@
             </button>
           </div>
 
+          <!-- Module 08 -->
           <div class="border border-slate-200 rounded-xl p-5 space-y-4 bg-slate-50 hover:shadow-md transition flex flex-col justify-between">
             <div class="space-y-3">
               <div class="flex justify-between items-center">
@@ -673,7 +683,7 @@
         </div>
       </div>
 
-      <!-- Job Search Logger -->
+      <!-- JOB SEARCH EVIDENCE LOGGER (VERIFIABLE TEXT FIELDS) -->
       <div class="bg-white p-6 rounded-xl shadow-md border border-slate-200 space-y-6">
         <div class="border-b pb-4">
           <h2 class="text-2xl font-bold text-[#1D2B53]">Job Search & Activity Logger</h2>
@@ -744,10 +754,10 @@
 
     </div>
 
-    <!-- 2. CASE MANAGER WORKSPACE -->
+    <!-- 2. CASE MANAGER WORKSPACE (PBAS AUDITING, ROSTER & REPOSITIONED FEED) -->
     <div id="workspace-casemanager" class="hidden space-y-8">
       
-      <!-- Header Controls -->
+      <!-- Header Action Controls & Milestone Follow-Up Quick Buttons -->
       <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-white p-6 rounded-xl shadow-md border border-slate-200">
         <div>
           <h2 class="text-2xl font-bold text-[#1D2B53]">Case Manager Command Center</h2>
@@ -775,7 +785,7 @@
         </div>
       </div>
 
-      <!-- Caseload Cards -->
+      <!-- CLICKABLE CASELOAD OVERVIEW CARDS (WITH REVIEW NEEDED METRIC) -->
       <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         
         <div onclick="window.CASE_MANAGER.filterRoster('all')" class="p-5 bg-white border-2 border-slate-200 hover:border-[#1D2B53] rounded-xl shadow-sm cursor-pointer transition space-y-2">
@@ -816,7 +826,7 @@
 
       </div>
 
-      <!-- Main Caseload Roster Table -->
+      <!-- MAIN CASELOAD ROSTER TABLE (EXPANDED COLUMN WIDTHS & INTERACTIVE BOUNCING BADGES) -->
       <div class="bg-white p-6 rounded-xl shadow-md border border-slate-200 space-y-4">
         <div class="border-b pb-3 flex justify-between items-center">
           <h3 id="cm-roster-title" class="font-bold text-[#1D2B53] text-base">Entire Caseload Roster</h3>
@@ -842,7 +852,7 @@
         </div>
       </div>
 
-      <!-- Job Search Verification Log -->
+      <!-- VERIFIABLE JOB SEARCH AUDIT TABLE -->
       <div class="bg-white p-6 rounded-xl shadow-md border border-slate-200 space-y-4">
         <div class="border-b pb-3 flex justify-between items-center">
           <div>
@@ -882,7 +892,7 @@
         </div>
       </div>
 
-      <!-- Live Activity Feed -->
+      <!-- REPOSITIONED LIVE FEED (MOVED TO BOTTOM FOR CLEANER VISUAL FLOW) -->
       <div class="bg-white p-6 rounded-xl shadow-md border border-slate-200 space-y-4">
         <h3 class="font-bold text-[#1D2B53] text-sm flex items-center justify-between border-b pb-3">
           <span>📩 Live Candidate Activity Feed (Messages, Milestones & Monthly Indicators)</span>
@@ -898,7 +908,7 @@
     <!-- 3. BUSINESS MANAGER WORKSPACE -->
     <div id="workspace-business" class="hidden space-y-8">
       
-      <!-- Executive Header -->
+      <!-- Executive Header & Seat Management Banner with HELP BUTTON -->
       <div class="bg-white p-6 rounded-xl shadow-md border border-slate-200 space-y-6">
         <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b pb-4">
           <div>
@@ -918,7 +928,7 @@
           </div>
         </div>
 
-        <!-- Seat Allocation Status -->
+        <!-- Subscription & Seat Health Overview -->
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div class="p-4 bg-slate-50 border border-slate-200 rounded-lg space-y-2">
             <div class="flex justify-between items-center">
@@ -926,7 +936,7 @@
               <span id="bm-cand-seats-text" class="text-xs font-bold text-[#1D2B53]">24 / 50 Seats Used</span>
             </div>
             <div class="w-full bg-slate-200 h-2.5 rounded-full overflow-hidden">
-              <div id="bm-cand-seats-bar" class="bg-[#1D2B53] h-full w-[48%] transition-all"></div>
+              <div id="bm-cand-seats-bar" class="bg-[#1D2B53] h-full" style="width: 48%"></div>
             </div>
             <p class="text-[11px] text-slate-500">26 Available Candidate Seats remaining on plan.</p>
           </div>
@@ -937,14 +947,14 @@
               <span id="bm-cm-seats-text" class="text-xs font-bold text-[#9C27B0]">3 / 5 Staff Licenses Active</span>
             </div>
             <div class="w-full bg-slate-200 h-2.5 rounded-full overflow-hidden">
-              <div id="bm-cm-seats-bar" class="bg-[#9C27B0] h-full w-[60%] transition-all"></div>
+              <div id="bm-cm-seats-bar" class="bg-[#9C27B0] h-full" style="width: 60%"></div>
             </div>
             <p class="text-[11px] text-slate-500">2 Available Case Manager licenses remaining.</p>
           </div>
         </div>
       </div>
 
-      <!-- Overview Cards -->
+      <!-- CLICKABLE EXECUTIVE COMPLIANCE OVERVIEW CARDS -->
       <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         
         <div onclick="switchTab('casemanager'); window.CASE_MANAGER.filterRoster('all');" class="p-5 bg-white border-2 border-slate-200 hover:border-[#1D2B53] rounded-xl shadow-sm cursor-pointer transition space-y-2">
@@ -985,7 +995,7 @@
 
       </div>
 
-      <!-- Staff Roster -->
+      <!-- CASE MANAGER STAFF ROSTER & OVERVIEW -->
       <div class="bg-white p-6 rounded-xl shadow-md border border-slate-200 space-y-4">
         <div class="border-b pb-3 flex justify-between items-center">
           <div>
@@ -1013,53 +1023,82 @@
 
     </div>
 
-    <!-- 4. SYSTEM ADMIN WORKSPACE (AUDIT LOGS & TICKETS QUEUE) -->
+    <!-- 4. SYSTEM ADMIN WORKSPACE (PROVISIONING, CAPACITY & AUDIT LOGS) -->
     <div id="workspace-admin" class="hidden space-y-8">
       
-      <!-- System Overview Header & Audit Log Exporter -->
+      <!-- System Admin Executive Header & Provisioning Control Bar -->
       <div class="bg-white p-6 rounded-xl shadow-md border-2 border-red-500 space-y-6">
         <div class="border-b pb-4 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
           <div>
-            <h2 class="text-2xl font-bold text-red-900">System Admin Master Console</h2>
-            <p class="text-xs text-slate-600">Cross-tenant support tickets, license provisioning, and tamper-evident security audit logs.</p>
+            <h2 class="text-2xl font-bold text-red-900">System Admin Master Command Console</h2>
+            <p class="text-xs text-slate-600">Provision Employment Providers, monitor seat capacity, track billing renewals, and inspect system audit logs.</p>
           </div>
           <div class="flex items-center gap-3">
             <button onclick="window.SYSTEM_ADMIN.exportAuditLogsCSV()" class="px-4 py-2 bg-[#1D2B53] text-white text-xs font-bold rounded-lg hover:bg-slate-800 transition flex items-center gap-1.5 shadow">
               📄 Export Security Audit Log (.CSV)
             </button>
-            <span class="px-3 py-1 bg-red-100 text-red-800 text-xs font-bold rounded-full border border-red-300">
-              🔒 Restricted Access
-            </span>
+            <button onclick="window.SYSTEM_ADMIN.openProviderModal()" class="px-4 py-2 bg-red-700 text-white text-xs font-bold rounded-lg hover:bg-red-800 transition shadow flex items-center gap-1.5">
+              ➕ Invite & Provision Provider
+            </button>
           </div>
         </div>
 
-        <!-- Escalated Support Tickets Queue -->
-        <div class="space-y-3">
-          <h3 class="font-bold text-slate-800 text-sm">Escalated Staff & Technical Support Tickets Queue</h3>
-          <div class="overflow-x-auto">
-            <table class="w-full text-left text-xs text-slate-600">
-              <thead class="bg-slate-100 text-slate-800 font-semibold">
-                <tr>
-                  <th class="p-2.5">Ticket ID</th>
-                  <th class="p-2.5">Sender Role</th>
-                  <th class="p-2.5">Category</th>
-                  <th class="p-2.5">Message Details</th>
-                  <th class="p-2.5">Timestamp</th>
-                  <th class="p-2.5">Status</th>
-                </tr>
-              </thead>
-              <tbody id="admin-tickets-log" class="divide-y">
-                <tr class="hover:bg-slate-50 transition border-b text-xs">
-                  <td class="p-2.5 font-bold font-mono text-[#1D2B53]">TICK-8812</td>
-                  <td class="p-2.5 font-semibold text-slate-800">Business Manager</td>
-                  <td class="p-2.5">License Allocation Request</td>
-                  <td class="p-2.5 text-slate-600 truncate max-w-xs">Requesting +10 candidate seats upgrade for Q4 cohort expansion.</td>
-                  <td class="p-2.5 text-slate-400">13 Sep 14:10</td>
-                  <td class="p-2.5"><span class="px-2 py-0.5 bg-rose-100 text-rose-800 text-[10px] font-bold rounded-full">Open</span></td>
-                </tr>
-              </tbody>
-            </table>
+        <!-- Master Seat Capacity & Subscription Health Banner -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div class="p-4 bg-slate-50 border border-slate-200 rounded-lg space-y-1">
+            <span class="text-[10px] font-bold text-slate-500 uppercase block">Active Provider Orgs</span>
+            <div id="admin-prov-count" class="text-2xl font-extrabold text-[#1D2B53]">0</div>
+            <p class="text-[10px] text-slate-500">Employment Service Providers Enrolled</p>
           </div>
+
+          <div class="p-4 bg-slate-50 border border-slate-200 rounded-lg space-y-1">
+            <span class="text-[10px] font-bold text-slate-500 uppercase block">Candidate Capacity Utilization</span>
+            <div id="admin-cand-capacity-text" class="text-xl font-bold text-[#1D2B53]">0 / 0 (0%)</div>
+            <div class="w-full bg-slate-200 h-2 rounded-full overflow-hidden mt-1">
+              <div id="admin-cand-capacity-bar" class="bg-[#1D2B53] h-full" style="width: 0%"></div>
+            </div>
+          </div>
+
+          <div class="p-4 bg-slate-50 border border-slate-200 rounded-lg space-y-1">
+            <span class="text-[10px] font-bold text-slate-500 uppercase block">Case Manager Staff Licenses</span>
+            <div id="admin-cm-capacity-text" class="text-xl font-bold text-[#9C27B0]">0 / 0 (0%)</div>
+            <div class="w-full bg-slate-200 h-2 rounded-full overflow-hidden mt-1">
+              <div id="admin-cm-capacity-bar" class="bg-[#9C27B0] h-full" style="width: 0%"></div>
+            </div>
+          </div>
+
+          <div class="p-4 bg-amber-50/50 border border-amber-300 rounded-lg space-y-1">
+            <span class="text-[10px] font-bold text-amber-900 uppercase block">Subscription Renewal Alerts</span>
+            <div id="admin-renewals-text" class="text-lg font-bold text-amber-800">0 Due Soon • 0 Overdue</div>
+            <p class="text-[10px] text-amber-700">Billing Expirations Tracked</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- MASTER PROVIDER PROVISIONING & CAPACITY ROSTER -->
+      <div class="bg-white p-6 rounded-xl shadow-md border border-slate-200 space-y-4">
+        <div class="border-b pb-3 flex justify-between items-center">
+          <div>
+            <h3 class="font-bold text-[#1D2B53] text-base">Employment Service Providers & License Allocations</h3>
+            <p class="text-xs text-slate-500">Monitor active seat usage, adjust capacity limits, and extend subscription renewals.</p>
+          </div>
+          <button onclick="window.SYSTEM_ADMIN.openProviderModal()" class="text-xs text-red-700 font-bold hover:underline">+ Provision New Provider</button>
+        </div>
+        <div class="overflow-x-auto">
+          <table class="w-full text-left text-xs text-slate-600">
+            <thead class="bg-slate-100 text-slate-800 font-semibold">
+              <tr>
+                <th class="p-3 min-w-[200px]">Provider Organization & Contact</th>
+                <th class="p-3 min-w-[150px]">Subscription & Billing Health</th>
+                <th class="p-3 min-w-[160px]">Candidate Capacity</th>
+                <th class="p-3">Staff Licenses</th>
+                <th class="p-3">System Actions</th>
+              </tr>
+            </thead>
+            <tbody id="admin-provider-table-body" class="divide-y">
+              <!-- Dynamically populated via systemAdminEngine.js -->
+            </tbody>
+          </table>
         </div>
       </div>
 
@@ -1078,7 +1117,7 @@
               Seat Provisioning
             </button>
             <button onclick="window.SYSTEM_ADMIN.filterLogs('all')" class="px-2.5 py-1 bg-[#1D2B53] text-white text-xs font-bold rounded">
-              Reset Filters
+              Reset Log Filters
             </button>
           </div>
         </div>
@@ -1107,6 +1146,8 @@
     </div>
 
   </main>
+
+  <!-- MODALS -->
 
   <!-- UNIVERSAL HELP MODAL -->
   <div id="universal-help-modal" class="fixed inset-0 bg-slate-900/70 backdrop-blur-sm hidden flex items-center justify-center p-4 z-50">
@@ -1142,6 +1183,52 @@
         <div class="flex gap-2 pt-2">
           <button type="button" onclick="window.HELP_ENGINE.closeHelpModal()" class="w-1/2 py-2 bg-slate-200 text-slate-800 font-medium rounded">Cancel</button>
           <button type="submit" class="w-1/2 py-2 bg-[#1D2B53] text-white font-bold rounded hover:bg-slate-800 transition shadow">Transmit Ticket</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- PROVIDER PROVISIONING MODAL -->
+  <div id="admin-provider-modal" class="fixed inset-0 bg-slate-900/70 backdrop-blur-sm hidden flex items-center justify-center p-4 z-50">
+    <div class="bg-white max-w-md w-full rounded-xl p-6 shadow-2xl space-y-4 border-2 border-red-700">
+      <div class="flex justify-between items-center border-b pb-3">
+        <h3 class="text-lg font-bold text-red-900">Provision Employment Provider Organization</h3>
+        <button onclick="window.SYSTEM_ADMIN.closeProviderModal()" class="text-slate-400 font-bold">✕</button>
+      </div>
+      <form onsubmit="window.SYSTEM_ADMIN.handleCreateProvider(event)" class="space-y-3">
+        <div>
+          <label class="block text-xs font-semibold text-slate-700 mb-1">Provider Organization Name</label>
+          <input type="text" id="prov-name" required class="w-full p-2.5 border border-slate-300 rounded-lg text-sm" placeholder="e.g. Apex Employment Solutions">
+        </div>
+        <div>
+          <label class="block text-xs font-semibold text-slate-700 mb-1">Primary Contact Full Name</label>
+          <input type="text" id="prov-contact-name" required class="w-full p-2.5 border border-slate-300 rounded-lg text-sm" placeholder="e.g. Mark Robinson">
+        </div>
+        <div>
+          <label class="block text-xs font-semibold text-slate-700 mb-1">Contact Email Address</label>
+          <input type="email" id="prov-email" required class="w-full p-2.5 border border-slate-300 rounded-lg text-sm" placeholder="e.g. m.robinson@apex.org.au">
+        </div>
+        <div class="grid grid-cols-2 gap-2">
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 mb-1">Subscription Plan Tier</label>
+            <select id="prov-tier" class="w-full p-2 border border-slate-300 rounded-lg text-xs bg-white">
+              <option value="Enterprise Provider">Enterprise Tier (50+ Seats)</option>
+              <option value="Standard Provider">Standard Tier (25-50 Seats)</option>
+              <option value="Starter Provider">Starter Tier (1-25 Seats)</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 mb-1">Candidate Seat Limit</label>
+            <input type="number" id="prov-cand-seats" required min="5" value="50" class="w-full p-2 border border-slate-300 rounded-lg text-xs">
+          </div>
+        </div>
+        <div>
+          <label class="block text-xs font-semibold text-slate-700 mb-1">Case Manager Licenses Allowed</label>
+          <input type="number" id="prov-cm-seats" required min="1" value="5" class="w-full p-2.5 border border-slate-300 rounded-lg text-sm">
+        </div>
+        <div class="flex gap-2 pt-2">
+          <button type="button" onclick="window.SYSTEM_ADMIN.closeProviderModal()" class="w-1/2 py-2 bg-slate-200 text-slate-800 font-medium rounded">Cancel</button>
+          <button type="submit" class="w-1/2 py-2 bg-red-700 text-white font-bold rounded hover:bg-red-800 transition shadow">Provision & Setup Access</button>
         </div>
       </form>
     </div>
@@ -1941,7 +2028,7 @@
         window.BUSINESS_MANAGER.renderStaffRoster();
       }
       if (window.SYSTEM_ADMIN) {
-        window.SYSTEM_ADMIN.filterLogs('all');
+        window.SYSTEM_ADMIN.initConsole();
       }
     };
   </script>
