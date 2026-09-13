@@ -934,15 +934,40 @@
       document.getElementById('resume-output-box').classList.remove('hidden');
     }
 
-    // --- PDF Export Canvas Functions ---
+    // --- PDF Export Canvas Functions (Robust Client-Side Engine) ---
+    async function generatePdfFromElement(elementId, filename) {
+      const element = document.getElementById(elementId);
+      if (!element) {
+        alert("Export target element not found.");
+        return;
+      }
+
+      // Ensure target element is visible during rendering pass
+      const isHidden = element.closest('.hidden');
+      if (isHidden) isHidden.classList.remove('hidden');
+
+      const opt = {
+        margin:       [0.3, 0.3, 0.3, 0.3],
+        filename:     filename,
+        image:        { type: 'jpeg', quality: 0.98 },
+        html2canvas:  { scale: 2, useCORS: true, logging: false, scrollY: 0 },
+        jsPDF:        { unit: 'in', format: 'a4', orientation: 'portrait' }
+      };
+
+      try {
+        await html2pdf().set(opt).from(element).save();
+      } catch (err) {
+        console.error("PDF Export Error:", err);
+        alert("Failed to render PDF. Please try again.");
+      }
+    }
+
     function downloadInterviewPDF() {
-      const element = document.getElementById('interview-pdf-target');
-      html2pdf().set({ margin: 0.4, filename: 'STAR_Interview_Report.pdf', html2canvas: { scale: 2 } }).from(element).save();
+      generatePdfFromElement('interview-pdf-target', 'STAR_Interview_Report.pdf');
     }
 
     function downloadResumePDF() {
-      const element = document.getElementById('resume-document-template');
-      html2pdf().set({ margin: 0.4, filename: 'Professional_Resume.pdf', html2canvas: { scale: 2 } }).from(element).save();
+      generatePdfFromElement('resume-document-template', 'Professional_Resume.pdf');
     }
 
     function downloadResumeWord() {
