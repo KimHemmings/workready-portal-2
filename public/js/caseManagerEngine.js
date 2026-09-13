@@ -17,7 +17,8 @@ window.CASE_MANAGER = {
       modulesCompleted: 3,
       interviewsCompleted: 2,
       evidenceSubmitted: 1,
-      pendingAction: true, // Needs Review (Pending Evidence)
+      pendingAction: true,
+      pendingActionType: "evidence_verification", // "evidence_verification", "milestone_interview", "milestone_job", "readiness_task"
       lastActive: "Today at 2:15 PM"
     },
     {
@@ -33,7 +34,8 @@ window.CASE_MANAGER = {
       modulesCompleted: 8,
       interviewsCompleted: 3,
       evidenceSubmitted: 4,
-      pendingAction: false,
+      pendingAction: true,
+      pendingActionType: "milestone_interview",
       lastActive: "Yesterday at 4:30 PM"
     },
     {
@@ -50,6 +52,7 @@ window.CASE_MANAGER = {
       interviewsCompleted: 4,
       evidenceSubmitted: 6,
       pendingAction: false,
+      pendingActionType: null,
       lastActive: "11-Sep-2026"
     },
     {
@@ -65,7 +68,8 @@ window.CASE_MANAGER = {
       modulesCompleted: 1,
       interviewsCompleted: 0,
       evidenceSubmitted: 0,
-      pendingAction: true, // Monthly Task Due
+      pendingAction: true,
+      pendingActionType: "readiness_task",
       lastActive: "6 Days Ago"
     },
     {
@@ -82,11 +86,12 @@ window.CASE_MANAGER = {
       interviewsCompleted: 0,
       evidenceSubmitted: 0,
       pendingAction: false,
+      pendingActionType: null,
       lastActive: "4 Days Ago"
     }
   ],
 
-  // Filter Roster by Clickable Dashboard Cards
+  // Filter Roster by Clickable Dashboard Cards & Milestone Buttons
   filterRoster: function(metricType) {
     const title = document.getElementById('cm-roster-title');
     const tbody = document.getElementById('cm-roster-table-body');
@@ -102,6 +107,15 @@ window.CASE_MANAGER = {
     } else if (metricType === 'review_needed') {
       filtered = this.candidates.filter(c => c.pendingAction === true);
       if (title) title.innerText = "⚠️ Candidates Requiring Case Manager Review & Sign-Off";
+    } else if (metricType === 'milestone_interviews') {
+      filtered = this.candidates.filter(c => c.pendingActionType === 'milestone_interview' || c.interviewsCompleted > 0);
+      if (title) title.innerText = "🎯 Candidate Interview Milestones & Follow-Ups";
+    } else if (metricType === 'milestone_jobs') {
+      filtered = this.candidates.filter(c => c.status === 'Placed' || c.pendingActionType === 'milestone_job');
+      if (title) title.innerText = "🎉 Candidate Job Placement Milestones & Follow-Ups";
+    } else if (metricType === 'messages_feed') {
+      filtered = this.candidates.filter(c => c.pendingActionType === 'readiness_task' || c.pendingActionType === 'evidence_verification');
+      if (title) title.innerText = "💬 Direct Candidate Messages & Task Submissions";
     } else if (metricType === 'completed_lms') {
       filtered = this.candidates.filter(c => c.modulesCompleted === 8);
       if (title) title.innerText = "Candidates with 100% Modules Completed";
@@ -118,30 +132,32 @@ window.CASE_MANAGER = {
 
     tbody.innerHTML = list.map(c => `
       <tr class="hover:bg-slate-50 transition border-b border-slate-100">
-        <td class="p-3 font-bold text-[#1D2B53]">
+        <td class="p-3 font-bold text-[#1D2B53] min-w-[200px]">
           ${c.name}
           <span class="block text-[11px] font-normal text-slate-500">${c.email} | ${c.phone}</span>
           <span class="block text-[10px] font-mono text-purple-700">Cycle: ${c.cycleStart} to ${c.cycleEnd}</span>
         </td>
-        <td class="p-3">
-          <span class="px-2.5 py-0.5 text-[10px] font-extrabold uppercase rounded-full ${c.status === 'Placed' ? 'bg-purple-100 text-purple-900 border border-purple-300' : 'bg-blue-100 text-blue-800'}">
+        <td class="p-3 min-w-[120px]">
+          <span class="px-2.5 py-1 text-[11px] font-extrabold uppercase rounded-full whitespace-nowrap ${c.status === 'Placed' ? 'bg-purple-100 text-purple-900 border border-purple-300' : 'bg-blue-100 text-blue-800'}">
             ${c.status === 'Placed' ? '🎉 Placed' : 'Active'}
           </span>
         </td>
-        <td class="p-3">
-          <span class="px-2.5 py-0.5 text-[10px] font-extrabold uppercase rounded-full ${c.pbasStatus === 'On Track' ? 'bg-emerald-100 text-emerald-800 border border-emerald-300' : 'bg-rose-100 text-rose-800 border border-rose-300 animate-pulse'}">
+        <td class="p-3 min-w-[170px]">
+          <span class="px-2.5 py-1 text-[11px] font-extrabold uppercase rounded-full whitespace-nowrap ${c.pbasStatus === 'On Track' ? 'bg-emerald-100 text-emerald-800 border border-emerald-300' : 'bg-rose-100 text-rose-800 border border-rose-300 animate-pulse'}">
             ${c.pbasStatus === 'On Track' ? '✓ ' + c.pbasPoints + ' Pts (On Track)' : '🚨 ' + c.pbasPoints + ' Pts (At Risk)'}
           </span>
         </td>
-        <td class="p-3">
+        <td class="p-3 min-w-[150px]">
           ${c.pendingAction 
-            ? `<span class="px-2.5 py-1 bg-amber-100 text-amber-900 border border-amber-300 text-[10px] font-bold rounded-full animate-bounce inline-block">⚠️ Review Needed</span>` 
-            : `<span class="px-2.5 py-1 bg-slate-100 text-slate-600 text-[10px] font-semibold rounded-full">✓ Up to Date</span>`}
+            ? `<button onclick="window.CASE_MANAGER.openReviewModal('${c.name}')" title="Click to view and complete required sign-off" class="px-3 py-1 bg-amber-100 hover:bg-amber-200 text-amber-900 border border-amber-400 text-[11px] font-extrabold rounded-full animate-bounce shadow-sm flex items-center gap-1 cursor-pointer whitespace-nowrap">
+                ⚠️ Review Needed
+               </button>` 
+            : `<span class="px-2.5 py-1 bg-slate-100 text-slate-600 text-[10px] font-semibold rounded-full whitespace-nowrap">✓ Up to Date</span>`}
         </td>
-        <td class="p-3 font-semibold text-slate-700">${c.modulesCompleted}/8 Mods</td>
-        <td class="p-3 text-slate-500 text-[11px]">${c.lastActive}</td>
+        <td class="p-3 font-semibold text-slate-700 whitespace-nowrap">${c.modulesCompleted}/8 Mods</td>
+        <td class="p-3 text-slate-500 text-[11px] whitespace-nowrap">${c.lastActive}</td>
         <td class="p-3">
-          <div class="flex flex-wrap gap-1.5">
+          <div class="flex flex-wrap gap-1.5 min-w-[320px]">
             ${c.pendingAction 
               ? `<button onclick="window.CASE_MANAGER.openReviewModal('${c.name}')" class="px-2 py-1 bg-[#FFB74D] text-slate-950 text-[11px] font-extrabold rounded hover:bg-amber-400 transition shadow-sm">🔍 Review & Sign Off</button>`
               : ''}
@@ -154,19 +170,35 @@ window.CASE_MANAGER = {
     `).join('');
   },
 
-  // Case Manager Action Handlers
+  // Case Manager Action Handlers & Directed Sign-Offs
   openReviewModal: function(candidateName) {
-    const confirmReview = confirm(`REVIEW & SIGN OFF AUDIT\n-------------------------\nCandidate: ${candidateName}\nPending Items: Unverified Job Search Log & Monthly Readiness Indicator.\n\nClick OK to verify all pending entries and mark this candidate file as 'Up to Date'.`);
+    const cand = this.candidates.find(c => c.name === candidateName);
+    let actionDetailText = "Unverified Job Search Log & Monthly Readiness Assessment.";
+    
+    if (cand && cand.pendingActionType) {
+      if (cand.pendingActionType === 'evidence_verification') {
+        actionDetailText = "Job Application Log submitted for Bunnings Warehouse (Ref #BN-8821). Needs verification sign-off.";
+      } else if (cand.pendingActionType === 'milestone_interview') {
+        actionDetailText = "Candidate reported securing an interview with Coles Supermarkets! Requires follow-up confirmation.";
+      } else if (cand.pendingActionType === 'milestone_job') {
+        actionDetailText = "Candidate reported obtaining employment with ABC Logistics! Requires placement confirmation.";
+      } else if (cand.pendingActionType === 'readiness_task') {
+        actionDetailText = "Monthly Candidate Job Readiness Assessment completed and pending review.";
+      }
+    }
+
+    const confirmReview = confirm(`ACTION REQUIRED FOR: ${candidateName.toUpperCase()}\n--------------------------------------------------\nTask Details: ${actionDetailText}\n\nClick OK to complete review, sign off evidence, and mark this candidate file 'Up to Date'.`);
+    
     if (confirmReview) {
-      const cand = this.candidates.find(c => c.name === candidateName);
       if (cand) {
         cand.pendingAction = false;
+        cand.pendingActionType = null;
         cand.evidenceSubmitted = Math.max(0, cand.evidenceSubmitted + 1);
-        if (cand.pbasPoints < 100) cand.pbasPoints += 5;
+        if (cand.pbasPoints < 100) cand.pbasPoints += 10;
         if (cand.pbasPoints >= 50) cand.pbasStatus = "On Track";
       }
       this.filterRoster('all');
-      alert(`Verification complete! ${candidateName}'s evidence has been officially signed off and their PBAS score refreshed.`);
+      alert(`Action Sign-Off Complete! ${candidateName}'s file is now marked 'Up to Date' and their PBAS score refreshed.`);
     }
   },
 
@@ -225,7 +257,6 @@ window.CASE_MANAGER = {
   openInviteModal: function() {
     const modal = document.getElementById('cm-invite-modal');
     if (modal) {
-      // Set default 30-day reporting cycle dates
       const startInput = document.getElementById('inv-cycle-start');
       const endInput = document.getElementById('inv-cycle-end');
       const today = new Date();
@@ -266,6 +297,7 @@ window.CASE_MANAGER = {
       interviewsCompleted: 0,
       evidenceSubmitted: 0,
       pendingAction: false,
+      pendingActionType: null,
       lastActive: "Invited Just Now"
     };
 
