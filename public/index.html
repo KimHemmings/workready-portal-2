@@ -2412,85 +2412,78 @@
 2412:     window.MAX_ATTEMPTS = 3;
 2413: 
 2414:     function changeActiveRole(role) {
-2415:       activeRole = role;
-2416:       if (role === 'sales_rep') {
-2417:         if (window.SALES_DEMO_ENGINE && typeof window.SALES_DEMO_ENGINE.launchSalesDemoBar === 'function') {
-2418:           window.SALES_DEMO_ENGINE.launchSalesDemoBar();
-2419:           window.SALES_DEMO_ENGINE.setSalesDemoContract('WORKFORCE');
-2420:         }
-2421:       } else {
-2422:         if (window.SALES_DEMO_ENGINE && typeof window.SALES_DEMO_ENGINE.removeSalesDemoBar === 'function') {
-2423:           window.SALES_DEMO_ENGINE.removeSalesDemoBar();
-2424:         }
-2425:       }
-2426:       enforceSecurityHierarchy();
-2427:     }
-2428: 
-2429:     function enforceSecurityHierarchy() {
-2430:       ['jobseeker', 'casemanager', 'business', 'admin'].forEach(tab => {
-2431:         document.getElementById(`nav-${tab}`)?.classList.add('hidden');
-2432:       });
-2433: 
-2434:       if (activeRole === 'system_admin') {
-2435:         document.getElementById('nav-admin')?.classList.remove('hidden');
-2436:         switchTab('admin');
-2437:       } else if (activeRole === 'sales_rep' || activeRole === 'case_manager') {
-2438:         document.getElementById('nav-casemanager')?.classList.remove('hidden');
-2439:         document.getElementById('nav-business')?.classList.remove('hidden');
-2440:         switchTab('casemanager');
-2441:       } else if (activeRole === 'business_manager') {
-2442:         document.getElementById('nav-business')?.classList.remove('hidden');
-2443:         switchTab('business');
-2444:       } else {
-2445:         document.getElementById('nav-jobseeker')?.classList.remove('hidden');
-2446:         switchTab('jobseeker');
-2447:       }
-2448:     }
-2449: 
-2450:     function switchTab(tabKey) {
-2451:       ['jobseeker', 'casemanager', 'business', 'admin'].forEach(t => {
-2452:         document.getElementById(`workspace-${t}`)?.classList.add('hidden');
-2453:         const navBtn = document.getElementById(`nav-${t}`);
-2454:         if (navBtn) navBtn.className = "px-6 py-3 border-b-2 border-transparent text-slate-600 hover:text-[#1D2B53]";
-2455:       });
-2456: 
-2457:       document.getElementById(`workspace-${tabKey}`)?.classList.remove('hidden');
-2458:       const activeNavBtn = document.getElementById(`nav-${tabKey}`);
-2459:       if (activeNavBtn) activeNavBtn.className = "px-6 py-3 border-b-2 border-[#4CAF50] text-[#1D2B53] font-bold";
-2460:     }
-2461: 
-2462:     function toggleHighContrast() { document.body.classList.toggle('high-contrast'); }
-2463: 
-2464:     // Keyboard & Double-Click Shortcuts for Admin Login
-2465:     document.addEventListener('keydown', (e) => {
-2466:       if (e.altKey && e.key.toLowerCase() === 'a') {
-2467:         const u = document.getElementById('auth-username');
-2468:         const p = document.getElementById('auth-password');
-2469:         if (u) u.value = 'admin@straightuptraining.com';
-2470:         if (p) p.value = 'WorkReadyAdmin2026!';
-2471:       }
-2472:     });
-2473: 
-2474:     document.addEventListener('DOMContentLoaded', () => {
-2475:       const logoTrigger = document.getElementById('brand-logo-trigger');
-2476:       if (logoTrigger) {
-2477:         logoTrigger.addEventListener('dblclick', () => {
-2478:           const u = document.getElementById('auth-username');
-2479:           const p = document.getElementById('auth-password');
-2480:           if (u) u.value = 'admin@straightuptraining.com';
-2481:           if (p) p.value = 'WorkReadyAdmin2026!';
-2482:         });
-2483:       }
-2484:     });
-2485: 
-2486:     window.onload = () => {
-2487:       const role = localStorage.getItem('user_role');
-2488:       if (role) {
-2489:         document.getElementById('auth-login-overlay')?.classList.add('hidden');
-2490:         document.getElementById('main-app-container')?.classList.remove('hidden');
-2491:         changeActiveRole(role);
-2492:       }
-2493:     };
+      activeRole = role;
+      
+      // Store active role state
+      localStorage.setItem('user_role', role);
+
+      // Handle Sales Demo Banner visibility
+      if (role === 'sales_rep') {
+        if (window.SALES_DEMO_ENGINE && typeof window.SALES_DEMO_ENGINE.launchSalesDemoBar === 'function') {
+          window.SALES_DEMO_ENGINE.launchSalesDemoBar();
+          window.SALES_DEMO_ENGINE.setSalesDemoContract('WORKFORCE');
+        }
+      } else {
+        if (window.SALES_DEMO_ENGINE && typeof window.SALES_DEMO_ENGINE.removeSalesDemoBar === 'function') {
+          window.SALES_DEMO_ENGINE.removeSalesDemoBar();
+        } else {
+          document.getElementById('sales-contract-demo-bar')?.remove();
+        }
+      }
+
+      enforceSecurityHierarchy();
+    }
+
+    function enforceSecurityHierarchy() {
+      // 1. Hide all navigation tabs first
+      ['jobseeker', 'casemanager', 'business', 'admin'].forEach(tab => {
+        document.getElementById(`nav-${tab}`)?.classList.add('hidden');
+      });
+
+      // 2. Unhide authorized tabs and switch to default workspace for role
+      if (activeRole === 'system_admin') {
+        document.getElementById('nav-admin')?.classList.remove('hidden');
+        document.getElementById('nav-casemanager')?.classList.remove('hidden');
+        document.getElementById('nav-business')?.classList.remove('hidden');
+        switchTab('admin');
+      } else if (activeRole === 'sales_rep' || activeRole === 'case_manager') {
+        document.getElementById('nav-casemanager')?.classList.remove('hidden');
+        document.getElementById('nav-business')?.classList.remove('hidden');
+        switchTab('casemanager');
+      } else if (activeRole === 'business_manager') {
+        document.getElementById('nav-business')?.classList.remove('hidden');
+        switchTab('business');
+      } else {
+        // Candidate / Default
+        document.getElementById('nav-jobseeker')?.classList.remove('hidden');
+        switchTab('jobseeker');
+      }
+    }
+
+    function switchTab(tabKey) {
+      ['jobseeker', 'casemanager', 'business', 'admin'].forEach(t => {
+        document.getElementById(`workspace-${t}`)?.classList.add('hidden');
+        const navBtn = document.getElementById(`nav-${t}`);
+        if (navBtn) {
+          navBtn.className = "px-6 py-3 border-b-2 border-transparent text-slate-600 hover:text-[#1D2B53]";
+        }
+      });
+
+      document.getElementById(`workspace-${tabKey}`)?.classList.remove('hidden');
+      const activeNavBtn = document.getElementById(`nav-${tabKey}`);
+      if (activeNavBtn) {
+        activeNavBtn.className = "px-6 py-3 border-b-2 border-[#4CAF50] text-[#1D2B53] font-bold";
+      }
+    }
+
+    window.onload = () => {
+      const role = localStorage.getItem('user_role');
+      if (role) {
+        document.getElementById('auth-login-overlay')?.classList.add('hidden');
+        document.getElementById('main-app-container')?.classList.remove('hidden');
+        changeActiveRole(role);
+      }
+    };
 2494:   </script>
 2495: </body>
 2496: </html>  

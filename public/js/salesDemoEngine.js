@@ -97,5 +97,7 @@ window.SALES_DEMO_ENGINE = (function() {
   return { setSalesDemoContract, launchSalesDemoBar, removeSalesDemoBar };
 })();
 
+// Global Bindings
 window.setSalesDemoContract = window.SALES_DEMO_ENGINE.setSalesDemoContract;
 window.launchSalesDemoBar = window.SALES_DEMO_ENGINE.launchSalesDemoBar;
+window.removeSalesDemoBar = window.SALES_DEMO_ENGINE.removeSalesDemoBar;
