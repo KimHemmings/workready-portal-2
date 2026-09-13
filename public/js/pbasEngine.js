@@ -1,117 +1,99 @@
 // public/js/pbasEngine.js
-// DEWR PBAS Compliance Engine — Verifiable Text-Based Activity Engine
+// Dynamic Stream & Case Manager Target Adjustment PBAS Engine
 
 window.PBAS_ENGINE = {
-  targetPoints: 100,
-  targetHours: 15,
+  getDynamicTarget: function() {
+    // 1. Get active provider stream code
+    let streamCode = 'workforce_australia';
+    if (window.PROVIDER_CONTEXT && window.PROVIDER_CONTEXT.manifests) {
+      const activeProv = window.PROVIDER_CONTEXT.manifests[window.PROVIDER_CONTEXT.activeProviderId];
+      if (activeProv) streamCode = activeProv.stream;
+    }
 
-  getManualActivities: function() {
-    return JSON.parse(localStorage.getItem('workready_pbas_activities') || '[]');
-  },
+    // 2. Check if Case Manager applied an override for the current candidate
+    if (window.COMPLIANCE_ENGINE && window.COMPLIANCE_ENGINE.getCandidateTarget) {
+      return window.COMPLIANCE_ENGINE.getCandidateTarget("cand_demo_01", streamCode);
+    }
 
-  addActivity: function(type, desc, value) {
-    const logs = this.getManualActivities();
-    logs.push({
-      type: type,
-      desc: desc,
-      value: value,
-      date: new Date().toLocaleDateString('en-AU'),
-      verified: false
-    });
-    localStorage.setItem('workready_pbas_activities', JSON.stringify(logs));
-    this.updateCandidateUI();
-  },
-
-  calculateProgress: function() {
-    const completedMods = JSON.parse(localStorage.getItem('workready_completed_modules') || '[]');
-    const loggedJobs = document.querySelectorAll('#evidence-log-table tr').length;
-    const manualLogs = this.getManualActivities();
-
-    // 1. Points from LMS Modules & Logged Job Searches
-    let pointsFromJobs = loggedJobs * 5; 
-    let pointsFromLms = Math.min(5, completedMods.length * 5); 
-
-    // 2. Points from Milestones & Shift Hours
-    let pointsFromPaidWork = 0;
-    let pointsFromInterviews = 0;
-    let pointsFromOther = 0;
-    let totalWorkHours = 0;
-
-    manualLogs.forEach(log => {
-      if (log.type === 'paid_work') {
-        const hours = parseFloat(log.value) || 0;
-        totalWorkHours += hours;
-        pointsFromPaidWork += Math.ceil(hours / 5) * 5; 
-      } else if (log.type === 'interview') {
-        pointsFromInterviews += (parseInt(log.value) || 1) * 25; 
-      } else if (log.type === 'job_offer') {
-        pointsFromOther += 50; 
-      } else if (log.type === 'license') {
-        pointsFromOther += 20; 
-      } else if (log.type === 'voluntary') {
-        const vHours = parseFloat(log.value) || 0;
-        totalWorkHours += vHours;
-        pointsFromOther += Math.min(10, Math.ceil(vHours / 5) * 5); 
-      }
-    });
-
-    const totalPoints = Math.min(100, pointsFromJobs + pointsFromLms + pointsFromPaidWork + pointsFromInterviews + pointsFromOther);
-    const calculatedHours = Math.min(15, totalWorkHours + (completedMods.length * 1.5) + (loggedJobs * 0.5));
-
-    return {
-      points: totalPoints,
-      hours: Math.round(calculatedHours),
-      pointsPercentage: Math.round((totalPoints / this.targetPoints) * 100),
-      hoursPercentage: Math.round((Math.min(15, calculatedHours) / this.targetHours) * 100)
-    };
+    // 3. Fallback defaults by stream
+    if (streamCode === 'ttw') return { pointsTarget: 80, hoursTarget: 25, isAdjusted: false, adjustmentReason: "TtW Youth Stream Baseline" };
+    if (streamCode === 'des') return { pointsTarget: 50, hoursTarget: 8, isAdjusted: false, adjustmentReason: "DES Inclusive Stream Baseline" };
+    return { pointsTarget: 100, hoursTarget: 15, isAdjusted: false, adjustmentReason: "Standard DEWR Target" };
   },
 
   updateCandidateUI: function() {
-    const stats = this.calculateProgress();
+    const target = this.getDynamicTarget();
+    
+    // Get logged activities
+    const logs = JSON.parse(localStorage.getItem('workready_pbas_logs') || '[]');
+    let earnedPoints = 0;
+    let earnedHours = 0;
 
+    logs.forEach(l => {
+      earnedPoints += (l.points || 0);
+      earnedHours += (l.hours || 0);
+    });
+
+    // Check completed LMS modules (+10 pts each)
+    const completedMods = JSON.parse(localStorage.getItem('workready_completed_modules') || '[]');
+    earnedPoints += (completedMods.length * 10);
+    earnedHours += (completedMods.length * 2);
+
+    const ptsPct = Math.min(100, Math.round((earnedPoints / target.pointsTarget) * 100)) || 0;
+    const hrsPct = Math.min(100, Math.round((earnedHours / target.hoursTarget) * 100)) || 0;
+
+    // Update PBAS UI elements
     const ptsText = document.getElementById('pbas-points-text');
     const ptsBar = document.getElementById('pbas-points-bar');
     const hrsText = document.getElementById('pbas-hours-text');
     const hrsBar = document.getElementById('pbas-hours-bar');
-    const statusBadge = document.getElementById('pbas-status-badge');
+    const badge = document.getElementById('pbas-status-badge');
 
-    if (ptsText) ptsText.innerText = `${stats.points} / ${this.targetPoints} Points`;
-    if (ptsBar) ptsBar.style.width = `${stats.pointsPercentage}%`;
-    if (hrsText) hrsText.innerText = `${stats.hours} / ${this.targetHours} Hours`;
-    if (hrsBar) hrsBar.style.width = `${stats.hoursPercentage}%`;
+    if (ptsText) ptsText.innerText = `${earnedPoints} / ${target.pointsTarget} Points ${target.isAdjusted ? '(CM Credit Applied)' : ''}`;
+    if (ptsBar) ptsBar.style.width = `${ptsPct}%`;
+    if (hrsText) hrsText.innerText = `${earnedHours} / ${target.hoursTarget} Hours`;
+    if (hrsBar) hrsBar.style.width = `${hrsPct}%`;
 
-    if (statusBadge) {
-      if (stats.points >= this.targetPoints) {
-        statusBadge.className = "px-3 py-1 bg-[#4CAF50] text-white text-xs font-bold rounded-full shadow-sm";
-        statusBadge.innerText = "✓ PBAS Target Met (100 Pts)";
-      } else if (stats.points >= 50) {
-        statusBadge.className = "px-3 py-1 bg-[#FFB74D] text-slate-950 text-xs font-bold rounded-full";
-        statusBadge.innerText = "⚠️ On Track (In Progress)";
+    if (badge) {
+      if (earnedPoints >= target.pointsTarget) {
+        badge.className = "px-3 py-1 bg-[#4CAF50] text-white text-xs font-bold rounded-full shadow-sm";
+        badge.innerText = "✓ PBAS Target Met";
       } else {
-        statusBadge.className = "px-3 py-1 bg-rose-600 text-white text-xs font-bold rounded-full animate-pulse";
-        statusBadge.innerText = "🚨 PBAS Target At Risk";
+        badge.className = "px-3 py-1 bg-amber-500 text-white text-xs font-bold rounded-full shadow-sm animate-pulse";
+        badge.innerText = `⚠️ ${target.pointsTarget - earnedPoints} Pts Needed`;
       }
     }
   },
 
   openLogActivityModal: function() {
-    const modal = document.getElementById('pbas-log-modal');
-    if (modal) modal.classList.remove('hidden');
+    document.getElementById('pbas-log-modal').classList.remove('hidden');
   },
 
   closeLogActivityModal: function() {
-    const modal = document.getElementById('pbas-log-modal');
-    if (modal) modal.classList.add('hidden');
+    document.getElementById('pbas-log-modal').classList.add('hidden');
   },
 
   handleLogActivitySubmit: function(e) {
     e.preventDefault();
     const type = document.getElementById('pbas-act-type').value;
     const desc = document.getElementById('pbas-act-desc').value;
-    const val = document.getElementById('pbas-act-val').value;
+    const val = parseFloat(document.getElementById('pbas-act-val').value) || 0;
 
-    this.addActivity(type, desc, val);
+    let pts = 5;
+    let hrs = val;
+
+    if (type === 'interview') pts = 25;
+    if (type === 'ttw_education') pts = 25;
+    if (type === 'ttw_work_experience') pts = 20;
+    if (type === 'license') pts = 20;
+    if (type === 'paid_work') pts = Math.floor(val / 5) * 5 || 5;
+
+    const logs = JSON.parse(localStorage.getItem('workready_pbas_logs') || '[]');
+    logs.push({ type, desc, hours: hrs, points: pts, date: new Date().toLocaleDateString('en-AU') });
+    localStorage.setItem('workready_pbas_logs', JSON.stringify(logs));
+
+    this.updateCandidateUI();
     this.closeLogActivityModal();
-    alert("Activity & shift hours logged! Details submitted for Case Manager verification.");
+    alert(`Logged ${desc}! Earned +${pts} PBAS Points and ${hrs} Activity Hours.`);
   }
 };
