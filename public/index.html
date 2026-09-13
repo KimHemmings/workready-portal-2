@@ -1077,69 +1077,6 @@
 
       <!-- 4. SYSTEM ADMIN WORKSPACE -->
       <div id="workspace-admin" class="hidden space-y-8">
-        
-        <!-- SYSTEM ADMIN LIVE DEMO IMPERSONATION CONTROLLER -->
-        <div id="sys-admin-demo-box" class="bg-slate-900 border-2 border-sky-500 p-6 rounded-xl shadow-xl text-white space-y-4">
-          <div class="flex items-center justify-between border-b border-slate-700 pb-3">
-            <div>
-              <h3 class="text-lg font-extrabold text-sky-400">System Admin Demo Controller</h3>
-              <p class="text-xs text-slate-400">Launch live role impersonation sessions for provider demonstrations without logging out:</p>
-            </div>
-            <span class="px-3 py-1 bg-sky-500/20 text-sky-300 border border-sky-500/40 text-xs font-bold rounded-full">Secret Admin Controls Active</span>
-          </div>
-          <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
-            <button onclick="launchDemoRole('jobseeker', 'TTW')" class="p-3 bg-sky-600 hover:bg-sky-500 text-white font-bold rounded-lg text-xs transition shadow flex flex-col gap-1 text-left">
-              <span>👤 Demo Candidate</span>
-              <span class="text-[10px] font-normal text-sky-200">TtW Stream (80 Points Target)</span>
-            </button>
-            <button onclick="launchDemoRole('case_manager', 'DES')" class="p-3 bg-teal-600 hover:bg-teal-500 text-white font-bold rounded-lg text-xs transition shadow flex flex-col gap-1 text-left">
-              <span>📋 Demo Case Manager</span>
-              <span class="text-[10px] font-normal text-teal-200">DES/Inclusive Stream (50 Points Target)</span>
-            </button>
-            <button onclick="launchDemoRole('business_manager', 'WORKFORCE')" class="p-3 bg-indigo-600 hover:bg-indigo-500 text-white font-bold rounded-lg text-xs transition shadow flex flex-col gap-1 text-left">
-              <span>🏢 Demo Executive Manager</span>
-              <span class="text-[10px] font-normal text-indigo-200">Workforce Australia (100 Points Target)</span>
-            </button>
-          </div>
-        </div>
-
-        <!-- SALES REPRESENTATIVE & DEMO SANDBOX MANAGER -->
-        <div class="bg-white p-6 rounded-xl shadow-md border-2 border-sky-600 space-y-4">
-          <div class="border-b pb-3 flex justify-between items-center">
-            <div>
-              <h3 class="font-extrabold text-[#1D2B53] text-lg">Sales Representative Credentials & Demo Sandboxes</h3>
-              <p class="text-xs text-slate-500">Provision dedicated sales licenses, assign demo stream sandboxes, and view lead capture logs.</p>
-            </div>
-            <button onclick="openCreateSalesRepModal()" class="px-4 py-2 bg-sky-600 text-white text-xs font-bold rounded-lg hover:bg-sky-700 transition shadow">
-              ➕ Assign New Sales Rep
-            </button>
-          </div>
-
-          <div class="overflow-x-auto">
-            <table class="w-full text-left text-xs text-slate-600">
-              <thead class="bg-slate-100 text-slate-800 font-semibold">
-                <tr>
-                  <th class="p-3">Sales Rep Name</th>
-                  <th class="p-3">Assigned Work Email</th>
-                  <th class="p-3">Default Stream Sandbox</th>
-                  <th class="p-3">Status</th>
-                  <th class="p-3">Actions</th>
-                </tr>
-              </thead>
-              <tbody id="sales-reps-table-body" class="divide-y">
-                <tr>
-                  <td class="p-3 font-bold text-[#1D2B53]">Primary Sales Lead</td>
-                  <td class="p-3 font-mono">sales@straightuptraining.com</td>
-                  <td class="p-3"><span class="px-2 py-1 bg-sky-100 text-sky-800 font-bold rounded">TtW Youth Specialist</span></td>
-                  <td class="p-3"><span class="px-2 py-0.5 bg-emerald-100 text-emerald-800 font-bold rounded-full">Active</span></td>
-                  <td class="p-3">
-                    <button onclick="resetSalesRepSandbox('sales@straightuptraining.com')" class="px-2.5 py-1 bg-slate-200 text-slate-800 font-bold rounded hover:bg-slate-300">Reset Sandbox</button>
-                  </td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-        </div>
 
         <!-- Executive Header & Provisioning Controls -->
         <div class="bg-white p-6 rounded-xl shadow-md border-2 border-red-500 space-y-6">
@@ -1186,6 +1123,44 @@
               <div id="admin-renewals-text" class="text-lg font-bold text-amber-800">0 Due Soon • 0 Overdue</div>
               <p class="text-[10px] text-amber-700">Billing Expirations Tracked</p>
             </div>
+          </div>
+        </div>
+
+        <!-- SALES REPRESENTATIVE & DEMO SANDBOX MANAGER -->
+        <div class="bg-white p-6 rounded-xl shadow-md border-2 border-sky-600 space-y-4">
+          <div class="border-b pb-3 flex justify-between items-center">
+            <div>
+              <h3 class="font-extrabold text-[#1D2B53] text-lg">Sales Representative Credentials & Demo Sandboxes</h3>
+              <p class="text-xs text-slate-500">Provision dedicated sales licenses, assign demo stream sandboxes, and view lead capture logs.</p>
+            </div>
+            <button onclick="openCreateSalesRepModal()" class="px-4 py-2 bg-sky-600 text-white text-xs font-bold rounded-lg hover:bg-sky-700 transition shadow">
+              ➕ Assign New Sales Rep
+            </button>
+          </div>
+
+          <div class="overflow-x-auto">
+            <table class="w-full text-left text-xs text-slate-600">
+              <thead class="bg-slate-100 text-slate-800 font-semibold">
+                <tr>
+                  <th class="p-3">Sales Rep Name</th>
+                  <th class="p-3">Assigned Work Email</th>
+                  <th class="p-3">Default Stream Sandbox</th>
+                  <th class="p-3">Status</th>
+                  <th class="p-3">Actions</th>
+                </tr>
+              </thead>
+              <tbody id="sales-reps-table-body" class="divide-y">
+                <tr>
+                  <td class="p-3 font-bold text-[#1D2B53]">Primary Sales Lead</td>
+                  <td class="p-3 font-mono">sales@straightuptraining.com</td>
+                  <td class="p-3"><span class="px-2 py-1 bg-sky-100 text-sky-800 font-bold rounded">TtW Youth Specialist</span></td>
+                  <td class="p-3"><span class="px-2 py-0.5 bg-emerald-100 text-emerald-800 font-bold rounded-full">Active</span></td>
+                  <td class="p-3">
+                    <button onclick="resetSalesRepSandbox('sales@straightuptraining.com')" class="px-2.5 py-1 bg-slate-200 text-slate-800 font-bold rounded hover:bg-slate-300">Reset Sandbox</button>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
           </div>
         </div>
 
