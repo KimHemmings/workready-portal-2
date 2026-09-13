@@ -14,6 +14,7 @@
   <script src="/js/interviewQuestions.js"></script>
   <script src="/js/speechEngine.js"></script>
   <script src="/js/resumeTemplates.js"></script>
+  <script src="/js/jobReadiness.js"></script>
   <script src="/js/pdfExporter.js"></script>
 
   <style>
@@ -115,12 +116,12 @@
         </div>
       </div>
 
-      <!-- PRE-PROGRAM CONFIDENCE RATING MODULE -->
+      <!-- MONTHLY JOB READINESS MANDATORY TASK CARD -->
       <div class="bg-white p-6 rounded-xl shadow-md border-2 border-[#9C27B0] space-y-4">
         <div class="flex items-center justify-between border-b pb-3">
           <div>
-            <h3 class="text-xl font-bold text-[#1D2B53]">Pre-Program Candidate Job Readiness Indicator</h3>
-            <p class="text-xs text-slate-600">Assess your starting confidence level before beginning mock interviews and compliance modules. (Single Submission)</p>
+            <h3 class="text-xl font-bold text-[#1D2B53]">Monthly Candidate Job Readiness Indicator</h3>
+            <p class="text-xs text-slate-600">Recurring 30-day self-assessment task. Submissions auto-transmit directly to your Case Manager's feed.</p>
           </div>
           <span id="baseline-status-tag" class="px-3 py-1 bg-amber-100 text-amber-800 text-xs font-bold rounded-full">Assessment Pending</span>
         </div>
@@ -140,8 +141,8 @@
           </div>
         </div>
 
-        <button id="baseline-submit-btn" onclick="openBaselineModal()" class="w-full py-2.5 bg-[#9C27B0] text-white font-bold rounded-lg hover:bg-purple-800 transition">
-          Complete Initial Pre-Program Assessment
+        <button id="baseline-submit-btn" onclick="window.JOB_READINESS.openModal()" class="w-full py-2.5 bg-[#9C27B0] text-white font-bold rounded-lg hover:bg-purple-800 transition shadow-md">
+          ⚠️ Complete Monthly Job Readiness Assessment
         </button>
       </div>
 
@@ -942,14 +943,14 @@
     </div>
   </div>
 
-  <!-- PRE-PROGRAM BASELINE MODAL -->
+  <!-- MONTHLY JOB READINESS ASSESSMENT MODAL -->
   <div id="baseline-modal" class="fixed inset-0 bg-slate-900/70 backdrop-blur-sm hidden flex items-center justify-center p-4 z-50">
     <div class="bg-white max-w-md w-full rounded-xl p-6 shadow-2xl space-y-4">
       <div class="flex justify-between items-center border-b pb-3">
-        <h3 class="text-lg font-bold text-[#1D2B53]">Pre-Program Confidence Baseline</h3>
-        <button onclick="closeBaselineModal()" class="text-slate-400 font-bold">✕</button>
+        <h3 class="text-lg font-bold text-[#1D2B53]">Monthly Candidate Job Readiness Assessment</h3>
+        <button onclick="window.JOB_READINESS.closeModal()" class="text-slate-400 font-bold">✕</button>
       </div>
-      <form onsubmit="handleSaveBaseline(event)" class="space-y-3">
+      <form onsubmit="window.JOB_READINESS.submitAssessment(event)" class="space-y-3">
         <div>
           <label class="block text-xs font-semibold text-slate-700 mb-1">Interview Skills Confidence</label>
           <select id="sel-base-interview" class="w-full p-2 border rounded text-xs bg-white">
@@ -981,8 +982,8 @@
           </select>
         </div>
         <div class="flex gap-2 pt-2">
-          <button type="button" onclick="closeBaselineModal()" class="w-1/2 py-2 bg-slate-200 text-slate-800 font-medium rounded">Cancel</button>
-          <button type="submit" class="w-1/2 py-2 bg-[#9C27B0] text-white font-bold rounded">Save Baseline</button>
+          <button type="button" onclick="window.JOB_READINESS.closeModal()" class="w-1/2 py-2 bg-slate-200 text-slate-800 font-medium rounded">Cancel</button>
+          <button type="submit" class="w-1/2 py-2 bg-[#9C27B0] text-white font-bold rounded shadow">Submit & Transmit Report</button>
         </div>
       </form>
     </div>
@@ -990,8 +991,6 @@
 
   <!-- JAVASCRIPT ENGINE -->
   <script>
-    let baselineCompleted = false;
-
     function shuffleArray(array) {
       const arr = [...array];
       for (let i = arr.length - 1; i > 0; i--) {
@@ -1049,40 +1048,6 @@
         localStorage.setItem('workready_completed_modules', JSON.stringify(completedMods));
       }
       renderModuleCompletionBadges();
-    }
-
-    function openBaselineModal() {
-      if (baselineCompleted) {
-        alert("Pre-Program Confidence Baseline has already been recorded. Edits are locked.");
-        return;
-      }
-      document.getElementById('baseline-modal').classList.remove('hidden');
-    }
-
-    function closeBaselineModal() { document.getElementById('baseline-modal').classList.add('hidden'); }
-
-    function handleSaveBaseline(e) {
-      e.preventDefault();
-      const intStars = parseInt(document.getElementById('sel-base-interview').value);
-      const resStars = parseInt(document.getElementById('sel-base-resume').value);
-      const safeStars = parseInt(document.getElementById('sel-base-safety').value);
-
-      document.getElementById('baseline-interview-stars').innerText = "⭐".repeat(intStars) + "☆".repeat(5 - intStars);
-      document.getElementById('baseline-resume-stars').innerText = "⭐".repeat(resStars) + "☆".repeat(5 - resStars);
-      document.getElementById('baseline-safety-stars').innerText = "⭐".repeat(safeStars) + "☆".repeat(5 - safeStars);
-
-      const tag = document.getElementById('baseline-status-tag');
-      tag.innerText = "Assessment Locked";
-      tag.className = "px-3 py-1 bg-emerald-100 text-emerald-800 text-xs font-bold rounded-full";
-
-      const btn = document.getElementById('baseline-submit-btn');
-      btn.innerText = "✓ Assessment Completed & Locked";
-      btn.disabled = true;
-      btn.className = "w-full py-2.5 bg-slate-300 text-slate-600 font-bold rounded-lg cursor-not-allowed";
-
-      baselineCompleted = true;
-      alert("Pre-Program Confidence Baseline saved successfully! Edits locked.");
-      closeBaselineModal();
     }
 
     function saveModuleConfidence(val) {
@@ -1503,6 +1468,7 @@
       enforceSecurityHierarchy();
       window.updateQuotaUI();
       renderModuleCompletionBadges();
+      if (window.JOB_READINESS) window.JOB_READINESS.checkMonthlyStatus();
     };
   </script>
 </body>
