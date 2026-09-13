@@ -2142,8 +2142,8 @@
     }
 
     window.onload = () => {
-      if (window.BRANDING_ENGINE) window.BRANDING_ENGINE.initBranding();
       if (window.AUTH_ENGINE) window.AUTH_ENGINE.enforceAccessControl();
+      if (window.BRANDING_ENGINE) window.BRANDING_ENGINE.initBranding();
       if (window.PBAS_ENGINE) window.PBAS_ENGINE.updateCandidateUI();
       if (window.JOB_READINESS) window.JOB_READINESS.checkMonthlyStatus();
       if (window.CASE_MANAGER) window.CASE_MANAGER.filterRoster('all');
