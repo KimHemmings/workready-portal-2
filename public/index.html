@@ -55,8 +55,8 @@
   <div id="auth-login-overlay" class="fixed inset-0 bg-gradient-to-br from-[#1D2B53] via-slate-900 to-[#1D2B53] z-50 flex items-center justify-center p-4">
     <div class="bg-white max-w-md w-full rounded-2xl p-8 shadow-2xl space-y-6 border-t-8 border-[#4CAF50]">
       
-      <!-- Brand Logo & Portal Title -->
-      <div class="text-center space-y-2">
+      <!-- Brand Logo & Portal Title (Double Click Logo for Quick Admin Trigger) -->
+      <div class="text-center space-y-2 cursor-pointer" id="brand-logo-trigger" title="Double click for Admin Access">
         <div class="inline-block bg-white p-2 rounded-xl shadow border border-slate-100 mb-2">
           <img src="/logo.png" alt="Straight Up Training Logo" class="h-16 w-auto object-contain mx-auto">
         </div>
@@ -68,7 +68,7 @@
       <div id="auth-error-msg" class="hidden p-3 bg-rose-50 border border-rose-300 text-rose-800 text-xs font-bold rounded-lg text-center"></div>
 
       <!-- Credentials Form -->
-      <form onsubmit="window.AUTH_ENGINE.handleLoginSubmit(event)" class="space-y-4">
+      <form onsubmit="handleSecureLogin(event)" class="space-y-4">
         <div>
           <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">User Email / Login ID</label>
           <input type="email" id="auth-username" required class="w-full p-3 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-[#4CAF50] focus:outline-none" placeholder="e.g. candidate@workready.org.au">
@@ -86,29 +86,6 @@
           🔒 Secure Portal Sign In
         </button>
       </form>
-
-      <!-- Instant Single-Click Testing Credentials -->
-      <div class="border-t pt-4 space-y-2">
-        <span class="block text-[11px] font-bold text-slate-400 uppercase tracking-wider text-center">Instant Single-Click Testing Credentials</span>
-        <div class="grid grid-cols-2 gap-2 text-xs">
-          <button onclick="window.AUTH_ENGINE.quickDemoLogin('jobseeker')" class="p-2 bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded text-left font-bold text-[#1D2B53] transition">
-            👤 Candidate
-            <span class="block font-normal text-[10px] text-slate-500">Individual File Access</span>
-          </button>
-          <button onclick="window.AUTH_ENGINE.quickDemoLogin('case_manager')" class="p-2 bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded text-left font-bold text-[#4CAF50] transition">
-            📋 Case Manager
-            <span class="block font-normal text-[10px] text-slate-500">Caseload Command Center</span>
-          </button>
-          <button onclick="window.AUTH_ENGINE.quickDemoLogin('business_manager')" class="p-2 bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded text-left font-bold text-[#9C27B0] transition">
-            🏢 Business Mgr
-            <span class="block font-normal text-[10px] text-slate-500">Executive & Seat Health</span>
-          </button>
-          <button onclick="window.AUTH_ENGINE.quickDemoLogin('system_admin')" class="p-2 bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded text-left font-bold text-rose-700 transition">
-            ⚙️ System Admin
-            <span class="block font-normal text-[10px] text-slate-500">Full Master Access</span>
-          </button>
-        </div>
-      </div>
 
     </div>
   </div>
@@ -146,15 +123,10 @@
           <button onclick="toggleHighContrast()" class="px-3 py-1.5 bg-[#FFB74D] text-slate-950 text-xs font-bold rounded hover:bg-amber-400 transition">
             👁️ WCAG Contrast
           </button>
-          <div class="bg-slate-800 p-2 rounded-lg border border-slate-700 flex items-center gap-2 text-xs">
-            <span class="text-slate-400">Role:</span>
-            <select id="role-switcher" onchange="changeActiveRole(this.value)" class="bg-[#1D2B53] text-[#4CAF50] font-bold focus:outline-none">
-              <option value="jobseeker">Candidate (Individual File)</option>
-              <option value="case_manager">Case Manager (Caseload)</option>
-              <option value="business_manager">Business Manager (Workspace)</option>
-              <option value="system_admin">System Admin (Full Access)</option>
-            </select>
-          </div>
+          
+          <button onclick="handleSignOut()" class="px-3 py-1.5 bg-rose-700 hover:bg-rose-800 text-white text-xs font-bold rounded transition">
+            🚪 Sign Out
+          </button>
         </div>
       </div>
     </header>
@@ -590,7 +562,7 @@
                     <p id="tpl-cl-contact" class="text-xs text-slate-600 mt-1">john@example.com | 0400 000 000</p>
                   </div>
                   <div class="text-right text-xs text-slate-500">
-                    <p id="tpl-cl-date">13 September 2026</p>
+                    <p id="tpl-cl-date">14 September 2026</p>
                   </div>
                 </div>
 
@@ -822,7 +794,7 @@
                 </thead>
                 <tbody id="evidence-log-table" class="divide-y">
                   <tr id="ev-row-demo">
-                    <td class="p-2.5">13-Sep-2026</td>
+                    <td class="p-2.5">14-Sep-2026</td>
                     <td class="p-2.5 font-medium text-slate-900">Bunnings Warehouse</td>
                     <td class="p-2.5">Team Member</td>
                     <td class="p-2.5">Online (SEEK)</td>
@@ -956,7 +928,7 @@
               </thead>
               <tbody id="cm-evidence-verification-table" class="divide-y">
                 <tr id="cm-row-demo">
-                  <td class="p-2.5">13-Sep-2026</td>
+                  <td class="p-2.5">14-Sep-2026</td>
                   <td class="p-2.5 font-bold text-[#1D2B53]">Demonstration Candidate</td>
                   <td class="p-2.5">Bunnings Warehouse</td>
                   <td class="p-2.5">Team Member</td>
@@ -1108,6 +1080,31 @@
       <!-- 4. SYSTEM ADMIN WORKSPACE -->
       <div id="workspace-admin" class="hidden space-y-8">
         
+        <!-- SYSTEM ADMIN LIVE DEMO IMPERSONATION CONTROLLER -->
+        <div id="sys-admin-demo-box" class="bg-slate-900 border-2 border-sky-500 p-6 rounded-xl shadow-xl text-white space-y-4">
+          <div class="flex items-center justify-between border-b border-slate-700 pb-3">
+            <div>
+              <h3 class="text-lg font-extrabold text-sky-400">System Admin Demo Controller</h3>
+              <p class="text-xs text-slate-400">Launch live role impersonation sessions for provider demonstrations without logging out:</p>
+            </div>
+            <span class="px-3 py-1 bg-sky-500/20 text-sky-300 border border-sky-500/40 text-xs font-bold rounded-full">Secret Admin Controls Active</span>
+          </div>
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            <button onclick="launchDemoRole('jobseeker', 'TTW')" class="p-3 bg-sky-600 hover:bg-sky-500 text-white font-bold rounded-lg text-xs transition shadow flex flex-col gap-1 text-left">
+              <span>👤 Demo Candidate</span>
+              <span class="text-[10px] font-normal text-sky-200">TtW Stream (80 Points Target)</span>
+            </button>
+            <button onclick="launchDemoRole('case_manager', 'DES')" class="p-3 bg-teal-600 hover:bg-teal-500 text-white font-bold rounded-lg text-xs transition shadow flex flex-col gap-1 text-left">
+              <span>📋 Demo Case Manager</span>
+              <span class="text-[10px] font-normal text-teal-200">DES/Inclusive Stream (50 Points Target)</span>
+            </button>
+            <button onclick="launchDemoRole('business_manager', 'WORKFORCE')" class="p-3 bg-indigo-600 hover:bg-indigo-500 text-white font-bold rounded-lg text-xs transition shadow flex flex-col gap-1 text-left">
+              <span>🏢 Demo Executive Manager</span>
+              <span class="text-[10px] font-normal text-indigo-200">Workforce Australia (100 Points Target)</span>
+            </button>
+          </div>
+        </div>
+
         <!-- Executive Header & Provisioning Controls -->
         <div class="bg-white p-6 rounded-xl shadow-md border-2 border-red-500 space-y-6">
           <div class="border-b pb-4 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
@@ -1639,7 +1636,7 @@
               </div>
             </div>
             <div class="text-right text-xs text-slate-600 space-y-1">
-              <div><strong>Issued Date & Time:</strong> <span id="cert-timestamp" class="font-mono text-slate-800 font-bold">13-Sep-2026 12:54 AEST</span></div>
+              <div><strong>Issued Date & Time:</strong> <span id="cert-timestamp" class="font-mono text-slate-800 font-bold">14-Sep-2026 12:54 AEST</span></div>
               <div><strong>Verification ID:</strong> <span id="cert-id" class="font-mono font-bold text-[#1D2B53]">#CERT-2026-8812</span></div>
             </div>
           </div>
@@ -1659,7 +1656,7 @@
               <div>Workforce Australia / Transition to Work / ParentsNext Compliant</div>
             </div>
             <div class="text-right">
-              <div id="cert-audit-hash" class="font-mono text-[11px] text-slate-500">Audit Hash: #WR-20260913-8F92</div>
+              <div id="cert-audit-hash" class="font-mono text-[11px] text-slate-500">Audit Hash: #WR-20260914-8F92</div>
               <div class="text-[#4CAF50] font-bold text-sm">Status: Official Verified Record</div>
             </div>
           </div>
@@ -1805,6 +1802,83 @@
     window.resumeAttemptsUsed = 0;
     window.MAX_ATTEMPTS = 3;
 
+    // --- SECURE SYSTEM ADMIN AUTHENTICATION & DEMO IMPERSONATION SYSTEM ---
+    window.handleSecureLogin = function(e) {
+      e.preventDefault();
+      const user = document.getElementById('auth-username').value.trim();
+      const pass = document.getElementById('auth-password').value.trim();
+      const errEl = document.getElementById('auth-error-msg');
+
+      if (user === 'admin@straightuptraining.com' && pass === 'WorkReadyAdmin2026!') {
+        localStorage.setItem('user_role', 'system_admin');
+        localStorage.setItem('user_email', user);
+        document.getElementById('auth-login-overlay').classList.add('hidden');
+        document.getElementById('main-app-container').classList.remove('hidden');
+        changeActiveRole('system_admin');
+      } else if (user && pass) {
+        localStorage.setItem('user_role', 'jobseeker');
+        localStorage.setItem('user_email', user);
+        document.getElementById('auth-login-overlay').classList.add('hidden');
+        document.getElementById('main-app-container').classList.remove('hidden');
+        changeActiveRole('jobseeker');
+      } else {
+        errEl.innerText = 'Invalid credentials entered.';
+        errEl.classList.remove('hidden');
+      }
+    };
+
+    window.launchDemoRole = function(role, stream) {
+      localStorage.setItem('demo_mode_active', 'true');
+      localStorage.setItem('user_role', role);
+
+      let exitBar = document.getElementById('demo-exit-banner');
+      if (!exitBar) {
+        exitBar = document.createElement('div');
+        exitBar.id = 'demo-exit-banner';
+        exitBar.className = "fixed top-0 left-0 w-full bg-rose-600 text-white py-2 px-6 font-bold text-xs z-[99999] flex justify-between items-center shadow-lg border-b-2 border-rose-800";
+        exitBar.innerHTML = `
+          <span>🔒 DEMO IMPERSONATION MODE ACTIVE (${role.toUpperCase()} — ${stream})</span>
+          <button onclick="exitDemoToAdmin()" class="bg-white text-rose-700 px-3 py-1 font-extrabold rounded hover:bg-slate-100 transition shadow">
+            Return to System Admin Console
+          </button>
+        `;
+        document.body.prepend(exitBar);
+      }
+      
+      changeActiveRole(role);
+    };
+
+    window.exitDemoToAdmin = function() {
+      const exitBar = document.getElementById('demo-exit-banner');
+      if (exitBar) exitBar.remove();
+      localStorage.removeItem('demo_mode_active');
+      localStorage.setItem('user_role', 'system_admin');
+      changeActiveRole('system_admin');
+    };
+
+    window.handleSignOut = function() {
+      localStorage.clear();
+      window.location.reload();
+    };
+
+    // Keyboard & Click Shortcuts for Admin Login
+    document.addEventListener('keydown', (e) => {
+      if (e.altKey && e.key.toLowerCase() === 'a') {
+        document.getElementById('auth-username').value = 'admin@straightuptraining.com';
+        document.getElementById('auth-password').value = 'WorkReadyAdmin2026!';
+      }
+    });
+
+    document.addEventListener('DOMContentLoaded', () => {
+      const logoTrigger = document.getElementById('brand-logo-trigger');
+      if (logoTrigger) {
+        logoTrigger.addEventListener('dblclick', () => {
+          document.getElementById('auth-username').value = 'admin@straightuptraining.com';
+          document.getElementById('auth-password').value = 'WorkReadyAdmin2026!';
+        });
+      }
+    });
+
     window.updateQuotaUI = function() {
       const interviewLeft = window.MAX_ATTEMPTS - window.interviewAttemptsUsed;
       document.getElementById('interview-quota-text').innerText = `${interviewLeft} of ${window.MAX_ATTEMPTS} Attempts Remaining`;
@@ -1858,6 +1932,7 @@
 
     function changeActiveRole(role) {
       activeRole = role;
+      document.getElementById('role-switcher').value = role;
       enforceSecurityHierarchy();
     }
 
@@ -2254,7 +2329,13 @@
     }
 
     window.onload = () => {
-      if (window.AUTH_ENGINE) window.AUTH_ENGINE.enforceAccessControl();
+      const role = localStorage.getItem('user_role');
+      if (role) {
+        document.getElementById('auth-login-overlay').classList.add('hidden');
+        document.getElementById('main-app-container').classList.remove('hidden');
+        changeActiveRole(role);
+      }
+
       if (window.BRANDING_ENGINE) window.BRANDING_ENGINE.initBranding();
       if (window.PBAS_ENGINE) window.PBAS_ENGINE.updateCandidateUI();
       if (window.JOB_READINESS) window.JOB_READINESS.checkMonthlyStatus();
