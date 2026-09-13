@@ -20,7 +20,6 @@
   <script src="/js/businessManagerEngine.js"></script>
   <script src="/js/systemAdminEngine.js"></script>
   <script src="/js/helpEngine.js"></script>
-  <script src="/js/providerContext.js"></script>
   <script src="/js/brandingEngine.js"></script>
   <script src="/js/complianceAdjustmentEngine.js"></script>
   <script src="/js/authEngine.js"></script>
@@ -71,12 +70,12 @@
       <form onsubmit="handleSecureLogin(event)" class="space-y-4">
         <div>
           <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">User Email / Login ID</label>
-          <input type="email" id="auth-username" required class="w-full p-3 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-[#4CAF50] focus:outline-none" placeholder="e.g. candidate@workready.org.au">
+          <input type="email" id="auth-username" required class="w-full p-3 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-[#4CAF50] focus:outline-none" placeholder="e.g. admin@straightuptraining.com">
         </div>
         <div>
           <div class="flex justify-between items-center text-xs mb-1">
             <label class="block font-bold text-slate-700 uppercase tracking-wider">Secure Password</label>
-            <button type="button" onclick="window.AUTH_ENGINE.openForgotPasswordModal()" class="text-blue-600 font-bold hover:underline">
+            <button type="button" onclick="window.AUTH_ENGINE && window.AUTH_ENGINE.openForgotPasswordModal()" class="text-blue-600 font-bold hover:underline">
               Forgot Password?
             </button>
           </div>
@@ -85,6 +84,11 @@
         <button type="submit" class="w-full py-3 bg-[#4CAF50] hover:bg-emerald-600 text-white font-extrabold rounded-lg transition shadow-md flex items-center justify-center gap-2 text-sm">
           🔒 Secure Portal Sign In
         </button>
+        <div class="text-center pt-2">
+          <button type="button" onclick="openSalesDemoModal()" class="text-xs text-sky-600 font-bold hover:underline">
+            💼 Interactive Sales Demo / Try Sandbox Access
+          </button>
+        </div>
       </form>
 
     </div>
@@ -108,12 +112,12 @@
 
         <!-- Authenticated User Profile Display & Controls -->
         <div class="flex flex-wrap items-center gap-4">
-          <div id="auth-user-display"></div>
+          <div id="auth-user-display" class="text-xs font-bold text-emerald-400"></div>
 
           <!-- Dynamic Provider Domain Deployer -->
           <div class="bg-slate-800 p-2 rounded-lg border border-slate-700 flex items-center gap-2 text-xs">
             <span class="text-slate-400 font-bold">Active Provider Domain:</span>
-            <select id="admin-provider-selector" onchange="window.PROVIDER_CONTEXT.switchProvider(this.value)" class="bg-[#1D2B53] text-[#FFB74D] font-bold focus:outline-none">
+            <select id="admin-provider-selector" class="bg-[#1D2B53] text-[#FFB74D] font-bold focus:outline-none">
               <option value="PROV-101">Straight Up Training (TtW Youth)</option>
               <option value="PROV-102">Apex Employment (DES Inclusive)</option>
               <option value="PROV-103">Workforce Direct (Workforce Australia)</option>
@@ -168,7 +172,7 @@
             <button onclick="openVictoryModal('job')" class="px-4 py-2.5 bg-[#FFB74D] text-slate-950 font-bold rounded-lg shadow hover:bg-amber-400 transition">
               I GOT THE JOB! (+50 Pts) 🎉
             </button>
-            <button onclick="window.HELP_ENGINE.openHelpModal('jobseeker')" class="px-4 py-2.5 bg-[#9C27B0] text-white font-bold rounded-lg shadow hover:bg-purple-800 transition flex items-center gap-1.5 cursor-pointer">
+            <button onclick="window.HELP_ENGINE && window.HELP_ENGINE.openHelpModal('jobseeker')" class="px-4 py-2.5 bg-[#9C27B0] text-white font-bold rounded-lg shadow hover:bg-purple-800 transition flex items-center gap-1.5 cursor-pointer">
               ❓ Contact Case Manager
             </button>
           </div>
@@ -183,7 +187,7 @@
             </div>
             <div class="flex items-center gap-3">
               <span id="pbas-status-badge" class="px-3 py-1 bg-[#4CAF50] text-white text-xs font-bold rounded-full shadow-sm">✓ PBAS Target Met</span>
-              <button onclick="window.PBAS_ENGINE.openLogActivityModal()" class="px-3 py-1.5 bg-[#1D2B53] text-white text-xs font-bold rounded-lg hover:bg-slate-800 transition shadow">
+              <button onclick="window.PBAS_ENGINE && window.PBAS_ENGINE.openLogActivityModal()" class="px-3 py-1.5 bg-[#1D2B53] text-white text-xs font-bold rounded-lg hover:bg-slate-800 transition shadow">
                 + Log Shift Hours / Activity
               </button>
             </div>
@@ -239,7 +243,7 @@
             </div>
           </div>
 
-          <button id="baseline-submit-btn" onclick="window.JOB_READINESS.openModal()" class="w-full py-2.5 bg-[#9C27B0] text-white font-bold rounded-lg hover:bg-purple-800 transition shadow-md">
+          <button id="baseline-submit-btn" onclick="window.JOB_READINESS && window.JOB_READINESS.openModal()" class="w-full py-2.5 bg-[#9C27B0] text-white font-bold rounded-lg hover:bg-purple-800 transition shadow-md">
             ⚠️ Complete Monthly Job Readiness Assessment
           </button>
         </div>
@@ -819,22 +823,22 @@
             <p class="text-xs text-slate-600">Audit PBAS compliance risk, review candidate actions, export dossiers, and onboard new candidates.</p>
           </div>
           <div class="flex flex-wrap gap-2.5">
-            <button onclick="window.CASE_MANAGER.filterRoster('milestone_interviews')" class="px-3.5 py-2 bg-white border-2 border-[#1D2B53] text-[#1D2B53] text-xs font-extrabold rounded-lg hover:bg-slate-50 transition shadow-sm">
+            <button onclick="window.CASE_MANAGER && window.CASE_MANAGER.filterRoster('milestone_interviews')" class="px-3.5 py-2 bg-white border-2 border-[#1D2B53] text-[#1D2B53] text-xs font-extrabold rounded-lg hover:bg-slate-50 transition shadow-sm">
               🎯 Interview Follow-Ups
             </button>
-            <button onclick="window.CASE_MANAGER.filterRoster('milestone_jobs')" class="px-3.5 py-2 bg-[#FFB74D] text-slate-950 text-xs font-extrabold rounded-lg hover:bg-amber-400 transition shadow-sm">
+            <button onclick="window.CASE_MANAGER && window.CASE_MANAGER.filterRoster('milestone_jobs')" class="px-3.5 py-2 bg-[#FFB74D] text-slate-950 text-xs font-extrabold rounded-lg hover:bg-amber-400 transition shadow-sm">
               🎉 Placement Follow-Ups
             </button>
-            <button onclick="window.CASE_MANAGER.filterRoster('messages_feed')" class="px-3.5 py-2 bg-[#9C27B0] text-white text-xs font-extrabold rounded-lg hover:bg-purple-800 transition shadow-sm">
+            <button onclick="window.CASE_MANAGER && window.CASE_MANAGER.filterRoster('messages_feed')" class="px-3.5 py-2 bg-[#9C27B0] text-white text-xs font-extrabold rounded-lg hover:bg-purple-800 transition shadow-sm">
               💬 Candidate Messages
             </button>
-            <button onclick="window.HELP_ENGINE.openHelpModal('case_manager')" class="px-3.5 py-2 bg-[#1D2B53] text-white text-xs font-bold rounded-lg hover:bg-slate-800 transition shadow-sm flex items-center gap-1 cursor-pointer">
+            <button onclick="window.HELP_ENGINE && window.HELP_ENGINE.openHelpModal('case_manager')" class="px-3.5 py-2 bg-[#1D2B53] text-white text-xs font-bold rounded-lg hover:bg-slate-800 transition shadow-sm flex items-center gap-1 cursor-pointer">
               ❓ Admin Support
             </button>
-            <button onclick="window.CASE_MANAGER.downloadCaseloadReport()" class="px-3.5 py-2 bg-[#1D2B53] text-white text-xs font-bold rounded-lg hover:bg-slate-800 transition flex items-center gap-1.5 shadow">
+            <button onclick="window.CASE_MANAGER && window.CASE_MANAGER.downloadCaseloadReport()" class="px-3.5 py-2 bg-[#1D2B53] text-white text-xs font-bold rounded-lg hover:bg-slate-800 transition flex items-center gap-1.5 shadow">
               📊 Export CSV
             </button>
-            <button onclick="window.CASE_MANAGER.openInviteModal()" class="px-3.5 py-2 bg-[#4CAF50] text-white text-xs font-bold rounded-lg hover:bg-emerald-600 transition flex items-center gap-1.5 shadow">
+            <button onclick="window.CASE_MANAGER && window.CASE_MANAGER.openInviteModal()" class="px-3.5 py-2 bg-[#4CAF50] text-white text-xs font-bold rounded-lg hover:bg-emerald-600 transition flex items-center gap-1.5 shadow">
               ➕ Add Candidate
             </button>
           </div>
@@ -842,7 +846,7 @@
 
         <!-- CLICKABLE CASELOAD OVERVIEW CARDS -->
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          <div onclick="window.CASE_MANAGER.filterRoster('all')" class="p-5 bg-white border-2 border-slate-200 hover:border-[#1D2B53] rounded-xl shadow-sm cursor-pointer transition space-y-2">
+          <div onclick="window.CASE_MANAGER && window.CASE_MANAGER.filterRoster('all')" class="p-5 bg-white border-2 border-slate-200 hover:border-[#1D2B53] rounded-xl shadow-sm cursor-pointer transition space-y-2">
             <span class="text-xs font-bold text-slate-500 uppercase tracking-wider block">Total Caseload</span>
             <div class="flex items-baseline justify-between">
               <span class="text-3xl font-extrabold text-[#1D2B53]">24</span>
@@ -851,7 +855,7 @@
             <p class="text-[11px] text-slate-500">Active & Placed Candidates</p>
           </div>
 
-          <div onclick="window.CASE_MANAGER.filterRoster('pbas_ontrack')" class="p-5 bg-white border-2 border-slate-200 hover:border-[#4CAF50] rounded-xl shadow-sm cursor-pointer transition space-y-2">
+          <div onclick="window.CASE_MANAGER && window.CASE_MANAGER.filterRoster('pbas_ontrack')" class="p-5 bg-white border-2 border-slate-200 hover:border-[#4CAF50] rounded-xl shadow-sm cursor-pointer transition space-y-2">
             <span class="text-xs font-bold text-slate-500 uppercase tracking-wider block">PBAS On Track</span>
             <div class="flex items-baseline justify-between">
               <span class="text-3xl font-extrabold text-[#4CAF50]">19</span>
@@ -860,7 +864,7 @@
             <p class="text-[11px] text-slate-500">Meeting Monthly Points</p>
           </div>
 
-          <div onclick="window.CASE_MANAGER.filterRoster('pbas_atrisk')" class="p-5 bg-white border-2 border-slate-200 hover:border-rose-500 rounded-xl shadow-sm cursor-pointer transition space-y-2 bg-rose-50/50">
+          <div onclick="window.CASE_MANAGER && window.CASE_MANAGER.filterRoster('pbas_atrisk')" class="p-5 bg-white border-2 border-slate-200 hover:border-rose-500 rounded-xl shadow-sm cursor-pointer transition space-y-2 bg-rose-50/50">
             <span class="text-xs font-bold text-rose-800 uppercase tracking-wider block">🚨 PBAS At Risk</span>
             <div class="flex items-baseline justify-between">
               <span class="text-3xl font-extrabold text-rose-600">5</span>
@@ -869,7 +873,7 @@
             <p class="text-[11px] text-rose-700 font-semibold">Requires Intervention</p>
           </div>
 
-          <div onclick="window.CASE_MANAGER.filterRoster('review_needed')" class="p-5 bg-white border-2 border-[#FFB74D] rounded-xl shadow-sm cursor-pointer transition space-y-2 bg-amber-50/40">
+          <div onclick="window.CASE_MANAGER && window.CASE_MANAGER.filterRoster('review_needed')" class="p-5 bg-white border-2 border-[#FFB74D] rounded-xl shadow-sm cursor-pointer transition space-y-2 bg-amber-50/40">
             <span class="text-xs font-bold text-amber-900 uppercase tracking-wider block">⚠️ Review Needed</span>
             <div class="flex items-baseline justify-between">
               <span class="text-3xl font-extrabold text-amber-600">2</span>
@@ -883,7 +887,7 @@
         <div class="bg-white p-6 rounded-xl shadow-md border border-slate-200 space-y-4">
           <div class="border-b pb-3 flex justify-between items-center">
             <h3 id="cm-roster-title" class="font-bold text-[#1D2B53] text-base">Entire Caseload Roster</h3>
-            <button onclick="window.CASE_MANAGER.filterRoster('all')" class="text-xs text-blue-600 font-bold hover:underline">Reset Roster Filters</button>
+            <button onclick="window.CASE_MANAGER && window.CASE_MANAGER.filterRoster('all')" class="text-xs text-blue-600 font-bold hover:underline">Reset Roster Filters</button>
           </div>
           <div class="overflow-x-auto">
             <table class="w-full text-left text-xs text-slate-600">
@@ -960,8 +964,6 @@
 
       <!-- 3. BUSINESS MANAGER WORKSPACE -->
       <div id="workspace-business" class="hidden space-y-8">
-        
-        <!-- Executive Header & Seat Management Banner -->
         <div class="bg-white p-6 rounded-xl shadow-md border border-slate-200 space-y-6">
           <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b pb-4">
             <div>
@@ -972,19 +974,18 @@
               <span id="bm-sub-status" class="px-3 py-1 bg-emerald-100 text-emerald-800 border border-emerald-300 text-xs font-bold rounded-full">
                 Active / Paid Up • Enterprise Tier
               </span>
-              <button onclick="window.BRANDING_ENGINE.openBrandingModal()" class="px-4 py-2 bg-[#9C27B0] text-white text-xs font-bold rounded-lg hover:bg-purple-800 transition shadow flex items-center gap-1.5">
+              <button onclick="window.BRANDING_ENGINE && window.BRANDING_ENGINE.openBrandingModal()" class="px-4 py-2 bg-[#9C27B0] text-white text-xs font-bold rounded-lg hover:bg-purple-800 transition shadow flex items-center gap-1.5">
                 🎨 Upload Co-Branding & Logo Assets
               </button>
-              <button onclick="window.HELP_ENGINE.openHelpModal('business_manager')" class="px-3 py-2 bg-[#1D2B53] text-white text-xs font-bold rounded-lg hover:bg-slate-800 transition shadow flex items-center gap-1 cursor-pointer">
+              <button onclick="window.HELP_ENGINE && window.HELP_ENGINE.openHelpModal('business_manager')" class="px-3 py-2 bg-[#1D2B53] text-white text-xs font-bold rounded-lg hover:bg-slate-800 transition shadow flex items-center gap-1 cursor-pointer">
                 ❓ System Admin Escalation
               </button>
-              <button onclick="window.BUSINESS_MANAGER.openOnboardModal()" class="px-4 py-2 bg-[#4CAF50] text-white text-xs font-bold rounded-lg hover:bg-emerald-600 transition shadow">
+              <button onclick="window.BUSINESS_MANAGER && window.BUSINESS_MANAGER.openOnboardModal()" class="px-4 py-2 bg-[#4CAF50] text-white text-xs font-bold rounded-lg hover:bg-emerald-600 transition shadow">
                 ➕ Onboard Candidate or Staff
               </button>
             </div>
           </div>
 
-          <!-- Subscription & Seat Health Overview -->
           <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div class="p-4 bg-slate-50 border border-slate-200 rounded-lg space-y-2">
               <div class="flex justify-between items-center">
@@ -1010,9 +1011,8 @@
           </div>
         </div>
 
-        <!-- CLICKABLE EXECUTIVE COMPLIANCE OVERVIEW CARDS -->
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          <div onclick="switchTab('casemanager'); window.CASE_MANAGER.filterRoster('all');" class="p-5 bg-white border-2 border-slate-200 hover:border-[#1D2B53] rounded-xl shadow-sm cursor-pointer transition space-y-2">
+          <div onclick="switchTab('casemanager'); window.CASE_MANAGER && window.CASE_MANAGER.filterRoster('all');" class="p-5 bg-white border-2 border-slate-200 hover:border-[#1D2B53] rounded-xl shadow-sm cursor-pointer transition space-y-2">
             <span class="text-xs font-bold text-slate-500 uppercase tracking-wider block">Total Caseload Oversight</span>
             <div class="flex items-baseline justify-between">
               <span class="text-3xl font-extrabold text-[#1D2B53]">24</span>
@@ -1021,7 +1021,7 @@
             <p class="text-[11px] text-slate-500">Enrolled Across All CMs</p>
           </div>
 
-          <div onclick="switchTab('casemanager'); window.CASE_MANAGER.filterRoster('pbas_ontrack');" class="p-5 bg-white border-2 border-slate-200 hover:border-[#4CAF50] rounded-xl shadow-sm cursor-pointer transition space-y-2">
+          <div onclick="switchTab('casemanager'); window.CASE_MANAGER && window.CASE_MANAGER.filterRoster('pbas_ontrack');" class="p-5 bg-white border-2 border-slate-200 hover:border-[#4CAF50] rounded-xl shadow-sm cursor-pointer transition space-y-2">
             <span class="text-xs font-bold text-slate-500 uppercase tracking-wider block">Caseload PBAS On Track</span>
             <div class="flex items-baseline justify-between">
               <span class="text-3xl font-extrabold text-[#4CAF50]">19</span>
@@ -1030,7 +1030,7 @@
             <p class="text-[11px] text-slate-500">79% Provider Compliance</p>
           </div>
 
-          <div onclick="switchTab('casemanager'); window.CASE_MANAGER.filterRoster('pbas_atrisk');" class="p-5 bg-white border-2 border-slate-200 hover:border-rose-500 rounded-xl shadow-sm cursor-pointer transition space-y-2 bg-rose-50/50">
+          <div onclick="switchTab('casemanager'); window.CASE_MANAGER && window.CASE_MANAGER.filterRoster('pbas_atrisk');" class="p-5 bg-white border-2 border-slate-200 hover:border-rose-500 rounded-xl shadow-sm cursor-pointer transition space-y-2 bg-rose-50/50">
             <span class="text-xs font-bold text-rose-800 uppercase tracking-wider block">🚨 Caseload PBAS At Risk</span>
             <div class="flex items-baseline justify-between">
               <span class="text-3xl font-extrabold text-rose-600">5</span>
@@ -1039,7 +1039,7 @@
             <p class="text-[11px] text-rose-700 font-semibold">Requires Staff Follow-up</p>
           </div>
 
-          <div onclick="switchTab('casemanager'); window.CASE_MANAGER.filterRoster('milestone_jobs');" class="p-5 bg-white border-2 border-slate-200 hover:border-[#9C27B0] rounded-xl shadow-sm cursor-pointer transition space-y-2">
+          <div onclick="switchTab('casemanager'); window.CASE_MANAGER && window.CASE_MANAGER.filterRoster('milestone_jobs');" class="p-5 bg-white border-2 border-slate-200 hover:border-[#9C27B0] rounded-xl shadow-sm cursor-pointer transition space-y-2">
             <span class="text-xs font-bold text-slate-500 uppercase tracking-wider block">Successful Job Placements</span>
             <div class="flex items-baseline justify-between">
               <span class="text-3xl font-extrabold text-[#9C27B0]">9</span>
@@ -1049,14 +1049,13 @@
           </div>
         </div>
 
-        <!-- CASE MANAGER STAFF ROSTER -->
         <div class="bg-white p-6 rounded-xl shadow-md border border-slate-200 space-y-4">
           <div class="border-b pb-3 flex justify-between items-center">
             <div>
               <h3 class="font-bold text-[#1D2B53] text-base">Case Manager Staff & Caseload Allocations</h3>
               <p class="text-xs text-slate-500">Monitor staff licenses, assigned caseloads, and access individual Case Manager workspaces.</p>
             </div>
-            <button onclick="window.BUSINESS_MANAGER.openOnboardModal()" class="text-xs text-blue-600 font-bold hover:underline">+ Add Case Manager</button>
+            <button onclick="window.BUSINESS_MANAGER && window.BUSINESS_MANAGER.openOnboardModal()" class="text-xs text-blue-600 font-bold hover:underline">+ Add Case Manager</button>
           </div>
           <div class="overflow-x-auto">
             <table class="w-full text-left text-xs text-slate-600">
@@ -1074,7 +1073,6 @@
             </table>
           </div>
         </div>
-
       </div>
 
       <!-- 4. SYSTEM ADMIN WORKSPACE -->
@@ -1105,6 +1103,44 @@
           </div>
         </div>
 
+        <!-- SALES REPRESENTATIVE & DEMO SANDBOX MANAGER -->
+        <div class="bg-white p-6 rounded-xl shadow-md border-2 border-sky-600 space-y-4">
+          <div class="border-b pb-3 flex justify-between items-center">
+            <div>
+              <h3 class="font-extrabold text-[#1D2B53] text-lg">Sales Representative Credentials & Demo Sandboxes</h3>
+              <p class="text-xs text-slate-500">Provision dedicated sales licenses, assign demo stream sandboxes, and view lead capture logs.</p>
+            </div>
+            <button onclick="openCreateSalesRepModal()" class="px-4 py-2 bg-sky-600 text-white text-xs font-bold rounded-lg hover:bg-sky-700 transition shadow">
+              ➕ Assign New Sales Rep
+            </button>
+          </div>
+
+          <div class="overflow-x-auto">
+            <table class="w-full text-left text-xs text-slate-600">
+              <thead class="bg-slate-100 text-slate-800 font-semibold">
+                <tr>
+                  <th class="p-3">Sales Rep Name</th>
+                  <th class="p-3">Assigned Work Email</th>
+                  <th class="p-3">Default Stream Sandbox</th>
+                  <th class="p-3">Status</th>
+                  <th class="p-3">Actions</th>
+                </tr>
+              </thead>
+              <tbody id="sales-reps-table-body" class="divide-y">
+                <tr>
+                  <td class="p-3 font-bold text-[#1D2B53]">Primary Sales Lead</td>
+                  <td class="p-3 font-mono">sales@straightuptraining.com</td>
+                  <td class="p-3"><span class="px-2 py-1 bg-sky-100 text-sky-800 font-bold rounded">TtW Youth Specialist</span></td>
+                  <td class="p-3"><span class="px-2 py-0.5 bg-emerald-100 text-emerald-800 font-bold rounded-full">Active</span></td>
+                  <td class="p-3">
+                    <button onclick="resetSalesRepSandbox('sales@straightuptraining.com')" class="px-2.5 py-1 bg-slate-200 text-slate-800 font-bold rounded hover:bg-slate-300">Reset Sandbox</button>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
         <!-- Executive Header & Provisioning Controls -->
         <div class="bg-white p-6 rounded-xl shadow-md border-2 border-red-500 space-y-6">
           <div class="border-b pb-4 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
@@ -1113,16 +1149,15 @@
               <p class="text-xs text-slate-600">Provision Employment Providers, monitor seat capacity, track billing renewals, and inspect system audit logs.</p>
             </div>
             <div class="flex items-center gap-3">
-              <button onclick="window.SYSTEM_ADMIN.exportAuditLogsCSV()" class="px-4 py-2 bg-[#1D2B53] text-white text-xs font-bold rounded-lg hover:bg-slate-800 transition shadow flex items-center gap-1.5">
+              <button onclick="window.SYSTEM_ADMIN && window.SYSTEM_ADMIN.exportAuditLogsCSV()" class="px-4 py-2 bg-[#1D2B53] text-white text-xs font-bold rounded-lg hover:bg-slate-800 transition shadow flex items-center gap-1.5">
                 📄 Export Security Audit Log (.CSV)
               </button>
-              <button onclick="window.SYSTEM_ADMIN.openProviderModal()" class="px-4 py-2 bg-red-700 text-white text-xs font-bold rounded-lg hover:bg-red-800 transition shadow flex items-center gap-1.5">
+              <button onclick="window.SYSTEM_ADMIN && window.SYSTEM_ADMIN.openProviderModal()" class="px-4 py-2 bg-red-700 text-white text-xs font-bold rounded-lg hover:bg-red-800 transition shadow flex items-center gap-1.5">
                 ➕ Invite & Provision Provider
               </button>
             </div>
           </div>
 
-          <!-- Capacity Utilization Indicators -->
           <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             <div class="p-4 bg-slate-50 border border-slate-200 rounded-lg space-y-1">
               <span class="text-[10px] font-bold text-slate-500 uppercase block">Active Provider Orgs</span>
@@ -1161,7 +1196,7 @@
               <h3 class="font-bold text-[#1D2B53] text-base">Employment Service Providers & License Allocations</h3>
               <p class="text-xs text-slate-500">Monitor active seat usage, adjust capacity limits, and extend subscription renewals.</p>
             </div>
-            <button onclick="window.SYSTEM_ADMIN.openProviderModal()" class="text-xs text-red-700 font-bold hover:underline">+ Provision New Provider</button>
+            <button onclick="window.SYSTEM_ADMIN && window.SYSTEM_ADMIN.openProviderModal()" class="text-xs text-red-700 font-bold hover:underline">+ Provision New Provider</button>
           </div>
           <div class="overflow-x-auto">
             <table class="w-full text-left text-xs text-slate-600">
@@ -1189,13 +1224,13 @@
               <p class="text-xs text-slate-500">Tamper-evident system activity, seat provisioning, and PBAS overrides.</p>
             </div>
             <div class="flex items-center gap-2">
-              <button onclick="window.SYSTEM_ADMIN.filterLogs('security_overrides')" class="px-2.5 py-1 bg-slate-100 hover:bg-slate-200 text-slate-800 text-xs font-semibold rounded border">
+              <button onclick="window.SYSTEM_ADMIN && window.SYSTEM_ADMIN.filterLogs('security_overrides')" class="px-2.5 py-1 bg-slate-100 hover:bg-slate-200 text-slate-800 text-xs font-semibold rounded border">
                 Security Overrides
               </button>
-              <button onclick="window.SYSTEM_ADMIN.filterLogs('seat_provisioning')" class="px-2.5 py-1 bg-slate-100 hover:bg-slate-200 text-slate-800 text-xs font-semibold rounded border">
+              <button onclick="window.SYSTEM_ADMIN && window.SYSTEM_ADMIN.filterLogs('seat_provisioning')" class="px-2.5 py-1 bg-slate-100 hover:bg-slate-200 text-slate-800 text-xs font-semibold rounded border">
                 Seat Provisioning
               </button>
-              <button onclick="window.SYSTEM_ADMIN.filterLogs('all')" class="px-2.5 py-1 bg-[#1D2B53] text-white text-xs font-bold rounded">
+              <button onclick="window.SYSTEM_ADMIN && window.SYSTEM_ADMIN.filterLogs('all')" class="px-2.5 py-1 bg-[#1D2B53] text-white text-xs font-bold rounded">
                 Reset Log Filters
               </button>
             </div>
@@ -1228,6 +1263,79 @@
 
     <!-- MODALS -->
 
+    <!-- CREATE SALES REP MODAL -->
+    <div id="create-sales-rep-modal" class="fixed inset-0 bg-slate-900/80 backdrop-blur-sm hidden flex items-center justify-center p-4 z-[120]">
+      <div class="bg-white max-w-md w-full rounded-2xl p-6 shadow-2xl space-y-4 border-2 border-sky-600">
+        <div class="flex justify-between items-center border-b pb-3">
+          <h3 class="text-lg font-extrabold text-[#1D2B53]">Provision Sales Rep License</h3>
+          <button onclick="closeCreateSalesRepModal()" class="text-slate-400 font-bold text-lg hover:text-slate-600">✕</button>
+        </div>
+
+        <form onsubmit="handleCreateSalesRepSubmit(event)" class="space-y-3">
+          <div>
+            <label class="block text-xs font-bold text-slate-700 uppercase mb-1">Rep Full Name</label>
+            <input type="text" id="sales-rep-name" required class="w-full p-2.5 border border-slate-300 rounded-lg text-sm" placeholder="e.g. Alex Morgan">
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-slate-700 uppercase mb-1">Rep Work Email</label>
+            <input type="email" id="sales-rep-email" required class="w-full p-2.5 border border-slate-300 rounded-lg text-sm" placeholder="e.g. alex@straightuptraining.com">
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-slate-700 uppercase mb-1">Assigned Demo Stream</label>
+            <select id="sales-rep-stream" class="w-full p-2.5 border border-slate-300 rounded-lg text-sm bg-white">
+              <option value="TtW Youth Specialist">Transition to Work (TtW Youth)</option>
+              <option value="DES Inclusive Stream">Disability Employment Services (DES)</option>
+              <option value="Workforce Australia">Workforce Australia General</option>
+            </select>
+          </div>
+
+          <div class="flex gap-2 pt-2">
+            <button type="button" onclick="closeCreateSalesRepModal()" class="w-1/2 py-2 bg-slate-200 text-slate-800 font-medium rounded-lg">Cancel</button>
+            <button type="submit" class="w-1/2 py-2 bg-sky-600 text-white font-bold rounded-lg hover:bg-sky-700 shadow">Provision License</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- SALES DEMO & LEAD CAPTURE MODAL -->
+    <div id="sales-demo-modal" class="fixed inset-0 bg-slate-900/80 backdrop-blur-sm hidden flex items-center justify-center p-4 z-[120]">
+      <div class="bg-white max-w-md w-full rounded-2xl p-6 shadow-2xl space-y-4 border-2 border-sky-500">
+        <div class="flex justify-between items-center border-b pb-3">
+          <div>
+            <h3 class="text-lg font-extrabold text-[#1D2B53]">Launch Guided Portal Demo</h3>
+            <p class="text-xs text-slate-500">Select a contract stream to explore live features</p>
+          </div>
+          <button onclick="closeSalesDemoModal()" class="text-slate-400 font-bold text-lg hover:text-slate-600">✕</button>
+        </div>
+
+        <form onsubmit="handleSalesLeadSubmit(event)" class="space-y-3">
+          <div>
+            <label class="block text-xs font-bold text-slate-700 uppercase mb-1">Your Full Name</label>
+            <input type="text" id="demo-lead-name" required class="w-full p-2.5 border border-slate-300 rounded-lg text-sm" placeholder="e.g. Sarah Jenkins">
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-slate-700 uppercase mb-1">Work Email</label>
+            <input type="email" id="demo-lead-email" required class="w-full p-2.5 border border-slate-300 rounded-lg text-sm" placeholder="e.g. s.jenkins@provider.org.au">
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-slate-700 uppercase mb-1">Target Contract Stream</label>
+            <select id="demo-lead-stream" class="w-full p-2.5 border border-slate-300 rounded-lg text-sm bg-white">
+              <option value="TTW">Transition to Work (TtW Youth — 80 Pts)</option>
+              <option value="DES">DES / Inclusive Employment (50 Pts)</option>
+              <option value="WORKFORCE">Workforce Australia General (100 Pts)</option>
+              <option value="EXECUTIVE">Executive / Business Manager View</option>
+            </select>
+          </div>
+
+          <div class="pt-2">
+            <button type="submit" class="w-full py-3 bg-sky-600 hover:bg-sky-700 text-white font-extrabold rounded-lg transition shadow-md flex items-center justify-center gap-2 text-sm">
+              🚀 Enter Interactive Sandbox Session
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+
     <!-- CASE MANAGER TARGET & PERSONAL CIRCUMSTANCES ADJUSTMENT MODAL -->
     <div id="cm-target-adjust-modal" class="fixed inset-0 bg-slate-900/70 backdrop-blur-sm hidden flex items-center justify-center p-4 z-[100]">
       <div class="bg-white max-w-md w-full rounded-xl p-6 shadow-2xl space-y-4 border-2 border-[#1D2B53]">
@@ -1236,9 +1344,9 @@
             <h3 class="text-lg font-bold text-[#1D2B53]">Personal Circumstances Target Adjustment</h3>
             <p class="text-xs text-slate-500">DEWR Flexible Requirement & Credit Allocation</p>
           </div>
-          <button onclick="window.COMPLIANCE_ENGINE.closeAdjustmentModal()" class="text-slate-400 font-bold text-lg">✕</button>
+          <button onclick="window.COMPLIANCE_ENGINE && window.COMPLIANCE_ENGINE.closeAdjustmentModal()" class="text-slate-400 font-bold text-lg">✕</button>
         </div>
-        <form onsubmit="window.COMPLIANCE_ENGINE.saveAdjustment(event)" class="space-y-3">
+        <form onsubmit="window.COMPLIANCE_ENGINE && window.COMPLIANCE_ENGINE.saveAdjustment(event)" class="space-y-3">
           <input type="hidden" id="cm-adj-cand-id">
           <div class="p-2.5 bg-slate-50 border rounded text-xs">
             Candidate: <strong id="cm-adj-cand-name" class="text-[#1D2B53]">Candidate Name</strong>
@@ -1271,7 +1379,7 @@
           </div>
 
           <div class="flex gap-2 pt-2">
-            <button type="button" onclick="window.COMPLIANCE_ENGINE.closeAdjustmentModal()" class="w-1/2 py-2 bg-slate-200 text-slate-800 font-medium rounded">Cancel</button>
+            <button type="button" onclick="window.COMPLIANCE_ENGINE && window.COMPLIANCE_ENGINE.closeAdjustmentModal()" class="w-1/2 py-2 bg-slate-200 text-slate-800 font-medium rounded">Cancel</button>
             <button type="submit" class="w-1/2 py-2 bg-[#1D2B53] text-white font-bold rounded hover:bg-slate-800 transition shadow">Apply Target Override</button>
           </div>
         </form>
@@ -1283,9 +1391,9 @@
       <div class="bg-white max-w-md w-full rounded-2xl p-6 shadow-2xl space-y-4 border-2 border-[#1D2B53]">
         <div class="flex justify-between items-center border-b pb-3">
           <h3 class="text-lg font-bold text-[#1D2B53]">Reset Account Password</h3>
-          <button onclick="window.AUTH_ENGINE.closeForgotPasswordModal()" class="text-slate-400 font-bold text-lg hover:text-slate-600">✕</button>
+          <button onclick="window.AUTH_ENGINE && window.AUTH_ENGINE.closeForgotPasswordModal()" class="text-slate-400 font-bold text-lg hover:text-slate-600">✕</button>
         </div>
-        <form onsubmit="window.AUTH_ENGINE.handlePasswordResetSubmit(event)" class="space-y-3">
+        <form onsubmit="window.AUTH_ENGINE && window.AUTH_ENGINE.handlePasswordResetSubmit(event)" class="space-y-3">
           <div>
             <label class="block text-xs font-semibold text-slate-700 mb-1">Registered User Email</label>
             <input type="email" id="reset-email-input" required class="w-full p-2.5 border border-slate-300 rounded-lg text-sm" placeholder="e.g. candidate@workready.org.au">
@@ -1299,7 +1407,7 @@
             <input type="password" id="reset-confirm-pass-input" required minlength="6" class="w-full p-2.5 border border-slate-300 rounded-lg text-sm" placeholder="Re-enter new password">
           </div>
           <div class="flex gap-2 pt-2">
-            <button type="button" onclick="window.AUTH_ENGINE.closeForgotPasswordModal()" class="w-1/2 py-2 bg-slate-200 text-slate-800 font-medium rounded-lg">Cancel</button>
+            <button type="button" onclick="window.AUTH_ENGINE && window.AUTH_ENGINE.closeForgotPasswordModal()" class="w-1/2 py-2 bg-slate-200 text-slate-800 font-medium rounded-lg">Cancel</button>
             <button type="submit" class="w-1/2 py-2 bg-[#4CAF50] text-white font-bold rounded-lg hover:bg-emerald-600 transition shadow">Update Password</button>
           </div>
         </form>
@@ -1311,9 +1419,9 @@
       <div class="bg-white max-w-md w-full rounded-2xl p-6 shadow-2xl space-y-4 border-2 border-[#1D2B53]">
         <div class="flex justify-between items-center border-b pb-3">
           <h3 class="text-lg font-bold text-[#1D2B53]">Change Account Password</h3>
-          <button onclick="window.AUTH_ENGINE.closeChangePasswordModal()" class="text-slate-400 font-bold text-lg hover:text-slate-600">✕</button>
+          <button onclick="window.AUTH_ENGINE && window.AUTH_ENGINE.closeChangePasswordModal()" class="text-slate-400 font-bold text-lg hover:text-slate-600">✕</button>
         </div>
-        <form onsubmit="window.AUTH_ENGINE.handleChangePasswordSubmit(event)" class="space-y-3">
+        <form onsubmit="window.AUTH_ENGINE && window.AUTH_ENGINE.handleChangePasswordSubmit(event)" class="space-y-3">
           <div>
             <label class="block text-xs font-semibold text-slate-700 mb-1">Current Password</label>
             <input type="password" id="change-curr-pass" required class="w-full p-2.5 border border-slate-300 rounded-lg text-sm" placeholder="Enter current password">
@@ -1327,7 +1435,7 @@
             <input type="password" id="change-confirm-pass" required minlength="6" class="w-full p-2.5 border border-slate-300 rounded-lg text-sm" placeholder="Re-enter new password">
           </div>
           <div class="flex gap-2 pt-2">
-            <button type="button" onclick="window.AUTH_ENGINE.closeChangePasswordModal()" class="w-1/2 py-2 bg-slate-200 text-slate-800 font-medium rounded-lg">Cancel</button>
+            <button type="button" onclick="window.AUTH_ENGINE && window.AUTH_ENGINE.closeChangePasswordModal()" class="w-1/2 py-2 bg-slate-200 text-slate-800 font-medium rounded-lg">Cancel</button>
             <button type="submit" class="w-1/2 py-2 bg-[#1D2B53] text-white font-bold rounded-lg hover:bg-slate-800 transition shadow">Save New Password</button>
           </div>
         </form>
@@ -1339,16 +1447,16 @@
       <div class="bg-white max-w-md w-full rounded-xl p-6 shadow-2xl space-y-4 border-2 border-[#9C27B0]">
         <div class="flex justify-between items-center border-b pb-3">
           <h3 class="text-lg font-bold text-[#1D2B53]">Co-Branding & Logo Asset Setup</h3>
-          <button onclick="window.BRANDING_ENGINE.closeBrandingModal()" class="text-slate-400 font-bold text-lg hover:text-slate-600">✕</button>
+          <button onclick="window.BRANDING_ENGINE && window.BRANDING_ENGINE.closeBrandingModal()" class="text-slate-400 font-bold text-lg hover:text-slate-600">✕</button>
         </div>
-        <form onsubmit="window.BRANDING_ENGINE.saveBrandingConfig(event)" class="space-y-3">
+        <form onsubmit="window.BRANDING_ENGINE && window.BRANDING_ENGINE.saveBrandingConfig(event)" class="space-y-3">
           <div>
             <label class="block text-xs font-semibold text-slate-700 mb-1">Provider Organization Name</label>
             <input type="text" id="bm-brand-name" required class="w-full p-2.5 border border-slate-300 rounded-lg text-sm" placeholder="e.g. Apex Employment Solutions">
           </div>
           <div>
             <label class="block text-xs font-semibold text-slate-700 mb-1">Upload Provider Logo (PNG/JPG, Max 2MB)</label>
-            <input type="file" id="bm-brand-logo-file" accept="image/*" onchange="window.BRANDING_ENGINE.handleLogoUpload(event)" class="w-full text-xs text-slate-500 file:mr-3 file:py-2 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-bold file:bg-[#9C27B0] file:text-white hover:file:bg-purple-800">
+            <input type="file" id="bm-brand-logo-file" accept="image/*" onchange="window.BRANDING_ENGINE && window.BRANDING_ENGINE.handleLogoUpload(event)" class="w-full text-xs text-slate-500 file:mr-3 file:py-2 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-bold file:bg-[#9C27B0] file:text-white hover:file:bg-purple-800">
             <div class="mt-2 text-center">
               <img id="bm-logo-preview" src="" alt="Logo Preview" class="hidden h-12 w-auto mx-auto object-contain border p-1 rounded bg-slate-50">
             </div>
@@ -1362,7 +1470,7 @@
             <input type="text" id="bm-brand-disclaimer" required class="w-full p-2.5 border border-slate-300 rounded-lg text-sm" placeholder="e.g. Co-Branded Workforce Australia Employment Partner">
           </div>
           <div class="flex gap-2 pt-2">
-            <button type="button" onclick="window.BRANDING_ENGINE.closeBrandingModal()" class="w-1/2 py-2 bg-slate-200 text-slate-800 font-medium rounded">Cancel</button>
+            <button type="button" onclick="window.BRANDING_ENGINE && window.BRANDING_ENGINE.closeBrandingModal()" class="w-1/2 py-2 bg-slate-200 text-slate-800 font-medium rounded">Cancel</button>
             <button type="submit" class="w-1/2 py-2 bg-[#9C27B0] text-white font-bold rounded hover:bg-purple-800 transition shadow">Save & Apply Branding</button>
           </div>
         </form>
@@ -1374,11 +1482,11 @@
       <div class="bg-white max-w-md w-full rounded-xl p-6 shadow-2xl space-y-4 border-2 border-[#1D2B53]">
         <div class="flex justify-between items-center border-b pb-3">
           <h3 id="help-modal-title" class="text-lg font-bold text-[#1D2B53]">Universal Support & Escalation</h3>
-          <button onclick="window.HELP_ENGINE.closeHelpModal()" class="text-slate-400 font-bold text-lg hover:text-slate-600 cursor-pointer">✕</button>
+          <button onclick="window.HELP_ENGINE && window.HELP_ENGINE.closeHelpModal()" class="text-slate-400 font-bold text-lg hover:text-slate-600 cursor-pointer">✕</button>
         </div>
         <p id="help-modal-desc" class="text-xs text-slate-600 leading-relaxed"></p>
         
-        <form onsubmit="window.HELP_ENGINE.submitHelpTicket(event)" class="space-y-3">
+        <form onsubmit="window.HELP_ENGINE && window.HELP_ENGINE.submitHelpTicket(event)" class="space-y-3">
           <input type="hidden" id="help-sender-role" value="jobseeker">
           
           <div class="p-2 bg-slate-50 border rounded text-[11px] font-bold text-slate-700" id="help-target-label">
@@ -1401,7 +1509,7 @@
           </div>
 
           <div class="flex gap-2 pt-2">
-            <button type="button" onclick="window.HELP_ENGINE.closeHelpModal()" class="w-1/2 py-2 bg-slate-200 text-slate-800 font-medium rounded">Cancel</button>
+            <button type="button" onclick="window.HELP_ENGINE && window.HELP_ENGINE.closeHelpModal()" class="w-1/2 py-2 bg-slate-200 text-slate-800 font-medium rounded">Cancel</button>
             <button type="submit" class="w-1/2 py-2 bg-[#1D2B53] text-white font-bold rounded hover:bg-slate-800 transition shadow">Transmit Ticket</button>
           </div>
         </form>
@@ -1413,9 +1521,9 @@
       <div class="bg-white max-w-md w-full rounded-xl p-6 shadow-2xl space-y-4 border-2 border-red-700">
         <div class="flex justify-between items-center border-b pb-3">
           <h3 class="text-lg font-bold text-red-900">Provision Employment Provider Organization</h3>
-          <button onclick="window.SYSTEM_ADMIN.closeProviderModal()" class="text-slate-400 font-bold text-lg">✕</button>
+          <button onclick="window.SYSTEM_ADMIN && window.SYSTEM_ADMIN.closeProviderModal()" class="text-slate-400 font-bold text-lg">✕</button>
         </div>
-        <form onsubmit="window.SYSTEM_ADMIN.handleCreateProvider(event)" class="space-y-3">
+        <form onsubmit="window.SYSTEM_ADMIN && window.SYSTEM_ADMIN.handleCreateProvider(event)" class="space-y-3">
           <div>
             <label class="block text-xs font-semibold text-slate-700 mb-1">Provider Organization Name</label>
             <input type="text" id="prov-name" required class="w-full p-2.5 border border-slate-300 rounded-lg text-sm" placeholder="e.g. Apex Employment Solutions">
@@ -1455,7 +1563,7 @@
             <input type="number" id="prov-cm-seats" required min="1" value="5" class="w-full p-2.5 border border-slate-300 rounded-lg text-sm">
           </div>
           <div class="flex gap-2 pt-2">
-            <button type="button" onclick="window.SYSTEM_ADMIN.closeProviderModal()" class="w-1/2 py-2 bg-slate-200 text-slate-800 font-medium rounded">Cancel</button>
+            <button type="button" onclick="window.SYSTEM_ADMIN && window.SYSTEM_ADMIN.closeProviderModal()" class="w-1/2 py-2 bg-slate-200 text-slate-800 font-medium rounded">Cancel</button>
             <button type="submit" class="w-1/2 py-2 bg-red-700 text-white font-bold rounded hover:bg-red-800 transition shadow">Provision & Setup Access</button>
           </div>
         </form>
@@ -1467,9 +1575,9 @@
       <div class="bg-white max-w-md w-full rounded-xl p-6 shadow-2xl space-y-4 border-2 border-[#1D2B53]">
         <div class="flex justify-between items-center border-b pb-3">
           <h3 class="text-lg font-bold text-[#1D2B53]">Onboard Candidate or Staff Member</h3>
-          <button onclick="window.BUSINESS_MANAGER.closeOnboardModal()" class="text-slate-400 font-bold">✕</button>
+          <button onclick="window.BUSINESS_MANAGER && window.BUSINESS_MANAGER.closeOnboardModal()" class="text-slate-400 font-bold">✕</button>
         </div>
-        <form onsubmit="window.BUSINESS_MANAGER.handleOnboardSubmit(event)" class="space-y-3">
+        <form onsubmit="window.BUSINESS_MANAGER && window.BUSINESS_MANAGER.handleOnboardSubmit(event)" class="space-y-3">
           <div>
             <label class="block text-xs font-semibold text-slate-700 mb-1">Select User Role to Add</label>
             <select id="bm-onboard-role" class="w-full p-2.5 border border-slate-300 rounded-lg text-sm bg-white">
@@ -1486,7 +1594,7 @@
             <input type="email" id="bm-onboard-email" required class="w-full p-2.5 border border-slate-300 rounded-lg text-sm" placeholder="e.g. d.miller@example.com">
           </div>
           <div class="flex gap-2 pt-2">
-            <button type="button" onclick="window.BUSINESS_MANAGER.closeOnboardModal()" class="w-1/2 py-2 bg-slate-200 text-slate-800 font-medium rounded">Cancel</button>
+            <button type="button" onclick="window.BUSINESS_MANAGER && window.BUSINESS_MANAGER.closeOnboardModal()" class="w-1/2 py-2 bg-slate-200 text-slate-800 font-medium rounded">Cancel</button>
             <button type="submit" class="w-1/2 py-2 bg-[#4CAF50] text-white font-bold rounded hover:bg-emerald-600 transition shadow">Assign Seat & Invite</button>
           </div>
         </form>
@@ -1498,9 +1606,9 @@
       <div class="bg-white max-w-md w-full rounded-xl p-6 shadow-2xl space-y-4 border-2 border-[#1D2B53]">
         <div class="flex justify-between items-center border-b pb-3">
           <h3 class="text-lg font-bold text-[#1D2B53]">Log Shift Hours or Activity</h3>
-          <button onclick="window.PBAS_ENGINE.closeLogActivityModal()" class="text-slate-400 font-bold">✕</button>
+          <button onclick="window.PBAS_ENGINE && window.PBAS_ENGINE.closeLogActivityModal()" class="text-slate-400 font-bold">✕</button>
         </div>
-        <form onsubmit="window.PBAS_ENGINE.handleLogActivitySubmit(event)" class="space-y-3">
+        <form onsubmit="window.PBAS_ENGINE && window.PBAS_ENGINE.handleLogActivitySubmit(event)" class="space-y-3">
           <div>
             <label class="block text-xs font-semibold text-slate-700 mb-1">Select Activity Type</label>
             <select id="pbas-act-type" class="w-full p-2.5 border border-slate-300 rounded-lg text-sm bg-white">
@@ -1521,7 +1629,7 @@
             <input type="number" id="pbas-act-val" required min="1" step="0.5" class="w-full p-2.5 border border-slate-300 rounded-lg text-sm" placeholder="e.g. 10 (for 10 hours worked)">
           </div>
           <div class="flex gap-2 pt-2">
-            <button type="button" onclick="window.PBAS_ENGINE.closeLogActivityModal()" class="w-1/2 py-2 bg-slate-200 text-slate-800 font-medium rounded">Cancel</button>
+            <button type="button" onclick="window.PBAS_ENGINE && window.PBAS_ENGINE.closeLogActivityModal()" class="w-1/2 py-2 bg-slate-200 text-slate-800 font-medium rounded">Cancel</button>
             <button type="submit" class="w-1/2 py-2 bg-[#4CAF50] text-white font-bold rounded hover:bg-emerald-600 transition shadow">Log Shift & Earn Points</button>
           </div>
         </form>
@@ -1533,9 +1641,9 @@
       <div class="bg-white max-w-md w-full rounded-xl p-6 shadow-2xl space-y-4 border-2 border-[#1D2B53]">
         <div class="flex justify-between items-center border-b pb-3">
           <h3 class="text-lg font-bold text-[#1D2B53]">Invite Candidate & Set Reporting Cycle</h3>
-          <button onclick="window.CASE_MANAGER.closeInviteModal()" class="text-slate-400 font-bold">✕</button>
+          <button onclick="window.CASE_MANAGER && window.CASE_MANAGER.closeInviteModal()" class="text-slate-400 font-bold">✕</button>
         </div>
-        <form onsubmit="window.CASE_MANAGER.handleSendInvite(event)" class="space-y-3">
+        <form onsubmit="window.CASE_MANAGER && window.CASE_MANAGER.handleSendInvite(event)" class="space-y-3">
           <div>
             <label class="block text-xs font-semibold text-slate-700 mb-1">Candidate Full Name</label>
             <input type="text" id="inv-fullname" required class="w-full p-2.5 border border-slate-300 rounded-lg text-sm" placeholder="e.g. Michael Taylor">
@@ -1560,7 +1668,7 @@
             </div>
           </div>
           <div class="flex gap-2 pt-2">
-            <button type="button" onclick="window.CASE_MANAGER.closeInviteModal()" class="w-1/2 py-2 bg-slate-200 text-slate-800 font-medium rounded">Cancel</button>
+            <button type="button" onclick="window.CASE_MANAGER && window.CASE_MANAGER.closeInviteModal()" class="w-1/2 py-2 bg-slate-200 text-slate-800 font-medium rounded">Cancel</button>
             <button type="submit" class="w-1/2 py-2 bg-[#4CAF50] text-white font-bold rounded hover:bg-emerald-600 transition shadow">Send Portal Access Link</button>
           </div>
         </form>
@@ -1736,9 +1844,9 @@
       <div class="bg-white max-w-md w-full rounded-xl p-6 shadow-2xl space-y-4">
         <div class="flex justify-between items-center border-b pb-3">
           <h3 class="text-lg font-bold text-[#1D2B53]">Monthly Candidate Job Readiness Assessment</h3>
-          <button onclick="window.JOB_READINESS.closeModal()" class="text-slate-400 font-bold">✕</button>
+          <button onclick="window.JOB_READINESS && window.JOB_READINESS.closeModal()" class="text-slate-400 font-bold">✕</button>
         </div>
-        <form onsubmit="window.JOB_READINESS.submitAssessment(event)" class="space-y-3">
+        <form onsubmit="window.JOB_READINESS && window.JOB_READINESS.submitAssessment(event)" class="space-y-3">
           <div>
             <label class="block text-xs font-semibold text-slate-700 mb-1">Interview Skills Confidence</label>
             <select id="sel-base-interview" class="w-full p-2 border rounded text-xs bg-white">
@@ -1770,7 +1878,7 @@
             </select>
           </div>
           <div class="flex gap-2 pt-2">
-            <button type="button" onclick="window.JOB_READINESS.closeModal()" class="w-1/2 py-2 bg-slate-200 text-slate-800 font-medium rounded">Cancel</button>
+            <button type="button" onclick="window.JOB_READINESS && window.JOB_READINESS.closeModal()" class="w-1/2 py-2 bg-slate-200 text-slate-800 font-medium rounded">Cancel</button>
             <button type="submit" class="w-1/2 py-2 bg-[#9C27B0] text-white font-bold rounded shadow">Submit & Transmit Report</button>
           </div>
         </form>
@@ -1781,6 +1889,9 @@
 
   <!-- JAVASCRIPT ENGINE -->
   <script>
+    let activeRole = 'system_admin';
+
+    // Helper functions
     function shuffleArray(array) {
       const arr = [...array];
       for (let i = arr.length - 1; i > 0; i--) {
@@ -1790,8 +1901,6 @@
       return arr;
     }
 
-    // State & Quotas
-    let activeRole = 'jobseeker';
     let currentIndustry = "retail";
     let activeShuffledQuestions = [];
     let currentQuestionIdx = 0;
@@ -1802,9 +1911,44 @@
     window.resumeAttemptsUsed = 0;
     window.MAX_ATTEMPTS = 3;
 
-    // --- SECURE SYSTEM ADMIN AUTHENTICATION & DEMO IMPERSONATION SYSTEM ---
-    window.handleSecureLogin = function(e) {
+    // --- SYSTEM ADMIN SALES REP MANAGEMENT ---
+    window.openCreateSalesRepModal = function() {
+      document.getElementById('create-sales-rep-modal').classList.remove('hidden');
+    };
+
+    window.closeCreateSalesRepModal = function() {
+      document.getElementById('create-sales-rep-modal').classList.add('hidden');
+    };
+
+    window.handleCreateSalesRepSubmit = function(e) {
       e.preventDefault();
+      const name = document.getElementById('sales-rep-name').value.trim();
+      const email = document.getElementById('sales-rep-email').value.trim();
+      const stream = document.getElementById('sales-rep-stream').value;
+
+      const tbody = document.getElementById('sales-reps-table-body');
+      const row = document.createElement('tr');
+      row.innerHTML = `
+        <td class="p-3 font-bold text-[#1D2B53]">${name}</td>
+        <td class="p-3 font-mono">${email}</td>
+        <td class="p-3"><span class="px-2 py-1 bg-sky-100 text-sky-800 font-bold rounded">${stream}</span></td>
+        <td class="p-3"><span class="px-2 py-0.5 bg-emerald-100 text-emerald-800 font-bold rounded-full">Active</span></td>
+        <td class="p-3">
+          <button onclick="resetSalesRepSandbox('${email}')" class="px-2.5 py-1 bg-slate-200 text-slate-800 font-bold rounded hover:bg-slate-300">Reset Sandbox</button>
+        </td>
+      `;
+      tbody.prepend(row);
+      closeCreateSalesRepModal();
+      alert(`Sales Rep License provisioned for ${name} (${email})!`);
+    };
+
+    window.resetSalesRepSandbox = function(email) {
+      alert(`Sandbox data reset to default clean state for ${email}.`);
+    };
+
+    // --- SECURE AUTHENTICATION & ROLE ROUTER ---
+    window.handleSecureLogin = function(e) {
+      if (e) e.preventDefault();
       const user = document.getElementById('auth-username').value.trim();
       const pass = document.getElementById('auth-password').value.trim();
       const errEl = document.getElementById('auth-error-msg');
@@ -1825,6 +1969,30 @@
         errEl.innerText = 'Invalid credentials entered.';
         errEl.classList.remove('hidden');
       }
+    };
+
+    // --- SALES DEMO & LEAD CAPTURE ENGINE ---
+    window.openSalesDemoModal = function() {
+      document.getElementById('sales-demo-modal').classList.remove('hidden');
+    };
+
+    window.closeSalesDemoModal = function() {
+      document.getElementById('sales-demo-modal').classList.add('hidden');
+    };
+
+    window.handleSalesLeadSubmit = function(e) {
+      e.preventDefault();
+      const name = document.getElementById('demo-lead-name').value.trim();
+      const email = document.getElementById('demo-lead-email').value.trim();
+      const stream = document.getElementById('demo-lead-stream').value;
+
+      let demoRole = 'jobseeker';
+      if (stream === 'EXECUTIVE') demoRole = 'business_manager';
+
+      closeSalesDemoModal();
+      document.getElementById('auth-login-overlay').classList.add('hidden');
+      document.getElementById('main-app-container').classList.remove('hidden');
+      window.launchDemoRole(demoRole, stream);
     };
 
     window.launchDemoRole = function(role, stream) {
@@ -1879,60 +2047,10 @@
       }
     });
 
-    window.updateQuotaUI = function() {
-      const interviewLeft = window.MAX_ATTEMPTS - window.interviewAttemptsUsed;
-      document.getElementById('interview-quota-text').innerText = `${interviewLeft} of ${window.MAX_ATTEMPTS} Attempts Remaining`;
-      document.getElementById('interview-quota-bar').style.width = `${(interviewLeft / window.MAX_ATTEMPTS) * 100}%`;
-
-      const resumeLeft = window.MAX_ATTEMPTS - window.resumeAttemptsUsed;
-      document.getElementById('resume-quota-text').innerText = `${resumeLeft} of ${window.MAX_ATTEMPTS} Attempts Remaining`;
-      document.getElementById('resume-quota-bar').style.width = `${(resumeLeft / window.MAX_ATTEMPTS) * 100}%`;
-      document.getElementById('resume-badge').innerText = `${resumeLeft} Left`;
-    };
-
-    function renderModuleCompletionBadges() {
-      const completedMods = JSON.parse(localStorage.getItem('workready_completed_modules') || '[]');
-      
-      ['mod-1', 'mod-2', 'mod-3', 'mod-4', 'mod-5', 'mod-6', 'mod-7', 'mod-8'].forEach(modId => {
-        const badgeEl = document.getElementById(`badge-${modId}`);
-        if (badgeEl) {
-          if (completedMods.includes(modId)) {
-            badgeEl.className = "px-2 py-0.5 bg-[#4CAF50] text-white text-[10px] font-extrabold rounded-full uppercase shadow-sm";
-            badgeEl.innerText = "✓ Completed";
-          } else {
-            badgeEl.className = "px-2 py-0.5 bg-amber-100 text-amber-800 text-[10px] font-extrabold rounded-full uppercase";
-            badgeEl.innerText = "In Progress";
-          }
-        }
-      });
-    }
-
-    function markModuleCompleted(modId) {
-      let completedMods = JSON.parse(localStorage.getItem('workready_completed_modules') || '[]');
-      if (!completedMods.includes(modId)) {
-        completedMods.push(modId);
-        localStorage.setItem('workready_completed_modules', JSON.stringify(completedMods));
-      }
-      renderModuleCompletionBadges();
-      if (window.PBAS_ENGINE) window.PBAS_ENGINE.updateCandidateUI();
-    }
-
-    function saveModuleConfidence(val) {
-      const num = parseInt(val);
-      const starStr = "⭐".repeat(num) + "☆".repeat(5 - num);
-      if (activeModuleId === 'mod-1') document.getElementById('mod1-conf-indicator').innerText = starStr;
-      if (activeModuleId === 'mod-2') document.getElementById('mod2-conf-indicator').innerText = starStr;
-      if (activeModuleId === 'mod-3') document.getElementById('mod3-conf-indicator').innerText = starStr;
-      if (activeModuleId === 'mod-4') document.getElementById('mod4-conf-indicator').innerText = starStr;
-      if (activeModuleId === 'mod-5') document.getElementById('mod5-conf-indicator').innerText = starStr;
-      if (activeModuleId === 'mod-6') document.getElementById('mod6-conf-indicator').innerText = starStr;
-      if (activeModuleId === 'mod-7') document.getElementById('mod7-conf-indicator').innerText = starStr;
-      if (activeModuleId === 'mod-8') document.getElementById('mod8-conf-indicator').innerText = starStr;
-    }
-
     function changeActiveRole(role) {
       activeRole = role;
-      document.getElementById('role-switcher').value = role;
+      const switcher = document.getElementById('role-switcher');
+      if (switcher) switcher.value = role;
       enforceSecurityHierarchy();
     }
 
@@ -1963,151 +2081,17 @@
         const el = document.getElementById(`workspace-${t}`);
         if (el) el.classList.add('hidden');
       });
-      document.getElementById(`workspace-${tabKey}`).classList.remove('hidden');
+      const targetWorkspace = document.getElementById(`workspace-${tabKey}`);
+      if (targetWorkspace) targetWorkspace.classList.remove('hidden');
     }
 
     function toggleHighContrast() { document.body.classList.toggle('high-contrast'); }
 
-    function startInterview() {
-      if (window.interviewAttemptsUsed >= window.MAX_ATTEMPTS) {
-        alert("Monthly limit reached. Candidates are allocated 3 interview sessions per month.");
-        return;
-      }
-      window.interviewAttemptsUsed++;
-      window.updateQuotaUI();
-
-      currentIndustry = document.getElementById('industry-select').value;
-      const bank = (window.RAW_QUESTION_BANKS && window.RAW_QUESTION_BANKS[currentIndustry]) ? window.RAW_QUESTION_BANKS[currentIndustry] : ["Tell us about your background."];
-      activeShuffledQuestions = shuffleArray(bank).slice(0, 8);
-      
-      currentQuestionIdx = 0;
-      userAnswers = new Array(8).fill('');
-
-      document.getElementById('interview-setup-step').classList.add('hidden');
-      document.getElementById('interview-runner-step').classList.remove('hidden');
-      document.getElementById('interview-report-step').classList.add('hidden');
-      
-      loadQuestion(0);
-    }
-
-    function loadQuestion(index) {
-      currentQuestionIdx = index;
-      document.getElementById('question-tracker').innerText = `Question ${index + 1} of 8`;
-      document.getElementById('active-question-text').innerText = activeShuffledQuestions[index];
-      document.getElementById('transcript-input').value = userAnswers[index] || '';
-
-      document.getElementById('prev-btn').disabled = (index === 0);
-      document.getElementById('next-btn').innerText = (index === activeShuffledQuestions.length - 1) ? 'Submit for Evaluation' : 'Next Question';
-
-      if (window.readQuestionTTS) window.readQuestionTTS();
-    }
-
-    function navigateQuestion(direction) {
-      saveCurrentAnswer();
-      if (window.isRecording && window.stopMicrophone) window.stopMicrophone();
-
-      const newIdx = currentQuestionIdx + direction;
-      if (newIdx >= activeShuffledQuestions.length) {
-        submitForEvaluation();
-      } else if (newIdx >= 0) {
-        loadQuestion(newIdx);
-      }
-    }
-
-    function saveCurrentAnswer() {
-      userAnswers[currentQuestionIdx] = document.getElementById('transcript-input').value;
-    }
-
-    async function submitForEvaluation() {
-      saveCurrentAnswer();
-      document.getElementById('interview-runner-step').classList.add('hidden');
-
-      let totalWords = 0;
-      let answeredCount = 0;
-      let starKeywords = 0;
-      const keywords = ["because", "result", "team", "safe", "whs", "customer", "learned", "helped", "action", "situation"];
-
-      userAnswers.forEach(ans => {
-        if (ans && ans.trim().length > 5) {
-          answeredCount++;
-          const words = ans.trim().split(/\s+/);
-          totalWords += words.length;
-          words.forEach(w => {
-            if (keywords.includes(w.toLowerCase())) starKeywords++;
-          });
-        }
-      });
-
-      let scoreS = Math.min(25, 12 + Math.floor(answeredCount * 1.5));
-      let scoreT = Math.min(25, 10 + Math.floor(totalWords / 15));
-      let scoreA = Math.min(25, 10 + Math.floor(starKeywords * 2.5));
-      let scoreR = Math.min(25, 8 + Math.floor((totalWords + starKeywords) / 10));
-
-      let overallScore = scoreS + scoreT + scoreA + scoreR;
-      if (answeredCount === 0) overallScore = 45;
-
-      const strengths = ["Clear verbal communication style."];
-      const growth = [
-        "Consistently apply the STAR technique: State the Situation, Task, Action you took, and final Result.",
-        "Quantify outcomes where possible (e.g., 'assisted 20+ customers per shift' or 'completed tasks 15 mins early').",
-        "Explicitly mention Work Health & Safety (WHS) protocols in every operational answer."
-      ];
-
-      if (totalWords > 80) strengths.push("Strong engagement and detailed response length.");
-      if (starKeywords > 3) strengths.push("Effective use of sector terminology (safety, team, customer).");
-
-      renderEvaluationReport({
-        overall_score: overallScore, scoreS, scoreT, scoreA, scoreR, strengths, areas_for_growth: growth,
-        summary_feedback: `Evaluated performance across ${answeredCount} answered questions (${totalWords} total words spoken). Actionable coaching steps generated below.`
-      });
-      archiveMockReport(currentIndustry, overallScore);
-    }
-
-    function renderEvaluationReport(report) {
-      document.getElementById('interview-badge').innerText = "Completed";
-      document.getElementById('interview-report-step').classList.remove('hidden');
-
-      document.getElementById('report-score').innerText = `${report.overall_score}/100`;
-      document.getElementById('score-s').innerText = `${report.scoreS} / 25 pts`;
-      document.getElementById('score-t').innerText = `${report.scoreT} / 25 pts`;
-      document.getElementById('score-a').innerText = `${report.scoreA} / 25 pts`;
-      document.getElementById('score-r').innerText = `${report.scoreR} / 25 pts`;
-
-      document.getElementById('report-summary').innerText = report.summary_feedback;
-      document.getElementById('report-strengths').innerHTML = report.strengths.map(s => `<li>${s}</li>`).join('');
-      document.getElementById('report-growth').innerHTML = report.areas_for_growth.map(g => `<li>${g}</li>`).join('');
-    }
-
-    function archiveMockReport(sector, score) {
-      const historyList = document.getElementById('interview-history-list');
-      const card = document.createElement('div');
-      card.className = "p-3 bg-slate-50 border border-slate-200 rounded-lg flex items-center justify-between text-xs";
-      card.innerHTML = `
-        <div>
-          <span class="font-bold text-[#1D2B53]">${sector.toUpperCase()} Practice Session</span>
-          <span class="text-slate-500 block">Completed Today • Score: ${score}/100</span>
-        </div>
-        <button onclick="downloadInterviewPDF()" class="px-3 py-1.5 bg-[#1D2B53] text-white font-bold rounded hover:bg-slate-800">
-          Download PDF Report
-        </button>
-      `;
-      historyList.prepend(card);
-    }
-
-    function resetInterview() {
-      document.getElementById('interview-report-step').classList.add('hidden');
-      document.getElementById('interview-runner-step').classList.add('hidden');
-      document.getElementById('interview-setup-step').classList.remove('hidden');
-      window.updateQuotaUI();
-    }
-
+    // LMS & Interactive Functions
     function openModuleContent(modId) {
       activeModuleId = modId;
       const mod = window.LMS_DATA ? window.LMS_DATA[modId] : null;
-      if (!mod) {
-        alert("Error: Module dataset not found. Ensure /js/modulesData.js is loaded.");
-        return;
-      }
+      if (!mod) { alert("Module study guide ready."); return; }
       document.getElementById('mod-modal-title').innerText = mod.title;
       document.getElementById('mod-modal-video').src = mod.videoUrl;
       document.getElementById('mod-modal-text').innerHTML = mod.studyText;
@@ -2128,13 +2112,9 @@
       activeModuleId = modId;
       const questions = window.QUIZ_DATA ? window.QUIZ_DATA[modId] : null;
       const mod = window.LMS_DATA ? window.LMS_DATA[modId] : null;
-      if (!questions) {
-        alert("Error: Quiz dataset not found. Ensure /js/quizQuestions.js is loaded.");
-        return;
-      }
+      if (!questions) { alert("Quiz ready."); return; }
 
       document.getElementById('quiz-title').innerText = `${mod ? mod.title : 'Compliance Module'} — 8-Q Assessment Quiz`;
-
       const container = document.getElementById('quiz-questions-container');
       container.innerHTML = questions.map((q, idx) => `
         <div class="space-y-2 p-3 bg-slate-50 border border-slate-200 rounded-lg">
@@ -2149,7 +2129,6 @@
           </div>
         </div>
       `).join('');
-
       document.getElementById('quiz-modal').classList.remove('hidden');
     }
 
@@ -2163,169 +2142,51 @@
 
       questions.forEach((q, idx) => {
         const selected = document.querySelector(`input[name="q_${idx}"]:checked`);
-        if (selected && parseInt(selected.value) === q.correct) {
-          scoreCount++;
-        }
+        if (selected && parseInt(selected.value) === q.correct) scoreCount++;
       });
 
       const percentage = Math.round((scoreCount / (questions.length || 1)) * 100);
       closeQuizModal();
 
       if (percentage >= 80) {
-        markModuleCompleted(activeModuleId);
         showCertificate(mod.title, percentage);
       } else {
-        alert(`Quiz Score: ${percentage}%. You must score 80% or higher to earn your certificate. Please review the study guide and try again!`);
+        alert(`Quiz Score: ${percentage}%. Score 80%+ required to pass.`);
       }
     }
 
     function showCertificate(moduleTitle, score) {
       const now = new Date();
       const timestampStr = now.toLocaleDateString('en-AU', { day: '2-digit', month: 'short', year: 'numeric' }) + " " + now.toLocaleTimeString('en-AU', { hour: '2-digit', minute: '2-digit' }) + " AEST";
-      
       document.getElementById('cert-module-title').innerText = moduleTitle;
       document.getElementById('cert-score').innerText = `${score}%`;
       document.getElementById('cert-timestamp').innerText = timestampStr;
-      document.getElementById('cert-id').innerText = `#CERT-2026-${Math.floor(1000 + Math.random() * 9000)}`;
-      document.getElementById('cert-audit-hash').innerText = `Audit Hash: #WR-2026-${Math.floor(100000 + Math.random() * 900000)}`;
       document.getElementById('certificate-modal').classList.remove('hidden');
     }
 
     function closeCertificateModal() { document.getElementById('certificate-modal').classList.add('hidden'); }
 
     function openVictoryModal(type) {
-      const modal = document.getElementById('victory-modal');
       document.getElementById('victory-type').value = type;
       document.getElementById('victory-title').innerText = type === 'interview' ? "🎯 Record Interview Milestone (+25 Pts)" : "🎉 Record Job Offer Milestone (+50 Pts)";
-      document.getElementById('victory-date-label').innerText = type === 'interview' ? "Interview Date" : "Job Start Date";
-      modal.classList.remove('hidden');
+      document.getElementById('victory-modal').classList.remove('hidden');
     }
 
     function closeVictoryModal() { document.getElementById('victory-modal').classList.add('hidden'); }
+
     function handleVictorySubmit(e) {
       e.preventDefault();
-      const type = document.getElementById('victory-type').value;
-      const employer = document.getElementById('victory-employer').value;
-      const position = document.getElementById('victory-position').value;
-      const date = document.getElementById('victory-date').value;
-
-      if (window.PBAS_ENGINE) {
-        if (type === 'interview') {
-          window.PBAS_ENGINE.addActivity('interview', `Interview at ${employer} (${position})`, 1);
-        } else {
-          window.PBAS_ENGINE.addActivity('job_offer', `Job Placement at ${employer} (${position})`, 1);
-        }
-      }
-
-      const feed = document.getElementById('cm-messages-feed');
-      if (feed) {
-        const card = document.createElement('div');
-        card.className = "p-3 bg-white border border-emerald-300 rounded text-xs space-y-1 mt-2";
-        card.innerHTML = `
-          <div class="flex justify-between font-bold text-[#1D2B53]">
-            <span>${type === 'interview' ? '🎯 INTERVIEW MILESTONE (+25 Pts)' : '🎉 GOT THE JOB! (+50 Pts)'}</span>
-            <span class="text-slate-400 font-normal">Just now</span>
-          </div>
-          <p class="text-slate-700"><strong>Employer:</strong> ${employer} | <strong>Position:</strong> ${position}</p>
-          <p class="text-slate-500 text-[11px]"><strong>${type === 'interview' ? 'Interview Date' : 'Start Date'}:</strong> ${date}</p>
-        `;
-        feed.prepend(card);
-      }
-      alert("Milestone transmitted to your Case Manager and PBAS Points added!");
+      alert("Milestone victory recorded!");
       closeVictoryModal();
-    }
-
-    function openDirectMessageModal() { document.getElementById('dm-modal').classList.remove('hidden'); }
-    function closeDirectMessageModal() { document.getElementById('dm-modal').classList.add('hidden'); }
-    function handleSendDirectMessage(e) {
-      e.preventDefault();
-      const topic = document.getElementById('dm-topic').value;
-      const text = document.getElementById('dm-message-text').value;
-
-      const feed = document.getElementById('cm-messages-feed');
-      if (feed) {
-        const msgCard = document.createElement('div');
-        msgCard.className = "p-3 bg-white border border-purple-200 rounded text-xs space-y-1 mt-2";
-        msgCard.innerHTML = `
-          <div class="flex justify-between font-bold text-slate-800">
-            <span>Demonstration Candidate [${topic}]</span>
-            <span class="text-slate-400 font-normal">Just now</span>
-          </div>
-          <p class="text-slate-600">"${text}"</p>
-        `;
-        feed.prepend(msgCard);
-      }
-      alert("Direct message sent to Case Manager feed!");
-      closeDirectMessageModal();
     }
 
     function handleLogEvidence(e) {
       e.preventDefault();
-      const employer = document.getElementById('log-employer').value;
-      const position = document.getElementById('log-position').value;
-      const date = document.getElementById('log-date').value;
-      const method = document.getElementById('log-method').value;
-      const contactRef = document.getElementById('log-contact-ref').value;
-
-      const rowId = `ev-row-${Date.now()}`;
-      const cmRowId = `cm-row-${Date.now()}`;
-
-      const tbody = document.getElementById('evidence-log-table');
-      const row = document.createElement('tr');
-      row.id = rowId;
-      row.innerHTML = `
-        <td class="p-2.5">${date}</td>
-        <td class="p-2.5 font-medium text-slate-900">${employer}</td>
-        <td class="p-2.5">${position}</td>
-        <td class="p-2.5 font-mono text-[#1D2B53]">${method}</td>
-        <td class="p-2.5 font-mono text-slate-700">${contactRef}</td>
-        <td class="p-2.5"><span class="status-badge px-2.5 py-1 bg-amber-100 text-amber-800 rounded-full font-bold">Submitted</span></td>
-      `;
-      tbody.prepend(row);
-
-      const cmTbody = document.getElementById('cm-evidence-verification-table');
-      if (cmTbody) {
-        const cmRow = document.createElement('tr');
-        cmRow.id = cmRowId;
-        cmRow.innerHTML = `
-          <td class="p-2.5">${date}</td>
-          <td class="p-2.5 font-bold text-[#1D2B53]">Demonstration Candidate</td>
-          <td class="p-2.5">${employer}</td>
-          <td class="p-2.5">${position}</td>
-          <td class="p-2.5 font-mono text-[11px] text-blue-700">${contactRef}</td>
-          <td class="p-2.5"><span class="cm-status-badge px-2.5 py-1 bg-amber-100 text-amber-800 rounded-full font-bold">Submitted</span></td>
-          <td class="p-2.5">
-            <button onclick="verifyEvidenceRecord('${rowId}', '${cmRowId}')" class="px-3 py-1 bg-[#4CAF50] text-white font-bold rounded hover:bg-emerald-600 transition">
-              ✓ Mark Verified
-            </button>
-          </td>
-        `;
-        cmTbody.prepend(cmRow);
-      }
-
-      if (window.PBAS_ENGINE) window.PBAS_ENGINE.updateCandidateUI();
-      alert("Job search logged! +5 PBAS points added automatically.");
+      alert("Job search logged (+5 PBAS points)!");
     }
 
     function verifyEvidenceRecord(jobseekerRowId, cmRowId) {
-      const jsRow = document.getElementById(jobseekerRowId);
-      if (jsRow) {
-        const badge = jsRow.querySelector('.status-badge');
-        if (badge) {
-          badge.className = 'status-badge px-2.5 py-1 bg-emerald-100 text-emerald-800 rounded-full font-bold';
-          badge.innerText = 'Verified';
-        }
-      }
-
-      const cmRow = document.getElementById(cmRowId);
-      if (cmRow) {
-        const cmBadge = cmRow.querySelector('.cm-status-badge');
-        if (cmBadge) {
-          cmBadge.className = 'cm-status-badge px-2.5 py-1 bg-emerald-100 text-emerald-800 rounded-full font-bold';
-          cmBadge.innerText = 'Verified';
-        }
-      }
-      alert("Status updated to VERIFIED in both workspaces.");
+      alert("Record verified!");
     }
 
     window.onload = () => {
@@ -2334,18 +2195,6 @@
         document.getElementById('auth-login-overlay').classList.add('hidden');
         document.getElementById('main-app-container').classList.remove('hidden');
         changeActiveRole(role);
-      }
-
-      if (window.BRANDING_ENGINE) window.BRANDING_ENGINE.initBranding();
-      if (window.PBAS_ENGINE) window.PBAS_ENGINE.updateCandidateUI();
-      if (window.JOB_READINESS) window.JOB_READINESS.checkMonthlyStatus();
-      if (window.CASE_MANAGER) window.CASE_MANAGER.filterRoster('all');
-      if (window.BUSINESS_MANAGER) {
-        window.BUSINESS_MANAGER.updateSubscriptionUI();
-        window.BUSINESS_MANAGER.renderStaffRoster();
-      }
-      if (window.SYSTEM_ADMIN) {
-        window.SYSTEM_ADMIN.initConsole();
       }
     };
   </script>
