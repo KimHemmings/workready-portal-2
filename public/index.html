@@ -7,6 +7,11 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <!-- html2pdf Library for Client-Side PDF Export -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+
+  <!-- Externalized Learning Content & Question Data -->
+  <script src="/js/modulesData.js"></script>
+  <script src="/js/quizQuestions.js"></script>
+
   <style>
     :root {
       --brand-navy: #1D2B53;
@@ -23,10 +28,9 @@
       color: #FFFFFF !important;
       border-color: #FFFF00 !important;
     }
-    /* Landscape A4 styling for Certificate PDF rendering */
-    .cert-landscape-container {
-      width: 1000px;
-      min-height: 700px;
+    .cert-landscape-wrapper {
+      width: 960px;
+      min-height: 640px;
       margin: 0 auto;
     }
   </style>
@@ -112,7 +116,7 @@
         <div class="flex items-center justify-between border-b pb-3">
           <div>
             <h3 class="text-xl font-bold text-[#1D2B53]">Pre-Program Job Readiness Confidence Indicator</h3>
-            <p class="text-xs text-slate-600">Assess your starting confidence level before beginning mock interviews and modules.</p>
+            <p class="text-xs text-slate-600">Assess your starting confidence level before beginning mock interviews and modules. (Single Submission)</p>
           </div>
           <span id="baseline-status-tag" class="px-3 py-1 bg-amber-100 text-amber-800 text-xs font-bold rounded-full">Assessment Pending</span>
         </div>
@@ -132,8 +136,8 @@
           </div>
         </div>
 
-        <button onclick="openBaselineModal()" class="w-full py-2.5 bg-[#9C27B0] text-white font-bold rounded-lg hover:bg-purple-800 transition">
-          Complete / Update Pre-Program Confidence Assessment
+        <button id="baseline-submit-btn" onclick="openBaselineModal()" class="w-full py-2.5 bg-[#9C27B0] text-white font-bold rounded-lg hover:bg-purple-800 transition">
+          Complete Initial Pre-Program Assessment
         </button>
       </div>
 
@@ -143,7 +147,7 @@
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div class="p-4 bg-slate-50 border border-slate-200 rounded-lg space-y-2">
             <div class="flex justify-between items-center">
-              <span class="text-xs font-bold text-slate-700">AI Mock Interview Sessions</span>
+              <span class="text-xs font-bold text-slate-700">Interview Coach Sessions</span>
               <span id="interview-quota-text" class="text-xs font-bold text-emerald-600">3 of 3 Attempts Remaining</span>
             </div>
             <div class="w-full bg-slate-200 h-2 rounded-full overflow-hidden">
@@ -154,7 +158,7 @@
 
           <div class="p-4 bg-slate-50 border border-slate-200 rounded-lg space-y-2">
             <div class="flex justify-between items-center">
-              <span class="text-xs font-bold text-slate-700">AI Resume & Cover Letter Generations</span>
+              <span class="text-xs font-bold text-slate-700">Resume & Cover Letter Generations</span>
               <span id="resume-quota-text" class="text-xs font-bold text-emerald-600">3 of 3 Attempts Remaining</span>
             </div>
             <div class="w-full bg-slate-200 h-2 rounded-full overflow-hidden">
@@ -165,11 +169,11 @@
         </div>
       </div>
 
-      <!-- AI MOCK INTERVIEW COACH WITH GUARANTEED COACHING STEPS -->
+      <!-- INTERVIEW COACH -->
       <div id="mock-interview-section" class="bg-white p-6 rounded-xl shadow-md border border-slate-200 space-y-6">
         <div class="flex items-center justify-between border-b pb-4">
           <div>
-            <h2 class="text-2xl font-bold text-[#1D2B53]">AI Mock Interview Coach</h2>
+            <h2 class="text-2xl font-bold text-[#1D2B53]">Interview Coach</h2>
             <p class="text-sm text-slate-600">Practice dynamic, randomized sector questions with speech recognition and personalized STAR feedback reports.</p>
           </div>
           <span id="interview-badge" class="px-3 py-1 bg-slate-100 text-slate-700 text-xs font-semibold rounded-full border border-slate-300">Ready</span>
@@ -210,7 +214,7 @@
               <span id="mic-status-indicator" class="text-xs text-slate-500 font-medium">Microphone idle</span>
             </div>
 
-            <textarea id="transcript-input" rows="4" class="w-full p-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-[#1D2B53] focus:outline-none text-slate-800 text-sm" placeholder="Spoken text appends continuously without resetting on pause. You can also type or edit manually..."></textarea>
+            <textarea id="transcript-input" rows="4" class="w-full p-3 border border-slate-300 rounded-lg text-slate-800 text-sm" placeholder="Spoken text appends continuously without resetting on pause. You can also type or edit manually..."></textarea>
           </div>
 
           <div class="flex justify-between pt-4 border-t">
@@ -286,18 +290,28 @@
 
         <div class="border-t pt-4 space-y-3">
           <h3 class="font-bold text-slate-800 text-sm flex items-center gap-2">
-            📂 Previous Mock Interview Reports & History
+            📂 Previous Interviews Completed & History
           </h3>
-          <div id="interview-history-list" class="space-y-2"></div>
+          <div id="interview-history-list" class="space-y-2">
+            <div class="p-3 bg-slate-50 border border-slate-200 rounded-lg flex items-center justify-between text-xs">
+              <div>
+                <span class="font-bold text-[#1D2B53]">Retail & Customer Service Session</span>
+                <span class="text-slate-500 block">Completed on 11-Sep-2026 • Score: 82/100</span>
+              </div>
+              <button onclick="downloadInterviewPDF()" class="px-3 py-1.5 bg-[#1D2B53] text-white font-bold rounded hover:bg-slate-800">
+                View & Download PDF
+              </button>
+            </div>
+          </div>
         </div>
       </div>
 
-      <!-- PROFESSIONAL AI RESUME & COVER LETTER BUILDER WITH LICENSES & REFEREES -->
+      <!-- RESUME & COVER LETTER MASTER BUILDER -->
       <div class="bg-white p-6 rounded-xl shadow-md border border-slate-200 space-y-6">
         <div class="border-b pb-4 flex items-center justify-between">
           <div>
-            <h2 class="text-2xl font-bold text-[#1D2B53]">Full AI Resume & Cover Letter Builder</h2>
-            <p class="text-sm text-slate-600">Built-in spellcheck, licenses/tickets, separate cover letter exporter, and professional referees section.</p>
+            <h2 class="text-2xl font-bold text-[#1D2B53]">Resume & Cover Letter Master Builder</h2>
+            <p class="text-sm text-slate-600">Built-in spellcheck, separate cover letter generator, licenses/tickets, references, and PDF/Word downloads.</p>
           </div>
           <span id="resume-badge" class="px-3 py-1 bg-[#9C27B0] text-white text-xs font-bold rounded-full">3 Left</span>
         </div>
@@ -363,14 +377,13 @@
           </div>
           
           <button id="generate-resume-btn" type="submit" class="w-full py-3 bg-[#9C27B0] text-white font-bold rounded-lg hover:bg-purple-800 transition shadow-sm">
-            Generate Complete Resume & Cover Letter Template (Uses 1 Attempt)
+            Generate Complete Resume & Cover Letter Documents (Uses 1 Attempt)
           </button>
         </form>
 
-        <!-- SEPARATE RESUME & COVER LETTER DOCUMENT PREVIEWS -->
         <div id="resume-output-box" class="hidden space-y-8">
           
-          <!-- Document 1: Professional Resume -->
+          <!-- Document 1: Resume -->
           <div class="space-y-3">
             <h3 class="text-sm font-bold text-[#1D2B53] uppercase tracking-wider flex items-center justify-between">
               <span>📄 Document 1: Curated Professional Resume</span>
@@ -421,10 +434,10 @@
             </div>
 
             <div class="flex gap-3 max-w-4xl mx-auto">
-              <button onclick="downloadResumeWord()" class="w-1/2 py-2.5 bg-blue-700 text-white font-bold rounded-lg hover:bg-blue-800 transition">
+              <button onclick="downloadResumeWord()" class="w-1/2 py-2.5 bg-blue-700 text-white font-bold rounded-lg hover:bg-blue-800 transition flex items-center justify-center gap-2">
                 📝 Download Resume (.doc)
               </button>
-              <button onclick="downloadResumePDF()" class="w-1/2 py-2.5 bg-[#4CAF50] text-white font-bold rounded-lg hover:bg-emerald-600 transition">
+              <button onclick="downloadResumePDF()" class="w-1/2 py-2.5 bg-[#4CAF50] text-white font-bold rounded-lg hover:bg-emerald-600 transition flex items-center justify-center gap-2">
                 📄 Download PDF Resume Only
               </button>
             </div>
@@ -452,8 +465,11 @@
             </div>
 
             <div class="flex gap-3 max-w-4xl mx-auto">
-              <button onclick="downloadCoverLetterPDF()" class="w-full py-2.5 bg-[#9C27B0] text-white font-bold rounded-lg hover:bg-purple-800 transition">
-                📄 Download Separate PDF Cover Letter
+              <button onclick="downloadCoverLetterWord()" class="w-1/2 py-2.5 bg-blue-700 text-white font-bold rounded-lg hover:bg-blue-800 transition flex items-center justify-center gap-2">
+                📝 Download Cover Letter (.doc)
+              </button>
+              <button onclick="downloadCoverLetterPDF()" class="w-1/2 py-2.5 bg-[#9C27B0] text-white font-bold rounded-lg hover:bg-purple-800 transition flex items-center justify-center gap-2">
+                📄 Download PDF Cover Letter
               </button>
             </div>
           </div>
@@ -461,11 +477,11 @@
         </div>
       </div>
 
-      <!-- DETAILED EMPLOYABILITY MODULES (15 DETAILED POINTS & YOUTUBE CLIPS) -->
+      <!-- DETAILED EMPLOYABILITY MODULES -->
       <div id="lms-modules-section" class="bg-white p-6 rounded-xl shadow-md border border-slate-200 space-y-6">
         <div class="border-b pb-4">
           <h2 class="text-2xl font-bold text-[#1D2B53]">Employability Modules</h2>
-          <p class="text-sm text-slate-600">Review 15 detailed learning points, watch curated video tutorials, rate your confidence, and complete 8-question quizzes.</p>
+          <p class="text-sm text-slate-600">Review 15 detailed learning points, watch aligned YouTube tutorials, rate your confidence, and complete 8-question quizzes.</p>
         </div>
 
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -527,11 +543,11 @@
         </div>
       </div>
 
-      <!-- JOB SEARCH EVIDENCE LOGGER WITH FILE UPLOAD ATTACHMENT -->
+      <!-- JOB SEARCH EVIDENCE LOGGER -->
       <div class="bg-white p-6 rounded-xl shadow-md border border-slate-200 space-y-6">
         <div class="border-b pb-4">
           <h2 class="text-2xl font-bold text-[#1D2B53]">Job Search & Evidence Logger</h2>
-          <p class="text-sm text-slate-600">Log job applications and attach proof. Applications sit as 'Submitted' until verified by your Case Manager.</p>
+          <p class="text-sm text-slate-600">Log job applications, upload proof, and inspect submitted evidence. Applications default to 'Submitted'.</p>
         </div>
 
         <form onsubmit="handleLogEvidence(event)" class="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -579,6 +595,7 @@
                   <th class="p-2.5">Method</th>
                   <th class="p-2.5">Evidence File</th>
                   <th class="p-2.5">Status</th>
+                  <th class="p-2.5">Jobseeker Action</th>
                 </tr>
               </thead>
               <tbody id="evidence-log-table" class="divide-y">
@@ -587,8 +604,13 @@
                   <td class="p-2.5 font-medium text-slate-900">Bunnings Warehouse</td>
                   <td class="p-2.5">Team Member</td>
                   <td class="p-2.5">Online (SEEK)</td>
-                  <td class="p-2.5 text-emerald-700 font-semibold">📄 confirmation_receipt.pdf</td>
+                  <td class="p-2.5 font-mono text-emerald-700 font-semibold">confirmation_receipt.pdf</td>
                   <td class="p-2.5"><span class="status-badge px-2.5 py-1 bg-amber-100 text-amber-800 rounded-full font-bold">Submitted</span></td>
+                  <td class="p-2.5">
+                    <button onclick="viewJobseekerEvidence('Bunnings Warehouse', 'confirmation_receipt.pdf')" class="text-blue-600 font-bold hover:underline">
+                      👁️ View Evidence
+                    </button>
+                  </td>
                 </tr>
               </tbody>
             </table>
@@ -717,29 +739,28 @@
 
   <!-- DOWNLOADABLE LANDSCAPE PDF CERTIFICATE MODAL WITH TIMESTAMP -->
   <div id="certificate-modal" class="fixed inset-0 bg-slate-900/80 backdrop-blur-sm hidden flex items-center justify-center p-4 z-50 overflow-y-auto">
-    <div class="bg-white max-w-4xl w-full rounded-2xl p-6 shadow-2xl space-y-6 my-8 border-4 border-[#1D2B53]">
+    <div class="bg-white max-w-5xl w-full rounded-2xl p-6 shadow-2xl space-y-6 my-8 border-4 border-[#1D2B53]">
       
-      <!-- LANDSCAPE COMPLIANCE CERTIFICATE CONTAINER -->
-      <div id="certificate-pdf-element" class="cert-landscape-container p-8 bg-white border-4 border-slate-800 rounded-xl space-y-6 flex flex-col justify-between">
+      <div id="certificate-pdf-element" class="cert-landscape-wrapper p-10 bg-white border-8 border-[#1D2B53] rounded-xl space-y-6 flex flex-col justify-between shadow-inner">
         
         <div class="flex justify-between items-center border-b-2 border-slate-300 pb-4">
           <div class="flex items-center gap-4">
-            <img src="/logo.png" alt="Straight Up Training Logo" class="h-12 w-auto object-contain">
+            <img src="/logo.png" alt="Straight Up Training Logo" class="h-14 w-auto object-contain">
             <div>
-              <div class="text-sm font-extrabold text-[#1D2B53] uppercase tracking-widest">Straight Up Training</div>
-              <div class="text-xs text-emerald-600 font-semibold">Registered Employment & Compliance Training Provider</div>
+              <div class="text-base font-extrabold text-[#1D2B53] uppercase tracking-widest">Straight Up Training</div>
+              <div class="text-xs text-emerald-600 font-semibold">Registered Employment & Compliance Training Provider Shell</div>
             </div>
           </div>
-          <div class="text-right text-xs text-slate-600 space-y-0.5">
-            <div><strong>Issued Date & Time:</strong> <span id="cert-timestamp" class="font-mono text-slate-800">13-Sep-2026 12:54 AEST</span></div>
+          <div class="text-right text-xs text-slate-600 space-y-1">
+            <div><strong>Issued Date & Time:</strong> <span id="cert-timestamp" class="font-mono text-slate-800 font-bold">13-Sep-2026 12:54 AEST</span></div>
             <div><strong>Verification ID:</strong> <span id="cert-id" class="font-mono font-bold text-[#1D2B53]">#CERT-2026-8812</span></div>
           </div>
         </div>
 
-        <div class="text-center space-y-4 py-6">
-          <p class="text-xs uppercase tracking-widest text-slate-500 font-bold">Official Verifiable Certificate of Completion</p>
+        <div class="text-center space-y-4 py-8">
+          <p class="text-xs uppercase tracking-widest text-slate-500 font-bold">Official Verifiable Compliance Certificate</p>
           <h2 class="text-3xl font-extrabold text-[#1D2B53]">THIS IS PROUDLY PRESENTED TO</h2>
-          <p class="text-2xl font-bold text-emerald-600 border-b-2 border-slate-400 pb-2 inline-block px-12">Demonstration Jobseeker</p>
+          <p class="text-3xl font-bold text-emerald-600 border-b-2 border-slate-400 pb-2 inline-block px-12">Demonstration Jobseeker</p>
           <p class="text-sm text-slate-700 pt-2">For successfully completing the 8-question workforce compliance assessment module:</p>
           <h3 id="cert-module-title" class="text-2xl font-extrabold text-slate-900">Workplace Rights & Safety</h3>
           <p class="text-xs text-slate-600">Achieved Score: <span id="cert-score" class="font-bold text-emerald-600 text-sm">100%</span> (Minimum Passing Grade: 80%)</p>
@@ -875,226 +896,7 @@
 
   <!-- JAVASCRIPT ENGINE -->
   <script>
-    // Dynamic Question Banks with Shuffling
-    const RAW_QUESTION_BANKS = {
-      retail: [
-        "Why would you like to work as a retail shop assistant with our team?",
-        "How would you greet a customer when they walk through the store entrance?",
-        "What would you do if a customer asks for an item that is out of stock?",
-        "How do you ensure you arrive on time for early morning or weekend shifts?",
-        "Tell me about a time you helped someone or worked well in a team.",
-        "How would you handle a situation where the store gets very busy?",
-        "Why is keeping store shelves neat and clean important for sales?",
-        "What strengths make you a great fit for customer service?",
-        "How would you handle a customer who wants to return an item without a receipt?",
-        "Describe how you stay energetic during a long afternoon shift."
-      ],
-      hospitality: [
-        "What interests you about working in food service or hospitality?",
-        "How do you maintain good personal hygiene and uniform standards at work?",
-        "How would you handle a friendly customer versus a customer in a hurry?",
-        "What steps do you take to follow basic food safety and cleanliness?",
-        "Tell me about a time you handled a stressful task calmly.",
-        "How do you respond when a supervisor gives you helpful feedback?",
-        "Are you comfortable standing for long periods and multi-tasking?",
-        "Why is positive communication important in a kitchen or dining area?",
-        "How would you handle an accidental meal spill near a customer table?",
-        "What steps do you take to learn a new restaurant menu quickly?"
-      ],
-      warehouse: [
-        "Why are you interested in warehouse and logistics work?",
-        "How do you make sure you follow safety rules and wear required PPE?",
-        "What would you do if you noticed a broken box or safety hazard on the floor?",
-        "How do you stay organized when packing or sorting multiple items?",
-        "Tell me about a physical task or job you completed successfully.",
-        "How do you ensure accuracy when reading order numbers or labels?",
-        "Why is working safely more important than rushing a task?",
-        "How do you communicate effectively with team members in a noisy area?",
-        "What steps do you take before lifting heavy equipment or inventory boxes?",
-        "How do you handle stock audits when item counts don't match?"
-      ],
-      cleaning: [
-        "Why are you applying for a commercial cleaning role with us?",
-        "How do you ensure you follow chemical handling safety labels (SDS)?",
-        "What is your approach to completing repetitive tasks to a high standard?",
-        "How do you manage your time when cleaning multiple rooms or offices?",
-        "What would you do if you found a personal item left behind while cleaning?",
-        "How do you inspect your work to make sure nothing was missed?",
-        "Tell me about a time you worked independently without direct supervision.",
-        "Why is reliability and trustworthiness critical in cleaning roles?",
-        "How do you set up wet floor warning signs safely in public corridors?",
-        "What steps do you take to maintain cleaning equipment after a shift?"
-      ],
-      construction: [
-        "Why do you want to start a career as a general construction laborer?",
-        "What safety gear (PPE) do you expect to wear daily on a site?",
-        "How would you handle physically demanding outdoor work in warm weather?",
-        "What steps do you take if you are unsure how to safely operate a tool?",
-        "Tell me about a time you worked as part of a hard-working team.",
-        "Why is taking instructions accurately important on an active site?",
-        "How do you ensure site cleanup and tool storage are done properly?",
-        "What steps do you take to ensure 100% punctual attendance every morning?",
-        "How do you communicate hazards across loud operating machinery?",
-        "Why is holding a current White Card essential before stepping on site?"
-      ],
-      admin: [
-        "Why are you seeking an office support or junior admin role?",
-        "How do you rate your basic computer, email, and typing skills?",
-        "How would you answer a general phone inquiry politely?",
-        "How do you keep paper files or digital folders organized?",
-        "Tell me about a time you paid close attention to detail.",
-        "How do you handle managing two small tasks assigned at the same time?",
-        "Why is keeping business and client information confidential important?",
-        "What makes you eager to learn new office procedures and software?",
-        "How do you handle proofreading executive emails before sending?",
-        "What steps do you take to manage incoming office mail and packages?"
-      ]
-    };
-
-    function shuffleArray(array) {
-      const arr = [...array];
-      for (let i = arr.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [arr[i], arr[j]] = [arr[j], arr[i]];
-      }
-      return arr;
-    }
-
-    // 15 Detailed Learning Points per Module & Curated Video Embeds
-    const LMS_DATA = {
-      'mod-1': {
-        title: "Workplace Rights & Safety",
-        videoUrl: "https://www.youtube-nocookie.com/embed/dQw4w9WgXcQ",
-        studyText: `
-          <ol class="list-decimal list-inside space-y-1.5">
-            <li><strong>Fair Work Ombudsman Role:</strong> Governs employment compliance, pay rates, and modern awards across Australia.</li>
-            <li><strong>National Employment Standards (NES):</strong> 11 statutory safety-net entitlements protecting all Australian employees.</li>
-            <li><strong>Maximum Weekly Hours:</strong> Full-time standard hours capped at 38 hours plus reasonable overtime.</li>
-            <li><strong>Paid Leave Entitlements:</strong> 4 weeks paid annual leave and 10 days personal/carer's leave per year for full-time staff.</li>
-            <li><strong>Itemized Payslips:</strong> Must be issued in writing within 1 working day of payday listing tax, super, and hourly breakdown.</li>
-            <li><strong>Superannuation Guarantee:</strong> Employers must make mandatory super contributions into your nominated super fund.</li>
-            <li><strong>Employer WHS Duty of Care:</strong> Mandatory duty to maintain safe equipment, trained staff, and hazard-free workplaces.</li>
-            <li><strong>Employee WHS Responsibilities:</strong> Workers must follow safety guidelines, report issues, and not endanger others.</li>
-            <li><strong>Personal Protective Equipment (PPE):</strong> Safety gear like hi-vis, steel-cap boots, and goggles must be worn as instructed.</li>
-            <li><strong>Hazard Reporting Protocols:</strong> Report spills, broken tools, or trip hazards to supervisors immediately.</li>
-            <li><strong>Safety Data Sheets (SDS):</strong> Read chemical safety labels before handling any cleaning or industrial agents.</li>
-            <li><strong>Incident & Injury Logs:</strong> All site injuries or near-misses must be formally recorded in incident registers.</li>
-            <li><strong>Rest Break Entitlements:</strong> Award-based tea and meal breaks during scheduled shifts.</li>
-            <li><strong>Protection Against Adverse Action:</strong> Workers cannot be penalized or dismissed for raising safety or pay concerns.</li>
-            <li><strong>Emergency Evacuation:</strong> Follow posted exit maps, alarm protocols, and muster point directions.</li>
-          </ol>
-        `,
-        questions: [
-          { q: "What body sets minimum National Employment Standards (NES) in Australia?", options: ["Fair Work Ombudsman", "Safe Work Australia", "ATO", "Centrelink"], correct: 0 },
-          { q: "What is an employer's primary WHS duty?", options: ["Provide free transport", "Ensure a safe work environment without risks", "Pay daily bonuses", "Supply free meals"], correct: 1 },
-          { q: "How should employees receive details of their pay and tax deductions?", options: ["Verbal promise", "Written or electronic pay slip within 1 working day", "End of year letter", "No record required"], correct: 1 },
-          { q: "What should you do first if you identify a safety hazard at work?", options: ["Ignore it", "Report it to your supervisor or safety rep", "Post about it online", "Leave work immediately"], correct: 1 },
-          { q: "What does PPE stand for in workplace safety?", options: ["Personal Protective Equipment", "Private Plan Evaluation", "Professional Practice Exam", "Public Prevention Enterprise"], correct: 0 },
-          { q: "Are employees entitled to rest breaks during full shifts?", options: ["No, breaks are only for managers", "Yes, as set out in applicable modern awards", "Only if work is finished", "Never"], correct: 1 },
-          { q: "What is the purpose of an emergency evacuation plan?", options: ["Decoration", "To guide workers safely out of buildings during danger", "To track attendance", "For audit checks only"], correct: 1 },
-          { q: "Can an employee be fired for raising a genuine WHS safety concern?", options: ["Yes, anytime", "No, employees are protected under fair work legislation", "Only on weekends", "Yes, if work slows down"], correct: 1 }
-        ]
-      },
-      'mod-2': {
-        title: "Interview Success",
-        videoUrl: "https://www.youtube-nocookie.com/embed/dQw4w9WgXcQ",
-        studyText: `
-          <ol class="list-decimal list-inside space-y-1.5">
-            <li><strong>Researching Employers:</strong> Review company websites to understand their products, services, and values.</li>
-            <li><strong>Punctuality Standard:</strong> Plan travel routes to arrive 10–15 minutes before your scheduled interview time.</li>
-            <li><strong>Professional Presentation:</strong> Dress appropriately for the sector (e.g., smart casual or clean site gear).</li>
-            <li><strong>STAR Framework - Situation:</strong> Set the context for your example clearly and concisely.</li>
-            <li><strong>STAR Framework - Task:</strong> Describe your specific duty, challenge, or objective.</li>
-            <li><strong>STAR Framework - Action:</strong> Detail the step-by-step actions YOU performed to tackle the task.</li>
-            <li><strong>STAR Framework - Result:</strong> Share measurable outcomes, positive feedback, or key learnings.</li>
-            <li><strong>Positive Body Language:</strong> Maintain friendly eye contact, an approachable posture, and a firm handshake.</li>
-            <li><strong>Active Listening:</strong> Listen completely to the interviewer before formulating your response.</li>
-            <li><strong>Honesty Regarding Skill Gaps:</strong> Admit gaps candidly while demonstrating high enthusiasm to learn.</li>
-            <li><strong>Answering Scenario Questions:</strong> Use practical everyday team examples from past roles or study.</li>
-            <li><strong>Handling Interview Nerves:</strong> Take deep breaths and speak in a calm, steady rhythm.</li>
-            <li><strong>Asking Closing Questions:</strong> Ask 1–2 thoughtful questions about daily shift routines or team culture.</li>
-            <li><strong>Bringing Key Documents:</strong> Have copies of your resume, licenses, and references ready in a clear folder.</li>
-            <li><strong>Post-Interview Etiquette:</strong> Send a brief thank-you email expressing continued interest in the role.</li>
-          </ol>
-        `,
-        questions: [
-          { q: "How early should you ideally arrive for an job interview?", options: ["10-15 minutes early", "Exactly on the dot", "30 minutes late", "1 hour early"], correct: 0 },
-          { q: "What does the 'S' stand for in STAR?", options: ["Strategy", "Situation", "Skill", "System"], correct: 1 },
-          { q: "Which part of STAR explains the specific steps YOU took?", options: ["Task", "Action", "Result", "Situation"], correct: 1 },
-          { q: "What is the best way to answer if you don't know a technical question?", options: ["Make up a fake story", "Be honest, show willingness to learn, and explain how you'd find out", "Refuse to answer", "Change the subject"], correct: 1 },
-          { q: "Why is positive body language (eye contact, smiling) important?", options: ["It shows confidence and approachable communication", "It is legally required", "It replaces speaking", "It speeds up the interview"], correct: 0 },
-          { q: "What should you bring to an interview?", options: ["Nothing", "Copies of your resume, references, and a notepad", "Your lunch", "Gaming handheld"], correct: 1 },
-          { q: "Why should you research the company before your interview?", options: ["To show genuine interest and understand what they do", "To correct their manager", "To negotiate salary first", "To memorize names"], correct: 0 },
-          { q: "What is a great question to ask an employer at the end of an interview?", options: ["'What does a typical day look like in this role?'", "'Can I leave early?'", "'Do I get free food?'", "'How fast can I get promoted?'"], correct: 0 }
-        ]
-      },
-      'mod-3': {
-        title: "Customer & Team Communication",
-        videoUrl: "https://www.youtube-nocookie.com/embed/dQw4w9WgXcQ",
-        studyText: `
-          <ol class="list-decimal list-inside space-y-1.5">
-            <li><strong>Active Listening Principles:</strong> Focus on speakers fully without interrupting or making assumptions.</li>
-            <li><strong>Verbal Clarity:</strong> Use clear, polite, and professional language tailored to your audience.</li>
-            <li><strong>De-escalation First Steps:</strong> Stay calm, acknowledge customer feelings, and keep tone respectful.</li>
-            <li><strong>Problem Solving Orientation:</strong> Shift conversations toward practical, constructive solutions.</li>
-            <li><strong>Teamwork Mindset:</strong> Offer assistance to co-workers when your individual tasks are finished.</li>
-            <li><strong>Accepting Constructive Feedback:</strong> View manager advice as an opportunity for skill development.</li>
-            <li><strong>Punctuality & Reliability:</strong> Arrive ready to work at the scheduled start time for every shift.</li>
-            <li><strong>Empathy in Service:</strong> Place yourself in the customer's position to understand their needs.</li>
-            <li><strong>Clear Handover Procedures:</strong> Pass complete shift updates and notes to incoming staff.</li>
-            <li><strong>Phone Etiquette:</strong> Answer professionally with greeting, company name, your name, and offer to help.</li>
-            <li><strong>Written Message Accuracy:</strong> Keep message notes legible, accurate, and prompt.</li>
-            <li><strong>Respecting Cultural Diversity:</strong> Work respectfully alongside diverse teams and customer backgrounds.</li>
-            <li><strong>Conflict Resolution Steps:</strong> Focus on objective facts rather than personal emotions.</li>
-            <li><strong>Knowing Escalation Limits:</strong> Involve supervisors when customer demands exceed standard guidelines.</li>
-            <li><strong>Maintaining Workplace Tone:</strong> Keep a positive, respectful tone across all shift activities.</li>
-          </ol>
-        `,
-        questions: [
-          { q: "What is the first step when listening to an unhappy customer?", options: ["Interrupt them", "Listen actively without interrupting", "Walk away", "Tell them they are wrong"], correct: 1 },
-          { q: "What does active listening involve?", options: ["Focusing fully, nodding, and summarizing key points", "Looking at your phone", "Thinking about lunch", "Talking over the speaker"], correct: 0 },
-          { q: "How should you respond to constructive feedback from a supervisor?", options: ["Take it personally", "Listen, thank them, and apply the advice", "Argue back", "Ignore it"], correct: 1 },
-          { q: "Why is teamwork essential in workplace roles?", options: ["It ensures tasks are completed efficiently and safely together", "It lets one person do all work", "It reduces payroll", "It replaces training"], correct: 0 },
-          { q: "What is a key habit of professional workplace communication?", options: ["Using polite language and clear tone", "Using slang", "Shouting over noise", "Whispering"], correct: 0 },
-          { q: "What should you do if you finish your tasks early on a shift?", options: ["Sit down and wait", "Ask your supervisor or team how you can assist", "Go home", "Hide in the break room"], correct: 1 },
-          { q: "Why is punctuality important for team shifts?", options: ["Late arrivals put extra pressure on your co-workers", "It doesn't matter", "Only managers care", "It saves electricity"], correct: 0 },
-          { q: "What does 'going above and beyond' mean for customers?", options: ["Providing extra helpful service that creates a positive experience", "Overcharging", "Breaching rules", "Doing minimum effort"], correct: 0 }
-        ]
-      },
-      'mod-4': {
-        title: "Master Resumes & Employment Gaps",
-        videoUrl: "https://www.youtube-nocookie.com/embed/dQw4w9WgXcQ",
-        studyText: `
-          <ol class="list-decimal list-inside space-y-1.5">
-            <li><strong>Framing Work Gaps Positively:</strong> Be honest and highlight personal growth, caregiving, or upskilling.</li>
-            <li><strong>Functional Resume Layouts:</strong> Lead with key skill categories when work history gaps exist.</li>
-            <li><strong>Reverse Chronological Format:</strong> List recent work history first when employment is steady.</li>
-            <li><strong>Highlighting Transferable Skills:</strong> Emphasize universal skills like WHS awareness and service.</li>
-            <li><strong>Including Volunteer Experience:</strong> Treat community volunteer work as valid practical experience.</li>
-            <li><strong>Listing Upskilling & Short Courses:</strong> Show initiative through independent certificates and modules.</li>
-            <li><strong>Keeping Resumes Concise:</strong> Aim for a clean, well-aligned 1–2 page document layout.</li>
-            <li><strong>Tailoring Applications:</strong> Align resume bullet points directly to job advertisement specs.</li>
-            <li><strong>Proofreading Standards:</strong> Check for typos, correct dates, and consistent formatting.</li>
-            <li><strong>Cover Letter Purpose:</strong> Connect your personal background directly to the position requirements.</li>
-            <li><strong>Avoiding Over-Sharing:</strong> Exclude personal details like age, marital status, or photographs.</li>
-            <li><strong>Quantifying Achievements:</strong> Include metrics like customer volume or team size where possible.</li>
-            <li><strong>Formatting File Names:</strong> Save files professionally (e.g., FirstName_LastName_Resume.pdf).</li>
-            <li><strong>Explaining Gaps in Interviews:</strong> Keep gap explanations to 2–3 positive sentences, then pivot.</li>
-            <li><strong>Maintaining Active References:</strong> Confirm reference contact details before submitting applications.</li>
-          </ol>
-        `,
-        questions: [
-          { q: "How should you approach explaining an employment gap on a resume?", options: ["Hide all dates", "Frame it honestly and highlight constructive skills or personal growth", "Invent fake jobs", "Leave the resume blank"], correct: 1 },
-          { q: "Which resume format is recommended if you have extended work gaps?", options: ["Functional (Skill-Based) format", "Reverse chronological", "Photo gallery", "Infographic only"], correct: 0 },
-          { q: "Where should volunteer work and short courses be listed?", options: ["Do not list them", "Under Professional Development & Community Involvement", "Only on cover letters", "In the reference section"], correct: 1 },
-          { q: "How long should a spoken response about a work gap be in an interview?", options: ["Brief (2-3 sentences) then pivot to future work goals", "30 minutes long", "Refuse to talk about it", "A single word"], correct: 0 },
-          { q: "What soft skill does upskilling during a work gap demonstrate?", options: ["Initiative and commitment to growth", "Lack of interest", "Confusion", "Slow working"], correct: 0 },
-          { q: "What is the primary purpose of a cover letter?", options: ["To introduce yourself and connect your key skills directly to the job", "To repeat your phone number 10 times", "To ask for pay raises", "To list high school marks"], correct: 0 },
-          { q: "What should you avoid putting on an Australian resume?", options: ["Relevant skills", "Personal details like age, marital status, or full street address", "Contact phone number", "Past job titles"], correct: 1 },
-          { q: "Why are transferable skills valuable when changing industries?", options: ["They apply across multiple roles regardless of sector", "They are legally required", "They lower tax rates", "They replace interviews"], correct: 0 }
-        ]
-      }
-    };
+    let baselineCompleted = false;
 
     // State & Quotas
     let activeRole = 'jobseeker';
@@ -1121,8 +923,16 @@
       document.getElementById('resume-badge').innerText = `${resumeLeft} Left`;
     }
 
-    function openBaselineModal() { document.getElementById('baseline-modal').classList.remove('hidden'); }
+    function openBaselineModal() {
+      if (baselineCompleted) {
+        alert("Pre-Program Confidence Baseline has already been recorded. Edits are locked.");
+        return;
+      }
+      document.getElementById('baseline-modal').classList.remove('hidden');
+    }
+
     function closeBaselineModal() { document.getElementById('baseline-modal').classList.add('hidden'); }
+
     function handleSaveBaseline(e) {
       e.preventDefault();
       const intStars = parseInt(document.getElementById('sel-base-interview').value);
@@ -1134,10 +944,16 @@
       document.getElementById('baseline-safety-stars').innerText = "⭐".repeat(safeStars) + "☆".repeat(5 - safeStars);
 
       const tag = document.getElementById('baseline-status-tag');
-      tag.innerText = "Assessment Recorded";
+      tag.innerText = "Assessment Locked";
       tag.className = "px-3 py-1 bg-emerald-100 text-emerald-800 text-xs font-bold rounded-full";
 
-      alert("Pre-Program Confidence Baseline saved to your file!");
+      const btn = document.getElementById('baseline-submit-btn');
+      btn.innerText = "✓ Assessment Completed & Locked";
+      btn.disabled = true;
+      btn.className = "w-full py-2.5 bg-slate-300 text-slate-600 font-bold rounded-lg cursor-not-allowed";
+
+      baselineCompleted = true;
+      alert("Pre-Program Confidence Baseline saved successfully! Edits locked.");
       closeBaselineModal();
     }
 
@@ -1217,7 +1033,8 @@
       updateQuotaUI();
 
       currentIndustry = document.getElementById('industry-select').value;
-      activeShuffledQuestions = shuffleArray(RAW_QUESTION_BANKS[currentIndustry]).slice(0, 8);
+      const bank = (window.RAW_QUESTION_BANKS && window.RAW_QUESTION_BANKS[currentIndustry]) ? window.RAW_QUESTION_BANKS[currentIndustry] : ["Tell us about your background."];
+      activeShuffledQuestions = shuffleArray(bank).slice(0, 8);
       
       currentQuestionIdx = 0;
       userAnswers = new Array(8).fill('');
@@ -1298,7 +1115,7 @@
       }
     }
 
-    // STAR Scoring Engine with Guaranteed Actionable Steps
+    // STAR Scoring Engine
     async function submitForEvaluation() {
       saveCurrentAnswer();
       document.getElementById('interview-runner-step').classList.add('hidden');
@@ -1382,10 +1199,14 @@
       updateQuotaUI();
     }
 
-    // LMS Module Guide & Quiz Engine
+    // --- LMS Module Guide & Quiz Engine Handlers ---
     function openModuleContent(modId) {
       activeModuleId = modId;
-      const mod = LMS_DATA[modId];
+      const mod = window.LMS_DATA ? window.LMS_DATA[modId] : null;
+      if (!mod) {
+        alert("Error: Module dataset not found. Ensure /js/modulesData.js is loaded.");
+        return;
+      }
       document.getElementById('mod-modal-title').innerText = mod.title;
       document.getElementById('mod-modal-video').src = mod.videoUrl;
       document.getElementById('mod-modal-text').innerHTML = mod.studyText;
@@ -1404,11 +1225,17 @@
 
     function openQuizModal(modId) {
       activeModuleId = modId;
-      const mod = LMS_DATA[modId];
-      document.getElementById('quiz-title').innerText = `${mod.title} — 8-Q Quiz`;
+      const questions = window.QUIZ_DATA ? window.QUIZ_DATA[modId] : null;
+      const mod = window.LMS_DATA ? window.LMS_DATA[modId] : null;
+      if (!questions) {
+        alert("Error: Quiz dataset not found. Ensure /js/quizQuestions.js is loaded.");
+        return;
+      }
+
+      document.getElementById('quiz-title').innerText = `${mod ? mod.title : 'Compliance Module'} — 8-Q Assessment Quiz`;
 
       const container = document.getElementById('quiz-questions-container');
-      container.innerHTML = mod.questions.map((q, idx) => `
+      container.innerHTML = questions.map((q, idx) => `
         <div class="space-y-2 p-3 bg-slate-50 border border-slate-200 rounded-lg">
           <p class="font-bold text-slate-900 text-xs">${idx + 1}. ${q.q}</p>
           <div class="space-y-1">
@@ -1429,17 +1256,18 @@
 
     function handleQuizSubmit(event) {
       event.preventDefault();
-      const mod = LMS_DATA[activeModuleId];
+      const questions = window.QUIZ_DATA ? window.QUIZ_DATA[activeModuleId] : [];
+      const mod = window.LMS_DATA ? window.LMS_DATA[activeModuleId] : { title: "Compliance Module" };
       let scoreCount = 0;
 
-      mod.questions.forEach((q, idx) => {
+      questions.forEach((q, idx) => {
         const selected = document.querySelector(`input[name="q_${idx}"]:checked`);
         if (selected && parseInt(selected.value) === q.correct) {
           scoreCount++;
         }
       });
 
-      const percentage = Math.round((scoreCount / mod.questions.length) * 100);
+      const percentage = Math.round((scoreCount / (questions.length || 1)) * 100);
       closeQuizModal();
 
       if (percentage >= 80) {
@@ -1524,7 +1352,6 @@
         }
       });
 
-      // Populate Resume Template
       document.getElementById('tpl-name').innerText = name.toUpperCase();
       document.getElementById('tpl-contact').innerText = `✉️ ${contact}`;
       document.getElementById('tpl-phone').innerText = `📞 ${phone}`;
@@ -1536,7 +1363,6 @@
       document.getElementById('tpl-history-content').innerHTML = historyHTML || '<p class="text-xs text-slate-400 italic">No work history logged.</p>';
       document.getElementById('tpl-references').innerText = references || "Professional references available upon request.";
 
-      // Populate Separate Cover Letter Template
       document.getElementById('tpl-cl-name').innerText = name.toUpperCase();
       document.getElementById('tpl-cl-contact').innerText = `${contact} | ${phone}`;
       document.getElementById('tpl-cover-letter-body').innerHTML = `
@@ -1586,6 +1412,15 @@
       const fileDownload = document.createElement("a");
       fileDownload.href = source;
       fileDownload.download = 'Resume.doc';
+      fileDownload.click();
+    }
+
+    function downloadCoverLetterWord() {
+      const content = document.getElementById('cover-letter-document-template').innerHTML;
+      const source = 'data:application/vnd.ms-word;charset=utf-8,' + encodeURIComponent("<html><body>" + content + "</body></html>");
+      const fileDownload = document.createElement("a");
+      fileDownload.href = source;
+      fileDownload.download = 'Tailored_Cover_Letter.doc';
       fileDownload.click();
     }
 
@@ -1648,7 +1483,11 @@
       closeDirectMessageModal();
     }
 
-    // Evidence Logger with File Upload
+    function viewJobseekerEvidence(employer, fileName) {
+      alert(`Inspecting Jobseeker Uploaded Evidence:\n\nEmployer: ${employer}\nAttachment: ${fileName}`);
+    }
+
+    // Evidence Logger & CM Verification Actions
     function handleLogEvidence(e) {
       e.preventDefault();
       const employer = document.getElementById('log-employer').value;
@@ -1662,7 +1501,6 @@
       const rowId = `ev-row-${Date.now()}`;
       const cmRowId = `cm-row-${Date.now()}`;
 
-      // Insert into Jobseeker Table
       const tbody = document.getElementById('evidence-log-table');
       const row = document.createElement('tr');
       row.id = rowId;
@@ -1671,12 +1509,16 @@
         <td class="p-2.5 font-medium text-slate-900">${employer}</td>
         <td class="p-2.5">${position}</td>
         <td class="p-2.5">${method}</td>
-        <td class="p-2.5 font-mono text-slate-600">${fileName}</td>
+        <td class="p-2.5 font-mono text-emerald-700 font-semibold">${fileName}</td>
         <td class="p-2.5"><span class="status-badge px-2.5 py-1 bg-amber-100 text-amber-800 rounded-full font-bold">Submitted</span></td>
+        <td class="p-2.5">
+          <button onclick="viewJobseekerEvidence('${employer}', '${fileName}')" class="text-blue-600 font-bold hover:underline">
+            👁️ View Evidence
+          </button>
+        </td>
       `;
       tbody.prepend(row);
 
-      // Insert into Case Manager Workspace
       const cmTbody = document.getElementById('cm-evidence-verification-table');
       if (cmTbody) {
         const cmRow = document.createElement('tr');
