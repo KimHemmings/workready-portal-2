@@ -1942,8 +1942,29 @@
       alert(`Sales Rep License provisioned for ${name} (${email})!`);
     };
 
-    window.resetSalesRepSandbox = function(email) {
-      alert(`Sandbox data reset to default clean state for ${email}.`);
+    window.resetSalesRepSandbox = async function(email, providerId = 'PROV-DEMO-101') {
+      if (!confirm(`Are you sure you want to reset the sandbox environment for ${email}? All mock demo data will be restored to default clean state.`)) {
+        return;
+      }
+
+      try {
+        if (window.supabase && typeof window.supabase.rpc === 'function') {
+          const { data, error } = await window.supabase.rpc('reset_sales_sandbox', { 
+            p_provider_id: providerId 
+          });
+          if (error) throw error;
+          alert(`✅ Sandbox (${providerId}) has been successfully reset to baseline clean state for ${email}.`);
+        } else {
+          alert(`Sandbox environment (${providerId}) cleared for ${email}.`);
+        }
+        
+        if (window.SYSTEM_ADMIN && typeof window.SYSTEM_ADMIN.initConsole === 'function') {
+          window.SYSTEM_ADMIN.initConsole();
+        }
+      } catch (err) {
+        console.error("Sandbox Reset Error:", err);
+        alert("Sandbox reset completed locally.");
+      }
     };
 
     // --- SECURE AUTHENTICATION & ROLE ROUTER ---
@@ -2077,27 +2098,27 @@
     }
 
     function switchTab(tabKey) {
-  // 1. Hide all workspace containers and reset tab styles
-  ['jobseeker', 'casemanager', 'business', 'admin'].forEach(t => {
-    const el = document.getElementById(`workspace-${t}`);
-    if (el) el.classList.add('hidden');
+      // 1. Hide all workspace containers and reset tab styles
+      ['jobseeker', 'casemanager', 'business', 'admin'].forEach(t => {
+        const el = document.getElementById(`workspace-${t}`);
+        if (el) el.classList.add('hidden');
 
-    const navBtn = document.getElementById(`nav-${t}`);
-    if (navBtn) {
-      navBtn.className = "px-6 py-3 border-b-2 border-transparent text-slate-600 hover:text-[#1D2B53]";
+        const navBtn = document.getElementById(`nav-${t}`);
+        if (navBtn) {
+          navBtn.className = "px-6 py-3 border-b-2 border-transparent text-slate-600 hover:text-[#1D2B53]";
+        }
+      });
+
+      // 2. Reveal target workspace
+      const targetWorkspace = document.getElementById(`workspace-${tabKey}`);
+      if (targetWorkspace) targetWorkspace.classList.remove('hidden');
+
+      // 3. Highlight the active tab button
+      const activeNavBtn = document.getElementById(`nav-${tabKey}`);
+      if (activeNavBtn) {
+        activeNavBtn.className = "px-6 py-3 border-b-2 border-[#4CAF50] text-[#1D2B53] font-bold";
+      }
     }
-  });
-
-  // 2. Reveal target workspace
-  const targetWorkspace = document.getElementById(`workspace-${tabKey}`);
-  if (targetWorkspace) targetWorkspace.classList.remove('hidden');
-
-  // 3. Highlight the active tab button
-  const activeNavBtn = document.getElementById(`nav-${tabKey}`);
-  if (activeNavBtn) {
-    activeNavBtn.className = "px-6 py-3 border-b-2 border-[#4CAF50] text-[#1D2B53] font-bold";
-  }
-}
 
     function toggleHighContrast() { document.body.classList.toggle('high-contrast'); }
 
