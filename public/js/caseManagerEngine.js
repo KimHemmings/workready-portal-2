@@ -1,8 +1,8 @@
 // public/js/caseManagerEngine.js
-// Case Manager Roster, Verification, Reporting & Onboarding Engine
+// Case Manager Command Center Engine — Refined UX, PBAS Auditing & Candidate Dossier Tools
 
 window.CASE_MANAGER = {
-  // Roster Data State
+  // Caseload State
   candidates: [
     {
       id: "cand-101",
@@ -10,9 +10,14 @@ window.CASE_MANAGER = {
       email: "demo.candidate@workready.org.au",
       phone: "0400 000 000",
       status: "Active",
+      pbasPoints: 85,
+      pbasStatus: "On Track",
+      cycleStart: "13-Sep-2026",
+      cycleEnd: "13-Oct-2026",
       modulesCompleted: 3,
       interviewsCompleted: 2,
       evidenceSubmitted: 1,
+      pendingAction: true, // Needs Review (Pending Evidence)
       lastActive: "Today at 2:15 PM"
     },
     {
@@ -21,9 +26,14 @@ window.CASE_MANAGER = {
       email: "s.jenkins@example.com",
       phone: "0412 345 678",
       status: "Active",
+      pbasPoints: 100,
+      pbasStatus: "On Track",
+      cycleStart: "01-Sep-2026",
+      cycleEnd: "30-Sep-2026",
       modulesCompleted: 8,
       interviewsCompleted: 3,
       evidenceSubmitted: 4,
+      pendingAction: false,
       lastActive: "Yesterday at 4:30 PM"
     },
     {
@@ -32,32 +42,69 @@ window.CASE_MANAGER = {
       email: "m.vance@example.com",
       phone: "0422 987 654",
       status: "Placed",
+      pbasPoints: 100,
+      pbasStatus: "On Track",
+      cycleStart: "15-Aug-2026",
+      cycleEnd: "15-Sep-2026",
       modulesCompleted: 8,
       interviewsCompleted: 4,
       evidenceSubmitted: 6,
+      pendingAction: false,
       lastActive: "11-Sep-2026"
+    },
+    {
+      id: "cand-104",
+      name: "Liam O'Connor",
+      email: "l.oconnor@example.com",
+      phone: "0433 111 222",
+      status: "Active",
+      pbasPoints: 20,
+      pbasStatus: "At Risk",
+      cycleStart: "01-Sep-2026",
+      cycleEnd: "30-Sep-2026",
+      modulesCompleted: 1,
+      interviewsCompleted: 0,
+      evidenceSubmitted: 0,
+      pendingAction: true, // Monthly Task Due
+      lastActive: "6 Days Ago"
+    },
+    {
+      id: "cand-105",
+      name: "Emma Watson",
+      email: "e.watson@example.com",
+      phone: "0455 888 999",
+      status: "Active",
+      pbasPoints: 35,
+      pbasStatus: "At Risk",
+      cycleStart: "05-Sep-2026",
+      cycleEnd: "05-Oct-2026",
+      modulesCompleted: 2,
+      interviewsCompleted: 0,
+      evidenceSubmitted: 0,
+      pendingAction: false,
+      lastActive: "4 Days Ago"
     }
   ],
 
-  // Filter candidates by Metric Card Click
+  // Filter Roster by Clickable Dashboard Cards
   filterRoster: function(metricType) {
     const title = document.getElementById('cm-roster-title');
     const tbody = document.getElementById('cm-roster-table-body');
     if (!tbody) return;
 
     let filtered = [...this.candidates];
-    if (metricType === 'active') {
-      filtered = this.candidates.filter(c => c.status === 'Active');
-      if (title) title.innerText = "Active Caseload Candidates";
+    if (metricType === 'pbas_ontrack') {
+      filtered = this.candidates.filter(c => c.pbasStatus === 'On Track');
+      if (title) title.innerText = "PBAS Compliant Candidates (On Track)";
+    } else if (metricType === 'pbas_atrisk') {
+      filtered = this.candidates.filter(c => c.pbasStatus === 'At Risk');
+      if (title) title.innerText = "🚨 PBAS At-Risk Candidates (Requires Action)";
+    } else if (metricType === 'review_needed') {
+      filtered = this.candidates.filter(c => c.pendingAction === true);
+      if (title) title.innerText = "⚠️ Candidates Requiring Case Manager Review & Sign-Off";
     } else if (metricType === 'completed_lms') {
       filtered = this.candidates.filter(c => c.modulesCompleted === 8);
-      if (title) title.innerText = "Candidates with All 8 Modules Completed";
-    } else if (metricType === 'evidence_pending') {
-      filtered = this.candidates.filter(c => c.evidenceSubmitted > 0);
-      if (title) title.innerText = "Candidates with Submitted Job Evidence";
-    } else if (metricType === 'placed') {
-      filtered = this.candidates.filter(c => c.status === 'Placed');
-      if (title) title.innerText = "Successfully Placed Candidates";
+      if (title) title.innerText = "Candidates with 100% Modules Completed";
     } else {
       if (title) title.innerText = "Entire Caseload Roster";
     }
@@ -70,56 +117,106 @@ window.CASE_MANAGER = {
     if (!tbody) return;
 
     tbody.innerHTML = list.map(c => `
-      <tr class="hover:bg-slate-50 transition">
+      <tr class="hover:bg-slate-50 transition border-b border-slate-100">
         <td class="p-3 font-bold text-[#1D2B53]">
           ${c.name}
           <span class="block text-[11px] font-normal text-slate-500">${c.email} | ${c.phone}</span>
+          <span class="block text-[10px] font-mono text-purple-700">Cycle: ${c.cycleStart} to ${c.cycleEnd}</span>
         </td>
         <td class="p-3">
-          <span class="px-2 py-0.5 text-[10px] font-extrabold uppercase rounded-full ${c.status === 'Placed' ? 'bg-emerald-100 text-emerald-800' : 'bg-blue-100 text-blue-800'}">
-            ${c.status}
+          <span class="px-2.5 py-0.5 text-[10px] font-extrabold uppercase rounded-full ${c.status === 'Placed' ? 'bg-purple-100 text-purple-900 border border-purple-300' : 'bg-blue-100 text-blue-800'}">
+            ${c.status === 'Placed' ? '🎉 Placed' : 'Active'}
           </span>
         </td>
-        <td class="p-3 font-semibold text-slate-700">${c.modulesCompleted} / 8 Modules</td>
-        <td class="p-3 font-semibold text-slate-700">${c.interviewsCompleted} Sessions</td>
-        <td class="p-3 font-semibold text-slate-700">${c.evidenceSubmitted} Items</td>
-        <td class="p-3 text-slate-500">${c.lastActive}</td>
-        <td class="p-3 flex gap-2">
-          <button onclick="window.CASE_MANAGER.viewCandidateDossier('${c.id}')" class="px-2.5 py-1 bg-[#1D2B53] text-white text-xs font-bold rounded hover:bg-slate-800 transition">
-            👁️ Dossier
-          </button>
-          <button onclick="window.CASE_MANAGER.quickExportCertificate('${c.name}')" class="px-2.5 py-1 bg-[#4CAF50] text-white text-xs font-bold rounded hover:bg-emerald-600 transition">
-            📜 Certs
-          </button>
+        <td class="p-3">
+          <span class="px-2.5 py-0.5 text-[10px] font-extrabold uppercase rounded-full ${c.pbasStatus === 'On Track' ? 'bg-emerald-100 text-emerald-800 border border-emerald-300' : 'bg-rose-100 text-rose-800 border border-rose-300 animate-pulse'}">
+            ${c.pbasStatus === 'On Track' ? '✓ ' + c.pbasPoints + ' Pts (On Track)' : '🚨 ' + c.pbasPoints + ' Pts (At Risk)'}
+          </span>
+        </td>
+        <td class="p-3">
+          ${c.pendingAction 
+            ? `<span class="px-2.5 py-1 bg-amber-100 text-amber-900 border border-amber-300 text-[10px] font-bold rounded-full animate-bounce inline-block">⚠️ Review Needed</span>` 
+            : `<span class="px-2.5 py-1 bg-slate-100 text-slate-600 text-[10px] font-semibold rounded-full">✓ Up to Date</span>`}
+        </td>
+        <td class="p-3 font-semibold text-slate-700">${c.modulesCompleted}/8 Mods</td>
+        <td class="p-3 text-slate-500 text-[11px]">${c.lastActive}</td>
+        <td class="p-3">
+          <div class="flex flex-wrap gap-1.5">
+            ${c.pendingAction 
+              ? `<button onclick="window.CASE_MANAGER.openReviewModal('${c.name}')" class="px-2 py-1 bg-[#FFB74D] text-slate-950 text-[11px] font-extrabold rounded hover:bg-amber-400 transition shadow-sm">🔍 Review & Sign Off</button>`
+              : ''}
+            <button onclick="window.CASE_MANAGER.downloadCandidateResume('${c.name}')" class="px-2 py-1 bg-[#1D2B53] text-white text-[11px] font-bold rounded hover:bg-slate-800 transition">📄 Resume</button>
+            <button onclick="window.CASE_MANAGER.downloadCandidateInterviewReport('${c.name}')" class="px-2 py-1 bg-[#9C27B0] text-white text-[11px] font-bold rounded hover:bg-purple-800 transition">🎙️ STAR PDF</button>
+            <button onclick="window.CASE_MANAGER.generateTimestampedPBASReport('${c.name}')" class="px-2 py-1 bg-[#4CAF50] text-white text-[11px] font-bold rounded hover:bg-emerald-600 transition">📊 PBAS Dossier</button>
+          </div>
         </td>
       </tr>
     `).join('');
   },
 
-  viewCandidateDossier: function(candId) {
-    const candidate = this.candidates.find(c => c.id === candId) || this.candidates[0];
-    alert(`Candidate Full Dossier — ${candidate.name}\n\nEmail: ${candidate.email}\nPhone: ${candidate.phone}\nStatus: ${candidate.status}\nLMS Modules Completed: ${candidate.modulesCompleted}/8\nInterview Sessions: ${candidate.interviewsCompleted}\nJob Evidence Logged: ${candidate.evidenceSubmitted} item(s)\n\nAudit Status: Compliant & Verified`);
-  },
-
-  quickExportCertificate: function(candidateName) {
-    if (window.showCertificate) {
-      window.showCertificate("Workplace Rights & Safety (Audit Copy)", 100);
-      const nameEl = document.querySelector('#certificate-pdf-element p.text-3xl');
-      if (nameEl) nameEl.innerText = candidateName;
-    } else {
-      alert(`Generating Master Compliance Certificate PDF for ${candidateName}...`);
+  // Case Manager Action Handlers
+  openReviewModal: function(candidateName) {
+    const confirmReview = confirm(`REVIEW & SIGN OFF AUDIT\n-------------------------\nCandidate: ${candidateName}\nPending Items: Unverified Job Search Log & Monthly Readiness Indicator.\n\nClick OK to verify all pending entries and mark this candidate file as 'Up to Date'.`);
+    if (confirmReview) {
+      const cand = this.candidates.find(c => c.name === candidateName);
+      if (cand) {
+        cand.pendingAction = false;
+        cand.evidenceSubmitted = Math.max(0, cand.evidenceSubmitted + 1);
+        if (cand.pbasPoints < 100) cand.pbasPoints += 5;
+        if (cand.pbasPoints >= 50) cand.pbasStatus = "On Track";
+      }
+      this.filterRoster('all');
+      alert(`Verification complete! ${candidateName}'s evidence has been officially signed off and their PBAS score refreshed.`);
     }
   },
 
-  downloadCaseloadReport: function() {
+  downloadCandidateResume: function(candidateName) {
+    alert(`Downloading Master Resume & Cover Letter Document for ${candidateName} (.doc format)...`);
+    if (window.downloadResumeWord) window.downloadResumeWord();
+  },
+
+  downloadCandidateInterviewReport: function(candidateName) {
+    alert(`Downloading STAR Mock Interview Evaluation Report for ${candidateName} (PDF format)...`);
+    if (window.downloadInterviewPDF) window.downloadInterviewPDF();
+  },
+
+  generateTimestampedPBASReport: function(candidateName) {
+    const cand = this.candidates.find(c => c.name === candidateName) || this.candidates[0];
+    const now = new Date();
+    const timestampStr = now.toLocaleDateString('en-AU', { day: '2-digit', month: 'short', year: 'numeric' }) + " at " + now.toLocaleTimeString('en-AU', { hour: '2-digit', minute: '2-digit' }) + " AEST";
+
     const csvContent = "data:text/csv;charset=utf-8," 
-      + "Candidate ID,Name,Email,Phone,Status,Modules Completed,Interviews Completed,Evidence Items,Last Active\n"
-      + this.candidates.map(c => `"${c.id}","${c.name}","${c.email}","${c.phone}","${c.status}",${c.modulesCompleted},${c.interviewsCompleted},${c.evidenceSubmitted},"${c.lastActive}"`).join("\n");
+      + `WORKFORCE AUSTRALIA OFFICIAL PBAS COMPLIANCE DOSSIER\n`
+      + `Candidate Name,${cand.name}\n`
+      + `Email,${cand.email}\n`
+      + `Phone,${cand.phone}\n`
+      + `Reporting Cycle,${cand.cycleStart} to ${cand.cycleEnd}\n`
+      + `Audit Timestamp,${timestampStr}\n`
+      + `Verified PBAS Points,${cand.pbasPoints} / 100 Pts\n`
+      + `Compliance Risk Status,${cand.pbasStatus.toUpperCase()}\n`
+      + `LMS Modules Completed,${cand.modulesCompleted} / 8\n`
+      + `Mock Interviews Attended,${cand.interviewsCompleted}\n`
+      + `Job Search Logs Verified,${cand.evidenceSubmitted}\n`
+      + `Audit Hash,#PBAS-${now.getFullYear()}-${Math.floor(100000 + Math.random() * 900000)}\n`;
 
     const encodedUri = encodeURI(csvContent);
     const link = document.createElement("a");
     link.setAttribute("href", encodedUri);
-    link.setAttribute("download", `Caseload_Compliance_Report_${new Date().toISOString().slice(0,10)}.csv`);
+    link.setAttribute("download", `PBAS_Dossier_${cand.name.replace(/\s+/g, '_')}_${now.toISOString().slice(0,10)}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  },
+
+  downloadCaseloadReport: function() {
+    const csvContent = "data:text/csv;charset=utf-8," 
+      + "Candidate ID,Name,Email,Phone,Status,Reporting Cycle Start,Reporting Cycle End,PBAS Points,PBAS Risk Status,Review Needed,Modules Completed,Interviews Completed,Evidence Items,Last Active\n"
+      + this.candidates.map(c => `"${c.id}","${c.name}","${c.email}","${c.phone}","${c.status}","${c.cycleStart}","${c.cycleEnd}",${c.pbasPoints},"${c.pbasStatus}",${c.pendingAction},${c.modulesCompleted},${c.interviewsCompleted},${c.evidenceSubmitted},"${c.lastActive}"`).join("\n");
+
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement("a");
+    link.setAttribute("href", encodedUri);
+    link.setAttribute("download", `Caseload_Full_Compliance_Report_${new Date().toISOString().slice(0,10)}.csv`);
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -127,7 +224,19 @@ window.CASE_MANAGER = {
 
   openInviteModal: function() {
     const modal = document.getElementById('cm-invite-modal');
-    if (modal) modal.classList.remove('hidden');
+    if (modal) {
+      // Set default 30-day reporting cycle dates
+      const startInput = document.getElementById('inv-cycle-start');
+      const endInput = document.getElementById('inv-cycle-end');
+      const today = new Date();
+      const thirtyDays = new Date();
+      thirtyDays.setDate(today.getDate() + 30);
+
+      if (startInput) startInput.value = today.toISOString().slice(0, 10);
+      if (endInput) endInput.value = thirtyDays.toISOString().slice(0, 10);
+
+      modal.classList.remove('hidden');
+    }
   },
 
   closeInviteModal: function() {
@@ -140,6 +249,8 @@ window.CASE_MANAGER = {
     const name = document.getElementById('inv-fullname').value;
     const email = document.getElementById('inv-email').value;
     const phone = document.getElementById('inv-phone').value;
+    const cycleStart = document.getElementById('inv-cycle-start').value;
+    const cycleEnd = document.getElementById('inv-cycle-end').value;
 
     const newCandidate = {
       id: `cand-${100 + this.candidates.length + 1}`,
@@ -147,9 +258,14 @@ window.CASE_MANAGER = {
       email: email,
       phone: phone || "N/A",
       status: "Active",
+      pbasPoints: 0,
+      pbasStatus: "At Risk",
+      cycleStart: cycleStart,
+      cycleEnd: cycleEnd,
       modulesCompleted: 0,
       interviewsCompleted: 0,
       evidenceSubmitted: 0,
+      pendingAction: false,
       lastActive: "Invited Just Now"
     };
 
@@ -157,6 +273,6 @@ window.CASE_MANAGER = {
     this.filterRoster('all');
     this.closeInviteModal();
 
-    alert(`Invitation portal link and onboarding credentials successfully transmitted to ${name} (${email})!`);
+    alert(`Candidate ${name} successfully onboarded!\nAssigned Reporting Cycle: ${cycleStart} to ${cycleEnd}\nPortal access link transmitted to ${email}.`);
   }
 };
