@@ -1863,7 +1863,7 @@
 
   </div>
 
-  <!-- JAVASCRIPT ENGINE -->
+ <!-- JAVASCRIPT ENGINE ROUTER -->
   <script>
     let activeRole = 'system_admin';
 
@@ -1893,531 +1893,11 @@
     window.resumeAttemptsUsed = 0;
     window.MAX_ATTEMPTS = 3;
 
-    // --- CONTRACT-STREAM DEMO SWITCHER ENGINE FOR SALES REPS ---
-    window.ACTIVE_DEMO_CONTRACT = 'WORKFORCE';
-
-    window.CONTRACT_CONFIGS = {
-      'WORKFORCE': {
-        name: 'Workforce Australia General',
-        domain: 'PROV-103',
-        pointsTarget: 100,
-        hoursTarget: 15,
-        mockCandidateName: 'Alex Morgan (Workforce AU)'
-      },
-      'TTW': {
-        name: 'Transition to Work (TtW Youth Specialist)',
-        domain: 'PROV-101',
-        pointsTarget: 80,
-        hoursTarget: 25,
-        mockCandidateName: 'Jordan Lee (TtW Youth)'
-      },
-      'DES': {
-        name: 'Disability Employment Services (DES Inclusive)',
-        domain: 'PROV-102',
-        pointsTarget: 50,
-        hoursTarget: 8,
-        mockCandidateName: 'Taylor Reed (DES Flexible)'
-      }
-    };
-
-    window.setSalesDemoContract = function(contractKey) {
-      window.ACTIVE_DEMO_CONTRACT = contractKey;
-      const config = window.CONTRACT_CONFIGS[contractKey];
-      if (!config) return;
-
-      const provSelect = document.getElementById('admin-provider-selector');
-      if (provSelect) provSelect.value = config.domain;
-
-      const pointsText = document.getElementById('pbas-points-text');
-      if (pointsText) pointsText.innerText = `0 / ${config.pointsTarget} Points`;
-
-      const hoursText = document.getElementById('pbas-hours-text');
-      if (hoursText) hoursText.innerText = `0 / ${config.hoursTarget} Hours`;
-
-      const subBranding = document.getElementById('header-sub-branding');
-      if (subBranding) {
-        subBranding.innerText = `Straight Up Training — ${config.name} Sandbox`;
-      }
-
-      if (window.CASE_MANAGER && typeof window.CASE_MANAGER.initRoster === 'function') {
-        window.CASE_MANAGER.initRoster(config.domain);
-      }
-      if (window.BUSINESS_MANAGER && typeof window.BUSINESS_MANAGER.initDashboard === 'function') {
-        window.BUSINESS_MANAGER.initDashboard(config.domain);
-      }
-
-      alert(`💼 Sales Sandbox Contract Set To: ${config.name}\n\nCandidate, Case Manager, and Business Manager views are now filtered to this contract stream.`);
-    };
-
-    window.launchSalesDemoBar = function() {
-      let demoBar = document.getElementById('sales-contract-demo-bar');
-      if (!demoBar) {
-        demoBar = document.createElement('div');
-        demoBar.id = 'sales-contract-demo-bar';
-        demoBar.className = "bg-slate-900 text-white py-2 px-6 border-b-4 border-sky-500 flex flex-wrap justify-between items-center text-xs font-bold gap-3 shadow-xl";
-        demoBar.innerHTML = `
-          <div class="flex items-center gap-2">
-            <span class="px-2 py-0.5 bg-sky-500/20 text-sky-400 border border-sky-500/40 rounded uppercase tracking-wider">🎯 Sales Demo Controls</span>
-            <span>Select Target Contract Stream to Demo:</span>
-          </div>
-          <div class="flex items-center gap-2">
-            <button onclick="setSalesDemoContract('WORKFORCE')" class="px-3 py-1 bg-indigo-600 hover:bg-indigo-500 text-white rounded transition shadow">
-              🏢 Workforce Australia (100 Pts)
-            </button>
-            <button onclick="setSalesDemoContract('TTW')" class="px-3 py-1 bg-sky-600 hover:bg-sky-500 text-white rounded transition shadow">
-              👤 TtW Youth (80 Pts)
-            </button>
-            <button onclick="setSalesDemoContract('DES')" class="px-3 py-1 bg-teal-600 hover:bg-teal-500 text-white rounded transition shadow">
-              📋 DES Inclusive (50 Pts)
-            </button>
-          </div>
-        `;
-        const appContainer = document.getElementById('main-app-container');
-        if (appContainer) appContainer.prepend(demoBar);
-      }
-    };
-
-    // --- SYSTEM ADMIN SALES REP MANAGEMENT ---
-    window.openCreateSalesRepModal = function() {
-      document.getElementById('create-sales-rep-modal').classList.remove('hidden');
-    };
-
-    window.closeCreateSalesRepModal = function() {
-      document.getElementById('create-sales-rep-modal').classList.add('hidden');
-    };
-
-    window.handleCreateSalesRepSubmit = function(e) {
-      e.preventDefault();
-      const name = document.getElementById('sales-rep-name').value.trim();
-      const email = document.getElementById('sales-rep-email').value.trim().toLowerCase();
-      const stream = document.getElementById('sales-rep-stream').value;
-
-      const tbody = document.getElementById('sales-reps-table-body');
-      if (tbody) {
-        const row = document.createElement('tr');
-        row.innerHTML = `
-          <td class="p-3 font-bold text-[#1D2B53]">${name}</td>
-          <td class="p-3 font-mono">${email}</td>
-          <td class="p-3"><span class="px-2 py-1 bg-sky-100 text-sky-800 font-bold rounded">${stream}</span></td>
-          <td class="p-3"><span class="px-2 py-0.5 bg-emerald-100 text-emerald-800 font-bold rounded-full">Active</span></td>
-          <td class="p-3">
-            <button onclick="resetSalesRepSandbox('${email}')" class="px-2.5 py-1 bg-slate-200 text-slate-800 font-bold rounded hover:bg-slate-300">Reset Sandbox</button>
-          </td>
-        `;
-        tbody.prepend(row);
-      }
-
-      if (!window.APPROVED_SALES_REPS) window.APPROVED_SALES_REPS = {};
-      window.APPROVED_SALES_REPS[email] = true;
-
-      closeCreateSalesRepModal();
-      alert(`✅ Sales Rep License provisioned for ${name} (${email}). They can now log into the portal.`);
-    };
-
-    window.resetSalesRepSandbox = async function(email, providerId = 'PROV-DEMO-101') {
-      if (!confirm(`Are you sure you want to reset the sandbox environment for ${email}? All mock demo data will be restored to default clean state.`)) {
-        return;
-      }
-
-      try {
-        if (window.supabase && typeof window.supabase.rpc === 'function') {
-          const { data, error } = await window.supabase.rpc('reset_sales_sandbox', { 
-            p_provider_id: providerId 
-          });
-          if (error) throw error;
-          alert(`✅ Sandbox (${providerId}) has been successfully reset to baseline clean state for ${email}.`);
-        } else {
-          alert(`Sandbox environment (${providerId}) cleared for ${email}.`);
-        }
-        
-        if (window.SYSTEM_ADMIN && typeof window.SYSTEM_ADMIN.initConsole === 'function') {
-          window.SYSTEM_ADMIN.initConsole();
-        }
-      } catch (err) {
-        console.error("Sandbox Reset Error:", err);
-        alert("Sandbox reset completed locally.");
-      }
-    };
-
-    // --- SYSTEM ADMIN PROVIDER PROVISIONING ENGINE ---
-    if (!window.SYSTEM_ADMIN) window.SYSTEM_ADMIN = {};
-
-    window.SYSTEM_ADMIN.openProviderModal = function() {
-      const modal = document.getElementById('admin-provider-modal');
-      if (modal) modal.classList.remove('hidden');
-    };
-
-    window.SYSTEM_ADMIN.closeProviderModal = function() {
-      const modal = document.getElementById('admin-provider-modal');
-      if (modal) modal.classList.add('hidden');
-    };
-
-    window.SYSTEM_ADMIN.handleCreateProvider = function(e) {
-      e.preventDefault();
-      const name = document.getElementById('prov-name').value.trim();
-      const contact = document.getElementById('prov-contact-name').value.trim();
-      const email = document.getElementById('prov-email').value.trim();
-      const stream = document.getElementById('prov-stream').value;
-      const candSeats = document.getElementById('prov-cand-seats').value;
-      const cmSeats = document.getElementById('prov-cm-seats').value;
-
-      const tbody = document.getElementById('admin-provider-table-body');
-      if (tbody) {
-        const row = document.createElement('tr');
-        row.innerHTML = `
-          <td class="p-3">
-            <div class="font-bold text-[#1D2B53]">${name}</div>
-            <div class="text-[11px] text-slate-500">${contact} • ${email}</div>
-          </td>
-          <td class="p-3">
-            <span class="px-2 py-0.5 bg-emerald-100 text-emerald-800 font-bold rounded-full">Active Tier</span>
-          </td>
-          <td class="p-3 font-semibold">0 / ${candSeats} Seats</td>
-          <td class="p-3 font-semibold">0 / ${cmSeats} Staff</td>
-          <td class="p-3">
-            <button class="px-2 py-1 bg-slate-100 hover:bg-slate-200 text-slate-800 text-xs font-bold rounded border">Manage Org</button>
-          </td>
-        `;
-        tbody.prepend(row);
-      }
-
-      const selector = document.getElementById('admin-provider-selector');
-      if (selector) {
-        const option = document.createElement('option');
-        option.value = `PROV-${Date.now()}`;
-        option.innerText = `${name} (${stream})`;
-        selector.appendChild(option);
-      }
-
-      const countEl = document.getElementById('admin-prov-count');
-      if (countEl) {
-        const currentCount = parseInt(countEl.innerText) || 0;
-        countEl.innerText = currentCount + 1;
-      }
-
-      window.SYSTEM_ADMIN.closeProviderModal();
-      alert(`🎉 Provider Organization "${name}" successfully provisioned! Options added to active provider domain selector.`);
-    };
-
-    // --- SECURE AUTHENTICATION & ROLE ROUTER ---
-    window.handleSecureLogin = async function(e) {
-      if (e) e.preventDefault();
-      const user = document.getElementById('auth-username').value.trim().toLowerCase();
-      const pass = document.getElementById('auth-password').value.trim();
-      const errEl = document.getElementById('auth-error-msg');
-
-      errEl.classList.add('hidden');
-
-      // 1. Check System Admin Credentials
-      if (user === 'admin@straightuptraining.com' && pass === 'WorkReadyAdmin2026!') {
-        localStorage.setItem('user_role', 'system_admin');
-        localStorage.setItem('user_email', user);
-        document.getElementById('auth-login-overlay').classList.add('hidden');
-        document.getElementById('main-app-container').classList.remove('hidden');
-        changeActiveRole('system_admin');
-        return;
-      }
-
-      // 2. Check Sales Rep Credentials (Primary & Dynamically Approved Reps)
-      if ((user === 'training@straightuptraining.com' && pass === 'Welcome01!') || 
-          (window.APPROVED_SALES_REPS && window.APPROVED_SALES_REPS[user])) {
-        localStorage.setItem('user_role', 'sales_rep');
-        localStorage.setItem('user_email', user);
-        document.getElementById('auth-login-overlay').classList.add('hidden');
-        document.getElementById('main-app-container').classList.remove('hidden');
-        changeActiveRole('sales_rep');
-        return;
-      }
-
-      // 3. Check Supabase Authentication (If Live Client Exists)
-      if (window.supabase && typeof window.supabase.auth?.signInWithPassword === 'function') {
-        try {
-          const { data, error } = await window.supabase.auth.signInWithPassword({
-            email: user,
-            password: pass
-          });
-
-          if (error) throw error;
-
-          const { data: roleData } = await window.supabase
-            .from('user_roles')
-            .select('role')
-            .eq('user_id', data.user.id)
-            .single();
-
-          const assignedRole = roleData?.role || 'jobseeker';
-
-          localStorage.setItem('user_role', assignedRole);
-          localStorage.setItem('user_email', user);
-          document.getElementById('auth-login-overlay').classList.add('hidden');
-          document.getElementById('main-app-container').classList.remove('hidden');
-          changeActiveRole(assignedRole);
-          return;
-        } catch (err) {
-          errEl.innerText = 'Access Denied: Invalid email or password.';
-          errEl.classList.remove('hidden');
-          return;
-        }
-      }
-
-      // 4. Reject all unapproved attempts
-      errEl.innerText = 'Access Denied: Invalid email or password.';
-      errEl.classList.remove('hidden');
-    };
-
-    // --- SALES DEMO & LEAD CAPTURE ENGINE ---
-    window.openSalesDemoModal = function() {
-      document.getElementById('sales-demo-modal').classList.remove('hidden');
-    };
-
-    window.closeSalesDemoModal = function() {
-      document.getElementById('sales-demo-modal').classList.add('hidden');
-    };
-
-    window.handleSalesLeadSubmit = function(e) {
-      e.preventDefault();
-      const name = document.getElementById('demo-lead-name').value.trim();
-      const email = document.getElementById('demo-lead-email').value.trim();
-      const stream = document.getElementById('demo-lead-stream').value;
-
-      let demoRole = 'jobseeker';
-      if (stream === 'EXECUTIVE') demoRole = 'business_manager';
-
-      closeSalesDemoModal();
-      document.getElementById('auth-login-overlay').classList.add('hidden');
-      document.getElementById('main-app-container').classList.remove('hidden');
-      window.launchDemoRole(demoRole, stream);
-    };
-
-    window.launchDemoRole = function(role, stream) {
-      localStorage.setItem('demo_mode_active', 'true');
-      localStorage.setItem('user_role', role);
-
-      let exitBar = document.getElementById('demo-exit-banner');
-      if (!exitBar) {
-        exitBar = document.createElement('div');
-        exitBar.id = 'demo-exit-banner';
-        exitBar.className = "fixed top-0 left-0 w-full bg-rose-600 text-white py-2 px-6 font-bold text-xs z-[99999] flex justify-between items-center shadow-lg border-b-2 border-rose-800";
-        exitBar.innerHTML = `
-          <span>🔒 DEMO IMPERSONATION MODE ACTIVE (${role.toUpperCase()} — ${stream})</span>
-          <button onclick="exitDemoToAdmin()" class="bg-white text-rose-700 px-3 py-1 font-extrabold rounded hover:bg-slate-100 transition shadow">
-            Return to System Admin Console
-          </button>
-        `;
-        document.body.prepend(exitBar);
-      }
-      
-      changeActiveRole(role);
-    };
-
-    window.exitDemoToAdmin = function() {
-      const exitBar = document.getElementById('demo-exit-banner');
-      if (exitBar) exitBar.remove();
-      localStorage.removeItem('demo_mode_active');
-      localStorage.setItem('user_role', 'system_admin');
-      changeActiveRole('system_admin');
-    };
-
-    window.handleSignOut = function() {
-      localStorage.clear();
-      window.location.reload();
-    };
-
-    // Keyboard & Click Shortcuts for Admin Login
-    document.addEventListener('keydown', (e) => {
-      if (e.altKey && e.key.toLowerCase() === 'a') {
-        document.getElementById('auth-username').value = 'admin@straightuptraining.com';
-        document.getElementById('auth-password').value = 'WorkReadyAdmin2026!';
-      }
-    });
-
-    document.addEventListener('DOMContentLoaded', () => {
-      const logoTrigger = document.getElementById('brand-logo-trigger');
-      if (logoTrigger) {
-        logoTrigger.addEventListener('dblclick', () => {
-          document.getElementById('auth-username').value = 'admin@straightuptraining.com';
-          document.getElementById('auth-password').value = 'WorkReadyAdmin2026!';
-        });
-      }
-    });
-
     function changeActiveRole(role) {
       activeRole = role;
-      const switcher = document.getElementById('role-switcher');
-      if (switcher) switcher.value = role;
-
-      if (role === 'sales_rep') {
-        window.launchSalesDemoBar();
-        window.setSalesDemoContract('WORKFORCE');
-      } else {
-        const salesBar = document.getElementById('sales-contract-demo-bar');
-        if (salesBar) salesBar.remove();
-      }
-
-      enforceSecurityHierarchy();
-    }
-
-    function enforceSecurityHierarchy() {
-      ['casemanager', 'business', 'admin'].forEach(tab => {
-        const nav = document.getElementById(`nav-${tab}`);
-        if (nav) nav.classList.add('hidden');
-      });
-
-      if (activeRole === 'system_admin') {
-        document.getElementById('nav-casemanager').classList.remove('hidden');
-        document.getElementById('nav-business').classList.remove('hidden');
-        document.getElementById('nav-admin').classList.remove('hidden');
-        switchTab('admin');
-      } else if (activeRole === 'case_manager' || activeRole === 'sales_rep') {
-        document.getElementById('nav-casemanager').classList.remove('hidden');
-        document.getElementById('nav-business').classList.remove('hidden');
-        switchTab('casemanager');
-      } else if (activeRole === 'business_manager') {
-        document.getElementById('nav-business').classList.remove('hidden');
-        switchTab('business');
-      } else {
-        switchTab('jobseeker');
-      }
-    }
-
-    function switchTab(tabKey) {
-      ['jobseeker', 'casemanager', 'business', 'admin'].forEach(t => {
-        const el = document.getElementById(`workspace-${t}`);
-        if (el) el.classList.add('hidden');
-
-        const navBtn = document.getElementById(`nav-${t}`);
-        if (navBtn) {
-          navBtn.className = "px-6 py-3 border-b-2 border-transparent text-slate-600 hover:text-[#1D2B53]";
-        }
-      });
-
-      const targetWorkspace = document.getElementById(`workspace-${tabKey}`);
-      if (targetWorkspace) targetWorkspace.classList.remove('hidden');
-
-      const activeNavBtn = document.getElementById(`nav-${tabKey}`);
-      if (activeNavBtn) {
-        activeNavBtn.className = "px-6 py-3 border-b-2 border-[#4CAF50] text-[#1D2B53] font-bold";
-      }
-    }
-
-    function toggleHighContrast() { document.body.classList.toggle('high-contrast'); }
-
-    // LMS & Interactive Functions
-    function openModuleContent(modId) {
-      activeModuleId = modId;
-      const mod = window.LMS_DATA ? window.LMS_DATA[modId] : null;
-      if (!mod) { alert("Module study guide ready."); return; }
-      document.getElementById('mod-modal-title').innerText = mod.title;
-      document.getElementById('mod-modal-video').src = mod.videoUrl;
-      document.getElementById('mod-modal-text').innerHTML = mod.studyText;
-      document.getElementById('module-content-modal').classList.remove('hidden');
-    }
-
-    function closeModuleModal() {
-      document.getElementById('mod-modal-video').src = "";
-      document.getElementById('module-content-modal').classList.add('hidden');
-    }
-
-    function launchModuleQuiz() {
-      closeModuleModal();
-      openQuizModal(activeModuleId);
-    }
-
-    function openQuizModal(modId) {
-      activeModuleId = modId;
-      const questions = window.QUIZ_DATA ? window.QUIZ_DATA[modId] : null;
-      const mod = window.LMS_DATA ? window.LMS_DATA[modId] : null;
-      if (!questions) { alert("Quiz ready."); return; }
-
-      document.getElementById('quiz-title').innerText = `${mod ? mod.title : 'Compliance Module'} — 8-Q Assessment Quiz`;
-      const container = document.getElementById('quiz-questions-container');
-      container.innerHTML = questions.map((q, idx) => `
-        <div class="space-y-2 p-3 bg-slate-50 border border-slate-200 rounded-lg">
-          <p class="font-bold text-slate-900 text-xs">${idx + 1}. ${q.q}</p>
-          <div class="space-y-1">
-            ${q.options.map((opt, oIdx) => `
-              <label class="flex items-center gap-2 text-xs text-slate-700 cursor-pointer p-1 rounded hover:bg-slate-100">
-                <input type="radio" name="q_${idx}" value="${oIdx}" required class="text-[#4CAF50] focus:ring-[#4CAF50]">
-                <span>${opt}</span>
-              </label>
-            `).join('')}
-          </div>
-        </div>
-      `).join('');
-      document.getElementById('quiz-modal').classList.remove('hidden');
-    }
-
-    function closeQuizModal() { document.getElementById('quiz-modal').classList.add('hidden'); }
-
-    function handleQuizSubmit(event) {
-      event.preventDefault();
-      const questions = window.QUIZ_DATA ? window.QUIZ_DATA[activeModuleId] : [];
-      const mod = window.LMS_DATA ? window.LMS_DATA[activeModuleId] : { title: "Compliance Module" };
-      let scoreCount = 0;
-
-      questions.forEach((q, idx) => {
-        const selected = document.querySelector(`input[name="q_${idx}"]:checked`);
-        if (selected && parseInt(selected.value) === q.correct) scoreCount++;
-      });
-
-      const percentage = Math.round((scoreCount / (questions.length || 1)) * 100);
-      closeQuizModal();
-
-      if (percentage >= 80) {
-        showCertificate(mod.title, percentage);
-      } else {
-        alert(`Quiz Score: ${percentage}%. Score 80%+ required to pass.`);
-      }
-    }
-
-    function showCertificate(moduleTitle, score) {
-      const now = new Date();
-      const timestampStr = now.toLocaleDateString('en-AU', { day: '2-digit', month: 'short', year: 'numeric' }) + " " + now.toLocaleTimeString('en-AU', { hour: '2-digit', minute: '2-digit' }) + " AEST";
-      document.getElementById('cert-module-title').innerText = moduleTitle;
-      document.getElementById('cert-score').innerText = `${score}%`;
-      document.getElementById('cert-timestamp').innerText = timestampStr;
-      document.getElementById('certificate-modal').classList.remove('hidden');
-    }
-
-    function closeCertificateModal() { document.getElementById('certificate-modal').classList.add('hidden'); }
-
-  2384:   <!-- JAVASCRIPT ENGINE ROUTER -->
-2385:   <script>
-2386:     let activeRole = 'system_admin';
-2387: 
-2388:     // Approved sales reps tracker for in-app provisioned users
-2389:     window.APPROVED_SALES_REPS = {
-2390:       'sales@straightuptraining.com': true,
-2391:       'training@straightuptraining.com': true
-2392:     };
-2393: 
-2394:     // Helper functions
-2395:     function shuffleArray(array) {
-2396:       const arr = [...array];
-2397:       for (let i = arr.length - 1; i > 0; i--) {
-2398:         const j = Math.floor(Math.random() * (i + 1));
-2399:         [arr[i], arr[j]] = [arr[j], arr[i]];
-2400:       }
-2401:       return arr;
-2402:     }
-2403: 
-2404:     let currentIndustry = "retail";
-2405:     let activeShuffledQuestions = [];
-2406:     let currentQuestionIdx = 0;
-2407:     let userAnswers = [];
-2408:     let activeModuleId = null;
-2409: 
-2410:     window.interviewAttemptsUsed = 0;
-2411:     window.resumeAttemptsUsed = 0;
-2412:     window.MAX_ATTEMPTS = 3;
-2413: 
-2414:     function changeActiveRole(role) {
-      activeRole = role;
       
-      // Store active role state
       localStorage.setItem('user_role', role);
 
-      // Handle Sales Demo Banner visibility
       if (role === 'sales_rep') {
         if (window.SALES_DEMO_ENGINE && typeof window.SALES_DEMO_ENGINE.launchSalesDemoBar === 'function') {
           window.SALES_DEMO_ENGINE.launchSalesDemoBar();
@@ -2435,12 +1915,10 @@
     }
 
     function enforceSecurityHierarchy() {
-      // 1. Hide all navigation tabs first
       ['jobseeker', 'casemanager', 'business', 'admin'].forEach(tab => {
         document.getElementById(`nav-${tab}`)?.classList.add('hidden');
       });
 
-      // 2. Unhide authorized tabs and switch to default workspace for role
       if (activeRole === 'system_admin') {
         document.getElementById('nav-admin')?.classList.remove('hidden');
         document.getElementById('nav-casemanager')?.classList.remove('hidden');
@@ -2454,7 +1932,6 @@
         document.getElementById('nav-business')?.classList.remove('hidden');
         switchTab('business');
       } else {
-        // Candidate / Default
         document.getElementById('nav-jobseeker')?.classList.remove('hidden');
         switchTab('jobseeker');
       }
@@ -2476,6 +1953,30 @@
       }
     }
 
+    function toggleHighContrast() { document.body.classList.toggle('high-contrast'); }
+
+    // Keyboard & Double-Click Shortcuts for Admin Login
+    document.addEventListener('keydown', (e) => {
+      if (e.altKey && e.key.toLowerCase() === 'a') {
+        const u = document.getElementById('auth-username');
+        const p = document.getElementById('auth-password');
+        if (u) u.value = 'admin@straightuptraining.com';
+        if (p) p.value = 'WorkReadyAdmin2026!';
+      }
+    });
+
+    document.addEventListener('DOMContentLoaded', () => {
+      const logoTrigger = document.getElementById('brand-logo-trigger');
+      if (logoTrigger) {
+        logoTrigger.addEventListener('dblclick', () => {
+          const u = document.getElementById('auth-username');
+          const p = document.getElementById('auth-password');
+          if (u) u.value = 'admin@straightuptraining.com';
+          if (p) p.value = 'WorkReadyAdmin2026!';
+        });
+      }
+    });
+
     window.onload = () => {
       const role = localStorage.getItem('user_role');
       if (role) {
@@ -2484,6 +1985,6 @@
         changeActiveRole(role);
       }
     };
-2494:   </script>
-2495: </body>
-2496: </html>  
+  </script>
+</body>
+</html>
