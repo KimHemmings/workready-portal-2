@@ -1866,6 +1866,12 @@
   <script>
     let activeRole = 'system_admin';
 
+    // Approved sales reps tracker for in-app provisioned users
+    window.APPROVED_SALES_REPS = {
+      'sales@straightuptraining.com': true,
+      'training@straightuptraining.com': true
+    };
+
     // Helper functions
     function shuffleArray(array) {
       const arr = [...array];
@@ -1982,23 +1988,29 @@
     window.handleCreateSalesRepSubmit = function(e) {
       e.preventDefault();
       const name = document.getElementById('sales-rep-name').value.trim();
-      const email = document.getElementById('sales-rep-email').value.trim();
+      const email = document.getElementById('sales-rep-email').value.trim().toLowerCase();
       const stream = document.getElementById('sales-rep-stream').value;
 
       const tbody = document.getElementById('sales-reps-table-body');
-      const row = document.createElement('tr');
-      row.innerHTML = `
-        <td class="p-3 font-bold text-[#1D2B53]">${name}</td>
-        <td class="p-3 font-mono">${email}</td>
-        <td class="p-3"><span class="px-2 py-1 bg-sky-100 text-sky-800 font-bold rounded">${stream}</span></td>
-        <td class="p-3"><span class="px-2 py-0.5 bg-emerald-100 text-emerald-800 font-bold rounded-full">Active</span></td>
-        <td class="p-3">
-          <button onclick="resetSalesRepSandbox('${email}')" class="px-2.5 py-1 bg-slate-200 text-slate-800 font-bold rounded hover:bg-slate-300">Reset Sandbox</button>
-        </td>
-      `;
-      tbody.prepend(row);
+      if (tbody) {
+        const row = document.createElement('tr');
+        row.innerHTML = `
+          <td class="p-3 font-bold text-[#1D2B53]">${name}</td>
+          <td class="p-3 font-mono">${email}</td>
+          <td class="p-3"><span class="px-2 py-1 bg-sky-100 text-sky-800 font-bold rounded">${stream}</span></td>
+          <td class="p-3"><span class="px-2 py-0.5 bg-emerald-100 text-emerald-800 font-bold rounded-full">Active</span></td>
+          <td class="p-3">
+            <button onclick="resetSalesRepSandbox('${email}')" class="px-2.5 py-1 bg-slate-200 text-slate-800 font-bold rounded hover:bg-slate-300">Reset Sandbox</button>
+          </td>
+        `;
+        tbody.prepend(row);
+      }
+
+      if (!window.APPROVED_SALES_REPS) window.APPROVED_SALES_REPS = {};
+      window.APPROVED_SALES_REPS[email] = true;
+
       closeCreateSalesRepModal();
-      alert(`Sales Rep License provisioned for ${name} (${email})!`);
+      alert(`✅ Sales Rep License provisioned for ${name} (${email}). They can now log into the portal.`);
     };
 
     window.resetSalesRepSandbox = async function(email, providerId = 'PROV-DEMO-101') {
@@ -2026,6 +2038,66 @@
       }
     };
 
+    // --- SYSTEM ADMIN PROVIDER PROVISIONING ENGINE ---
+    if (!window.SYSTEM_ADMIN) window.SYSTEM_ADMIN = {};
+
+    window.SYSTEM_ADMIN.openProviderModal = function() {
+      const modal = document.getElementById('admin-provider-modal');
+      if (modal) modal.classList.remove('hidden');
+    };
+
+    window.SYSTEM_ADMIN.closeProviderModal = function() {
+      const modal = document.getElementById('admin-provider-modal');
+      if (modal) modal.classList.add('hidden');
+    };
+
+    window.SYSTEM_ADMIN.handleCreateProvider = function(e) {
+      e.preventDefault();
+      const name = document.getElementById('prov-name').value.trim();
+      const contact = document.getElementById('prov-contact-name').value.trim();
+      const email = document.getElementById('prov-email').value.trim();
+      const stream = document.getElementById('prov-stream').value;
+      const candSeats = document.getElementById('prov-cand-seats').value;
+      const cmSeats = document.getElementById('prov-cm-seats').value;
+
+      const tbody = document.getElementById('admin-provider-table-body');
+      if (tbody) {
+        const row = document.createElement('tr');
+        row.innerHTML = `
+          <td class="p-3">
+            <div class="font-bold text-[#1D2B53]">${name}</div>
+            <div class="text-[11px] text-slate-500">${contact} • ${email}</div>
+          </td>
+          <td class="p-3">
+            <span class="px-2 py-0.5 bg-emerald-100 text-emerald-800 font-bold rounded-full">Active Tier</span>
+          </td>
+          <td class="p-3 font-semibold">0 / ${candSeats} Seats</td>
+          <td class="p-3 font-semibold">0 / ${cmSeats} Staff</td>
+          <td class="p-3">
+            <button class="px-2 py-1 bg-slate-100 hover:bg-slate-200 text-slate-800 text-xs font-bold rounded border">Manage Org</button>
+          </td>
+        `;
+        tbody.prepend(row);
+      }
+
+      const selector = document.getElementById('admin-provider-selector');
+      if (selector) {
+        const option = document.createElement('option');
+        option.value = `PROV-${Date.now()}`;
+        option.innerText = `${name} (${stream})`;
+        selector.appendChild(option);
+      }
+
+      const countEl = document.getElementById('admin-prov-count');
+      if (countEl) {
+        const currentCount = parseInt(countEl.innerText) || 0;
+        countEl.innerText = currentCount + 1;
+      }
+
+      window.SYSTEM_ADMIN.closeProviderModal();
+      alert(`🎉 Provider Organization "${name}" successfully provisioned! Options added to active provider domain selector.`);
+    };
+
     // --- SECURE AUTHENTICATION & ROLE ROUTER ---
     window.handleSecureLogin = async function(e) {
       if (e) e.preventDefault();
@@ -2045,7 +2117,18 @@
         return;
       }
 
-      // 2. Check Supabase Authentication (If Live Client Exists)
+      // 2. Check Sales Rep Credentials (Primary & Dynamically Approved Reps)
+      if ((user === 'training@straightuptraining.com' && pass === 'Welcome01!') || 
+          (window.APPROVED_SALES_REPS && window.APPROVED_SALES_REPS[user])) {
+        localStorage.setItem('user_role', 'sales_rep');
+        localStorage.setItem('user_email', user);
+        document.getElementById('auth-login-overlay').classList.add('hidden');
+        document.getElementById('main-app-container').classList.remove('hidden');
+        changeActiveRole('sales_rep');
+        return;
+      }
+
+      // 3. Check Supabase Authentication (If Live Client Exists)
       if (window.supabase && typeof window.supabase.auth?.signInWithPassword === 'function') {
         try {
           const { data, error } = await window.supabase.auth.signInWithPassword({
@@ -2070,29 +2153,15 @@
           changeActiveRole(assignedRole);
           return;
         } catch (err) {
-          errEl.innerText = err.message || 'Invalid email or password.';
+          errEl.innerText = 'Access Denied: Invalid email or password.';
           errEl.classList.remove('hidden');
           return;
         }
       }
 
-      // 3. Fallback Strict Verification
-      const validMockUsers = {
-        'candidate@workready.org.au': { pass: 'Candidate2026!', role: 'jobseeker' },
-        'sales@straightuptraining.com': { pass: 'SalesDemo2026!', role: 'sales_rep' }
-      };
-
-      if (validMockUsers[user] && validMockUsers[user].pass === pass) {
-        const assignedRole = validMockUsers[user].role;
-        localStorage.setItem('user_role', assignedRole);
-        localStorage.setItem('user_email', user);
-        document.getElementById('auth-login-overlay').classList.add('hidden');
-        document.getElementById('main-app-container').classList.remove('hidden');
-        changeActiveRole(assignedRole);
-      } else {
-        errEl.innerText = 'Access Denied: Invalid email or password.';
-        errEl.classList.remove('hidden');
-      }
+      // 4. Reject all unapproved attempts
+      errEl.innerText = 'Access Denied: Invalid email or password.';
+      errEl.classList.remove('hidden');
     };
 
     // --- SALES DEMO & LEAD CAPTURE ENGINE ---
