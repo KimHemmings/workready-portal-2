@@ -5,9 +5,10 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>WorkReady Portal V2 — Australian Employment Services</title>
   <script src="https://cdn.tailwindcss.com"></script>
+  <!-- html2pdf Library for Client-Side PDF Export -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 
-  <!-- Utility Engine Scripts -->
+  <!-- Externalized Learning Content, Question Data & Utility Engines -->
   <script src="/js/modulesData.js"></script>
   <script src="/js/quizQuestions.js"></script>
   <script src="/js/interviewQuestions.js"></script>
@@ -17,6 +18,7 @@
   <script src="/js/pbasEngine.js"></script>
   <script src="/js/caseManagerEngine.js"></script>
   <script src="/js/businessManagerEngine.js"></script>
+  <script src="/js/systemAdminEngine.js"></script>
   <script src="/js/helpEngine.js"></script>
   <script src="/js/pdfExporter.js"></script>
 
@@ -45,7 +47,7 @@
 </head>
 <body class="bg-slate-100 font-sans text-slate-900 min-h-screen flex flex-col">
 
-  <!-- Header -->
+  <!-- Header with Official Logo & Brand Styling -->
   <header class="bg-[#1D2B53] text-white px-6 py-4 border-b-4 border-[#4CAF50] shadow-lg">
     <div class="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
       <div class="flex items-center gap-4">
@@ -58,6 +60,7 @@
         </div>
       </div>
 
+      <!-- Accessibility & Role Controls -->
       <div class="flex items-center gap-3">
         <button onclick="toggleHighContrast()" class="px-3 py-1.5 bg-[#FFB74D] text-slate-950 text-xs font-bold rounded hover:bg-amber-400 transition">
           👁️ WCAG Contrast
@@ -75,7 +78,7 @@
     </div>
   </header>
 
-  <!-- Navigation -->
+  <!-- Navigation Tabs -->
   <nav class="bg-white border-b border-slate-200 shadow-sm">
     <div class="max-w-7xl mx-auto flex overflow-x-auto text-sm font-semibold text-slate-600">
       <button id="nav-jobseeker" onclick="switchTab('jobseeker')" class="px-6 py-3 border-b-2 border-[#4CAF50] text-[#1D2B53]">
@@ -99,7 +102,7 @@
     <!-- 1. CANDIDATE WORKSPACE -->
     <div id="workspace-jobseeker" class="space-y-8">
       
-      <!-- Victory Milestone Header & Help Button -->
+      <!-- Victory Milestone & Messaging Header with HELP BUTTON -->
       <div class="bg-gradient-to-r from-[#1D2B53] to-[#4CAF50] p-6 rounded-xl text-white shadow-md flex flex-col md:flex-row items-center justify-between gap-4">
         <div>
           <h2 class="text-2xl font-bold">Achieved a Work Milestone?</h2>
@@ -118,7 +121,7 @@
         </div>
       </div>
 
-      <!-- PBAS Target Tracker Card -->
+      <!-- WORKFORCE AUSTRALIA PBAS POINTS & HOURS TRACKER CARD -->
       <div class="bg-white p-6 rounded-xl shadow-md border-2 border-[#1D2B53] space-y-4">
         <div class="flex flex-col md:flex-row items-start md:items-center justify-between border-b pb-3 gap-2">
           <div>
@@ -158,7 +161,7 @@
         </div>
       </div>
 
-      <!-- Monthly Job Readiness Task Card -->
+      <!-- MONTHLY JOB READINESS MANDATORY TASK CARD -->
       <div class="bg-white p-6 rounded-xl shadow-md border-2 border-[#9C27B0] space-y-4">
         <div class="flex items-center justify-between border-b pb-3">
           <div>
@@ -188,7 +191,7 @@
         </button>
       </div>
 
-      <!-- Quota Limits -->
+      <!-- MONTHLY USAGE LIMITS SUMMARY CARD -->
       <div class="bg-white p-6 rounded-xl shadow-md border border-slate-200">
         <h3 class="text-lg font-bold text-[#1D2B53] mb-3">Monthly Allocation & Tool Quotas</h3>
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -216,7 +219,7 @@
         </div>
       </div>
 
-      <!-- Interview Coach Section -->
+      <!-- INTERVIEW COACH -->
       <div id="mock-interview-section" class="bg-white p-6 rounded-xl shadow-md border border-slate-200 space-y-6">
         <div class="flex items-center justify-between border-b pb-4">
           <div>
@@ -1010,21 +1013,29 @@
 
     </div>
 
-    <!-- 4. SYSTEM ADMIN WORKSPACE -->
+    <!-- 4. SYSTEM ADMIN WORKSPACE (AUDIT LOGS & TICKETS QUEUE) -->
     <div id="workspace-admin" class="hidden space-y-8">
+      
+      <!-- System Overview Header & Audit Log Exporter -->
       <div class="bg-white p-6 rounded-xl shadow-md border-2 border-red-500 space-y-6">
-        <div class="border-b pb-3 flex justify-between items-center">
+        <div class="border-b pb-4 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
           <div>
             <h2 class="text-2xl font-bold text-red-900">System Admin Master Console</h2>
-            <p class="text-xs text-slate-600">Cross-tenant tickets, license provisioning, system audit logs, and technical support queue.</p>
+            <p class="text-xs text-slate-600">Cross-tenant support tickets, license provisioning, and tamper-evident security audit logs.</p>
           </div>
-          <span class="px-3 py-1 bg-red-100 text-red-800 text-xs font-bold rounded-full border border-red-300">
-            🔒 Restricted Access
-          </span>
+          <div class="flex items-center gap-3">
+            <button onclick="window.SYSTEM_ADMIN.exportAuditLogsCSV()" class="px-4 py-2 bg-[#1D2B53] text-white text-xs font-bold rounded-lg hover:bg-slate-800 transition flex items-center gap-1.5 shadow">
+              📄 Export Security Audit Log (.CSV)
+            </button>
+            <span class="px-3 py-1 bg-red-100 text-red-800 text-xs font-bold rounded-full border border-red-300">
+              🔒 Restricted Access
+            </span>
+          </div>
         </div>
 
+        <!-- Escalated Support Tickets Queue -->
         <div class="space-y-3">
-          <h3 class="font-bold text-slate-800 text-sm">Escalated Technical & Staff Support Tickets Queue</h3>
+          <h3 class="font-bold text-slate-800 text-sm">Escalated Staff & Technical Support Tickets Queue</h3>
           <div class="overflow-x-auto">
             <table class="w-full text-left text-xs text-slate-600">
               <thead class="bg-slate-100 text-slate-800 font-semibold">
@@ -1051,11 +1062,51 @@
           </div>
         </div>
       </div>
+
+      <!-- MASTER SECURITY AUDIT LOGS TABLE -->
+      <div class="bg-white p-6 rounded-xl shadow-md border border-slate-200 space-y-4">
+        <div class="border-b pb-3 flex flex-col md:flex-row justify-between items-start md:items-center gap-2">
+          <div>
+            <h3 id="admin-logs-title" class="font-bold text-[#1D2B53] text-base">Master Security Audit Log (Append-Only)</h3>
+            <p class="text-xs text-slate-500">Tamper-evident system activity, seat provisioning, and PBAS overrides.</p>
+          </div>
+          <div class="flex items-center gap-2">
+            <button onclick="window.SYSTEM_ADMIN.filterLogs('security_overrides')" class="px-2.5 py-1 bg-slate-100 hover:bg-slate-200 text-slate-800 text-xs font-semibold rounded border">
+              Security Overrides
+            </button>
+            <button onclick="window.SYSTEM_ADMIN.filterLogs('seat_provisioning')" class="px-2.5 py-1 bg-slate-100 hover:bg-slate-200 text-slate-800 text-xs font-semibold rounded border">
+              Seat Provisioning
+            </button>
+            <button onclick="window.SYSTEM_ADMIN.filterLogs('all')" class="px-2.5 py-1 bg-[#1D2B53] text-white text-xs font-bold rounded">
+              Reset Filters
+            </button>
+          </div>
+        </div>
+
+        <div class="overflow-x-auto">
+          <table class="w-full text-left text-xs text-slate-600">
+            <thead class="bg-slate-100 text-slate-800 font-semibold">
+              <tr>
+                <th class="p-2.5">Log ID</th>
+                <th class="p-2.5">Timestamp</th>
+                <th class="p-2.5">Actor & Role</th>
+                <th class="p-2.5">Action Code</th>
+                <th class="p-2.5">Target Resource</th>
+                <th class="p-2.5">IP Address</th>
+                <th class="p-2.5">Status</th>
+                <th class="p-2.5">Integrity Hash</th>
+              </tr>
+            </thead>
+            <tbody id="admin-audit-logs-table-body" class="divide-y">
+              <!-- Dynamically populated via systemAdminEngine.js -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+
     </div>
 
   </main>
-
-  <!-- MODALS -->
 
   <!-- UNIVERSAL HELP MODAL -->
   <div id="universal-help-modal" class="fixed inset-0 bg-slate-900/70 backdrop-blur-sm hidden flex items-center justify-center p-4 z-50">
@@ -1888,6 +1939,9 @@
       if (window.BUSINESS_MANAGER) {
         window.BUSINESS_MANAGER.updateSubscriptionUI();
         window.BUSINESS_MANAGER.renderStaffRoster();
+      }
+      if (window.SYSTEM_ADMIN) {
+        window.SYSTEM_ADMIN.filterLogs('all');
       }
     };
   </script>
