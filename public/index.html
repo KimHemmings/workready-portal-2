@@ -12,6 +12,7 @@
   <script src="/js/modulesData.js"></script>
   <script src="/js/quizQuestions.js"></script>
   <script src="/js/interviewQuestions.js"></script>
+  <script src="/js/speechEngine.js"></script>
   <script src="/js/pdfExporter.js"></script>
 
   <style>
@@ -915,8 +916,6 @@
     let activeShuffledQuestions = [];
     let currentQuestionIdx = 0;
     let userAnswers = [];
-    let recognition = null;
-    let isRecording = false;
     let activeModuleId = null;
 
     let interviewAttemptsUsed = 0;
@@ -977,29 +976,6 @@
       if (activeModuleId === 'mod-4') document.getElementById('mod4-conf-indicator').innerText = starStr;
     }
 
-    // Speech Recognition
-    if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
-      const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-      recognition = new SpeechRecognition();
-      recognition.continuous = true;
-      recognition.interimResults = true;
-      recognition.lang = 'en-AU';
-
-      recognition.onresult = (event) => {
-        let finalTranscript = '';
-        for (let i = event.resultIndex; i < event.results.length; ++i) {
-          if (event.results[i].isFinal) {
-            finalTranscript += event.results[i][0].transcript + ' ';
-          }
-        }
-        if (finalTranscript) {
-          const inputEl = document.getElementById('transcript-input');
-          inputEl.value = (inputEl.value ? inputEl.value.trim() + ' ' : '') + finalTranscript.trim();
-        }
-      };
-      recognition.onerror = () => stopMicrophone();
-    }
-
     function changeActiveRole(role) {
       activeRole = role;
       enforceSecurityHierarchy();
@@ -1034,7 +1010,7 @@
 
     function toggleHighContrast() { document.body.classList.toggle('high-contrast'); }
 
-    // Interview Runner Engine (Pulls directly from window.RAW_QUESTION_BANKS)
+    // Interview Runner Engine
     function startInterview() {
       if (interviewAttemptsUsed >= MAX_ATTEMPTS) {
         alert("Monthly limit reached. Jobseekers are allocated 3 interview sessions per month.");
@@ -1066,12 +1042,12 @@
       document.getElementById('prev-btn').disabled = (index === 0);
       document.getElementById('next-btn').innerText = (index === activeShuffledQuestions.length - 1) ? 'Submit for Evaluation' : 'Next Question';
 
-      readQuestionTTS();
+      if (window.readQuestionTTS) window.readQuestionTTS();
     }
 
     function navigateQuestion(direction) {
       saveCurrentAnswer();
-      if (isRecording) stopMicrophone();
+      if (window.isRecording && window.stopMicrophone) window.stopMicrophone();
 
       const newIdx = currentQuestionIdx + direction;
       if (newIdx >= activeShuffledQuestions.length) {
@@ -1083,47 +1059,6 @@
 
     function saveCurrentAnswer() {
       userAnswers[currentQuestionIdx] = document.getElementById('transcript-input').value;
-    }
-
-    function readQuestionTTS() {
-      if ('speechSynthesis' in window) {
-        window.speechSynthesis.cancel();
-        const text = document.getElementById('active-question-text').innerText;
-        const utterance = new SpeechSynthesisUtterance(text);
-        const voices = window.speechSynthesis.getVoices();
-        const auVoice = voices.find(v => v.lang === 'en-AU') || voices[0];
-        if (auVoice) utterance.voice = auVoice;
-        utterance.rate = 0.95;
-        window.speechSynthesis.speak(utterance);
-      }
-    }
-
-    function toggleMicrophone() {
-      if (!recognition) {
-        alert("Speech recognition is not supported in this browser. You can type manually.");
-        return;
-      }
-      isRecording ? stopMicrophone() : startMicrophone();
-    }
-
-    function startMicrophone() {
-      try {
-        recognition.start();
-        isRecording = true;
-        document.getElementById('mic-btn-label').innerText = "Pause Microphone";
-        document.getElementById('mic-toggle-btn').classList.replace('bg-[#9C27B0]', 'bg-red-600');
-        document.getElementById('mic-status-indicator').innerText = "🔴 Listening... Speak naturally";
-      } catch(e) { console.log(e); }
-    }
-
-    function stopMicrophone() {
-      if (recognition && isRecording) {
-        recognition.stop();
-        isRecording = false;
-        document.getElementById('mic-btn-label').innerText = "Start Answering";
-        document.getElementById('mic-toggle-btn').classList.replace('bg-red-600', 'bg-[#9C27B0]');
-        document.getElementById('mic-status-indicator').innerText = "Microphone idle";
-      }
     }
 
     // STAR Scoring Engine
