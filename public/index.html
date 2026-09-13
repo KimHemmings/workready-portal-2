@@ -1463,13 +1463,43 @@
       updateQuotaUI();
 
       const name = proofreadText(document.getElementById('res-fullname').value);
-      const contact = proofreadText(document.getElementById('res-contact').value);
-      const title = proofreadText(document.getElementById('resume-target-title').value);
-      const skillsRaw = proofreadText(document.getElementById('resume-skills').value);
-      const edu = proofreadText(document.getElementById('res-education').value);
-      const gaps = proofreadText(document.getElementById('res-gaps').value);
+    const contact = proofreadText(document.getElementById('res-contact').value);
+    const title = proofreadText(document.getElementById('resume-target-title').value);
+    const skillsRaw = proofreadText(document.getElementById('resume-skills').value);
+    const edu = proofreadText(document.getElementById('res-education').value);
+    const gaps = proofreadText(document.getElementById('res-gaps').value);
 
-      document.getElementById('tpl-name').innerText = name.toUpperCase();
+    // Collect all job entries (Up to 5)
+    const jobRows = document.querySelectorAll('.job-entry-row');
+    let experienceHTML = '';
+    
+    jobRows.forEach((row, index) => {
+      const jTitle = proofreadText(row.querySelector('.job-title')?.value || '');
+      const jCompany = proofreadText(row.querySelector('.job-company')?.value || '');
+      const jDates = proofreadText(row.querySelector('.job-dates')?.value || '');
+      const jLocation = proofreadText(row.querySelector('.job-location')?.value || '');
+      const jDuties = proofreadText(row.querySelector('.job-duties')?.value || '');
+
+      if (jTitle || jCompany) {
+        experienceHTML += `
+          <div class="mb-3">
+            <div class="flex justify-between font-bold text-slate-800 text-sm">
+              <span>${jTitle}${jCompany ? ' — ' + jCompany : ''}</span>
+              <span class="text-xs text-slate-500">${jDates}${jLocation ? ' (' + jLocation + ')' : ''}</span>
+            </div>
+            ${jDuties ? '<p class="text-xs text-slate-600 mt-1 whitespace-pre-line">' + jDuties + '</p>' : ''}
+          </div>
+        `;
+      }
+    });
+
+    // Target your preview template container
+    const tplExp = document.getElementById('tpl-experience') || document.getElementById('tpl-work-history');
+    if (tplExp) {
+      tplExp.innerHTML = experienceHTML || '<p class="text-xs text-slate-400 italic">No work history provided.</p>';
+    }
+
+    document.getElementById('tpl-name').innerText = name.toUpperCase();
       document.getElementById('tpl-contact').innerText = contact;
       document.getElementById('tpl-target').innerText = `Target Role: ${title}`;
 
