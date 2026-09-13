@@ -1968,26 +1968,72 @@
     };
 
     // --- SECURE AUTHENTICATION & ROLE ROUTER ---
-    window.handleSecureLogin = function(e) {
+    window.handleSecureLogin = async function(e) {
       if (e) e.preventDefault();
-      const user = document.getElementById('auth-username').value.trim();
+      const user = document.getElementById('auth-username').value.trim().toLowerCase();
       const pass = document.getElementById('auth-password').value.trim();
       const errEl = document.getElementById('auth-error-msg');
 
+      errEl.classList.add('hidden');
+
+      // 1. Check System Admin Credentials
       if (user === 'admin@straightuptraining.com' && pass === 'WorkReadyAdmin2026!') {
         localStorage.setItem('user_role', 'system_admin');
         localStorage.setItem('user_email', user);
         document.getElementById('auth-login-overlay').classList.add('hidden');
         document.getElementById('main-app-container').classList.remove('hidden');
         changeActiveRole('system_admin');
-      } else if (user && pass) {
-        localStorage.setItem('user_role', 'jobseeker');
+        return;
+      }
+
+      // 2. Check Supabase Authentication (If Live Client Exists)
+      if (window.supabase && typeof window.supabase.auth?.signInWithPassword === 'function') {
+        try {
+          const { data, error } = await window.supabase.auth.signInWithPassword({
+            email: user,
+            password: pass
+          });
+
+          if (error) throw error;
+
+          // Query user role from Supabase user_roles table
+          const { data: roleData } = await window.supabase
+            .from('user_roles')
+            .select('role')
+            .eq('user_id', data.user.id)
+            .single();
+
+          const assignedRole = roleData?.role || 'jobseeker';
+
+          localStorage.setItem('user_role', assignedRole);
+          localStorage.setItem('user_email', user);
+          document.getElementById('auth-login-overlay').classList.add('hidden');
+          document.getElementById('main-app-container').classList.remove('hidden');
+          changeActiveRole(assignedRole);
+          return;
+        } catch (err) {
+          errEl.innerText = err.message || 'Invalid email or password.';
+          errEl.classList.remove('hidden');
+          return;
+        }
+      }
+
+      // 3. Fallback Strict Verification (For local prototyping without live DB connection)
+      const validMockUsers = {
+        'candidate@workready.org.au': { pass: 'Candidate2026!', role: 'jobseeker' },
+        'sales@straightuptraining.com': { pass: 'SalesDemo2026!', role: 'sales_rep' }
+      };
+
+      if (validMockUsers[user] && validMockUsers[user].pass === pass) {
+        const assignedRole = validMockUsers[user].role;
+        localStorage.setItem('user_role', assignedRole);
         localStorage.setItem('user_email', user);
         document.getElementById('auth-login-overlay').classList.add('hidden');
         document.getElementById('main-app-container').classList.remove('hidden');
-        changeActiveRole('jobseeker');
+        changeActiveRole(assignedRole);
       } else {
-        errEl.innerText = 'Invalid credentials entered.';
+        // REJECT unverified credentials
+        errEl.innerText = 'Access Denied: Invalid email or password.';
         errEl.classList.remove('hidden');
       }
     };
