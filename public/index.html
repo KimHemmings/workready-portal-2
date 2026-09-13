@@ -2077,13 +2077,27 @@
     }
 
     function switchTab(tabKey) {
-      ['jobseeker', 'casemanager', 'business', 'admin'].forEach(t => {
-        const el = document.getElementById(`workspace-${t}`);
-        if (el) el.classList.add('hidden');
-      });
-      const targetWorkspace = document.getElementById(`workspace-${tabKey}`);
-      if (targetWorkspace) targetWorkspace.classList.remove('hidden');
+  // 1. Hide all workspace containers and reset tab styles
+  ['jobseeker', 'casemanager', 'business', 'admin'].forEach(t => {
+    const el = document.getElementById(`workspace-${t}`);
+    if (el) el.classList.add('hidden');
+
+    const navBtn = document.getElementById(`nav-${t}`);
+    if (navBtn) {
+      navBtn.className = "px-6 py-3 border-b-2 border-transparent text-slate-600 hover:text-[#1D2B53]";
     }
+  });
+
+  // 2. Reveal target workspace
+  const targetWorkspace = document.getElementById(`workspace-${tabKey}`);
+  if (targetWorkspace) targetWorkspace.classList.remove('hidden');
+
+  // 3. Highlight the active tab button
+  const activeNavBtn = document.getElementById(`nav-${tabKey}`);
+  if (activeNavBtn) {
+    activeNavBtn.className = "px-6 py-3 border-b-2 border-[#4CAF50] text-[#1D2B53] font-bold";
+  }
+}
 
     function toggleHighContrast() { document.body.classList.toggle('high-contrast'); }
 
