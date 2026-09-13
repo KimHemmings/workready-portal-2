@@ -23,6 +23,7 @@
   <script src="/js/brandingEngine.js"></script>
   <script src="/js/complianceAdjustmentEngine.js"></script>
   <script src="/js/authEngine.js"></script>
+  <script src="/js/salesDemoEngine.js"></script>
   <script src="/js/pdfExporter.js"></script>
 
   <style>
@@ -2380,37 +2381,116 @@
 
     function closeCertificateModal() { document.getElementById('certificate-modal').classList.add('hidden'); }
 
-    function openVictoryModal(type) {
-      document.getElementById('victory-type').value = type;
-      document.getElementById('victory-title').innerText = type === 'interview' ? "🎯 Record Interview Milestone (+25 Pts)" : "🎉 Record Job Offer Milestone (+50 Pts)";
-      document.getElementById('victory-modal').classList.remove('hidden');
-    }
-
-    function closeVictoryModal() { document.getElementById('victory-modal').classList.add('hidden'); }
-
-    function handleVictorySubmit(e) {
-      e.preventDefault();
-      alert("Milestone victory recorded!");
-      closeVictoryModal();
-    }
-
-    function handleLogEvidence(e) {
-      e.preventDefault();
-      alert("Job search logged (+5 PBAS points)!");
-    }
-
-    function verifyEvidenceRecord(jobseekerRowId, cmRowId) {
-      alert("Record verified!");
-    }
-
-    window.onload = () => {
-      const role = localStorage.getItem('user_role');
-      if (role) {
-        document.getElementById('auth-login-overlay').classList.add('hidden');
-        document.getElementById('main-app-container').classList.remove('hidden');
-        changeActiveRole(role);
-      }
-    };
-  </script>
-</body>
-</html>
+  2384:   <!-- JAVASCRIPT ENGINE ROUTER -->
+2385:   <script>
+2386:     let activeRole = 'system_admin';
+2387: 
+2388:     // Approved sales reps tracker for in-app provisioned users
+2389:     window.APPROVED_SALES_REPS = {
+2390:       'sales@straightuptraining.com': true,
+2391:       'training@straightuptraining.com': true
+2392:     };
+2393: 
+2394:     // Helper functions
+2395:     function shuffleArray(array) {
+2396:       const arr = [...array];
+2397:       for (let i = arr.length - 1; i > 0; i--) {
+2398:         const j = Math.floor(Math.random() * (i + 1));
+2399:         [arr[i], arr[j]] = [arr[j], arr[i]];
+2400:       }
+2401:       return arr;
+2402:     }
+2403: 
+2404:     let currentIndustry = "retail";
+2405:     let activeShuffledQuestions = [];
+2406:     let currentQuestionIdx = 0;
+2407:     let userAnswers = [];
+2408:     let activeModuleId = null;
+2409: 
+2410:     window.interviewAttemptsUsed = 0;
+2411:     window.resumeAttemptsUsed = 0;
+2412:     window.MAX_ATTEMPTS = 3;
+2413: 
+2414:     function changeActiveRole(role) {
+2415:       activeRole = role;
+2416:       if (role === 'sales_rep') {
+2417:         if (window.SALES_DEMO_ENGINE && typeof window.SALES_DEMO_ENGINE.launchSalesDemoBar === 'function') {
+2418:           window.SALES_DEMO_ENGINE.launchSalesDemoBar();
+2419:           window.SALES_DEMO_ENGINE.setSalesDemoContract('WORKFORCE');
+2420:         }
+2421:       } else {
+2422:         if (window.SALES_DEMO_ENGINE && typeof window.SALES_DEMO_ENGINE.removeSalesDemoBar === 'function') {
+2423:           window.SALES_DEMO_ENGINE.removeSalesDemoBar();
+2424:         }
+2425:       }
+2426:       enforceSecurityHierarchy();
+2427:     }
+2428: 
+2429:     function enforceSecurityHierarchy() {
+2430:       ['jobseeker', 'casemanager', 'business', 'admin'].forEach(tab => {
+2431:         document.getElementById(`nav-${tab}`)?.classList.add('hidden');
+2432:       });
+2433: 
+2434:       if (activeRole === 'system_admin') {
+2435:         document.getElementById('nav-admin')?.classList.remove('hidden');
+2436:         switchTab('admin');
+2437:       } else if (activeRole === 'sales_rep' || activeRole === 'case_manager') {
+2438:         document.getElementById('nav-casemanager')?.classList.remove('hidden');
+2439:         document.getElementById('nav-business')?.classList.remove('hidden');
+2440:         switchTab('casemanager');
+2441:       } else if (activeRole === 'business_manager') {
+2442:         document.getElementById('nav-business')?.classList.remove('hidden');
+2443:         switchTab('business');
+2444:       } else {
+2445:         document.getElementById('nav-jobseeker')?.classList.remove('hidden');
+2446:         switchTab('jobseeker');
+2447:       }
+2448:     }
+2449: 
+2450:     function switchTab(tabKey) {
+2451:       ['jobseeker', 'casemanager', 'business', 'admin'].forEach(t => {
+2452:         document.getElementById(`workspace-${t}`)?.classList.add('hidden');
+2453:         const navBtn = document.getElementById(`nav-${t}`);
+2454:         if (navBtn) navBtn.className = "px-6 py-3 border-b-2 border-transparent text-slate-600 hover:text-[#1D2B53]";
+2455:       });
+2456: 
+2457:       document.getElementById(`workspace-${tabKey}`)?.classList.remove('hidden');
+2458:       const activeNavBtn = document.getElementById(`nav-${tabKey}`);
+2459:       if (activeNavBtn) activeNavBtn.className = "px-6 py-3 border-b-2 border-[#4CAF50] text-[#1D2B53] font-bold";
+2460:     }
+2461: 
+2462:     function toggleHighContrast() { document.body.classList.toggle('high-contrast'); }
+2463: 
+2464:     // Keyboard & Double-Click Shortcuts for Admin Login
+2465:     document.addEventListener('keydown', (e) => {
+2466:       if (e.altKey && e.key.toLowerCase() === 'a') {
+2467:         const u = document.getElementById('auth-username');
+2468:         const p = document.getElementById('auth-password');
+2469:         if (u) u.value = 'admin@straightuptraining.com';
+2470:         if (p) p.value = 'WorkReadyAdmin2026!';
+2471:       }
+2472:     });
+2473: 
+2474:     document.addEventListener('DOMContentLoaded', () => {
+2475:       const logoTrigger = document.getElementById('brand-logo-trigger');
+2476:       if (logoTrigger) {
+2477:         logoTrigger.addEventListener('dblclick', () => {
+2478:           const u = document.getElementById('auth-username');
+2479:           const p = document.getElementById('auth-password');
+2480:           if (u) u.value = 'admin@straightuptraining.com';
+2481:           if (p) p.value = 'WorkReadyAdmin2026!';
+2482:         });
+2483:       }
+2484:     });
+2485: 
+2486:     window.onload = () => {
+2487:       const role = localStorage.getItem('user_role');
+2488:       if (role) {
+2489:         document.getElementById('auth-login-overlay')?.classList.add('hidden');
+2490:         document.getElementById('main-app-container')?.classList.remove('hidden');
+2491:         changeActiveRole(role);
+2492:       }
+2493:     };
+2494:   </script>
+2495: </body>
+2496: </html>  
