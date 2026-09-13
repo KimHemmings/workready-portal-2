@@ -1886,6 +1886,90 @@
     window.resumeAttemptsUsed = 0;
     window.MAX_ATTEMPTS = 3;
 
+    // --- CONTRACT-STREAM DEMO SWITCHER ENGINE FOR SALES REPS ---
+    window.ACTIVE_DEMO_CONTRACT = 'WORKFORCE';
+
+    window.CONTRACT_CONFIGS = {
+      'WORKFORCE': {
+        name: 'Workforce Australia General',
+        domain: 'PROV-103',
+        pointsTarget: 100,
+        hoursTarget: 15,
+        mockCandidateName: 'Alex Morgan (Workforce AU)'
+      },
+      'TTW': {
+        name: 'Transition to Work (TtW Youth Specialist)',
+        domain: 'PROV-101',
+        pointsTarget: 80,
+        hoursTarget: 25,
+        mockCandidateName: 'Jordan Lee (TtW Youth)'
+      },
+      'DES': {
+        name: 'Disability Employment Services (DES Inclusive)',
+        domain: 'PROV-102',
+        pointsTarget: 50,
+        hoursTarget: 8,
+        mockCandidateName: 'Taylor Reed (DES Flexible)'
+      }
+    };
+
+    window.setSalesDemoContract = function(contractKey) {
+      window.ACTIVE_DEMO_CONTRACT = contractKey;
+      const config = window.CONTRACT_CONFIGS[contractKey];
+      if (!config) return;
+
+      const provSelect = document.getElementById('admin-provider-selector');
+      if (provSelect) provSelect.value = config.domain;
+
+      const pointsText = document.getElementById('pbas-points-text');
+      if (pointsText) pointsText.innerText = `0 / ${config.pointsTarget} Points`;
+
+      const hoursText = document.getElementById('pbas-hours-text');
+      if (hoursText) hoursText.innerText = `0 / ${config.hoursTarget} Hours`;
+
+      const subBranding = document.getElementById('header-sub-branding');
+      if (subBranding) {
+        subBranding.innerText = `Straight Up Training — ${config.name} Sandbox`;
+      }
+
+      if (window.CASE_MANAGER && typeof window.CASE_MANAGER.initRoster === 'function') {
+        window.CASE_MANAGER.initRoster(config.domain);
+      }
+      if (window.BUSINESS_MANAGER && typeof window.BUSINESS_MANAGER.initDashboard === 'function') {
+        window.BUSINESS_MANAGER.initDashboard(config.domain);
+      }
+
+      alert(`💼 Sales Sandbox Contract Set To: ${config.name}\n\nCandidate, Case Manager, and Business Manager views are now filtered to this contract stream.`);
+    };
+
+    window.launchSalesDemoBar = function() {
+      let demoBar = document.getElementById('sales-contract-demo-bar');
+      if (!demoBar) {
+        demoBar = document.createElement('div');
+        demoBar.id = 'sales-contract-demo-bar';
+        demoBar.className = "bg-slate-900 text-white py-2 px-6 border-b-4 border-sky-500 flex flex-wrap justify-between items-center text-xs font-bold gap-3 shadow-xl";
+        demoBar.innerHTML = `
+          <div class="flex items-center gap-2">
+            <span class="px-2 py-0.5 bg-sky-500/20 text-sky-400 border border-sky-500/40 rounded uppercase tracking-wider">🎯 Sales Demo Controls</span>
+            <span>Select Target Contract Stream to Demo:</span>
+          </div>
+          <div class="flex items-center gap-2">
+            <button onclick="setSalesDemoContract('WORKFORCE')" class="px-3 py-1 bg-indigo-600 hover:bg-indigo-500 text-white rounded transition shadow">
+              🏢 Workforce Australia (100 Pts)
+            </button>
+            <button onclick="setSalesDemoContract('TTW')" class="px-3 py-1 bg-sky-600 hover:bg-sky-500 text-white rounded transition shadow">
+              👤 TtW Youth (80 Pts)
+            </button>
+            <button onclick="setSalesDemoContract('DES')" class="px-3 py-1 bg-teal-600 hover:bg-teal-500 text-white rounded transition shadow">
+              📋 DES Inclusive (50 Pts)
+            </button>
+          </div>
+        `;
+        const appContainer = document.getElementById('main-app-container');
+        if (appContainer) appContainer.prepend(demoBar);
+      }
+    };
+
     // --- SYSTEM ADMIN SALES REP MANAGEMENT ---
     window.openCreateSalesRepModal = function() {
       document.getElementById('create-sales-rep-modal').classList.remove('hidden');
@@ -1971,7 +2055,6 @@
 
           if (error) throw error;
 
-          // Query user role from Supabase user_roles table
           const { data: roleData } = await window.supabase
             .from('user_roles')
             .select('role')
@@ -1993,7 +2076,7 @@
         }
       }
 
-      // 3. Fallback Strict Verification (For local prototyping without live DB connection)
+      // 3. Fallback Strict Verification
       const validMockUsers = {
         'candidate@workready.org.au': { pass: 'Candidate2026!', role: 'jobseeker' },
         'sales@straightuptraining.com': { pass: 'SalesDemo2026!', role: 'sales_rep' }
@@ -2007,7 +2090,6 @@
         document.getElementById('main-app-container').classList.remove('hidden');
         changeActiveRole(assignedRole);
       } else {
-        // REJECT unverified credentials
         errEl.innerText = 'Access Denied: Invalid email or password.';
         errEl.classList.remove('hidden');
       }
@@ -2093,6 +2175,15 @@
       activeRole = role;
       const switcher = document.getElementById('role-switcher');
       if (switcher) switcher.value = role;
+
+      if (role === 'sales_rep') {
+        window.launchSalesDemoBar();
+        window.setSalesDemoContract('WORKFORCE');
+      } else {
+        const salesBar = document.getElementById('sales-contract-demo-bar');
+        if (salesBar) salesBar.remove();
+      }
+
       enforceSecurityHierarchy();
     }
 
@@ -2107,8 +2198,9 @@
         document.getElementById('nav-business').classList.remove('hidden');
         document.getElementById('nav-admin').classList.remove('hidden');
         switchTab('admin');
-      } else if (activeRole === 'case_manager') {
+      } else if (activeRole === 'case_manager' || activeRole === 'sales_rep') {
         document.getElementById('nav-casemanager').classList.remove('hidden');
+        document.getElementById('nav-business').classList.remove('hidden');
         switchTab('casemanager');
       } else if (activeRole === 'business_manager') {
         document.getElementById('nav-business').classList.remove('hidden');
@@ -2119,7 +2211,6 @@
     }
 
     function switchTab(tabKey) {
-      // 1. Hide all workspace containers and reset tab styles
       ['jobseeker', 'casemanager', 'business', 'admin'].forEach(t => {
         const el = document.getElementById(`workspace-${t}`);
         if (el) el.classList.add('hidden');
@@ -2130,11 +2221,9 @@
         }
       });
 
-      // 2. Reveal target workspace
       const targetWorkspace = document.getElementById(`workspace-${tabKey}`);
       if (targetWorkspace) targetWorkspace.classList.remove('hidden');
 
-      // 3. Highlight the active tab button
       const activeNavBtn = document.getElementById(`nav-${tabKey}`);
       if (activeNavBtn) {
         activeNavBtn.className = "px-6 py-3 border-b-2 border-[#4CAF50] text-[#1D2B53] font-bold";
