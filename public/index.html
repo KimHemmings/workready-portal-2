@@ -41,7 +41,7 @@
 </head>
 <body class="bg-slate-100 font-sans text-slate-900 min-h-screen flex flex-col">
 
-  <!-- Header with Official Logo -->
+  <!-- Header with Official Logo & Brand Styling -->
   <header class="bg-[#1D2B53] text-white px-6 py-4 border-b-4 border-[#4CAF50] shadow-lg">
     <div class="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
       <div class="flex items-center gap-4">
@@ -56,13 +56,13 @@
 
       <!-- Accessibility & Role Controls -->
       <div class="flex items-center gap-3">
-        <button onclick="toggleHighContrast()" class="px-3 py-1.5 bg-amber-500 text-slate-950 text-xs font-bold rounded hover:bg-amber-400 transition">
+        <button onclick="toggleHighContrast()" class="px-3 py-1.5 bg-[#FFB74D] text-slate-950 text-xs font-bold rounded hover:bg-amber-400 transition">
           👁️ WCAG Contrast
         </button>
         <div class="bg-slate-800 p-2 rounded-lg border border-slate-700 flex items-center gap-2 text-xs">
           <span class="text-slate-400">Role:</span>
-          <select id="role-switcher" onchange="changeActiveRole(this.value)" class="bg-[#1D2B53] text-emerald-400 font-bold focus:outline-none">
-            <option value="jobseeker">Jobseeker (Individual File)</option>
+          <select id="role-switcher" onchange="changeActiveRole(this.value)" class="bg-[#1D2B53] text-[#4CAF50] font-bold focus:outline-none">
+            <option value="jobseeker">Candidate (Individual File)</option>
             <option value="case_manager">Case Manager (Caseload)</option>
             <option value="business_manager">Business Manager (Workspace)</option>
             <option value="system_admin">System Admin (Full Access)</option>
@@ -76,7 +76,7 @@
   <nav class="bg-white border-b border-slate-200 shadow-sm">
     <div class="max-w-7xl mx-auto flex overflow-x-auto text-sm font-semibold text-slate-600">
       <button id="nav-jobseeker" onclick="switchTab('jobseeker')" class="px-6 py-3 border-b-2 border-[#4CAF50] text-[#1D2B53]">
-        Jobseeker Workspace
+        Candidate Workspace
       </button>
       <button id="nav-casemanager" onclick="switchTab('casemanager')" class="px-6 py-3 border-b-2 border-transparent hover:text-[#1D2B53] hidden">
         Case Manager Roster
@@ -93,11 +93,11 @@
   <!-- Main Workspaces Container -->
   <main class="flex-grow max-w-7xl w-full mx-auto p-6 space-y-8">
 
-    <!-- 1. JOBSEEKER WORKSPACE -->
+    <!-- 1. CANDIDATE WORKSPACE -->
     <div id="workspace-jobseeker" class="space-y-8">
       
       <!-- Victory Milestone & Messaging Header -->
-      <div class="bg-gradient-to-r from-emerald-500 to-teal-600 p-6 rounded-xl text-white shadow-md flex flex-col md:flex-row items-center justify-between gap-4">
+      <div class="bg-gradient-to-r from-[#1D2B53] to-[#4CAF50] p-6 rounded-xl text-white shadow-md flex flex-col md:flex-row items-center justify-between gap-4">
         <div>
           <h2 class="text-2xl font-bold">Achieved a Work Milestone?</h2>
           <p class="text-sm text-emerald-100">Tap a button below to notify your Case Manager or send a direct message!</p>
@@ -116,11 +116,11 @@
       </div>
 
       <!-- PRE-PROGRAM CONFIDENCE RATING MODULE -->
-      <div class="bg-white p-6 rounded-xl shadow-md border-2 border-purple-400 space-y-4">
+      <div class="bg-white p-6 rounded-xl shadow-md border-2 border-[#9C27B0] space-y-4">
         <div class="flex items-center justify-between border-b pb-3">
           <div>
-            <h3 class="text-xl font-bold text-[#1D2B53]">Pre-Program Job Readiness Confidence Indicator</h3>
-            <p class="text-xs text-slate-600">Assess your starting confidence level before beginning mock interviews and modules. (Single Submission)</p>
+            <h3 class="text-xl font-bold text-[#1D2B53]">Pre-Program Candidate Job Readiness Indicator</h3>
+            <p class="text-xs text-slate-600">Assess your starting confidence level before beginning mock interviews and compliance modules. (Single Submission)</p>
           </div>
           <span id="baseline-status-tag" class="px-3 py-1 bg-amber-100 text-amber-800 text-xs font-bold rounded-full">Assessment Pending</span>
         </div>
@@ -128,15 +128,15 @@
         <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div class="p-3 bg-slate-50 rounded-lg border text-center space-y-1">
             <span class="text-xs font-bold text-slate-700 block">Interview Confidence</span>
-            <div id="baseline-interview-stars" class="text-amber-500 text-lg">⭐⭐☆☆☆</div>
+            <div id="baseline-interview-stars" class="text-[#FFB74D] text-lg">⭐⭐☆☆☆</div>
           </div>
           <div class="p-3 bg-slate-50 rounded-lg border text-center space-y-1">
             <span class="text-xs font-bold text-slate-700 block">Resume Readiness</span>
-            <div id="baseline-resume-stars" class="text-amber-500 text-lg">⭐⭐⭐☆☆</div>
+            <div id="baseline-resume-stars" class="text-[#FFB74D] text-lg">⭐⭐⭐☆☆</div>
           </div>
           <div class="p-3 bg-slate-50 rounded-lg border text-center space-y-1">
             <span class="text-xs font-bold text-slate-700 block">Workplace Safety Knowledge</span>
-            <div id="baseline-safety-stars" class="text-amber-500 text-lg">⭐⭐⭐⭐☆</div>
+            <div id="baseline-safety-stars" class="text-[#FFB74D] text-lg">⭐⭐⭐⭐☆</div>
           </div>
         </div>
 
@@ -152,7 +152,7 @@
           <div class="p-4 bg-slate-50 border border-slate-200 rounded-lg space-y-2">
             <div class="flex justify-between items-center">
               <span class="text-xs font-bold text-slate-700">Interview Coach Sessions</span>
-              <span id="interview-quota-text" class="text-xs font-bold text-emerald-600">3 of 3 Attempts Remaining</span>
+              <span id="interview-quota-text" class="text-xs font-bold text-[#4CAF50]">3 of 3 Attempts Remaining</span>
             </div>
             <div class="w-full bg-slate-200 h-2 rounded-full overflow-hidden">
               <div id="interview-quota-bar" class="bg-[#4CAF50] h-full w-full transition-all"></div>
@@ -163,7 +163,7 @@
           <div class="p-4 bg-slate-50 border border-slate-200 rounded-lg space-y-2">
             <div class="flex justify-between items-center">
               <span class="text-xs font-bold text-slate-700">Resume & Cover Letter Generations</span>
-              <span id="resume-quota-text" class="text-xs font-bold text-emerald-600">3 of 3 Attempts Remaining</span>
+              <span id="resume-quota-text" class="text-xs font-bold text-[#9C27B0]">3 of 3 Attempts Remaining</span>
             </div>
             <div class="w-full bg-slate-200 h-2 rounded-full overflow-hidden">
               <div id="resume-quota-bar" class="bg-[#9C27B0] h-full w-full transition-all"></div>
@@ -248,15 +248,15 @@
               <div class="grid grid-cols-2 md:grid-cols-4 gap-2 text-xs">
                 <div class="p-2 bg-white rounded border border-slate-200">
                   <span class="block font-semibold text-slate-700">Situation (S)</span>
-                  <span id="score-s" class="text-emerald-600 font-bold">-- / 25 pts</span>
+                  <span id="score-s" class="text-[#4CAF50] font-bold">-- / 25 pts</span>
                 </div>
                 <div class="p-2 bg-white rounded border border-slate-200">
                   <span class="block font-semibold text-slate-700">Task (T)</span>
-                  <span id="score-t" class="text-emerald-600 font-bold">-- / 25 pts</span>
+                  <span id="score-t" class="text-[#4CAF50] font-bold">-- / 25 pts</span>
                 </div>
                 <div class="p-2 bg-white rounded border border-slate-200">
                   <span class="block font-semibold text-slate-700">Action (A)</span>
-                  <span id="score-a" class="text-emerald-600 font-bold">-- / 25 pts</span>
+                  <span id="score-a" class="text-[#4CAF50] font-bold">-- / 25 pts</span>
                 </div>
                 <div class="p-2 bg-white rounded border border-slate-200">
                   <span class="block font-semibold text-slate-700">Result (R)</span>
@@ -267,7 +267,7 @@
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div class="p-4 bg-white rounded-lg border border-slate-200">
-                <h4 class="font-bold text-emerald-700 mb-2">Key Strengths Identified</h4>
+                <h4 class="font-bold text-[#4CAF50] mb-2">Key Strengths Identified</h4>
                 <ul id="report-strengths" class="list-disc list-inside text-xs text-slate-600 space-y-1"></ul>
               </div>
               <div class="p-4 bg-white rounded-lg border border-slate-200">
@@ -481,11 +481,11 @@
         </div>
       </div>
 
-      <!-- DETAILED EMPLOYABILITY MODULES GRID (8 MODULES) -->
+      <!-- DETAILED EMPLOYABILITY MODULES GRID (8 MODULES WITH BRANDING) -->
       <div id="lms-modules-section" class="bg-white p-6 rounded-xl shadow-md border border-slate-200 space-y-6">
         <div class="border-b pb-4">
-          <h2 class="text-2xl font-bold text-[#1D2B53]">Employability & Compliance Modules</h2>
-          <p class="text-sm text-slate-600">Review 15 detailed learning points, watch aligned YouTube tutorials, rate your confidence, and complete 8-question quizzes.</p>
+          <h2 class="text-2xl font-bold text-[#1D2B53]">Workplace Readiness & Compliance Modules</h2>
+          <p class="text-sm text-slate-600">Build your competitive edge and earn verifiable compliance certificates! Complete all 8 modules below to prove your job readiness to top Australian employers.</p>
         </div>
 
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -494,11 +494,14 @@
           <div class="border border-slate-200 rounded-xl p-5 space-y-4 bg-slate-50 hover:shadow-md transition flex flex-col justify-between">
             <div class="space-y-3">
               <div class="flex justify-between items-center">
-                <span class="px-2 py-1 bg-blue-100 text-blue-800 text-xs font-bold rounded">Module 01</span>
-                <span id="mod1-conf-indicator" class="text-xs font-bold text-amber-600">⭐⭐⭐☆☆</span>
+                <span class="px-2 py-1 bg-[#1D2B53]/10 text-[#1D2B53] text-xs font-bold rounded">Module 01</span>
+                <span id="badge-mod-1" class="px-2 py-0.5 bg-amber-100 text-amber-800 text-[10px] font-extrabold rounded-full uppercase">In Progress</span>
               </div>
-              <h3 class="font-bold text-slate-900 text-base">Workplace Rights & Safety</h3>
-              <p class="text-xs text-slate-600 leading-relaxed">15 expanded points covering NES laws, payslip rules, WHS duty of care, and entitlements.</p>
+              <h3 class="font-bold text-[#1D2B53] text-base">Workplace Rights & Safety</h3>
+              <p class="text-xs text-slate-600 leading-relaxed">Master NES standards, payslip rules, WHS duty of care, PPE compliance, and candidate rights.</p>
+              <div class="pt-1">
+                <span id="mod1-conf-indicator" class="text-xs font-bold text-[#FFB74D]">⭐⭐⭐☆☆</span>
+              </div>
             </div>
             <button onclick="openModuleContent('mod-1')" class="w-full py-2 bg-[#1D2B53] text-white text-xs font-bold rounded-lg hover:bg-slate-800 transition">
               Detailed Guide & 8-Q Quiz
@@ -509,13 +512,16 @@
           <div class="border border-slate-200 rounded-xl p-5 space-y-4 bg-slate-50 hover:shadow-md transition flex flex-col justify-between">
             <div class="space-y-3">
               <div class="flex justify-between items-center">
-                <span class="px-2 py-1 bg-emerald-100 text-emerald-800 text-xs font-bold rounded">Module 02</span>
-                <span id="mod2-conf-indicator" class="text-xs font-bold text-amber-600">⭐⭐☆☆☆</span>
+                <span class="px-2 py-1 bg-[#4CAF50]/10 text-[#4CAF50] text-xs font-bold rounded">Module 02</span>
+                <span id="badge-mod-2" class="px-2 py-0.5 bg-amber-100 text-amber-800 text-[10px] font-extrabold rounded-full uppercase">In Progress</span>
               </div>
-              <h3 class="font-bold text-slate-900 text-base">Interview Success</h3>
-              <p class="text-xs text-slate-600 leading-relaxed">15 expanded points covering punctuality, STAR methodology, and overcoming nerves.</p>
+              <h3 class="font-bold text-[#1D2B53] text-base">Interview Success</h3>
+              <p class="text-xs text-slate-600 leading-relaxed">Master STAR technique, dress codes, body language, overcoming nerves, and closing questions.</p>
+              <div class="pt-1">
+                <span id="mod2-conf-indicator" class="text-xs font-bold text-[#FFB74D]">⭐⭐☆☆☆</span>
+              </div>
             </div>
-            <button onclick="openModuleContent('mod-2')" class="w-full py-2 bg-[#1D2B53] text-white text-xs font-bold rounded-lg hover:bg-slate-800 transition">
+            <button onclick="openModuleContent('mod-2')" class="w-full py-2 bg-[#4CAF50] text-white text-xs font-bold rounded-lg hover:bg-emerald-600 transition">
               Detailed Guide & 8-Q Quiz
             </button>
           </div>
@@ -524,88 +530,106 @@
           <div class="border border-slate-200 rounded-xl p-5 space-y-4 bg-slate-50 hover:shadow-md transition flex flex-col justify-between">
             <div class="space-y-3">
               <div class="flex justify-between items-center">
-                <span class="px-2 py-1 bg-purple-100 text-purple-800 text-xs font-bold rounded">Module 03</span>
-                <span id="mod3-conf-indicator" class="text-xs font-bold text-amber-600">⭐⭐⭐⭐☆</span>
+                <span class="px-2 py-1 bg-[#9C27B0]/10 text-[#9C27B0] text-xs font-bold rounded">Module 03</span>
+                <span id="badge-mod-3" class="px-2 py-0.5 bg-amber-100 text-amber-800 text-[10px] font-extrabold rounded-full uppercase">In Progress</span>
               </div>
-              <h3 class="font-bold text-slate-900 text-base">Customer & Team Communication</h3>
-              <p class="text-xs text-slate-600 leading-relaxed">15 expanded points covering active listening, de-escalation, and handling supervisor feedback.</p>
+              <h3 class="font-bold text-[#1D2B53] text-base">Customer & Team Communication</h3>
+              <p class="text-xs text-slate-600 leading-relaxed">Develop active listening, de-escalation skills, phone etiquette, and teamwork dynamics.</p>
+              <div class="pt-1">
+                <span id="mod3-conf-indicator" class="text-xs font-bold text-[#FFB74D]">⭐⭐⭐⭐☆</span>
+              </div>
             </div>
-            <button onclick="openModuleContent('mod-3')" class="w-full py-2 bg-[#1D2B53] text-white text-xs font-bold rounded-lg hover:bg-slate-800 transition">
+            <button onclick="openModuleContent('mod-3')" class="w-full py-2 bg-[#9C27B0] text-white text-xs font-bold rounded-lg hover:bg-purple-800 transition">
               Detailed Guide & 8-Q Quiz
             </button>
           </div>
 
           <!-- Module 04 -->
-          <div class="border border-purple-300 rounded-xl p-5 space-y-4 bg-purple-50 hover:shadow-md transition flex flex-col justify-between">
+          <div class="border border-slate-200 rounded-xl p-5 space-y-4 bg-slate-50 hover:shadow-md transition flex flex-col justify-between">
             <div class="space-y-3">
               <div class="flex justify-between items-center">
-                <span class="px-2 py-1 bg-purple-600 text-white text-xs font-bold rounded">Module 04</span>
-                <span id="mod4-conf-indicator" class="text-xs font-bold text-amber-600">⭐⭐☆☆☆</span>
+                <span class="px-2 py-1 bg-[#FFB74D]/20 text-slate-900 text-xs font-bold rounded">Module 04</span>
+                <span id="badge-mod-4" class="px-2 py-0.5 bg-amber-100 text-amber-800 text-[10px] font-extrabold rounded-full uppercase">In Progress</span>
               </div>
-              <h3 class="font-bold text-slate-900 text-base">Master Resumes & Gaps</h3>
-              <p class="text-xs text-slate-600 leading-relaxed">15 expanded points covering explaining employment gaps, functional layouts, and transferable skills.</p>
+              <h3 class="font-bold text-[#1D2B53] text-base">Master Resumes & Career Gaps</h3>
+              <p class="text-xs text-slate-600 leading-relaxed">Construct high-impact resumes, frame work gaps positively, and highlight transferable tickets.</p>
+              <div class="pt-1">
+                <span id="mod4-conf-indicator" class="text-xs font-bold text-[#FFB74D]">⭐⭐☆☆☆</span>
+              </div>
             </div>
-            <button onclick="openModuleContent('mod-4')" class="w-full py-2 bg-[#9C27B0] text-white text-xs font-bold rounded-lg hover:bg-purple-900 transition">
+            <button onclick="openModuleContent('mod-4')" class="w-full py-2 bg-[#FFB74D] text-slate-950 text-xs font-bold rounded-lg hover:bg-amber-400 transition">
               Detailed Guide & 8-Q Quiz
             </button>
           </div>
 
           <!-- Module 05 -->
-          <div class="border border-teal-300 rounded-xl p-5 space-y-4 bg-teal-50 hover:shadow-md transition flex flex-col justify-between">
+          <div class="border border-slate-200 rounded-xl p-5 space-y-4 bg-slate-50 hover:shadow-md transition flex flex-col justify-between">
             <div class="space-y-3">
               <div class="flex justify-between items-center">
-                <span class="px-2 py-1 bg-teal-600 text-white text-xs font-bold rounded">Module 05</span>
-                <span id="mod5-conf-indicator" class="text-xs font-bold text-amber-600">⭐⭐⭐☆☆</span>
+                <span class="px-2 py-1 bg-[#4CAF50]/10 text-[#4CAF50] text-xs font-bold rounded">Module 05</span>
+                <span id="badge-mod-5" class="px-2 py-0.5 bg-amber-100 text-amber-800 text-[10px] font-extrabold rounded-full uppercase">In Progress</span>
               </div>
-              <h3 class="font-bold text-slate-900 text-base">Goal Setting & Career Planning</h3>
-              <p class="text-xs text-slate-600 leading-relaxed">15 expanded points covering SMART goals, action plans, overcoming barriers, and tracking compliance.</p>
+              <h3 class="font-bold text-[#1D2B53] text-base">Goal Setting & Career Planning</h3>
+              <p class="text-xs text-slate-600 leading-relaxed">Set SMART milestones, overcome placement barriers, build daily habits, and track compliance.</p>
+              <div class="pt-1">
+                <span id="mod5-conf-indicator" class="text-xs font-bold text-[#FFB74D]">⭐⭐⭐☆☆</span>
+              </div>
             </div>
-            <button onclick="openModuleContent('mod-5')" class="w-full py-2 bg-teal-700 text-white text-xs font-bold rounded-lg hover:bg-teal-800 transition">
+            <button onclick="openModuleContent('mod-5')" class="w-full py-2 bg-[#4CAF50] text-white text-xs font-bold rounded-lg hover:bg-emerald-600 transition">
               Detailed Guide & 8-Q Quiz
             </button>
           </div>
 
           <!-- Module 06 -->
-          <div class="border border-indigo-300 rounded-xl p-5 space-y-4 bg-indigo-50 hover:shadow-md transition flex flex-col justify-between">
+          <div class="border border-slate-200 rounded-xl p-5 space-y-4 bg-slate-50 hover:shadow-md transition flex flex-col justify-between">
             <div class="space-y-3">
               <div class="flex justify-between items-center">
-                <span class="px-2 py-1 bg-indigo-600 text-white text-xs font-bold rounded">Module 06</span>
-                <span id="mod6-conf-indicator" class="text-xs font-bold text-amber-600">⭐⭐⭐⭐☆</span>
+                <span class="px-2 py-1 bg-[#1D2B53]/10 text-[#1D2B53] text-xs font-bold rounded">Module 06</span>
+                <span id="badge-mod-6" class="px-2 py-0.5 bg-amber-100 text-amber-800 text-[10px] font-extrabold rounded-full uppercase">In Progress</span>
               </div>
-              <h3 class="font-bold text-slate-900 text-base">Workplace Expectations & Etiquette</h3>
-              <p class="text-xs text-slate-600 leading-relaxed">15 expanded points covering punctuality, mobile phone policies, shift call-outs, and conduct standards.</p>
+              <h3 class="font-bold text-[#1D2B53] text-base">Workplace Expectations & Etiquette</h3>
+              <p class="text-xs text-slate-600 leading-relaxed">Navigate mobile device policies, shift call-out rules, grooming standards, and probation retention.</p>
+              <div class="pt-1">
+                <span id="mod6-conf-indicator" class="text-xs font-bold text-[#FFB74D]">⭐⭐⭐⭐☆</span>
+              </div>
             </div>
-            <button onclick="openModuleContent('mod-6')" class="w-full py-2 bg-indigo-700 text-white text-xs font-bold rounded-lg hover:bg-indigo-800 transition">
+            <button onclick="openModuleContent('mod-6')" class="w-full py-2 bg-[#1D2B53] text-white text-xs font-bold rounded-lg hover:bg-slate-800 transition">
               Detailed Guide & 8-Q Quiz
             </button>
           </div>
 
           <!-- Module 07 -->
-          <div class="border border-emerald-300 rounded-xl p-5 space-y-4 bg-emerald-50 hover:shadow-md transition flex flex-col justify-between">
+          <div class="border border-slate-200 rounded-xl p-5 space-y-4 bg-slate-50 hover:shadow-md transition flex flex-col justify-between">
             <div class="space-y-3">
               <div class="flex justify-between items-center">
-                <span class="px-2 py-1 bg-emerald-700 text-white text-xs font-bold rounded">Module 07</span>
-                <span id="mod7-conf-indicator" class="text-xs font-bold text-amber-600">⭐⭐⭐☆☆</span>
+                <span class="px-2 py-1 bg-[#4CAF50]/10 text-[#4CAF50] text-xs font-bold rounded">Module 07</span>
+                <span id="badge-mod-7" class="px-2 py-0.5 bg-amber-100 text-amber-800 text-[10px] font-extrabold rounded-full uppercase">In Progress</span>
               </div>
-              <h3 class="font-bold text-slate-900 text-base">Transition Budgeting & Pay</h3>
-              <p class="text-xs text-slate-600 leading-relaxed">15 expanded points covering pay lags, Centrelink income reporting, PAYG tax, and shift budgeting.</p>
+              <h3 class="font-bold text-[#1D2B53] text-base">Financial Literacy & Pay Transition</h3>
+              <p class="text-xs text-slate-600 leading-relaxed">Manage payment gaps, PAYG tax withholding, Centrelink income reporting, and payslip audits.</p>
+              <div class="pt-1">
+                <span id="mod7-conf-indicator" class="text-xs font-bold text-[#FFB74D]">⭐⭐⭐☆☆</span>
+              </div>
             </div>
-            <button onclick="openModuleContent('mod-7')" class="w-full py-2 bg-emerald-800 text-white text-xs font-bold rounded-lg hover:bg-emerald-900 transition">
+            <button onclick="openModuleContent('mod-7')" class="w-full py-2 bg-[#4CAF50] text-white text-xs font-bold rounded-lg hover:bg-emerald-600 transition">
               Detailed Guide & 8-Q Quiz
             </button>
           </div>
 
           <!-- Module 08 -->
-          <div class="border border-rose-300 rounded-xl p-5 space-y-4 bg-rose-50 hover:shadow-md transition flex flex-col justify-between">
+          <div class="border border-slate-200 rounded-xl p-5 space-y-4 bg-slate-50 hover:shadow-md transition flex flex-col justify-between">
             <div class="space-y-3">
               <div class="flex justify-between items-center">
-                <span class="px-2 py-1 bg-rose-600 text-white text-xs font-bold rounded">Module 08</span>
-                <span id="mod8-conf-indicator" class="text-xs font-bold text-amber-600">⭐⭐⭐⭐☆</span>
+                <span class="px-2 py-1 bg-[#9C27B0]/10 text-[#9C27B0] text-xs font-bold rounded">Module 08</span>
+                <span id="badge-mod-8" class="px-2 py-0.5 bg-amber-100 text-amber-800 text-[10px] font-extrabold rounded-full uppercase">In Progress</span>
               </div>
-              <h3 class="font-bold text-slate-900 text-base">Wellbeing & Mental Resilience</h3>
-              <p class="text-xs text-slate-600 leading-relaxed">15 expanded points covering shift fatigue, rejection resilience, EAP counseling, and work-life balance.</p>
+              <h3 class="font-bold text-[#1D2B53] text-base">Personal Wellbeing & Resilience</h3>
+              <p class="text-xs text-slate-600 leading-relaxed">Handle application fatigue, shift sleep hygiene, EAP mental health services, and work-life balance.</p>
+              <div class="pt-1">
+                <span id="mod8-conf-indicator" class="text-xs font-bold text-[#FFB74D]">⭐⭐⭐⭐☆</span>
+              </div>
             </div>
-            <button onclick="openModuleContent('mod-8')" class="w-full py-2 bg-rose-700 text-white text-xs font-bold rounded-lg hover:bg-rose-800 transition">
+            <button onclick="openModuleContent('mod-8')" class="w-full py-2 bg-[#9C27B0] text-white text-xs font-bold rounded-lg hover:bg-purple-800 transition">
               Detailed Guide & 8-Q Quiz
             </button>
           </div>
@@ -665,7 +689,7 @@
                   <th class="p-2.5">Method</th>
                   <th class="p-2.5">Evidence File</th>
                   <th class="p-2.5">Status</th>
-                  <th class="p-2.5">Jobseeker Action</th>
+                  <th class="p-2.5">Candidate Action</th>
                 </tr>
               </thead>
               <tbody id="evidence-log-table" class="divide-y">
@@ -718,7 +742,7 @@
               <tbody id="cm-evidence-verification-table" class="divide-y">
                 <tr id="cm-row-demo">
                   <td class="p-2.5">13-Sep-2026</td>
-                  <td class="p-2.5 font-bold text-[#1D2B53]">Demonstration Jobseeker</td>
+                  <td class="p-2.5 font-bold text-[#1D2B53]">Demonstration Candidate</td>
                   <td class="p-2.5">Bunnings Warehouse</td>
                   <td class="p-2.5">Team Member</td>
                   <td class="p-2.5 font-mono text-[11px] text-blue-700">confirmation_receipt.pdf</td>
@@ -830,10 +854,10 @@
         <div class="text-center space-y-4 py-8">
           <p class="text-xs uppercase tracking-widest text-slate-500 font-bold">Official Verifiable Compliance Certificate</p>
           <h2 class="text-3xl font-extrabold text-[#1D2B53]">THIS IS PROUDLY PRESENTED TO</h2>
-          <p class="text-3xl font-bold text-emerald-600 border-b-2 border-slate-400 pb-2 inline-block px-12">Demonstration Jobseeker</p>
+          <p class="text-3xl font-bold text-[#4CAF50] border-b-2 border-slate-400 pb-2 inline-block px-12">Demonstration Candidate</p>
           <p class="text-sm text-slate-700 pt-2">For successfully completing the 8-question workforce compliance assessment module:</p>
           <h3 id="cert-module-title" class="text-2xl font-extrabold text-slate-900">Workplace Rights & Safety</h3>
-          <p class="text-xs text-slate-600">Achieved Score: <span id="cert-score" class="font-bold text-emerald-600 text-sm">100%</span> (Minimum Passing Grade: 80%)</p>
+          <p class="text-xs text-slate-600">Achieved Score: <span id="cert-score" class="font-bold text-[#4CAF50] text-sm">100%</span> (Minimum Passing Grade: 80%)</p>
         </div>
 
         <div class="border-t-2 border-slate-300 pt-4 flex justify-between items-end text-xs text-slate-600">
@@ -843,7 +867,7 @@
           </div>
           <div class="text-right">
             <div id="cert-audit-hash" class="font-mono text-[11px] text-slate-500">Audit Hash: #WR-20260913-8F92</div>
-            <div class="text-emerald-600 font-bold text-sm">Status: Official Verified Record</div>
+            <div class="text-[#4CAF50] font-bold text-sm">Status: Official Verified Record</div>
           </div>
         </div>
 
@@ -1000,6 +1024,33 @@
       document.getElementById('resume-badge').innerText = `${resumeLeft} Left`;
     };
 
+    // Dynamic Module Completion Tracker (Stored in localStorage)
+    function renderModuleCompletionBadges() {
+      const completedMods = JSON.parse(localStorage.getItem('workready_completed_modules') || '[]');
+      
+      ['mod-1', 'mod-2', 'mod-3', 'mod-4', 'mod-5', 'mod-6', 'mod-7', 'mod-8'].forEach(modId => {
+        const badgeEl = document.getElementById(`badge-${modId}`);
+        if (badgeEl) {
+          if (completedMods.includes(modId)) {
+            badgeEl.className = "px-2 py-0.5 bg-[#4CAF50] text-white text-[10px] font-extrabold rounded-full uppercase shadow-sm";
+            badgeEl.innerText = "✓ Completed";
+          } else {
+            badgeEl.className = "px-2 py-0.5 bg-amber-100 text-amber-800 text-[10px] font-extrabold rounded-full uppercase";
+            badgeEl.innerText = "In Progress";
+          }
+        }
+      });
+    }
+
+    function markModuleCompleted(modId) {
+      let completedMods = JSON.parse(localStorage.getItem('workready_completed_modules') || '[]');
+      if (!completedMods.includes(modId)) {
+        completedMods.push(modId);
+        localStorage.setItem('workready_completed_modules', JSON.stringify(completedMods));
+      }
+      renderModuleCompletionBadges();
+    }
+
     function openBaselineModal() {
       if (baselineCompleted) {
         alert("Pre-Program Confidence Baseline has already been recorded. Edits are locked.");
@@ -1084,7 +1135,7 @@
     // Interview Runner Engine
     function startInterview() {
       if (window.interviewAttemptsUsed >= window.MAX_ATTEMPTS) {
-        alert("Monthly limit reached. Jobseekers are allocated 3 interview sessions per month.");
+        alert("Monthly limit reached. Candidates are allocated 3 interview sessions per month.");
         return;
       }
       window.interviewAttemptsUsed++;
@@ -1288,6 +1339,7 @@
       closeQuizModal();
 
       if (percentage >= 80) {
+        markModuleCompleted(activeModuleId);
         showCertificate(mod.title, percentage);
       } else {
         alert(`Quiz Score: ${percentage}%. You must score 80% or higher to earn your certificate. Please review the study guide and try again!`);
@@ -1356,7 +1408,7 @@
         msgCard.className = "p-3 bg-white border border-purple-200 rounded text-xs space-y-1 mt-2";
         msgCard.innerHTML = `
           <div class="flex justify-between font-bold text-slate-800">
-            <span>Demonstration Jobseeker [${topic}]</span>
+            <span>Demonstration Candidate [${topic}]</span>
             <span class="text-slate-400 font-normal">Just now</span>
           </div>
           <p class="text-slate-600">"${text}"</p>
@@ -1368,7 +1420,7 @@
     }
 
     function viewJobseekerEvidence(employer, fileName) {
-      alert(`Inspecting Jobseeker Uploaded Evidence:\n\nEmployer: ${employer}\nAttachment: ${fileName}`);
+      alert(`Inspecting Candidate Uploaded Evidence:\n\nEmployer: ${employer}\nAttachment: ${fileName}`);
     }
 
     // Evidence Logger & CM Verification Actions
@@ -1409,7 +1461,7 @@
         cmRow.id = cmRowId;
         cmRow.innerHTML = `
           <td class="p-2.5">${date}</td>
-          <td class="p-2.5 font-bold text-[#1D2B53]">Demonstration Jobseeker</td>
+          <td class="p-2.5 font-bold text-[#1D2B53]">Demonstration Candidate</td>
           <td class="p-2.5">${employer}</td>
           <td class="p-2.5">${position}</td>
           <td class="p-2.5 font-mono text-[11px] text-blue-700">${fileName}</td>
@@ -1450,6 +1502,7 @@
     window.onload = () => {
       enforceSecurityHierarchy();
       window.updateQuotaUI();
+      renderModuleCompletionBadges();
     };
   </script>
 </body>
