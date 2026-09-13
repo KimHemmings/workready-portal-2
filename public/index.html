@@ -8,9 +8,10 @@
   <!-- html2pdf Library for Client-Side PDF Export -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 
-  <!-- Externalized Learning Content & Question Data -->
+  <!-- Externalized Learning Content, Question Data & PDF Exporter Engine -->
   <script src="/js/modulesData.js"></script>
   <script src="/js/quizQuestions.js"></script>
+  <script src="/js/pdfExporter.js"></script>
 
   <style>
     :root {
@@ -898,6 +899,59 @@
   <script>
     let baselineCompleted = false;
 
+    // Fallback RAW_QUESTION_BANKS if interviewQuestions.js is not loaded separately yet
+    window.RAW_QUESTION_BANKS = window.RAW_QUESTION_BANKS || {
+      retail: [
+        "Why would you like to work as a retail shop assistant with our team?",
+        "How would you greet a customer when they walk through the store entrance?",
+        "What would you do if a customer asks for an item that is out of stock?",
+        "How do you ensure you arrive on time for early morning or weekend shifts?",
+        "Tell me about a time you helped someone or worked well in a team.",
+        "How would you handle a situation where the store gets very busy?",
+        "Why is keeping store shelves neat and clean important for sales?",
+        "What strengths make you a great fit for customer service?"
+      ],
+      hospitality: [
+        "What interests you about working in food service or hospitality?",
+        "How do you maintain good personal hygiene and uniform standards at work?",
+        "How would you handle a friendly customer versus a customer in a hurry?",
+        "What steps do you take to follow basic food safety and cleanliness?"
+      ],
+      warehouse: [
+        "Why are you interested in warehouse and logistics work?",
+        "How do you make sure you follow safety rules and wear required PPE?",
+        "What would you do if you noticed a broken box or safety hazard on the floor?",
+        "How do you stay organized when packing or sorting multiple items?"
+      ],
+      cleaning: [
+        "Why are you applying for a commercial cleaning role with us?",
+        "How do you ensure you follow chemical handling safety labels (SDS)?",
+        "What is your approach to completing repetitive tasks to a high standard?",
+        "How do you manage your time when cleaning multiple rooms or offices?"
+      ],
+      construction: [
+        "Why do you want to start a career as a general construction laborer?",
+        "What safety gear (PPE) do you expect to wear daily on a site?",
+        "How would you handle physically demanding outdoor work in warm weather?",
+        "What steps do you take if you are unsure how to safely operate a tool?"
+      ],
+      admin: [
+        "Why are you seeking an office support or junior admin role?",
+        "How do you rate your basic computer, email, and typing skills?",
+        "How would you answer a general phone inquiry politely?",
+        "How do you keep paper files or digital folders organized?"
+      ]
+    };
+
+    function shuffleArray(array) {
+      const arr = [...array];
+      for (let i = arr.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [arr[i], arr[j]] = [arr[j], arr[i]];
+      }
+      return arr;
+    }
+
     // State & Quotas
     let activeRole = 'jobseeker';
     let currentIndustry = "retail";
@@ -1002,7 +1056,7 @@
 
       if (activeRole === 'system_admin') {
         document.getElementById('nav-casemanager').classList.remove('hidden');
-        document.getElementById('nav-business').classList.remove('hidden');
+        document.getElementById('nav-[#nav-business]').classList.remove('hidden');
         document.getElementById('nav-admin').classList.remove('hidden');
         switchTab('admin');
       } else if (activeRole === 'case_manager') {
@@ -1386,26 +1440,7 @@
       document.getElementById('resume-output-box').classList.remove('hidden');
     }
 
-    // PDF Canvas Exporters
-    async function generatePdfFromElement(elementId, filename, isLandscape = false) {
-      const element = document.getElementById(elementId);
-      if (!element) return alert("Export target element not found.");
-
-      const opt = {
-        margin:       [0.3, 0.3, 0.3, 0.3],
-        filename:     filename,
-        image:        { type: 'jpeg', quality: 0.98 },
-        html2canvas:  { scale: 2, useCORS: true, logging: false, scrollY: 0 },
-        jsPDF:        { unit: 'in', format: 'a4', orientation: isLandscape ? 'landscape' : 'portrait' }
-      };
-      await html2pdf().set(opt).from(element).save();
-    }
-
-    function downloadInterviewPDF() { generatePdfFromElement('interview-pdf-target', 'STAR_Interview_Report.pdf'); }
-    function downloadResumePDF() { generatePdfFromElement('resume-document-template', 'Professional_Resume.pdf'); }
-    function downloadCoverLetterPDF() { generatePdfFromElement('cover-letter-document-template', 'Tailored_Cover_Letter.pdf'); }
-    function downloadCertificatePDF() { generatePdfFromElement('certificate-pdf-element', 'WorkReady_Compliance_Certificate.pdf', true); }
-
+    // Word Exporters
     function downloadResumeWord() {
       const content = document.getElementById('resume-document-template').innerHTML;
       const source = 'data:application/vnd.ms-word;charset=utf-8,' + encodeURIComponent("<html><body>" + content + "</body></html>");
