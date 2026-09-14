@@ -32,9 +32,33 @@ export default function Login() {
     const data = await signInUser(email.trim(), password);
     return data;
   },
-  onSuccess: () => {
+ onSuccess: (data: any) => {
     toast.success("Signed in successfully!");
-    navigate("/dashboard");
+    
+    const userEmail = email.trim().toLowerCase();
+
+    // Direct system admin straight to the admin dashboard
+    if (userEmail === "admin@straightuptraining.com") {
+      navigate("/admin");
+      return;
+    }
+
+    // Direct sales demo straight to the owner/manager dashboard
+    if (userEmail === "training@straightuptraining.com") {
+      navigate("/owner");
+      return;
+    }
+
+    // Route other users based on their assigned role
+    const role = data?.user?.user_metadata?.role || data?.user?.role;
+
+    if (role === "owner" || role === "business_manager") {
+      navigate("/owner");
+    } else if (role === "coach" || role === "case_manager") {
+      navigate("/coach");
+    } else {
+      navigate("/participant");
+    }
   },
   onError: (error: any) => {
     toast.error(error.message || "Failed to sign in. Please check your credentials.");
