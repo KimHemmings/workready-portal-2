@@ -1,4 +1,3 @@
-import SalesRepFeedbackModal from '@/components/SalesRepFeedbackModal';
 import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Archive, Building2, Image as ImageIcon, KeyRound, Link as LinkIcon, UserPlus } from "lucide-react";
@@ -59,8 +58,7 @@ import type {
 
 const PIE_COLOURS = ["#7C3AED", "#1E3A8A", "#F97316", "#10B981", "#0EA5E9"];
 
-
-  const [showFeedbackModal, setShowFeedbackModal] = React.useState(false);
+export default function AdminDashboard() {
   const user = getSessionUser();
   const qc = useQueryClient();
   const [name, setName] = useState("");
@@ -531,6 +529,62 @@ const PIE_COLOURS = ["#7C3AED", "#1E3A8A", "#F97316", "#10B981", "#0EA5E9"];
             )}
           </CardContent>
         </Card>
+      {/* Sales Representative Feedback & Reported Issues Inbox (View-Only) */}
+      <div className="mt-8 mb-8 bg-white border border-slate-200 rounded-lg p-6 shadow-sm">
+        <div className="flex justify-between items-center mb-4">
+          <div>
+            <h3 className="text-lg font-bold text-slate-800">Sales Representative Feedback & Reported Issues</h3>
+            <p className="text-xs text-slate-500">Live feed of technical issues, demo feedback, and feature requests submitted by sales reps.</p>
+          </div>
+          <span className="text-xs font-semibold px-2.5 py-1 bg-slate-100 text-slate-600 rounded-full border border-slate-200">
+            System Admin Read-Only Mode
+          </span>
+        </div>
+        <div className="overflow-x-auto">
+          <table className="w-full text-left text-sm border-collapse">
+            <thead>
+              <tr className="bg-slate-100 text-slate-700 border-b border-slate-200">
+                <th className="p-3 font-semibold">Date / Time</th>
+                <th className="p-3 font-semibold">Sales Rep Email</th>
+                <th className="p-3 font-semibold">Category</th>
+                <th className="p-3 font-semibold">Message & Details</th>
+                <th className="p-3 font-semibold">Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              {(() => {
+                const logs = JSON.parse(localStorage.getItem('portal_rep_feedback') || '[]');
+                if (logs.length === 0) {
+                  return (
+                    <tr>
+                      <td colSpan={5} className="p-6 text-center text-slate-400 italic">
+                        No issues or suggestions logged by sales representatives yet.
+                      </td>
+                    </tr>
+                  );
+                }
+                return logs.map((item: any) => (
+                  <tr key={item.id || item.timestamp} className="border-b border-slate-100 hover:bg-slate-50">
+                    <td className="p-3 text-xs text-slate-500 font-mono">{item.timestamp}</td>
+                    <td className="p-3 font-medium text-slate-800">{item.repEmail || 'sales@straightuptraining.com'}</td>
+                    <td className="p-3">
+                      <span className="text-xs px-2.5 py-1 rounded-full font-semibold bg-blue-100 text-blue-700">
+                        {item.category || 'General'}
+                      </span>
+                    </td>
+                    <td className="p-3 text-slate-700 max-w-md break-words">{item.message}</td>
+                    <td className="p-3">
+                      <span className="text-xs bg-amber-100 text-amber-800 px-2.5 py-1 rounded-full font-medium">
+                        {item.status || 'Open'}
+                      </span>
+                    </td>
+                  </tr>
+                ));
+              })()}
+            </tbody>
+          </table>
+        </div>
+      </div>
       </div>
 
       <InviteLinkDialog result={invitePreview} onClose={() => setInvitePreview(null)} />
@@ -538,4 +592,3 @@ const PIE_COLOURS = ["#7C3AED", "#1E3A8A", "#F97316", "#10B981", "#0EA5E9"];
     </AppShell>
   );
 }
-
