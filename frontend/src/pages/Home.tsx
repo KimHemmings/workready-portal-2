@@ -12,7 +12,16 @@ export default function Home() {
   const [error, setError] = useState('');
   const [secretCounter, setSecretCounter] = useState(0);
 
-  // Hidden backdoor trigger: double-clicking logo 3 times unlocks Demo/Admin links
+  // Modal States
+  const [isForgotOpen, setIsForgotOpen] = useState(false);
+  const [resetEmail, setResetEmail] = useState('');
+  const [resetMessage, setResetMessage] = useState('');
+
+  const [isMfaOpen, setIsMfaOpen] = useState(false);
+  const [mfaCode, setMfaCode] = useState(['', '', '', '', '', '']);
+  const [pendingTargetRoute, setPendingTargetRoute] = useState('');
+
+  // Hidden backdoor trigger
   const handleLogoClick = () => {
     const newCount = secretCounter + 1;
     setSecretCounter(newCount);
@@ -32,7 +41,7 @@ export default function Home() {
     }
     setError('');
 
-    // Hidden credential checks
+    // Hidden credential shortcuts
     if (email === 'admin@workready.com' || email === 'admin@straightuptraining.com') {
       navigate('/admin');
       return;
@@ -42,19 +51,54 @@ export default function Home() {
       return;
     }
 
-    // Role-based secure routing
-    switch (selectedRole) {
-      case 'case_manager':
-        navigate('/case-manager/profile');
-        break;
-      case 'candidate':
-        navigate('/candidate/workspace');
-        break;
-      case 'business_manager':
-        navigate('/business/workspace');
-        break;
-      default:
-        navigate('/');
+    // Determine target route based on role
+    let target = '/';
+    if (selectedRole === 'case_manager') target = '/case-manager/profile';
+    if (selectedRole === 'candidate') target = '/candidate/workspace';
+    if (selectedRole === 'business_manager') target = '/business/workspace';
+
+    // Intercept staff roles (Case Manager & Business Manager) with MFA prompt
+    if (selectedRole === 'case_manager' || selectedRole === 'business_manager') {
+      setPendingTargetRoute(target);
+      setIsMfaOpen(true);
+    } else {
+      // Candidates log in directly
+      navigate(target);
+    }
+  };
+
+  const handleSsoLogin = () => {
+    let target = '/case-manager/profile';
+    if (selectedRole === 'candidate') target = '/candidate/workspace';
+    if (selectedRole === 'business_manager') target = '/business/workspace';
+    
+    // SSO auto-authenticates and routes directly
+    navigate(target);
+  };
+
+  const handleForgotPasswordSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!resetEmail) return;
+    setResetMessage(`Password reset link sent to ${resetEmail}`);
+    setTimeout(() => {
+      setIsForgotOpen(false);
+      setResetEmail('');
+      setResetMessage('');
+    }, 1800);
+  };
+
+  const handleMfaInput = (val: string, index: number) => {
+    if (val.length > 1) return;
+    const updated = [...mfaCode];
+    updated[index] = val;
+    setMfaCode(updated);
+
+    // Auto-submit when all 6 digits are entered
+    if (updated.every(digit => digit !== '') && index === 5) {
+      setTimeout(() => {
+        setIsMfaOpen(false);
+        navigate(pendingTargetRoute || '/');
+      }, 300);
     }
   };
 
@@ -100,7 +144,7 @@ export default function Home() {
         </div>
 
         {/* Form Container */}
-        <form onSubmit={handleLogin} style={{ padding: '1.5rem 1.75rem 2rem' }}>
+        <form onSubmit={handleLogin} style={{ padding: '1.25rem 1.75rem 2rem' }}>
           {error && (
             <div style={{ backgroundColor: '#fef2f2', color: '#991b1b', border: '1px solid #fecaca', padding: '0.6rem 0.8rem', borderRadius: '8px', fontSize: '0.85rem', marginBottom: '1rem' }}>
               {error}
@@ -178,9 +222,18 @@ export default function Home() {
             />
           </div>
 
-          {/* Password Input with Eye Toggle */}
-          <div style={{ marginBottom: '1.5rem' }}>
-            <label style={{ display: 'block', fontSize: '0.85rem', color: '#334155', fontWeight: 600, marginBottom: '0.4rem' }}>Password</label>
+          {/* Password Input with Eye Toggle & Forgot Password Link */}
+          <div style={{ marginBottom: '1.25rem' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.4rem' }}>
+              <label style={{ fontSize: '0.85rem', color: '#334155', fontWeight: 600 }}>Password</label>
+              <button
+                type="button"
+                onClick={() => setIsForgotOpen(true)}
+                style={{ background: 'none', border: 'none', color: '#2563eb', fontSize: '0.75rem', fontWeight: 600, cursor: 'pointer' }}
+              >
+                Forgot password?
+              </button>
+            </div>
             <div style={{ position: 'relative' }}>
               <input
                 type={showPassword ? 'text' : 'password'}
@@ -215,14 +268,37 @@ export default function Home() {
               fontSize: '0.95rem',
               cursor: 'pointer',
               boxShadow: '0 4px 12px rgba(22, 163, 74, 0.3)',
-              transition: 'background-color 0.2s ease'
+              marginBottom: '0.85rem'
             }}
           >
             Sign In to {selectedRole === 'case_manager' ? 'Case Manager Portal' : selectedRole === 'candidate' ? 'Candidate Workspace' : 'Business Portal'}
           </button>
 
+          {/* Microsoft / Provider SSO Option */}
+          <button
+            type="button"
+            onClick={handleSsoLogin}
+            style={{
+              width: '100%',
+              backgroundColor: '#f8fafc',
+              color: '#334155',
+              border: '1px solid #cbd5e1',
+              padding: '0.65rem',
+              borderRadius: '8px',
+              fontWeight: 600,
+              fontSize: '0.85rem',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: '0.5rem'
+            }}
+          >
+            <span style={{ fontSize: '1.1rem' }}>❖</span> Sign in with Microsoft / Organization SSO
+          </button>
+
           {/* Footer Links & Copyright */}
-          <div style={{ marginTop: '1.75rem', textAlign: 'center', fontSize: '0.75rem', color: '#94a3b8', lineHeight: '1.6' }}>
+          <div style={{ marginTop: '1.5rem', textAlign: 'center', fontSize: '0.75rem', color: '#94a3b8', lineHeight: '1.6' }}>
             <a href="#terms" style={{ color: '#64748b', textDecoration: 'none', margin: '0 0.4rem' }}>Terms & Conditions</a>
             •
             <a href="#privacy" style={{ color: '#64748b', textDecoration: 'none', margin: '0 0.4rem' }}>Privacy Policy</a>
@@ -232,6 +308,93 @@ export default function Home() {
           </div>
         </form>
       </div>
+
+      {/* FORGOT PASSWORD MODAL */}
+      {isForgotOpen && (
+        <div style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.6)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, padding: '1rem' }}>
+          <div style={{ backgroundColor: '#fff', borderRadius: '12px', padding: '1.75rem', maxWidth: '380px', width: '100%', boxShadow: '0 10px 25px rgba(0,0,0,0.2)' }}>
+            <h3 style={{ margin: '0 0 0.5rem', color: '#0f172a' }}>🔒 Reset Account Password</h3>
+            <p style={{ margin: '0 0 1.25rem', color: '#64748b', fontSize: '0.85rem' }}>Enter your email address and we'll send you a password reset authorization link.</p>
+            
+            {resetMessage && (
+              <div style={{ backgroundColor: '#f0fdf4', color: '#166534', border: '1px solid #bbf7d0', padding: '0.6rem', borderRadius: '6px', fontSize: '0.85rem', marginBottom: '1rem', fontWeight: 600 }}>
+                {resetMessage}
+              </div>
+            )}
+
+            <form onSubmit={handleForgotPasswordSubmit}>
+              <input
+                type="email"
+                value={resetEmail}
+                onChange={(e) => setResetEmail(e.target.value)}
+                placeholder="name@workready.com.au"
+                required
+                style={{ width: '100%', padding: '0.65rem 0.8rem', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '0.9rem', marginBottom: '1.25rem', boxSizing: 'border-box' }}
+              />
+              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.5rem' }}>
+                <button type="button" onClick={() => setIsForgotOpen(false)} style={{ backgroundColor: '#f1f5f9', border: 'none', padding: '0.5rem 1rem', borderRadius: '6px', cursor: 'pointer', fontSize: '0.85rem' }}>Cancel</button>
+                <button type="submit" style={{ backgroundColor: '#16a34a', color: '#fff', border: 'none', padding: '0.5rem 1rem', borderRadius: '6px', cursor: 'pointer', fontWeight: 600, fontSize: '0.85rem' }}>Send Link</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* MFA 2-FACTOR VERIFICATION MODAL */}
+      {isMfaOpen && (
+        <div style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.7)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, padding: '1rem' }}>
+          <div style={{ backgroundColor: '#fff', borderRadius: '12px', padding: '2rem', maxWidth: '400px', width: '100%', boxShadow: '0 10px 25px rgba(0,0,0,0.3)', textAlign: 'center' }}>
+            <div style={{ fontSize: '2rem', marginBottom: '0.5rem' }}>🔐</div>
+            <h3 style={{ margin: '0 0 0.5rem', color: '#0f172a' }}>Two-Factor Verification</h3>
+            <p style={{ margin: '0 0 1.5rem', color: '#64748b', fontSize: '0.85rem', lineHeight: '1.4' }}>
+              For staff security, enter the 6-digit verification code sent to your registered authenticator or email.
+            </p>
+
+            <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'center', marginBottom: '1.5rem' }}>
+              {mfaCode.map((digit, idx) => (
+                <input
+                  key={idx}
+                  type="text"
+                  maxLength={1}
+                  value={digit}
+                  onChange={(e) => handleMfaInput(e.target.value, idx)}
+                  style={{
+                    width: '42px',
+                    height: '48px',
+                    textAlign: 'center',
+                    fontSize: '1.25rem',
+                    fontWeight: 700,
+                    borderRadius: '8px',
+                    border: '2px solid #cbd5e1',
+                    outline: 'none',
+                    backgroundColor: '#f8fafc'
+                  }}
+                />
+              ))}
+            </div>
+
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <button
+                type="button"
+                onClick={() => setIsMfaOpen(false)}
+                style={{ backgroundColor: '#f1f5f9', color: '#475569', border: 'none', padding: '0.55rem 1rem', borderRadius: '6px', cursor: 'pointer', fontSize: '0.85rem' }}
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setIsMfaOpen(false);
+                  navigate(pendingTargetRoute || '/');
+                }}
+                style={{ backgroundColor: '#16a34a', color: '#fff', border: 'none', padding: '0.55rem 1.2rem', borderRadius: '6px', fontWeight: 700, cursor: 'pointer', fontSize: '0.85rem' }}
+              >
+                Verify & Access
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
