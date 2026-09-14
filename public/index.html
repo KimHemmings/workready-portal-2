@@ -1863,7 +1863,7 @@
 
   </div>
 
-  <!-- JAVASCRIPT ENGINE ROUTER -->
+<!-- JAVASCRIPT ENGINE ROUTER -->
   <script>
     let activeRole = 'system_admin';
 
@@ -1891,10 +1891,43 @@
     window.resumeAttemptsUsed = 0;
     window.MAX_ATTEMPTS = 3;
 
+    // Sales Rep Functions
+    function openCreateSalesRepModal() {
+      document.getElementById('create-sales-rep-modal')?.classList.remove('hidden');
+    }
+
+    function closeCreateSalesRepModal() {
+      document.getElementById('create-sales-rep-modal')?.classList.add('hidden');
+    }
+
+    function handleCreateSalesRepSubmit(event) {
+      event.preventDefault();
+      const name = document.getElementById('sales-rep-name').value.trim();
+      const email = document.getElementById('sales-rep-email').value.trim().toLowerCase();
+      const stream = document.getElementById('sales-rep-stream').value;
+
+      const tbody = document.getElementById('sales-reps-table-body');
+      if (tbody) {
+        const row = document.createElement('tr');
+        row.innerHTML = `
+          <td class="p-3 font-bold text-[#1D2B53]">${name}</td>
+          <td class="p-3 font-mono">${email}</td>
+          <td class="p-3"><span class="px-2 py-1 bg-sky-100 text-sky-800 font-bold rounded">${stream}</span></td>
+          <td class="p-3"><span class="px-2 py-0.5 bg-emerald-100 text-emerald-800 font-bold rounded-full">Active</span></td>
+          <td class="p-3">
+            <button onclick="resetSalesRepSandbox('${email}')" class="px-2.5 py-1 bg-slate-200 text-slate-800 font-bold rounded hover:bg-slate-300">Reset Sandbox</button>
+          </td>
+        `;
+        tbody.prepend(row);
+      }
+
+      window.APPROVED_SALES_REPS[email] = true;
+      closeCreateSalesRepModal();
+      alert(`✅ Sales Rep License provisioned for ${name} (${email}).`);
+    }
+
     function changeActiveRole(role) {
       activeRole = role;
-      
-      // Use sessionStorage so closing browser window requires fresh sign-in
       sessionStorage.setItem('user_role', role);
 
       if (role === 'sales_rep') {
@@ -1914,22 +1947,19 @@
     }
 
     function enforceSecurityHierarchy() {
-      // 1. Hide all navigation tabs first
+      // 1. Hide all navigation tabs
       ['jobseeker', 'casemanager', 'business', 'admin'].forEach(tab => {
         document.getElementById(`nav-${tab}`)?.classList.add('hidden');
       });
 
-      // 2. Target header domain selector wrapper
+      // 2. Hide provider selector wrapper for System Admin
       const domainSelector = document.getElementById('admin-provider-selector')?.parentElement;
 
       if (activeRole === 'system_admin') {
-        // Show ONLY System Admin Console tab up top
+        // Show ONLY System Admin Console tab
         document.getElementById('nav-admin')?.classList.remove('hidden');
-        
-        // Hide Active Provider Domain selector
         if (domainSelector) domainSelector.classList.add('hidden');
         
-        // Render System Admin live data tables
         if (window.SYSTEM_ADMIN && typeof window.SYSTEM_ADMIN.initConsole === 'function') {
           window.SYSTEM_ADMIN.initConsole();
         }
@@ -1969,7 +1999,7 @@
 
     function toggleHighContrast() { document.body.classList.toggle('high-contrast'); }
 
-    // Keyboard & Double-Click Shortcuts for Admin Login
+    // Shortcuts for Quick Admin Login
     document.addEventListener('keydown', (e) => {
       if (e.altKey && e.key.toLowerCase() === 'a') {
         const u = document.getElementById('auth-username');
@@ -1991,7 +2021,6 @@
       }
     });
 
-    // Check active tab session; requires fresh sign in when browser window is closed
     window.onload = () => {
       const role = sessionStorage.getItem('user_role');
       if (role) {
@@ -2001,97 +2030,6 @@
       } else {
         document.getElementById('auth-login-overlay')?.classList.remove('hidden');
         document.getElementById('main-app-container')?.classList.add('hidden');
-      }
-    };
-  </script>
-</body>
-</html>
-    }
-
-    function enforceSecurityHierarchy() {
-      // 1. Hide all navigation tabs first
-      ['jobseeker', 'casemanager', 'business', 'admin'].forEach(tab => {
-        document.getElementById(`nav-${tab}`)?.classList.add('hidden');
-      });
-
-      // 2. Target header domain selector wrapper
-      const domainSelector = document.getElementById('admin-provider-selector')?.parentElement;
-
-      if (activeRole === 'system_admin') {
-        // Show ONLY System Admin Console tab up top
-        document.getElementById('nav-admin')?.classList.remove('hidden');
-        
-        // Hide Active Provider Domain selector (System Admin manages all orgs centrally)
-        if (domainSelector) domainSelector.classList.add('hidden');
-        
-        // Render System Admin live data tables
-        if (window.SYSTEM_ADMIN && typeof window.SYSTEM_ADMIN.initConsole === 'function') {
-          window.SYSTEM_ADMIN.initConsole();
-        }
-        
-        switchTab('admin');
-      } else if (activeRole === 'sales_rep' || activeRole === 'case_manager') {
-        document.getElementById('nav-casemanager')?.classList.remove('hidden');
-        document.getElementById('nav-business')?.classList.remove('hidden');
-        if (domainSelector) domainSelector.classList.remove('hidden');
-        switchTab('casemanager');
-      } else if (activeRole === 'business_manager') {
-        document.getElementById('nav-business')?.classList.remove('hidden');
-        if (domainSelector) domainSelector.classList.remove('hidden');
-        switchTab('business');
-      } else {
-        document.getElementById('nav-jobseeker')?.classList.remove('hidden');
-        if (domainSelector) domainSelector.classList.remove('hidden');
-        switchTab('jobseeker');
-      }
-    }
-
-    function switchTab(tabKey) {
-      ['jobseeker', 'casemanager', 'business', 'admin'].forEach(t => {
-        document.getElementById(`workspace-${t}`)?.classList.add('hidden');
-        const navBtn = document.getElementById(`nav-${t}`);
-        if (navBtn) {
-          navBtn.className = "px-6 py-3 border-b-2 border-transparent text-slate-600 hover:text-[#1D2B53]";
-        }
-      });
-
-      document.getElementById(`workspace-${tabKey}`)?.classList.remove('hidden');
-      const activeNavBtn = document.getElementById(`nav-${tabKey}`);
-      if (activeNavBtn) {
-        activeNavBtn.className = "px-6 py-3 border-b-2 border-[#4CAF50] text-[#1D2B53] font-bold";
-      }
-    }
-
-    function toggleHighContrast() { document.body.classList.toggle('high-contrast'); }
-
-    // Keyboard & Double-Click Shortcuts for Admin Login
-    document.addEventListener('keydown', (e) => {
-      if (e.altKey && e.key.toLowerCase() === 'a') {
-        const u = document.getElementById('auth-username');
-        const p = document.getElementById('auth-password');
-        if (u) u.value = 'admin@straightuptraining.com';
-        if (p) p.value = 'WorkReadyAdmin2026!';
-      }
-    });
-
-    document.addEventListener('DOMContentLoaded', () => {
-      const logoTrigger = document.getElementById('brand-logo-trigger');
-      if (logoTrigger) {
-        logoTrigger.addEventListener('dblclick', () => {
-          const u = document.getElementById('auth-username');
-          const p = document.getElementById('auth-password');
-          if (u) u.value = 'admin@straightuptraining.com';
-          if (p) p.value = 'WorkReadyAdmin2026!';
-        });
-      }
-    });
-
-    window.onload = () => {
-      const role = localStorage.getItem('user_role');
-      if (role) {
-        document.getElementById('auth-login-overlay')?.classList.add('hidden');
-        document.getElementById('main-app-container')?.classList.remove('hidden');
-        changeActiveRole(role);
       }
     };
   </script>

@@ -1,6 +1,4 @@
 // public/js/systemAdminEngine.js
-// System Admin Master Console Engine
-
 window.SYSTEM_ADMIN = {
   providers: [
     {
@@ -50,7 +48,7 @@ window.SYSTEM_ADMIN = {
     }
   ],
 
-  // System Admin & Sales Profile Events ONLY
+  // System Admin & Sales Events Only
   auditLogs: [
     {
       id: "LOG-9901",
