@@ -1,594 +1,111 @@
-import { useState } from "react";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Archive, Building2, Image as ImageIcon, KeyRound, Link as LinkIcon, UserPlus } from "lucide-react";
-import { toast } from "sonner";
-import {
-  Bar,
-  BarChart,
-  CartesianGrid,
-  Cell,
-  Pie,
-  PieChart,
-  ResponsiveContainer,
-  Tooltip,
-  XAxis,
-  YAxis,
-} from "recharts";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
-import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import AppShell from "@/components/AppShell";
-import SendInviteButton from "@/components/SendInviteButton";
-import { InviteLinkDialog, TempPasswordDialog } from "@/components/InviteLinkDialog";
-import { ROLE_LABEL } from "@/lib/roles";
-import { apiGet, apiPatch, apiPost, ApiError } from "@/lib/api";
-import { getSessionUser } from "@/lib/session";
-import type {
-  AdminOverview,
-  InviteResult,
-  Organization,
-  ResetPasswordResult,
-  Role,
-  User,
-} from "@/lib/types";
+import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { supabase } from '../lib/supabase';
 
-const PIE_COLOURS = ["#7C3AED", "#1E3A8A", "#F97316", "#10B981", "#0EA5E9"];
+interface FeedbackItem {
+  id: string;
+  created_at: string;
+  feedback_text: string;
+  status: string;
+  user_email?: string;
+}
 
 export default function AdminDashboard() {
-  const user = getSessionUser();
-  const qc = useQueryClient();
-  const [name, setName] = useState("");
-  const [email, setEmail] = useState("");
-  const [role, setRole] = useState<Role>("participant");
-  const [coachId, setCoachId] = useState("");
-  const [logoUrl, setLogoUrl] = useState("");
-  const [invitePreview, setInvitePreview] = useState<InviteResult | null>(null);
-  const [addOpen, setAddOpen] = useState(false);
-  const [tempPassword, setTempPassword] = useState<ResetPasswordResult | null>(null);
+  const navigate = useNavigate();
+  const [feedbackList, setFeedbackList] = useState<FeedbackItem[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  const overview = useQuery({
-    queryKey: ["admin-overview", user?.id],
-    queryFn: () => apiGet<AdminOverview>(`/admin/${user!.id}/overview`),
-    enabled: Boolean(user),
-  });
+  useEffect(() => {
+    fetchFeedback();
+  }, []);
 
-  const invite = useMutation({
-    mutationFn: () =>
-      apiPost<InviteResult>(`/admin/${user!.id}/users`, {
-        name,
-        email,
-        role,
-        coach_id: role === "participant" && coachId ? coachId : null,
-      }),
-    onSuccess: (res) => {
-      qc.invalidateQueries({ queryKey: ["admin-overview"] });
-      setName("");
-      setEmail("");
-      setInvitePreview(res);
-      setAddOpen(false);
-      toast.success(`${res.user.name} added as a ${ROLE_LABEL[res.user.role]} — copy their invite link.`);
-    },
-    onError: (err) => {
-      const detail = err instanceof ApiError ? (err.body as { detail?: string } | null)?.detail : null;
-      toast.error(detail ?? "Could not invite that user.");
-    },
-  });
+  const fetchFeedback = async () => {
+    setLoading(true);
+    try {
+      const { data, error } = await supabase
+        .from('sales_rep_feedback')
+        .select('*')
+        .order('created_at', { ascending: false });
 
-  const inviteLink = useMutation({
-    mutationFn: (id: string) => apiPost<InviteResult>(`/admin/${user!.id}/users/${id}/invite-link`),
-    onSuccess: (res) => setInvitePreview(res),
-    onError: (err) => {
-      const detail = err instanceof ApiError ? (err.body as { detail?: string } | null)?.detail : null;
-      toast.error(detail ?? "Could not create an invite link.");
-    },
-  });
+      if (!error && data) {
+        setFeedbackList(data);
+      }
+    } catch (err) {
+      console.warn('Supabase fetch error:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
 
-  const resetPassword = useMutation({
-    mutationFn: (id: string) =>
-      apiPost<ResetPasswordResult>(`/admin/${user!.id}/users/${id}/reset-password`),
-    onSuccess: (res) => {
-      qc.invalidateQueries({ queryKey: ["admin-overview"] });
-      setTempPassword(res);
-    },
-    onError: (err) => {
-      const detail = err instanceof ApiError ? (err.body as { detail?: string } | null)?.detail : null;
-      toast.error(detail ?? "Could not reset that password.");
-    },
-  });
+  const markActioned = async (id: string) => {
+    try {
+      const { error } = await supabase
+        .from('sales_rep_feedback')
+        .update({ status: 'Actioned' })
+        .eq('id', id);
 
-  const saveBranding = useMutation({
-    mutationFn: (branding_logo: string) =>
-      apiPatch<Organization>(`/admin/${user!.id}/organization`, { branding_logo }),
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ["admin-overview"] });
-      qc.invalidateQueries({ queryKey: ["organization"] });
-      setLogoUrl("");
-      toast.success("Organisation logo updated — it will appear on new certificate downloads.");
-    },
-    onError: (err) => {
-      const detail = err instanceof ApiError ? (err.body as { detail?: string } | null)?.detail : null;
-      toast.error(detail ?? "Could not save that logo.");
-    },
-  });
-
-  const sweep = useMutation({
-    mutationFn: () => apiPost<{ archived: number; inactive_days: number }>(`/admin/${user!.id}/archive-sweep`),
-    onSuccess: (res) => {
-      qc.invalidateQueries({ queryKey: ["admin-overview"] });
-      toast.success(
-        res.archived > 0
-          ? `${res.archived} learner(s) archived after ${res.inactive_days} days of inactivity.`
-          : `No learners have been inactive for ${res.inactive_days} days.`,
-      );
-    },
-    onError: () => toast.error("Could not run the retention sweep."),
-  });
-
-  const toggle = useMutation({
-    mutationFn: (id: string) => apiPatch<User>(`/admin/${user!.id}/users/${id}/status`),
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ["admin-overview"] });
-      toast.success("Account status updated.");
-    },
-    onError: (err) => {
-      const detail = err instanceof ApiError ? (err.body as { detail?: string } | null)?.detail : null;
-      toast.error(detail ?? "Could not update that account.");
-    },
-  });
-
-  const d = overview.isError ? null : overview.data;
+      if (!error) {
+        setFeedbackList(prev => prev.map(item => item.id === id ? { ...item, status: 'Actioned' } : item));
+      }
+    } catch (err) {
+      console.error('Failed to update status:', err);
+    }
+  };
 
   return (
-    <AppShell>
-      <header className="mb-6">
-        <p className="text-xs uppercase tracking-wider font-semibold text-primary font-mono">
-          Provider Admin
-        </p>
-        <h1 className="font-heading text-3xl sm:text-4xl font-bold tracking-tight mt-1 flex items-center gap-2">
-          <Building2 className="h-7 w-7 text-primary" aria-hidden="true" />
-          {d?.organization.name ?? "Your organisation"}
-        </h1>
-        <p className="text-muted-foreground mt-2">
-          {d ? `${d.organization.type} provider` : "Organisation analytics and user management"}
-        </p>
+    <div style={{ minHeight: '100vh', backgroundColor: '#f4f6f9', fontFamily: 'system-ui, sans-serif' }}>
+      <header style={{ backgroundColor: '#0f172a', color: '#fff', padding: '1rem 2rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+          <img src="/logo.png" alt="Workready Logo" style={{ height: '40px', objectFit: 'contain' }} />
+          <h1 style={{ margin: 0, fontSize: '1.3rem' }}>Workready Portal <span style={{ fontSize: '0.8rem', color: '#94a3b8' }}>| System Admin Inbox</span></h1>
+        </div>
+        <button onClick={() => navigate('/')} style={{ backgroundColor: '#ef4444', color: '#fff', border: 'none', padding: '0.5rem 1rem', borderRadius: '6px', cursor: 'pointer', fontWeight: 600 }}>
+          ?? Sign Out
+        </button>
       </header>
 
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-        {[
-          {
-            label: `Learner seats (max ${d?.participant_seat_limit ?? 100})`,
-            value: `${d?.participant_seats_used ?? 0}/${d?.participant_seat_limit ?? 100}`,
-            testId: "kpi-participants",
-          },
-          {
-            label: `Case Manager seats (max ${d?.coach_seat_limit ?? 5})`,
-            value: `${d?.coach_seats_used ?? 0}/${d?.coach_seat_limit ?? 5}`,
-            testId: "kpi-coaches",
-          },
-          { label: "Cohorts", value: d?.total_cohorts ?? 0, testId: "kpi-cohorts" },
-          { label: "Average completion", value: `${d?.average_completion ?? 0}%`, testId: "kpi-completion" },
-        ].map((kpi) => (
-          <Card key={kpi.label}>
-            <CardContent className="pt-6">
-              <p className="text-2xl font-bold font-heading tabular-nums" data-testid={kpi.testId}>
-                {kpi.value}
-              </p>
-              <p className="text-sm text-muted-foreground">{kpi.label}</p>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
+      <main style={{ padding: '2rem', maxWidth: '1100px', margin: '0 auto' }}>
+        <div style={{ backgroundColor: '#fff', padding: '2rem', borderRadius: '8px', boxShadow: '0 1px 3px rgba(0,0,0,0.1)' }}>
+          <h2 style={{ margin: '0 0 1.5rem', color: '#0f172a' }}>?? Sales Representative Suggestions & Issues</h2>
 
-      <div className="grid gap-6 lg:grid-cols-2 mb-6">
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-lg">Module engagement</CardTitle>
-          </CardHeader>
-          <CardContent className="h-72" data-testid="module-engagement-chart">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={d?.module_engagement ?? []} margin={{ left: -20, bottom: 40 }}>
-                <CartesianGrid strokeDasharray="3 3" vertical={false} />
-                <XAxis dataKey="name" tick={{ fontSize: 10 }} interval={0} angle={-25} textAnchor="end" height={70} />
-                <YAxis allowDecimals={false} tick={{ fontSize: 11 }} />
-                <Tooltip />
-                <Bar dataKey="value" fill="#7C3AED" radius={[6, 6, 0, 0]} />
-              </BarChart>
-            </ResponsiveContainer>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-lg">Completion rate by cohort</CardTitle>
-          </CardHeader>
-          <CardContent className="h-72" data-testid="cohort-completion-chart">
-            <ResponsiveContainer width="100%" height="100%">
-              <PieChart>
-                <Pie
-                  data={d?.cohort_completion ?? []}
-                  dataKey="value"
-                  nameKey="name"
-                  outerRadius={90}
-                  label={(entry: { name?: string; value?: number }) => `${entry.name}: ${entry.value}%`}
-                >
-                  {(d?.cohort_completion ?? []).map((_, i) => (
-                    <Cell key={i} fill={PIE_COLOURS[i % PIE_COLOURS.length]} />
-                  ))}
-                </Pie>
-                <Tooltip />
-              </PieChart>
-            </ResponsiveContainer>
-          </CardContent>
-        </Card>
-      </div>
-
-      <div className="grid gap-6 lg:grid-cols-12">
-        <Card className="lg:col-span-4">
-          <CardHeader>
-            <CardTitle className="text-lg flex items-center gap-2">
-              <ImageIcon className="h-5 w-5 text-brand-purple" aria-hidden="true" /> Organisation branding
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="rounded-xl border border-slate-200/80 bg-muted/40 p-4 flex items-center justify-center min-h-28">
-              {d?.organization.branding_logo ? (
-                <img
-                  src={d.organization.branding_logo}
-                  alt={`${d.organization.name} logo`}
-                  className="max-h-20 object-contain"
-                  data-testid="org-logo-preview"
-                />
-              ) : (
-                <p className="text-sm text-muted-foreground" data-testid="org-logo-empty">
-                  No logo uploaded yet
-                </p>
-              )}
-            </div>
-
-            <div className="rounded-xl border bg-muted/40 p-3 text-sm" data-testid="invite-only-panel">
-              <p className="font-semibold">Invite-only access</p>
-              <p className="text-xs text-muted-foreground mt-1">
-                There is no public sign-up. Add a Case Manager or Learner below and hand them the
-                magic invite link that appears — they set their own password when they open it.
-              </p>
-            </div>
-
-            <div className="space-y-1.5">
-              <Label htmlFor="logo-upload">Upload organisation logo</Label>
-              <Input
-                id="logo-upload"
-                type="file"
-                accept="image/png,image/jpeg,image/svg+xml,image/webp"
-                onChange={(e) => {
-                  const file = e.target.files?.[0];
-                  if (!file) return;
-                  const max = d?.logo_max_bytes ?? 2_097_152;
-                  if (file.size > max) {
-                    toast.error("Logo too large — please choose an image under 2MB.");
-                    return;
-                  }
-                  const reader = new FileReader();
-                  reader.onload = () => saveBranding.mutate(String(reader.result));
-                  reader.onerror = () => toast.error("Could not read that file.");
-                  reader.readAsDataURL(file);
-                }}
-                data-testid="org-logo-upload-input"
-              />
-              <p className="text-xs text-muted-foreground">
-                PNG, JPG, SVG or WebP up to 2MB. This logo appears on every certificate PDF your
-                learners download.
-              </p>
-            </div>
-
-            <div className="space-y-1.5">
-              <Label htmlFor="logo-url">Or paste an image URL</Label>
-              <div className="flex gap-2">
-                <Input
-                  id="logo-url"
-                  value={logoUrl}
-                  onChange={(e) => setLogoUrl(e.target.value)}
-                  placeholder="https://…/logo.png"
-                  data-testid="org-logo-url-input"
-                />
-                <Button
-                  variant="outline"
-                  onClick={() => logoUrl.trim() && saveBranding.mutate(logoUrl.trim())}
-                  disabled={saveBranding.isPending || !logoUrl.trim()}
-                  data-testid="org-logo-url-save-button"
-                >
-                  Save
-                </Button>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="lg:col-span-4">
-          <CardHeader>
-            <CardTitle className="text-lg flex items-center gap-2">
-              <UserPlus className="h-5 w-5 text-primary" aria-hidden="true" /> User management
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            <p className="text-sm text-muted-foreground">
-              Add Case Managers and Learners to your organisation, assign them to a Case Manager,
-              then send their onboarding invitation.
-            </p>
-            <Button
-              className="w-full bg-cta text-cta-foreground hover:bg-cta/90"
-              onClick={() => setAddOpen(true)}
-              data-testid="open-add-user-modal-button"
-            >
-              <UserPlus className="h-4 w-4 mr-1.5" aria-hidden="true" /> Add a user
-            </Button>
-          </CardContent>
-        </Card>
-
-        <Dialog open={addOpen} onOpenChange={(open: boolean) => setAddOpen(open)}>
-          <DialogContent className="sm:max-w-md" data-testid="add-user-modal">
-            <DialogHeader>
-              <DialogTitle className="font-heading">Add a user</DialogTitle>
-              <DialogDescription>
-                They receive a personal onboarding link and set their own password. Seats are capped
-                by your provider plan.
-              </DialogDescription>
-            </DialogHeader>
-            <form
-              className="space-y-4"
-              onSubmit={(e) => {
-                e.preventDefault();
-                if (name.trim() && email.trim()) invite.mutate();
-                else toast.error("Name and email are required.");
-              }}
-              data-testid="add-user-form"
-            >
-              <div className="space-y-1.5">
-                <Label htmlFor="invite-name">Full name</Label>
-                <Input id="invite-name" value={name} onChange={(e) => setName(e.target.value)} data-testid="invite-name-input" />
-              </div>
-              <div className="space-y-1.5">
-                <Label htmlFor="invite-email">Email</Label>
-                <Input id="invite-email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} data-testid="invite-email-input" />
-              </div>
-              <div className="space-y-1.5">
-                <Label htmlFor="invite-org">Provider organisation</Label>
-                <Input
-                  id="invite-org"
-                  value={d?.organization.name ?? ""}
-                  readOnly
-                  className="bg-muted/50"
-                  data-testid="invite-org-input"
-                />
-              </div>
-              <div className="space-y-1.5">
-                <Label htmlFor="invite-role">Role</Label>
-                <Select value={role} onValueChange={(v: string) => setRole(v as Role)}>
-                  <SelectTrigger id="invite-role" data-testid="invite-role-select">
-                    <SelectValue>{(v) => ROLE_LABEL[(v as Role) ?? "participant"]}</SelectValue>
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="participant" data-testid="invite-role-participant">Learner</SelectItem>
-                    <SelectItem value="coach" data-testid="invite-role-coach">Case Manager</SelectItem>
-                    <SelectItem value="admin" data-testid="invite-role-admin">Provider</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              {role === "participant" && (d?.coaches.length ?? 0) > 0 && (
-                <div className="space-y-1.5">
-                  <Label htmlFor="invite-coach">Assign to Case Manager</Label>
-                  <Select value={coachId} onValueChange={(v: string) => setCoachId(v)}>
-                    <SelectTrigger id="invite-coach" data-testid="invite-coach-select">
-                      <SelectValue>
-                        {(v) => d?.coaches.find((c) => c.id === v)?.name ?? "Unassigned"}
-                      </SelectValue>
-                    </SelectTrigger>
-                    <SelectContent>
-                      {(d?.coaches ?? []).map((c) => (
-                        <SelectItem key={c.id} value={c.id} data-testid={`invite-coach-${c.id}`}>
-                          {c.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-              )}
-              <Button type="submit" className="w-full" disabled={invite.isPending} data-testid="invite-submit-button">
-                {invite.isPending ? "Adding…" : "Add user & get invite link"}
-              </Button>
-            </form>
-          </DialogContent>
-        </Dialog>
-
-        <Card className="lg:col-span-8">
-          <CardHeader>
-            <div className="flex flex-wrap items-center justify-between gap-3">
-              <CardTitle className="text-lg">Users in this organisation</CardTitle>
-              <div className="flex items-center gap-2">
-                <Badge variant="secondary" data-testid="archived-count-badge">
-                  {d?.archived_participants ?? 0} archived
-                </Badge>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => sweep.mutate()}
-                  disabled={sweep.isPending}
-                  data-testid="archive-sweep-button"
-                >
-                  <Archive className="h-4 w-4 mr-1.5" aria-hidden="true" />
-                  {sweep.isPending ? "Checking…" : "Run 60-day archive sweep"}
-                </Button>
-              </div>
-            </div>
-          </CardHeader>
-          <CardContent>
-            {(d?.users.length ?? 0) === 0 ? (
-              <p className="text-sm text-muted-foreground" data-testid="admin-users-empty">
-                No users loaded yet.
-              </p>
-            ) : (
-              <Table data-testid="admin-users-table">
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Name</TableHead>
-                    <TableHead>Role</TableHead>
-                    <TableHead>Cohort</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead></TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {(d?.users ?? []).map((u) => (
-                    <TableRow key={u.id} data-testid={`admin-user-row-${u.id}`}>
-                      <TableCell>
-                        <p className="font-medium">{u.name}</p>
-                        <p className="text-xs text-muted-foreground">{u.email}</p>
-                      </TableCell>
-                      <TableCell className="text-sm">{ROLE_LABEL[u.role]}</TableCell>
-                      <TableCell className="text-sm">
-                        {d?.cohorts.find((c) => c.id === u.cohort_id)?.name ?? "—"}
-                      </TableCell>
-                      <TableCell>
-                        <Badge
-                          variant={
-                            u.status === "active" ? "default" : u.status === "archived" ? "destructive" : "secondary"
-                          }
-                          data-testid={`user-status-${u.id}`}
-                        >
-                          {u.status}
-                        </Badge>
-                      </TableCell>
-                      <TableCell className="text-right">
-                        <div className="flex flex-wrap justify-end gap-1">
-                          {u.role !== "owner" && (
-                            <>
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                onClick={() => inviteLink.mutate(u.id)}
-                                disabled={inviteLink.isPending}
-                                data-testid={`copy-invite-link-${u.id}`}
-                              >
-                                <LinkIcon className="h-4 w-4 mr-1.5" aria-hidden="true" /> Invite link
-                              </Button>
-                              <SendInviteButton
-                                inviterId={user!.id}
-                                userId={u.id}
-                                userName={u.name}
-                                testId={`send-invite-${u.id}`}
-                              />
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                onClick={() => resetPassword.mutate(u.id)}
-                                disabled={resetPassword.isPending || u.id === user?.id}
-                                data-testid={`reset-password-${u.id}`}
-                              >
-                                <KeyRound className="h-4 w-4 mr-1.5" aria-hidden="true" /> Reset password
-                              </Button>
-                            </>
-                          )}
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => toggle.mutate(u.id)}
-                            disabled={u.id === user?.id}
-                            data-testid={`toggle-status-${u.id}`}
-                          >
-                            {u.status === "active" ? "Deactivate" : "Reactivate"}
-                          </Button>
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            )}
-          </CardContent>
-        </Card>
-      {/* Sales Representative Feedback & Reported Issues Inbox (View-Only) */}
-      <div className="mt-8 mb-8 bg-white border border-slate-200 rounded-lg p-6 shadow-sm">
-        <div className="flex justify-between items-center mb-4">
-          <div>
-            <h3 className="text-lg font-bold text-slate-800">Sales Representative Feedback & Reported Issues</h3>
-            <p className="text-xs text-slate-500">Live feed of technical issues, demo feedback, and feature requests submitted by sales reps.</p>
-          </div>
-          <span className="text-xs font-semibold px-2.5 py-1 bg-slate-100 text-slate-600 rounded-full border border-slate-200">
-            System Admin Read-Only Mode
-          </span>
-        </div>
-        <div className="overflow-x-auto">
-          <table className="w-full text-left text-sm border-collapse">
-            <thead>
-              <tr className="bg-slate-100 text-slate-700 border-b border-slate-200">
-                <th className="p-3 font-semibold">Date / Time</th>
-                <th className="p-3 font-semibold">Sales Rep Email</th>
-                <th className="p-3 font-semibold">Category</th>
-                <th className="p-3 font-semibold">Message & Details</th>
-                <th className="p-3 font-semibold">Status</th>
-              </tr>
-            </thead>
-            <tbody>
-              {(() => {
-                const logs = JSON.parse(localStorage.getItem('portal_rep_feedback') || '[]');
-                if (logs.length === 0) {
-                  return (
-                    <tr>
-                      <td colSpan={5} className="p-6 text-center text-slate-400 italic">
-                        No issues or suggestions logged by sales representatives yet.
-                      </td>
-                    </tr>
-                  );
-                }
-                return logs.map((item: any) => (
-                  <tr key={item.id || item.timestamp} className="border-b border-slate-100 hover:bg-slate-50">
-                    <td className="p-3 text-xs text-slate-500 font-mono">{item.timestamp}</td>
-                    <td className="p-3 font-medium text-slate-800">{item.repEmail || 'sales@straightuptraining.com'}</td>
-                    <td className="p-3">
-                      <span className="text-xs px-2.5 py-1 rounded-full font-semibold bg-blue-100 text-blue-700">
-                        {item.category || 'General'}
+          {loading ? (
+            <p style={{ color: '#64748b' }}>Loading feedback entries...</p>
+          ) : feedbackList.length === 0 ? (
+            <p style={{ color: '#94a3b8', fontStyle: 'italic' }}>No feedback submissions recorded.</p>
+          ) : (
+            <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
+              <thead>
+                <tr style={{ borderBottom: '2px solid #e2e8f0', color: '#475569' }}>
+                  <th style={{ padding: '0.75rem' }}>Submitted</th>
+                  <th style={{ padding: '0.75rem' }}>Feedback Details</th>
+                  <th style={{ padding: '0.75rem' }}>Status</th>
+                  <th style={{ padding: '0.75rem' }}>Action</th>
+                </tr>
+              </thead>
+              <tbody>
+                {feedbackList.map(item => (
+                  <tr key={item.id} style={{ borderBottom: '1px solid #f1f5f9' }}>
+                    <td style={{ padding: '0.75rem', color: '#64748b', fontSize: '0.85rem' }}>{new Date(item.created_at).toLocaleString()}</td>
+                    <td style={{ padding: '0.75rem', color: '#1e293b' }}>{item.feedback_text}</td>
+                    <td style={{ padding: '0.75rem' }}>
+                      <span style={{ backgroundColor: item.status === 'Actioned' ? '#dcfce7' : '#fef3c7', color: item.status === 'Actioned' ? '#15803d' : '#b45309', padding: '0.2rem 0.6rem', borderRadius: '12px', fontSize: '0.75rem', fontWeight: 700 }}>
+                        {item.status || 'Pending'}
                       </span>
                     </td>
-                    <td className="p-3 text-slate-700 max-w-md break-words">{item.message}</td>
-                    <td className="p-3">
-                      <span className="text-xs bg-amber-100 text-amber-800 px-2.5 py-1 rounded-full font-medium">
-                        {item.status || 'Open'}
-                      </span>
+                    <td style={{ padding: '0.75rem' }}>
+                      {item.status !== 'Actioned' && (
+                        <button onClick={() => markActioned(item.id)} style={{ backgroundColor: '#16a34a', color: '#fff', border: 'none', padding: '0.35rem 0.75rem', borderRadius: '4px', cursor: 'pointer', fontSize: '0.8rem', fontWeight: 600 }}>
+                          Mark Actioned
+                        </button>
+                      )}
                     </td>
                   </tr>
-                ));
-              })()}
-            </tbody>
-          </table>
+                ))}
+              </tbody>
+            </table>
+          )}
         </div>
-      </div>
-      </div>
-
-      <InviteLinkDialog result={invitePreview} onClose={() => setInvitePreview(null)} />
-      <TempPasswordDialog result={tempPassword} onClose={() => setTempPassword(null)} />
-    </AppShell>
+      </main>
+    </div>
   );
 }
