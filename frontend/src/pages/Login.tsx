@@ -71,13 +71,13 @@ export default function Login() {
         must_change_password: false,
       } as User;
 
-      // 3. Save access token and initialize app session state
+   // 3. Save access token and initialize app session state
       const token = data?.session?.access_token || "supabase-token";
       localStorage.setItem("token", token);
       beginSession(sessionUser);
 
-      // 4. Force browser navigation to target route
-      window.location.href = targetPath;
+      // 4. Use React Router navigation to preserve session state without page re-render resets
+      navigate(targetPath, { replace: true });
     },
     onError: (error: any) => {
       toast.error(error.message || "Failed to sign in. Please check your credentials.");
