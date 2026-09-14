@@ -28,49 +28,60 @@ export default function Login() {
   const [forgotResult, setForgotResult] = useState<ForgotPasswordResponse | null>(null);
 
  const login = useMutation({
-  mutationFn: async () => {
-    const data = await signInUser(email.trim(), password);
-    return data;
-  },
- onSuccess: (data: any) => {
-    toast.success("Signed in successfully!");
-    
-    const userEmail = email.trim().toLowerCase();
+    mutationFn: async () => {
+      const data = await signInUser(email.trim(), password);
+      return data;
+    },
+    onSuccess: (data: any) => {
+      toast.success("Signed in successfully!");
+      
+      const userEmail = email.trim().toLowerCase();
 
-    // Determine the user's role
-    let assignedRole = "participant";
-    if (userEmail === "admin@straightuptraining.com") {
-      assignedRole = "admin";
-    } else if (userEmail === "training@straightuptraining.com") {
-      assignedRole = "owner";
-    } else {
-      assignedRole = data?.user?.user_metadata?.role || data?.user?.role || "participant";
-    }
+      // 1. Determine assigned role
+      let assignedRole: User["role"] = "participant";
+      let targetPath = "/participant";
 
-    // Save session data so App.tsx accepts the route
-    const sessionUser = {
-      id: data?.user?.id,
-      email: userEmail,
-      role: assignedRole,
-      must_change_password: false
-    };
-    localStorage.setItem("user", JSON.stringify(sessionUser));
+      if (userEmail === "admin@straightuptraining.com") {
+        assignedRole = "admin";
+        targetPath = "/admin";
+      } else if (userEmail === "training@straightuptraining.com") {
+        assignedRole = "owner";
+        targetPath = "/owner";
+      } else {
+        const rawRole = data?.user?.user_metadata?.role || data?.user?.role;
+        if (rawRole === "owner" || rawRole === "business_manager") {
+          assignedRole = "owner";
+          targetPath = "/owner";
+        } else if (rawRole === "coach" || rawRole === "case_manager") {
+          assignedRole = "coach";
+          targetPath = "/coach";
+        } else {
+          assignedRole = "participant";
+          targetPath = "/participant";
+        }
+      }
 
-    // Redirect based on the assigned role
-    if (assignedRole === "admin") {
-      navigate("/admin");
-    } else if (assignedRole === "owner" || assignedRole === "business_manager") {
-      navigate("/owner");
-    } else if (assignedRole === "coach" || assignedRole === "case_manager") {
-      navigate("/coach");
-    } else {
-      navigate("/participant");
-    }
-  },
-  onError: (error: any) => {
-    toast.error(error.message || "Failed to sign in. Please check your credentials.");
-  },
-});
+      // 2. Build session user object matching internal App types
+      const sessionUser: User = {
+        id: data?.user?.id || "supabase-user",
+        email: userEmail,
+        name: data?.user?.user_metadata?.full_name || userEmail.split("@")[0],
+        role: assignedRole,
+        org_id: data?.user?.user_metadata?.organization_id || "org_default",
+        must_change_password: false,
+      };
+
+      // 3. Initialize app session state (uses internal helper + localStorage token)
+      const token = data?.session?.access_token || "supabase-token";
+      beginSession(token, sessionUser);
+
+      // 4. Force browser navigation to target route
+      window.location.href = targetPath;
+    },
+    onError: (error: any) => {
+      toast.error(error.message || "Failed to sign in. Please check your credentials.");
+    },
+  });
 
   const forgot = useMutation({
     mutationFn: () => apiPost<ForgotPasswordResponse>("/auth/forgot-password", { email: forgotEmail.trim() }),
