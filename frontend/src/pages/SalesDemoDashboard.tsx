@@ -116,8 +116,8 @@ export default function SalesDemoDashboard() {
   return (
     <div style={{ minHeight: '100vh', backgroundColor: '#f4f6f9', fontFamily: 'system-ui, sans-serif' }}>
       <header style={{ backgroundColor: '#1e293b', color: '#fff', padding: '1rem 2rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-          <div style={{ backgroundColor: '#2563eb', padding: '0.5rem 0.75rem', borderRadius: '6px', fontWeight: 'bold' }}>WR</div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+          <img src="/logo.png" alt="Workready Logo" style={{ height: '40px', width: 'auto', objectFit: 'contain' }} />
           <h1 style={{ margin: 0, fontSize: '1.4rem' }}>Workready Portal <span style={{ fontSize: '0.85rem', color: '#94a3b8' }}>| Sales Demo</span></h1>
         </div>
         <button 
