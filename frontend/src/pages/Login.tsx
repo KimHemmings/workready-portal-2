@@ -1,3 +1,4 @@
+import { signInUser } from "@/lib/auth";
 import { useState } from "react";
 import { useMutation } from "@tanstack/react-query";
 import { Link, useNavigate } from "react-router-dom";
@@ -26,25 +27,19 @@ export default function Login() {
   const [forgotEmail, setForgotEmail] = useState("");
   const [forgotResult, setForgotResult] = useState<ForgotPasswordResponse | null>(null);
 
-  const login = useMutation({
-    mutationFn: () => apiPost<User>("/auth/login", { email: email.trim(), password }),
-    onSuccess: (user) => {
-      beginSession(user);
-      if (user.must_change_password) {
-        toast.info("Please choose your own password to continue.");
-        navigate("/change-password");
-        return;
-      }
-      toast.success(`G'day ${user.name.split(" ")[0]}, you're signed in`);
-      navigate(homePathFor(user.role));
-    },
-    onError: (err) => {
-      const detail = err instanceof ApiError ? (err.body as { detail?: string } | null)?.detail : null;
-      toast.error(
-        typeof detail === "string" ? detail : "Could not sign in. Please check your email and password.",
-      );
-    },
-  });
+ const login = useMutation({
+  mutationFn: async () => {
+    const data = await signInUser(email.trim(), password);
+    return data;
+  },
+  onSuccess: () => {
+    toast.success("Signed in successfully!");
+    navigate("/dashboard");
+  },
+  onError: (error: any) => {
+    toast.error(error.message || "Failed to sign in. Please check your credentials.");
+  },
+});
 
   const forgot = useMutation({
     mutationFn: () => apiPost<ForgotPasswordResponse>("/auth/forgot-password", { email: forgotEmail.trim() }),
