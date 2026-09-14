@@ -1920,7 +1920,7 @@
         document.getElementById(`nav-${tab}`)?.classList.add('hidden');
       });
 
-      // 2. Control Header UI Elements (Hide domain dropdown for System Admin)
+      // 2. Target header domain selector wrapper
       const domainSelector = document.getElementById('admin-provider-selector')?.parentElement;
 
       if (activeRole === 'system_admin') {

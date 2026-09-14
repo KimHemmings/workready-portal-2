@@ -1,5 +1,5 @@
 // public/js/systemAdminEngine.js
-// System Admin Master Console with TtW & Inclusive Provider Provisioning
+// System Admin Master Console Engine
 
 window.SYSTEM_ADMIN = {
   providers: [
@@ -24,7 +24,7 @@ window.SYSTEM_ADMIN = {
       contactName: "Mark Robinson",
       email: "m.robinson@apexemployment.org.au",
       planTier: "Inclusive Disability Employment",
-      serviceStream: "Disability / DES Inclusive",
+      serviceStream: "Disability Employment Services (DES)",
       candidateSeatsTotal: 100,
       candidateSeatsUsed: 88,
       cmSeatsTotal: 10,
@@ -50,17 +50,29 @@ window.SYSTEM_ADMIN = {
     }
   ],
 
+  // System Admin & Sales Profile Events ONLY
   auditLogs: [
     {
       id: "LOG-9901",
-      timestamp: "13-Sep-2026 14:15:02",
-      actor: "Sarah Jenkins (Case Manager)",
-      role: "Case Manager",
-      action: "EVIDENCE_VERIFICATION_SIGNOFF",
-      target: "Demonstration Candidate (Bunnings Log)",
-      ipAddress: "203.0.113.42",
+      timestamp: "14-Sep-2026 08:30:12",
+      actor: "admin@straightuptraining.com",
+      role: "System Admin",
+      action: "PROVISION_PROVIDER_ORG",
+      target: "Apex Inclusive Employment (DES)",
+      ipAddress: "203.0.113.10",
       status: "SUCCESS",
-      hash: "#HASH-88A92"
+      hash: "#HASH-SYS-881"
+    },
+    {
+      id: "LOG-9902",
+      timestamp: "14-Sep-2026 09:12:45",
+      actor: "training@straightuptraining.com",
+      role: "Sales Rep",
+      action: "DEMO_STREAM_SWITCH",
+      target: "Workforce Australia Sandbox (100 Pts)",
+      ipAddress: "203.0.113.14",
+      status: "SUCCESS",
+      hash: "#HASH-[#4412]"
     }
   ],
 
@@ -78,7 +90,7 @@ window.SYSTEM_ADMIN = {
     let dueSoonCount = 0;
     let overdueCount = 0;
 
-    const today = new Date("2026-09-13");
+    const today = new Date("2026-09-14");
 
     this.providers.forEach(p => {
       totalCandSeatsAllocated += p.candidateSeatsUsed;
@@ -118,7 +130,7 @@ window.SYSTEM_ADMIN = {
     const tbody = document.getElementById('admin-provider-table-body');
     if (!tbody) return;
 
-    const today = new Date("2026-09-13");
+    const today = new Date("2026-09-14");
 
     tbody.innerHTML = list.map(p => {
       const renewal = new Date(p.renewalDate);
@@ -137,12 +149,18 @@ window.SYSTEM_ADMIN = {
 
       const candCapPct = Math.round((p.candidateSeatsUsed / p.candidateSeatsTotal) * 100);
 
+      // Stream Button Label
+      let setupLabel = "⚙️ Setup Provider";
+      if (p.serviceStream.includes("Workforce")) setupLabel = "🏢 Workforce Setup";
+      else if (p.serviceStream.includes("TtW") || p.serviceStream.includes("Youth")) setupLabel = "👤 TtW Setup";
+      else if (p.serviceStream.includes("DES") || p.serviceStream.includes("Disability")) setupLabel = "📋 DES Setup";
+
       return `
         <tr class="hover:bg-slate-50 transition border-b border-slate-100 text-xs">
           <td class="p-3 font-bold text-[#1D2B53]">
             ${p.name}
             <span class="block text-[11px] font-normal text-slate-500">Contact: ${p.contactName} (${p.email})</span>
-            <span class="block text-[10px] font-mono text-purple-700">Stream: ${p.serviceStream || 'Transition to Work (TtW)'}</span>
+            <span class="block text-[10px] font-mono text-purple-700">Stream: ${p.serviceStream}</span>
           </td>
           <td class="p-3 min-w-[140px]">
             <span class="px-2.5 py-1 text-[11px] font-extrabold uppercase rounded-full border ${badgeClass}">
@@ -161,7 +179,7 @@ window.SYSTEM_ADMIN = {
           <td class="p-3">
             <div class="flex flex-wrap gap-1.5">
               <button onclick="window.SYSTEM_ADMIN.editProviderAccess('${p.id}')" class="px-2.5 py-1 bg-[#1D2B53] text-white text-[11px] font-bold rounded hover:bg-slate-800 transition">
-                ⚙️ TtW Setup
+                ${setupLabel}
               </button>
               <button onclick="window.SYSTEM_ADMIN.renewSubscription('${p.id}')" class="px-2.5 py-1 bg-[#4CAF50] text-white text-[11px] font-bold rounded hover:bg-emerald-600 transition">
                 🔄 Renew Tier
@@ -174,33 +192,23 @@ window.SYSTEM_ADMIN = {
   },
 
   openProviderModal: function() {
-    const modal = document.getElementById('admin-provider-modal');
-    if (modal) modal.classList.remove('hidden');
+    document.getElementById('admin-provider-modal')?.classList.remove('hidden');
   },
 
   closeProviderModal: function() {
-    const modal = document.getElementById('admin-provider-modal');
-    if (modal) modal.classList.add('hidden');
+    document.getElementById('admin-provider-modal')?.classList.add('hidden');
   },
 
   handleCreateProvider: function(e) {
     if (e && e.preventDefault) e.preventDefault();
 
-    const nameEl = document.getElementById('prov-name');
-    const contactEl = document.getElementById('prov-contact-name');
-    const emailEl = document.getElementById('prov-email');
-    const tierEl = document.getElementById('prov-tier');
-    const streamEl = document.getElementById('prov-stream');
-    const candSeatsEl = document.getElementById('prov-cand-seats');
-    const cmSeatsEl = document.getElementById('prov-cm-seats');
-
-    const name = nameEl ? nameEl.value : "New Provider";
-    const contactName = contactEl ? contactEl.value : "Admin Contact";
-    const email = emailEl ? emailEl.value : "admin@provider.com.au";
-    const tier = tierEl ? tierEl.value : "Enterprise Provider";
-    const stream = streamEl ? streamEl.value : "Transition to Work (TtW)";
-    const candSeats = candSeatsEl ? parseInt(candSeatsEl.value) || 50 : 50;
-    const cmSeats = cmSeatsEl ? parseInt(cmSeatsEl.value) || 5 : 5;
+    const name = document.getElementById('prov-name')?.value || "New Provider";
+    const contactName = document.getElementById('prov-contact-name')?.value || "Admin Contact";
+    const email = document.getElementById('prov-email')?.value || "admin@provider.com.au";
+    const tier = document.getElementById('prov-tier')?.value || "Enterprise Provider";
+    const stream = document.getElementById('prov-stream')?.value || "Workforce Australia";
+    const candSeats = parseInt(document.getElementById('prov-cand-seats')?.value) || 50;
+    const cmSeats = parseInt(document.getElementById('prov-cm-seats')?.value) || 5;
 
     const newProvider = {
       id: `PROV-${100 + this.providers.length + 1}`,
@@ -214,72 +222,36 @@ window.SYSTEM_ADMIN = {
       cmSeatsTotal: cmSeats,
       cmSeatsUsed: 1,
       subscriptionStatus: "Active",
-      renewalDate: "2027-09-13",
-      lastBilled: "2026-09-13"
+      renewalDate: "2027-09-14",
+      lastBilled: "2026-09-14"
     };
 
     this.providers.unshift(newProvider);
-
-    if (window.PROVIDER_CONTEXT && window.PROVIDER_CONTEXT.manifests) {
-      const streamCode = stream.includes("TtW") ? "ttw" : stream.includes("DES") ? "des" : "workforce_australia";
-      window.PROVIDER_CONTEXT.manifests[newProvider.id] = {
-        id: newProvider.id,
-        name: name,
-        stream: streamCode,
-        streamLabel: stream,
-        brandNavy: "#1D2B53",
-        brandGreen: "#4CAF50",
-        enabledModules: ["mod-1", "mod-2", "mod-3", "mod-4", "mod-5"],
-        allowedActivities: [
-          { value: "paid_work", label: "Paid Work Shifts (+5 Pts / 5 Hrs)" },
-          { value: "interview", label: "Attended Job Interview (+25 Pts)" }
-        ],
-        complianceFooter: `${stream} Licensee Shell`
-      };
-
-      const selectorEl = document.getElementById('admin-provider-selector');
-      if (selectorEl) {
-        const opt = document.createElement('option');
-        opt.value = newProvider.id;
-        opt.innerText = `${name} (${stream})`;
-        selectorEl.appendChild(opt);
-      }
-    }
-
-    if (this.logSecurityEvent) {
-      this.logSecurityEvent("System Admin", "System Admin", "TTW_PROVIDER_PROVISIONING", `Created ${stream} Provider ${name}`);
-    }
+    this.logSecurityEvent("System Admin", "System Admin", "SYS_PROVIDER_PROVISION", `Provisioned ${stream} Provider: ${name}`);
 
     this.initConsole();
     this.closeProviderModal();
 
-    alert(`Provider Organization '${name}' (${stream}) successfully onboarded and configured!\nAccount Credentials & Access Setup sent to ${email}.`);
+    alert(`🎉 Provider Organization '${name}' (${stream}) successfully onboarded and configured!\n\nDetails:\n• Candidate Seats: ${candSeats}\n• Staff Licenses: ${cmSeats}\n• Contact Email: ${email}`);
   },
 
   editProviderAccess: function(provId) {
     const p = this.providers.find(prov => prov.id === provId);
     if (!p) return;
 
-    const newCandCap = prompt(`CONFIGURE ACCESS: ${p.name}\n\nEnter new Candidate Seat Capacity:`, p.candidateSeatsTotal);
-    if (newCandCap !== null) {
-      p.candidateSeatsTotal = parseInt(newCandCap) || p.candidateSeatsTotal;
-      this.logSecurityEvent("System Admin", "System Admin", "ACCESS_CAPACITY_UPDATE", `Updated Candidate Capacity for ${p.name} to ${p.candidateSeatsTotal}`);
-      this.initConsole();
-      alert(`Candidate seat capacity for ${p.name} updated to ${p.candidateSeatsTotal}.`);
-    }
+    alert(`🛠️ SYSTEM ADMIN CONFIGURATION\n--------------------------------\nOrganization: ${p.name}\nService Stream: ${p.serviceStream}\nContact Email: ${p.email}\n\nAllocated Seats: ${p.candidateSeatsUsed} / ${p.candidateSeatsTotal}\nStaff Licenses: ${p.cmSeatsUsed} / ${p.cmSeatsTotal}\nBilling Renewal: ${p.renewalDate}`);
   },
 
   renewSubscription: function(provId) {
     const p = this.providers.find(prov => prov.id === provId);
     if (!p) return;
 
-    const confirmRenew = confirm(`RENEW SUBSCRIPTION: ${p.name}\n\nExtend subscription billing cycle for 12 months?`);
-    if (confirmRenew) {
+    if (confirm(`RENEW SUBSCRIPTION: ${p.name}\n\nExtend billing cycle by 12 months for ${p.serviceStream}?`)) {
       p.subscriptionStatus = "Active";
-      p.renewalDate = "2027-09-13";
-      this.logSecurityEvent("System Admin", "System Admin", "SUBSCRIPTION_RENEWAL", `Extended Subscription for ${p.name} to 2027-09-13`);
+      p.renewalDate = "2027-09-14";
+      this.logSecurityEvent("System Admin", "System Admin", "SYS_SUBSCRIPTION_RENEWAL", `Extended Subscription for ${p.name}`);
       this.initConsole();
-      alert(`Subscription for ${p.name} extended to 13-Sep-2027. Status reset to Active.`);
+      alert(`✅ Subscription for ${p.name} extended to 14-Sep-2027.`);
     }
   },
 
@@ -307,13 +279,13 @@ window.SYSTEM_ADMIN = {
     let filtered = [...this.auditLogs];
 
     if (filterType === 'security_overrides') {
-      filtered = this.auditLogs.filter(l => l.action.includes('VERIFICATION') || l.action.includes('OVERRIDE'));
-      if (title) title.innerText = "Audit Trail: Security & Evidence Sign-Offs";
+      filtered = this.auditLogs.filter(l => l.role === 'System Admin');
+      if (title) title.innerText = "Audit Trail: System Admin Infrastructure Events";
     } else if (filterType === 'seat_provisioning') {
-      filtered = this.auditLogs.filter(l => l.action.includes('SEAT') || l.action.includes('PROVISIONING'));
-      if (title) title.innerText = "Audit Trail: License & Seat Provisioning";
+      filtered = this.auditLogs.filter(l => l.role === 'Sales Rep');
+      if (title) title.innerText = "Audit Trail: Sales Rep Sandbox & Demo Events";
     } else {
-      if (title) title.innerText = "Master Security Audit Log (Append-Only)";
+      if (title) title.innerText = "Master Security Audit Log (System Admin & Sales Only)";
     }
 
     this.renderAuditLogsTable(filtered);
@@ -344,8 +316,8 @@ window.SYSTEM_ADMIN = {
   exportAuditLogsCSV: function() {
     const now = new Date();
     const csvContent = "data:text/csv;charset=utf-8," 
-      + `WORKREADY PORTAL V2 — MASTER SECURITY AUDIT LOG EXPORT\n`
-      + `Export Date,13-Sep-2026\n`
+      + `WORKREADY PORTAL V2 — SYSTEM ADMIN & SALES AUDIT LOG EXPORT\n`
+      + `Export Date,14-Sep-2026\n`
       + `Log ID,Timestamp,Actor,Role,Action,Target,IP Address,Status,Integrity Hash\n`
       + this.auditLogs.map(l => `"${l.id}","${l.timestamp}","${l.actor}","${l.role}","${l.action}","${l.target}","${l.ipAddress}","${l.status}","${l.hash}"`).join("\n");
 
@@ -358,3 +330,9 @@ window.SYSTEM_ADMIN = {
     document.body.removeChild(link);
   }
 };
+
+document.addEventListener('DOMContentLoaded', () => {
+  if (window.SYSTEM_ADMIN && typeof window.SYSTEM_ADMIN.initConsole === 'function') {
+    window.SYSTEM_ADMIN.initConsole();
+  }
+});
