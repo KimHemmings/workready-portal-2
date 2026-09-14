@@ -61,15 +61,15 @@ export default function Login() {
         }
       }
 
-      // 2. Build session user matching exact internal User type fields
-      const sessionUser: User = {
+      // Build session user object matching internal App types
+      const sessionUser = {
         id: data?.user?.id || "supabase-user",
         email: userEmail,
         name: data?.user?.user_metadata?.full_name || userEmail.split("@")[0],
         role: assignedRole,
         organization_id: data?.user?.user_metadata?.organization_id || "org_default",
         must_change_password: false,
-      };
+      } as User;
 
       // 3. Save access token and initialize app session state
       const token = data?.session?.access_token || "supabase-token";
