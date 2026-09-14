@@ -94,6 +94,7 @@ window.handleSecureLogin = async function(e) {
 };
 
 window.handleSignOut = function() {
+  sessionStorage.clear();
   localStorage.clear();
   window.location.reload();
 };

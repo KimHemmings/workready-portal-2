@@ -1867,13 +1867,11 @@
   <script>
     let activeRole = 'system_admin';
 
-    // Approved sales reps tracker for in-app provisioned users
     window.APPROVED_SALES_REPS = {
       'sales@straightuptraining.com': true,
       'training@straightuptraining.com': true
     };
 
-    // Helper functions
     function shuffleArray(array) {
       const arr = [...array];
       for (let i = arr.length - 1; i > 0; i--) {
@@ -1896,7 +1894,8 @@
     function changeActiveRole(role) {
       activeRole = role;
       
-      localStorage.setItem('user_role', role);
+      // Use sessionStorage so closing browser window requires fresh sign-in
+      sessionStorage.setItem('user_role', role);
 
       if (role === 'sales_rep') {
         if (window.SALES_DEMO_ENGINE && typeof window.SALES_DEMO_ENGINE.launchSalesDemoBar === 'function') {
@@ -1912,6 +1911,101 @@
       }
 
       enforceSecurityHierarchy();
+    }
+
+    function enforceSecurityHierarchy() {
+      // 1. Hide all navigation tabs first
+      ['jobseeker', 'casemanager', 'business', 'admin'].forEach(tab => {
+        document.getElementById(`nav-${tab}`)?.classList.add('hidden');
+      });
+
+      // 2. Target header domain selector wrapper
+      const domainSelector = document.getElementById('admin-provider-selector')?.parentElement;
+
+      if (activeRole === 'system_admin') {
+        // Show ONLY System Admin Console tab up top
+        document.getElementById('nav-admin')?.classList.remove('hidden');
+        
+        // Hide Active Provider Domain selector
+        if (domainSelector) domainSelector.classList.add('hidden');
+        
+        // Render System Admin live data tables
+        if (window.SYSTEM_ADMIN && typeof window.SYSTEM_ADMIN.initConsole === 'function') {
+          window.SYSTEM_ADMIN.initConsole();
+        }
+        
+        switchTab('admin');
+      } else if (activeRole === 'sales_rep' || activeRole === 'case_manager') {
+        document.getElementById('nav-casemanager')?.classList.remove('hidden');
+        document.getElementById('nav-business')?.classList.remove('hidden');
+        if (domainSelector) domainSelector.classList.remove('hidden');
+        switchTab('casemanager');
+      } else if (activeRole === 'business_manager') {
+        document.getElementById('nav-business')?.classList.remove('hidden');
+        if (domainSelector) domainSelector.classList.remove('hidden');
+        switchTab('business');
+      } else {
+        document.getElementById('nav-jobseeker')?.classList.remove('hidden');
+        if (domainSelector) domainSelector.classList.remove('hidden');
+        switchTab('jobseeker');
+      }
+    }
+
+    function switchTab(tabKey) {
+      ['jobseeker', 'casemanager', 'business', 'admin'].forEach(t => {
+        document.getElementById(`workspace-${t}`)?.classList.add('hidden');
+        const navBtn = document.getElementById(`nav-${t}`);
+        if (navBtn) {
+          navBtn.className = "px-6 py-3 border-b-2 border-transparent text-slate-600 hover:text-[#1D2B53]";
+        }
+      });
+
+      document.getElementById(`workspace-${tabKey}`)?.classList.remove('hidden');
+      const activeNavBtn = document.getElementById(`nav-${tabKey}`);
+      if (activeNavBtn) {
+        activeNavBtn.className = "px-6 py-3 border-b-2 border-[#4CAF50] text-[#1D2B53] font-bold";
+      }
+    }
+
+    function toggleHighContrast() { document.body.classList.toggle('high-contrast'); }
+
+    // Keyboard & Double-Click Shortcuts for Admin Login
+    document.addEventListener('keydown', (e) => {
+      if (e.altKey && e.key.toLowerCase() === 'a') {
+        const u = document.getElementById('auth-username');
+        const p = document.getElementById('auth-password');
+        if (u) u.value = 'admin@straightuptraining.com';
+        if (p) p.value = 'WorkReadyAdmin2026!';
+      }
+    });
+
+    document.addEventListener('DOMContentLoaded', () => {
+      const logoTrigger = document.getElementById('brand-logo-trigger');
+      if (logoTrigger) {
+        logoTrigger.addEventListener('dblclick', () => {
+          const u = document.getElementById('auth-username');
+          const p = document.getElementById('auth-password');
+          if (u) u.value = 'admin@straightuptraining.com';
+          if (p) p.value = 'WorkReadyAdmin2026!';
+        });
+      }
+    });
+
+    // Check active tab session; requires fresh sign in when browser window is closed
+    window.onload = () => {
+      const role = sessionStorage.getItem('user_role');
+      if (role) {
+        document.getElementById('auth-login-overlay')?.classList.add('hidden');
+        document.getElementById('main-app-container')?.classList.remove('hidden');
+        changeActiveRole(role);
+      } else {
+        document.getElementById('auth-login-overlay')?.classList.remove('hidden');
+        document.getElementById('main-app-container')?.classList.add('hidden');
+      }
+    };
+  </script>
+</body>
+</html>
     }
 
     function enforceSecurityHierarchy() {
