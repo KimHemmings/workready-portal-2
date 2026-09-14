@@ -37,24 +37,31 @@ export default function Login() {
     
     const userEmail = email.trim().toLowerCase();
 
-    // Direct system admin straight to the admin dashboard
+    // Determine the user's role
+    let assignedRole = "participant";
     if (userEmail === "admin@straightuptraining.com") {
+      assignedRole = "admin";
+    } else if (userEmail === "training@straightuptraining.com") {
+      assignedRole = "owner";
+    } else {
+      assignedRole = data?.user?.user_metadata?.role || data?.user?.role || "participant";
+    }
+
+    // Save session data so App.tsx accepts the route
+    const sessionUser = {
+      id: data?.user?.id,
+      email: userEmail,
+      role: assignedRole,
+      must_change_password: false
+    };
+    localStorage.setItem("user", JSON.stringify(sessionUser));
+
+    // Redirect based on the assigned role
+    if (assignedRole === "admin") {
       navigate("/admin");
-      return;
-    }
-
-    // Direct sales demo straight to the owner/manager dashboard
-    if (userEmail === "training@straightuptraining.com") {
+    } else if (assignedRole === "owner" || assignedRole === "business_manager") {
       navigate("/owner");
-      return;
-    }
-
-    // Route other users based on their assigned role
-    const role = data?.user?.user_metadata?.role || data?.user?.role;
-
-    if (role === "owner" || role === "business_manager") {
-      navigate("/owner");
-    } else if (role === "coach" || role === "case_manager") {
+    } else if (assignedRole === "coach" || assignedRole === "case_manager") {
       navigate("/coach");
     } else {
       navigate("/participant");
