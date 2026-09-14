@@ -61,19 +61,20 @@ export default function Login() {
         }
       }
 
-      // 2. Build session user object matching internal App types
+      // 2. Build session user matching exact internal User type fields
       const sessionUser: User = {
         id: data?.user?.id || "supabase-user",
         email: userEmail,
         name: data?.user?.user_metadata?.full_name || userEmail.split("@")[0],
         role: assignedRole,
-        org_id: data?.user?.user_metadata?.organization_id || "org_default",
+        organization_id: data?.user?.user_metadata?.organization_id || "org_default",
         must_change_password: false,
       };
 
-      // 3. Initialize app session state (uses internal helper + localStorage token)
+      // 3. Save access token and initialize app session state
       const token = data?.session?.access_token || "supabase-token";
-      beginSession(token, sessionUser);
+      localStorage.setItem("token", token);
+      beginSession(sessionUser);
 
       // 4. Force browser navigation to target route
       window.location.href = targetPath;
@@ -82,7 +83,6 @@ export default function Login() {
       toast.error(error.message || "Failed to sign in. Please check your credentials.");
     },
   });
-
   const forgot = useMutation({
     mutationFn: () => apiPost<ForgotPasswordResponse>("/auth/forgot-password", { email: forgotEmail.trim() }),
     onSuccess: (res) => setForgotResult(res),
