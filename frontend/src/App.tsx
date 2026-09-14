@@ -1,14 +1,16 @@
 import React from 'react';
-import { Routes, Route, Navigate } from 'react-router-dom';
+import { Routes, Route } from 'react-router-dom';
+import Home from './pages/Home';
 import SalesDemoDashboard from './pages/SalesDemoDashboard';
 import AdminDashboard from './pages/AdminDashboard';
 
 export default function App() {
   return (
     <Routes>
+      <Route path="/" element={<Home />} />
       <Route path="/sales-demo" element={<SalesDemoDashboard />} />
       <Route path="/admin" element={<AdminDashboard />} />
-      <Route path="*" element={<Navigate to="/sales-demo" replace />} />
+      <Route path="*" element={<Home />} />
     </Routes>
   );
 }
