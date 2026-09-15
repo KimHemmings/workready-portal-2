@@ -103,21 +103,31 @@ export default function Home() {
       minHeight: '100vh',
       width: '100vw',
       position: 'relative',
-      backgroundColor: '#0f172a',
+      backgroundColor: '#0b1329',
       fontFamily: 'system-ui, -apple-system, sans-serif',
       display: 'flex',
       alignItems: 'center',
       overflowX: 'hidden'
     }}>
-      {/* Background Classroom Photo & Reversed Navy Gradient (Darker on Left, Clearer on Right) */}
+      {/* Background Classroom Photo (Faded & Blended) */}
       <div style={{
         position: 'absolute',
         inset: 0,
-        backgroundImage: `linear-gradient(to left, rgba(15, 23, 42, 0.94) 0%, rgba(15, 23, 42, 0.82) 42%, rgba(15, 23, 42, 0.35) 100%), url(${classroomBg})`,
+        backgroundImage: `url(${classroomBg})`,
         backgroundSize: 'cover',
         backgroundPosition: 'left center',
         backgroundRepeat: 'no-repeat',
+        opacity: 0.45,
+        filter: 'contrast(105%) brightness(90%)',
         zIndex: 1
+      }} />
+
+      {/* Rich Slate/Navy Gradient Overlay */}
+      <div style={{
+        position: 'absolute',
+        inset: 0,
+        background: 'linear-gradient(105deg, rgba(11, 19, 41, 0.5) 0%, rgba(15, 23, 42, 0.85) 50%, rgba(11, 19, 41, 0.96) 100%)',
+        zIndex: 2
       }} />
 
       {/* RIGHT-ALIGNED Login Panel Container */}
