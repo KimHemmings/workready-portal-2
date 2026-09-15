@@ -1,5 +1,6 @@
 ﻿import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import classroomBg from '../assets/classroom.png';
 
 type PublicRole = 'case_manager' | 'candidate' | 'business_manager';
 
@@ -114,7 +115,7 @@ export default function Home() {
       <div style={{
         position: 'absolute',
         inset: 0,
-        backgroundImage: "linear-gradient(to right, rgba(15, 23, 42, 0.92) 0%, rgba(15, 23, 42, 0.78) 45%, rgba(15, 23, 42, 0.25) 100%), url('/success1.png')",
+        backgroundImage: `linear-gradient(to right, rgba(15, 23, 42, 0.94) 0%, rgba(15, 23, 42, 0.82) 42%, rgba(15, 23, 42, 0.35) 100%), url(${classroomBg})`,
         backgroundSize: 'cover',
         backgroundPosition: 'right center',
         backgroundRepeat: 'no-repeat',
