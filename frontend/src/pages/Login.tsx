@@ -32,9 +32,10 @@ export const Login: React.FC<LoginProps> = ({ onLoginSuccess }) => {
     setErrorMsg('');
 
     const cleanEmail = email.trim().toLowerCase();
+    const cleanPassword = password.trim();
     const userAccount = AUTHORIZED_USERS[cleanEmail];
 
-    if (userAccount && userAccount.password === password) {
+    if (userAccount && userAccount.password === cleanPassword) {
       navigateToRole(userAccount.role);
     } else {
       setErrorMsg('Invalid email address or password. Please try again.');
