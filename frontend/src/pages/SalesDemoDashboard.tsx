@@ -1,302 +1,182 @@
-import React, { useState, useEffect } from 'react';
-import SalesRepFeedbackModal from '../components/SalesRepFeedbackModal';
-import { supabase } from '../lib/supabase';
-import { useNavigate } from 'react-router-dom';
+import React, { useState } from 'react';
+import { PlayCircle, Send, AlertTriangle, Lightbulb, MonitorPlay } from 'lucide-react';
 
-interface PerformanceLog {
+interface WorkLog {
   id: string;
-  stream: string;
-  action: string;
-  timestamp: string;
-  dateObj: string;
+  activity: string;
+  clientName: string;
+  date: string;
+  status: 'Completed' | 'Follow-up Required';
 }
 
-interface StreamData {
-  title: string;
-  providerOrg: string;
-  caseload: number;
-  outcomesThisMonth: number;
-  complianceRate: string;
-  recentActivity: string[];
-}
+export const SalesDemoDashboard: React.FC = () => {
+  const [activeDemo, setActiveDemo] = useState<string | null>(null);
+  const [workLogs] = useState<WorkLog[]>([
+    {
+      id: 'log-1',
+      activity: 'Platform Walkthrough — PBAS Scoring',
+      clientName: 'Apex Regional Provider',
+      date: '15/09/2026',
+      status: 'Completed',
+    },
+    {
+      id: 'log-2',
+      activity: 'Case Manager Evidence Locker Demo',
+      clientName: 'Metro Employment Services',
+      date: '14/09/2026',
+      status: 'Follow-up Required',
+    },
+  ]);
 
-const mockStreams: Record<string, StreamData> = {
-  wfa: {
-    title: 'Workforce Australia',
-    providerOrg: 'APM Employment Services / Salvation Army Employment',
-    caseload: 142,
-    outcomesThisMonth: 18,
-    complianceRate: '96%',
-    recentActivity: [
-      '[DEMO DATA] Placed Participant #4092 in Retail Role',
-      '[DEMO DATA] Completed Mutual Obligation Audit',
-      '[DEMO DATA] Logged 5 sample employer leads'
-    ]
-  },
-  ttw: {
-    title: 'Transition to Work (Youth)',
-    providerOrg: 'YOURTOWN Youth Services',
-    caseload: 88,
-    outcomesThisMonth: 12,
-    complianceRate: '92%',
-    recentActivity: [
-      '[DEMO DATA] Enrolled 3 Youth Participants in Hospitality Cert II',
-      '[DEMO DATA] Connected Participant #1102 to Local Apprenticeship',
-      '[DEMO DATA] Added 4 sample lead contacts'
-    ]
-  },
-  des: {
-    title: 'DES Flexible',
-    providerOrg: 'MAX Employment Disability Support',
-    caseload: 64,
-    outcomesThisMonth: 9,
-    complianceRate: '98%',
-    recentActivity: [
-      '[DEMO DATA] Approved Workplace Accommodation Grant',
-      '[DEMO DATA] Completed 26-Week Outcome Claim',
-      '[DEMO DATA] Added 2 sample inclusive employer leads'
-    ]
-  }
-};
+  const [showLeadModal, setShowLeadModal] = useState(false);
+  const [showSuggestionModal, setShowSuggestionModal] = useState(false);
+  const [showIssueModal, setShowIssueModal] = useState(false);
+  const [textInput, setTextInput] = useState('');
 
-export default function SalesDemoDashboard() {
-  const navigate = useNavigate();
-  const [activeTab, setActiveTab] = useState<'wfa' | 'ttw' | 'des' | 'performance'>('wfa');
-  const [isFeedbackOpen, setIsFeedbackOpen] = useState(false);
-  const [isPasswordModalOpen, setIsPasswordModalOpen] = useState(false);
-  const [showPassword, setShowPassword] = useState(false);
-  const [newPassword, setNewPassword] = useState('');
-  const [passwordStatus, setPasswordStatus] = useState('');
-
-  const [leadCounts, setLeadCounts] = useState<Record<string, number>>({ wfa: 34, ttw: 21, des: 15 });
-  const [logs, setLogs] = useState<PerformanceLog[]>([]);
-  const [adminActionedItems, setAdminActionedItems] = useState<any[]>([]);
-
-  useEffect(() => {
-    const storedLogs = localStorage.getItem('workready_sales_logs');
-    if (storedLogs) {
-      const parsedLogs: PerformanceLog[] = JSON.parse(storedLogs);
-      const sixMonthsAgo = new Date();
-      sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6);
-      const validLogs = parsedLogs.filter(log => new Date(log.dateObj) >= sixMonthsAgo);
-      setLogs(validLogs);
-      localStorage.setItem('workready_sales_logs', JSON.stringify(validLogs));
-    }
-    fetchAdminActionedFeedback();
-  }, []);
-
-  const fetchAdminActionedFeedback = async () => {
-    try {
-      const { data, error } = await supabase
-        .from('sales_rep_feedback')
-        .select('*')
-        .eq('status', 'Actioned');
-      if (!error && data) {
-        setAdminActionedItems(data);
-      }
-    } catch (err) {
-      console.warn('Offline or Supabase unavailable:', err);
-    }
+  const handleSendAdminMessage = (type: string) => {
+    alert(`🚀 ${type} dispatch sent directly to System Admin (admin@straightuptraining.com)!`);
+    setShowLeadModal(false); setShowSuggestionModal(false); setShowIssueModal(false);
+    setTextInput('');
   };
-
-  const handleAddLead = (streamKey: string) => {
-    setLeadCounts(prev => ({ ...prev, [streamKey]: prev[streamKey] + 1 }));
-
-    const streamTitle = mockStreams[streamKey]?.title || streamKey;
-    const newLog: PerformanceLog = {
-      id: Date.now().toString(),
-      stream: streamTitle,
-      action: `[Demo] Added 1 new lead to ${streamTitle}`,
-      timestamp: new Date().toLocaleString(),
-      dateObj: new Date().toISOString()
-    };
-
-    const updatedLogs = [newLog, ...logs];
-    setLogs(updatedLogs);
-    localStorage.setItem('workready_sales_logs', JSON.stringify(updatedLogs));
-  };
-
-  const handleClearLeads = (streamKey: string) => {
-    setLeadCounts(prev => ({ ...prev, [streamKey]: 0 }));
-  };
-
-  const handlePasswordResetSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!newPassword) return;
-    setPasswordStatus('Demo Password updated successfully!');
-    setTimeout(() => {
-      setIsPasswordModalOpen(false);
-      setNewPassword('');
-      setPasswordStatus('');
-    }, 1200);
-  };
-
-  const currentStream = activeTab !== 'performance' ? mockStreams[activeTab] : null;
 
   return (
-    <div style={{ minHeight: '100vh', backgroundColor: '#f4f6f9', fontFamily: 'system-ui, sans-serif' }}>
-      {/* Header */}
-      <header style={{ backgroundColor: '#1e293b', color: '#fff', padding: '1rem 2rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-          <img src="/logo.png" alt="Workready Logo" style={{ height: '40px', width: 'auto', objectFit: 'contain' }} />
-          <h1 style={{ margin: 0, fontSize: '1.3rem' }}>Workready Portal <span style={{ fontSize: '0.8rem', color: '#94a3b8' }}>| Sales Demo Environment</span></h1>
-        </div>
+    <div className="min-h-screen bg-slate-50 text-slate-900 pb-16 font-sans">
+      <header className="bg-gradient-to-r from-[#24083b] via-[#320b52] to-[#24083b] text-white shadow-md border-b border-purple-900/40">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex flex-col sm:flex-row items-center justify-between gap-4">
+          <div className="flex items-center gap-3">
+            <div className="p-2 bg-purple-500/20 text-purple-300 rounded-xl border border-purple-500/30">
+              <MonitorPlay className="w-6 h-6" />
+            </div>
+            <div>
+              <div className="flex items-center gap-2">
+                <span className="font-black text-xl tracking-tight text-white font-heading">
+                  Sales & Training Portal
+                </span>
+                <span className="bg-purple-800/80 text-purple-200 border border-purple-700 text-[10px] font-bold px-2.5 py-0.5 rounded-full uppercase">
+                  Sales Hub (training@straightuptraining.com)
+                </span>
+              </div>
+              <p className="text-xs text-purple-200">Interactive Demos, Provider Onboarding & Admin Escalations</p>
+            </div>
+          </div>
 
-        <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
-          <button onClick={() => setIsPasswordModalOpen(true)} style={{ backgroundColor: '#475569', color: '#fff', border: 'none', padding: '0.5rem 0.9rem', borderRadius: '6px', cursor: 'pointer', fontSize: '0.85rem' }}>
-            ?? Reset Password
-          </button>
-          <button onClick={() => setIsFeedbackOpen(true)} style={{ backgroundColor: '#2563eb', color: '#fff', border: 'none', padding: '0.5rem 0.9rem', borderRadius: '6px', cursor: 'pointer', fontWeight: 600, fontSize: '0.85rem' }}>
-            ?? Feedback
-          </button>
-          <button onClick={() => navigate('/')} style={{ backgroundColor: '#ef4444', color: '#fff', border: 'none', padding: '0.5rem 0.9rem', borderRadius: '6px', cursor: 'pointer', fontWeight: 600, fontSize: '0.85rem' }}>
-            ?? Sign Out
+          <button
+            onClick={() => { localStorage.clear(); window.location.href = "/"; }}
+            className="px-3 py-2 bg-white/10 hover:bg-white/20 border border-white/20 text-white text-xs font-bold rounded-xl transition-all"
+          >
+            Sign Out
           </button>
         </div>
       </header>
 
-      {/* Main Container */}
-      <main style={{ padding: '2rem', maxWidth: '1200px', margin: '0 auto' }}>
-        {/* Stream Selector Tabs */}
-        <div style={{ display: 'flex', gap: '1rem', marginBottom: '2rem' }}>
-          <button onClick={() => setActiveTab('wfa')} style={{ padding: '0.75rem 1.5rem', borderRadius: '8px', border: 'none', cursor: 'pointer', fontWeight: 600, backgroundColor: activeTab === 'wfa' ? '#2563eb' : '#e2e8f0', color: activeTab === 'wfa' ? '#fff' : '#475569' }}>Workforce Australia</button>
-          <button onClick={() => setActiveTab('ttw')} style={{ padding: '0.75rem 1.5rem', borderRadius: '8px', border: 'none', cursor: 'pointer', fontWeight: 600, backgroundColor: activeTab === 'ttw' ? '#2563eb' : '#e2e8f0', color: activeTab === 'ttw' ? '#fff' : '#475569' }}>TtW Youth</button>
-          <button onClick={() => setActiveTab('des')} style={{ padding: '0.75rem 1.5rem', borderRadius: '8px', border: 'none', cursor: 'pointer', fontWeight: 600, backgroundColor: activeTab === 'des' ? '#2563eb' : '#e2e8f0', color: activeTab === 'des' ? '#fff' : '#475569' }}>DES Flexible</button>
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6 space-y-6">
+        <section className="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm space-y-3">
+          <h2 className="text-xs font-bold text-slate-500 uppercase tracking-wider">Direct Admin Dispatch Center</h2>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+            <button onClick={() => setShowLeadModal(true)} className="p-4 bg-emerald-50 hover:bg-emerald-100/80 border border-emerald-200 rounded-xl text-left transition-all">
+              <span className="font-bold text-sm text-emerald-900 flex items-center gap-1.5"><Send className="w-4 h-4 text-emerald-600" /> Dispatch New Provider Lead</span>
+              <span className="text-xs text-emerald-700 block mt-1">Send hot lead details straight to System Admin.</span>
+            </button>
 
-          <button 
-            onClick={() => { setActiveTab('performance'); fetchAdminActionedFeedback(); }} 
-            style={{ padding: '0.75rem 1.5rem', borderRadius: '8px', border: 'none', cursor: 'pointer', fontWeight: 600, marginLeft: 'auto', backgroundColor: activeTab === 'performance' ? '#0f172a' : '#cbd5e1', color: activeTab === 'performance' ? '#fff' : '#334155' }}
-          >
-            ?? Performance Log ({logs.length + adminActionedItems.length})
-          </button>
-        </div>
+            <button onClick={() => setShowSuggestionModal(true)} className="p-4 bg-purple-50 hover:bg-purple-100/80 border border-purple-200 rounded-xl text-left transition-all">
+              <span className="font-bold text-sm text-purple-900 flex items-center gap-1.5"><Lightbulb className="w-4 h-4 text-purple-600" /> Suggest Feature</span>
+              <span className="text-xs text-purple-700 block mt-1">Request layout/feature tweaks for upcoming demos.</span>
+            </button>
 
-        {/* Stream View */}
-        {activeTab !== 'performance' && currentStream && (
-          <div>
-            <div style={{ backgroundColor: '#e2e8f0', padding: '0.75rem 1.25rem', borderRadius: '6px', marginBottom: '1.5rem', color: '#334155', fontWeight: 600, fontSize: '0.9rem' }}>
-              ?? Partnered Provider Organization: <span style={{ color: '#2563eb' }}>{currentStream.providerOrg}</span>
-            </div>
+            <button onClick={() => setShowIssueModal(true)} className="p-4 bg-rose-50 hover:bg-rose-100/80 border border-rose-200 rounded-xl text-left transition-all">
+              <span className="font-bold text-sm text-rose-900 flex items-center gap-1.5"><AlertTriangle className="w-4 h-4 text-rose-600" /> Report Demo Issue</span>
+              <span className="text-xs text-rose-700 block mt-1">Trigger tech support alert to System Admin.</span>
+            </button>
+          </div>
+        </section>
 
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '1.5rem', marginBottom: '2rem' }}>
-              <div style={{ backgroundColor: '#fff', padding: '1.5rem', borderRadius: '8px', boxShadow: '0 1px 3px rgba(0,0,0,0.1)' }}>
-                <span style={{ color: '#64748b', fontSize: '0.875rem' }}>Demo Active Caseload</span>
-                <h2 style={{ margin: '0.5rem 0 0', fontSize: '1.8rem' }}>{currentStream.caseload}</h2>
-              </div>
-              <div style={{ backgroundColor: '#fff', padding: '1.5rem', borderRadius: '8px', boxShadow: '0 1px 3px rgba(0,0,0,0.1)' }}>
-                <span style={{ color: '#64748b', fontSize: '0.875rem' }}>Demo Outcomes (Month)</span>
-                <h2 style={{ margin: '0.5rem 0 0', fontSize: '1.8rem', color: '#16a34a' }}>{currentStream.outcomesThisMonth}</h2>
-              </div>
-
-              {/* Actionable Leads Card */}
-              <div style={{ backgroundColor: '#fff', padding: '1.5rem', borderRadius: '8px', boxShadow: '0 1px 3px rgba(0,0,0,0.1)', borderLeft: '4px solid #2563eb' }}>
-                <span style={{ color: '#64748b', fontSize: '0.875rem' }}>Demo Leads Added</span>
-                <h2 style={{ margin: '0.5rem 0 1rem', fontSize: '1.8rem', color: '#2563eb' }}>{leadCounts[activeTab]}</h2>
-                <div style={{ display: 'flex', gap: '0.5rem' }}>
-                  <button onClick={() => handleAddLead(activeTab)} style={{ backgroundColor: '#2563eb', color: '#fff', border: 'none', padding: '0.4rem 0.8rem', borderRadius: '4px', cursor: 'pointer', fontSize: '0.8rem', fontWeight: 600 }}>+ Add Lead</button>
-                  <button onClick={() => handleClearLeads(activeTab)} style={{ backgroundColor: '#f1f5f9', color: '#64748b', border: 'none', padding: '0.4rem 0.8rem', borderRadius: '4px', cursor: 'pointer', fontSize: '0.8rem' }}>Clear</button>
-                </div>
-              </div>
-
-              <div style={{ backgroundColor: '#fff', padding: '1.5rem', borderRadius: '8px', boxShadow: '0 1px 3px rgba(0,0,0,0.1)' }}>
-                <span style={{ color: '#64748b', fontSize: '0.875rem' }}>Compliance Rate</span>
-                <h2 style={{ margin: '0.5rem 0 0', fontSize: '1.8rem' }}>{currentStream.complianceRate}</h2>
-              </div>
-            </div>
-
-            <div style={{ backgroundColor: '#fff', padding: '1.5rem', borderRadius: '8px', boxShadow: '0 1px 3px rgba(0,0,0,0.1)' }}>
-              <h3 style={{ margin: '0 0 1rem' }}>Demo Provider Stream Feed ({currentStream.title})</h3>
-              <ul style={{ paddingLeft: '1.2rem', margin: 0, color: '#334155', lineHeight: '1.8' }}>
-                {currentStream.recentActivity.map((act, idx) => (
-                  <li key={idx}>{act}</li>
-                ))}
-              </ul>
+        <section className="bg-gradient-to-r from-purple-950 via-[#24083b] to-purple-900 text-white rounded-2xl p-6 shadow-lg border border-purple-800 space-y-4">
+          <div className="flex justify-between items-center border-b border-purple-800/80 pb-3">
+            <div>
+              <h2 className="text-base font-bold text-white flex items-center gap-2">
+                <PlayCircle className="w-5 h-5 text-emerald-400" /> Live Interactive Demo Sandbox
+              </h2>
+              <p className="text-xs text-purple-200">Launch safe, isolated demo modes without affecting live candidate profiles.</p>
             </div>
           </div>
-        )}
 
-        {/* Private Performance View */}
-        {activeTab === 'performance' && (
-          <div style={{ backgroundColor: '#fff', padding: '2rem', borderRadius: '8px', boxShadow: '0 1px 3px rgba(0,0,0,0.1)' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
-              <div>
-                <h2 style={{ margin: 0, fontSize: '1.4rem', color: '#0f172a' }}>?? Sales Performance & Admin Action Log</h2>
-                <p style={{ margin: '0.25rem 0 0', color: '#64748b', fontSize: '0.875rem' }}>Strictly logs demo triggers and admin feedback status. Clears every 6 months.</p>
-              </div>
-              <button onClick={() => { setLogs([]); localStorage.removeItem('workready_sales_logs'); }} style={{ backgroundColor: '#ef4444', color: '#fff', border: 'none', padding: '0.5rem 1rem', borderRadius: '6px', cursor: 'pointer', fontSize: '0.85rem' }}>
-                Clear Local Log
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-2">
+            <div className="bg-purple-900/40 p-4 rounded-xl border border-purple-700 space-y-2">
+              <h3 className="font-bold text-sm text-white">Candidate Dashboard Demo</h3>
+              <button onClick={() => setActiveDemo('Candidate Demo Active')} className="w-full py-2 bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-extrabold text-xs rounded-lg transition-all">
+                Launch Candidate Demo
               </button>
             </div>
-
-            <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
-              <thead>
-                <tr style={{ borderBottom: '2px solid #e2e8f0', color: '#475569' }}>
-                  <th style={{ padding: '0.75rem' }}>Date/Time</th>
-                  <th style={{ padding: '0.75rem' }}>Category</th>
-                  <th style={{ padding: '0.75rem' }}>Description</th>
-                  <th style={{ padding: '0.75rem' }}>Status</th>
-                </tr>
-              </thead>
-              <tbody>
-                {adminActionedItems.map(item => (
-                  <tr key={item.id} style={{ borderBottom: '1px solid #f1f5f9', backgroundColor: '#f0fdf4' }}>
-                    <td style={{ padding: '0.75rem', color: '#64748b', fontSize: '0.875rem' }}>{new Date(item.created_at).toLocaleString()}</td>
-                    <td style={{ padding: '0.75rem', fontWeight: 600, color: '#15803d' }}>Admin Action</td>
-                    <td style={{ padding: '0.75rem', color: '#166534' }}>{item.feedback_text}</td>
-                    <td style={{ padding: '0.75rem' }}><span style={{ backgroundColor: '#dcfce7', color: '#15803d', padding: '0.2rem 0.6rem', borderRadius: '12px', fontSize: '0.75rem', fontWeight: 700 }}>Actioned by Admin</span></td>
-                  </tr>
-                ))}
-                {logs.map(log => (
-                  <tr key={log.id} style={{ borderBottom: '1px solid #f1f5f9' }}>
-                    <td style={{ padding: '0.75rem', color: '#64748b', fontSize: '0.875rem' }}>{log.timestamp}</td>
-                    <td style={{ padding: '0.75rem', fontWeight: 600, color: '#0f172a' }}>{log.stream}</td>
-                    <td style={{ padding: '0.75rem', color: '#1e293b' }}>{log.action}</td>
-                    <td style={{ padding: '0.75rem' }}><span style={{ backgroundColor: '#e0f2fe', color: '#0369a1', padding: '0.2rem 0.6rem', borderRadius: '12px', fontSize: '0.75rem', fontWeight: 700 }}>Logged</span></td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+            <div className="bg-purple-900/40 p-4 rounded-xl border border-purple-700 space-y-2">
+              <h3 className="font-bold text-sm text-white">Case Manager Demo</h3>
+              <button onClick={() => setActiveDemo('Case Manager Demo Active')} className="w-full py-2 bg-purple-600 hover:bg-purple-500 text-white font-extrabold text-xs rounded-lg transition-all">
+                Launch Case Manager Demo
+              </button>
+            </div>
+            <div className="bg-purple-900/40 p-4 rounded-xl border border-purple-700 space-y-2">
+              <h3 className="font-bold text-sm text-white">Executive Demo</h3>
+              <button onClick={() => setActiveDemo('Executive Demo Active')} className="w-full py-2 bg-purple-600 hover:bg-purple-500 text-white font-extrabold text-xs rounded-lg transition-all">
+                Launch Executive Demo
+              </button>
+            </div>
           </div>
-        )}
+
+          {activeDemo && (
+            <div className="p-3 bg-emerald-500/20 border border-emerald-500/40 rounded-xl text-center text-xs font-bold text-emerald-300">
+              ✨ {activeDemo} — Demo sandbox ready for presentation.
+            </div>
+          )}
+        </section>
+
+        <section className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm space-y-4">
+          <h2 className="text-lg font-bold text-[#24083b] border-b border-slate-100 pb-3">Sales Activity Log</h2>
+          <table className="w-full text-left text-xs border-collapse">
+            <thead>
+              <tr className="bg-slate-50 text-slate-600 font-bold border-b border-slate-200">
+                <th className="p-3">Date</th>
+                <th className="p-3">Activity</th>
+                <th className="p-3">Client</th>
+                <th className="p-3">Status</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-slate-100">
+              {workLogs.map((log) => (
+                <tr key={log.id} className="hover:bg-slate-50/80">
+                  <td className="p-3 text-slate-500">{log.date}</td>
+                  <td className="p-3 font-bold text-slate-900">{log.activity}</td>
+                  <td className="p-3 text-purple-900">{log.clientName}</td>
+                  <td className="p-3">
+                    <span className={`px-2 py-0.5 rounded-full text-[11px] font-bold ${log.status === 'Completed' ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-amber-50 text-amber-700 border border-amber-200'}`}>
+                      {log.status}
+                    </span>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </section>
       </main>
 
-      {/* PASSWORD RESET MODAL WITH EYE TOGGLE */}
-      {isPasswordModalOpen && (
-        <div style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }}>
-          <div style={{ backgroundColor: '#fff', padding: '2rem', borderRadius: '8px', width: '360px', boxShadow: '0 4px 12px rgba(0,0,0,0.15)' }}>
-            <h3 style={{ margin: '0 0 1rem', color: '#0f172a' }}>?? Reset Account Password</h3>
-            {passwordStatus && <div style={{ color: '#16a34a', fontSize: '0.85rem', marginBottom: '1rem', fontWeight: 600 }}>{passwordStatus}</div>}
-            
-            <form onSubmit={handlePasswordResetSubmit}>
-              <label style={{ fontSize: '0.85rem', color: '#64748b', display: 'block', marginBottom: '0.5rem' }}>New Password</label>
-              <div style={{ position: 'relative', marginBottom: '1.5rem' }}>
-                <input 
-                  type={showPassword ? 'text' : 'password'}
-                  value={newPassword}
-                  onChange={(e) => setNewPassword(e.target.value)}
-                  placeholder="Enter new password"
-                  style={{ width: '100%', padding: '0.6rem 2.5rem 0.6rem 0.75rem', borderRadius: '6px', border: '1px solid #cbd5e1', boxSizing: 'border-box' }}
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  style={{ position: 'absolute', right: '0.5rem', top: '50%', transform: 'translateY(-50%)', border: 'none', background: 'none', cursor: 'pointer', fontSize: '1.1rem' }}
-                  title={showPassword ? 'Hide password' : 'Show password'}
-                >
-                  {showPassword ? '???' : '??'}
-                </button>
-              </div>
-
-              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.5rem' }}>
-                <button type="button" onClick={() => setIsPasswordModalOpen(false)} style={{ backgroundColor: '#f1f5f9', border: 'none', padding: '0.5rem 1rem', borderRadius: '6px', cursor: 'pointer' }}>Cancel</button>
-                <button type="submit" style={{ backgroundColor: '#2563eb', color: '#fff', border: 'none', padding: '0.5rem 1rem', borderRadius: '6px', cursor: 'pointer', fontWeight: 600 }}>Save Password</button>
-              </div>
-            </form>
+      {(showLeadModal || showSuggestionModal || showIssueModal) && (
+        <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-2xl p-6 max-w-md w-full space-y-4 shadow-xl border border-slate-200">
+            <h3 className="font-bold text-base text-[#24083b]">Direct Admin Communication</h3>
+            <textarea
+              rows={4}
+              value={textInput}
+              onChange={(e) => setTextInput(e.target.value)}
+              placeholder="Enter details here..."
+              className="w-full p-2.5 border rounded-xl text-xs outline-none focus:ring-2 focus:ring-purple-600"
+            />
+            <div className="flex justify-end gap-2">
+              <button onClick={() => { setShowLeadModal(false); setShowSuggestionModal(false); setShowIssueModal(false); }} className="px-4 py-2 text-xs font-semibold text-slate-600">Cancel</button>
+              <button onClick={() => handleSendAdminMessage(showLeadModal ? 'Lead' : showSuggestionModal ? 'Suggestion' : 'Issue')} className="px-4 py-2 text-xs bg-[#24083b] text-white font-bold rounded-xl">Send Alert</button>
+            </div>
           </div>
         </div>
       )}
-
-      <SalesRepFeedbackModal isOpen={isFeedbackOpen} onClose={() => setIsFeedbackOpen(false)} />
     </div>
   );
-}
+};
+
+export default SalesDemoDashboard;

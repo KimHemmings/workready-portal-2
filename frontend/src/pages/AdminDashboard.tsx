@@ -1,375 +1,300 @@
-﻿import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { supabase } from '../lib/supabase';
+﻿import React, { useState } from 'react';
+import { 
+  ShieldCheck, Server, Key, AlertCircle, Plus, Users, 
+  Building2, Activity, CheckCircle2, MessageSquare, ArrowUpRight, Clock 
+} from 'lucide-react';
 
-interface LogItem {
+interface ProviderAccount {
   id: string;
-  created_at: string;
-  feedback_text?: string;
-  query_text?: string;
-  user_email?: string;
-  category?: string;
-  status: string;
+  name: string;
+  contactEmail: string;
+  licenceTier: string;
+  allocatedSeats: number;
+  totalSeats: number;
+  status: 'Active' | 'Pending Renewal' | 'Suspended';
 }
 
-export default function AdminDashboard() {
-  const navigate = useNavigate();
-  const [activeTab, setActiveTab] = useState('sysadmin');
-  const [inboxTab, setInboxTab] = useState<'sales' | 'business'>('sales');
-  const [wcagHighContrast, setWcagHighContrast] = useState(false);
-  
-  const [salesFeedback, setSalesFeedback] = useState<LogItem[]>([]);
-  const [businessQueries, setBusinessQueries] = useState<LogItem[]>([]);
-  const [loading, setLoading] = useState(true);
+interface SalesDispatch {
+  id: string;
+  type: 'Lead' | 'Suggestion' | 'Issue';
+  from: string;
+  content: string;
+  date: string;
+  status: 'Unread' | 'In Review' | 'Resolved';
+}
 
-  useEffect(() => {
-    fetchAllLogs();
-  }, []);
+export const AdminDashboard: React.FC = () => {
+  // Provider Accounts State
+  const [providers, setProviders] = useState<ProviderAccount[]>([
+    {
+      id: 'prov-1',
+      name: 'Straight Up Training (Main Hub)',
+      contactEmail: 'bessy@workready.com',
+      licenceTier: 'Enterprise Provider',
+      allocatedSeats: 38,
+      totalSeats: 50,
+      status: 'Active',
+    },
+    {
+      id: 'prov-2',
+      name: 'Apex Regional Employment',
+      contactEmail: 'admin@apexregional.com.au',
+      licenceTier: 'Standard Provider',
+      allocatedSeats: 18,
+      totalSeats: 25,
+      status: 'Active',
+    },
+  ]);
 
-  const fetchAllLogs = async () => {
-    setLoading(true);
-    try {
-      const { data: salesData } = await supabase
-        .from('sales_rep_feedback')
-        .select('*')
-        .order('created_at', { ascending: false });
+  // Sales Feed State
+  const [dispatches, setDispatches] = useState<SalesDispatch[]>([
+    {
+      id: 'disp-1',
+      type: 'Lead',
+      from: 'training@straightuptraining.com',
+      content: 'New regional provider lead: Metro West Employment Services requested 30 licence seats.',
+      date: '15/09/2026',
+      status: 'Unread',
+    },
+    {
+      id: 'disp-2',
+      type: 'Issue',
+      from: 'training@straightuptraining.com',
+      content: 'Requesting layout adjustment for Candidate STAR Interview simulator button alignment.',
+      date: '14/09/2026',
+      status: 'In Review',
+    },
+  ]);
 
-      if (salesData) setSalesFeedback(salesData);
+  // Modal State
+  const [showAddProviderModal, setShowAddProviderModal] = useState(false);
+  const [provName, setProvName] = useState('');
+  const [provEmail, setProvEmail] = useState('');
+  const [provSeats, setProvSeats] = useState(20);
 
-      const { data: bizData } = await supabase
-        .from('business_manager_queries')
-        .select('*')
-        .order('created_at', { ascending: false });
-
-      if (bizData) {
-        setBusinessQueries(bizData);
-      } else {
-        setBusinessQueries([
-          {
-            id: 'bm-1',
-            created_at: new Date().toISOString(),
-            query_text: 'Requesting capacity expansion for Sydney Metro employer leads.',
-            user_email: 'bizmanager@apm.com.au',
-            category: 'Capacity Request',
-            status: 'Pending'
-          }
-        ]);
-      }
-    } catch (err) {
-      console.warn('Supabase fetch notice:', err);
-    } finally {
-      setLoading(false);
-    }
+  const handleAddProvider = (e: React.FormEvent) => {
+    e.preventDefault();
+    const newProv: ProviderAccount = {
+      id: `prov-${Date.now()}`,
+      name: provName,
+      contactEmail: provEmail,
+      licenceTier: 'Standard Provider',
+      allocatedSeats: 0,
+      totalSeats: Number(provSeats),
+      status: 'Active',
+    };
+    setProviders([...providers, newProv]);
+    setShowAddProviderModal(false);
+    setProvName(''); setProvEmail('');
+    alert(`🎉 Provider "${provName}" successfully onboarded with ${provSeats} licence seats!`);
   };
-
-  const markActioned = async (id: string, table: 'sales_rep_feedback' | 'business_manager_queries') => {
-    try {
-      await supabase.from(table).update({ status: 'Actioned' }).eq('id', id);
-
-      if (table === 'sales_rep_feedback') {
-        setSalesFeedback(prev => prev.map(item => item.id === id ? { ...item, status: 'Actioned' } : item));
-      } else {
-        setBusinessQueries(prev => prev.map(item => item.id === id ? { ...item, status: 'Actioned' } : item));
-      }
-    } catch (err) {
-      console.error('Failed to update status:', err);
-    }
-  };
-
-  const exportAuditLogCSV = () => {
-    const csvContent = "data:text/csv;charset=utf-8,Timestamp,Event,User,IP\n2026-09-15 08:00:00,PROVISION_PROVIDER,Admin,192.168.1.1\n2026-09-15 08:15:00,RESET_SANDBOX,Primary Sales Lead,192.168.1.5";
-    const encodedUri = encodeURI(csvContent);
-    const link = document.createElement("a");
-    link.setAttribute("href", encodedUri);
-    link.setAttribute("download", "security_audit_log.csv");
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-  };
-
-  const bgColor = wcagHighContrast ? '#000' : '#f4f6f9';
-  const headerBg = wcagHighContrast ? '#0f172a' : '#1e293b';
 
   return (
-    <div style={{ minHeight: '100vh', backgroundColor: bgColor, fontFamily: 'system-ui, -apple-system, sans-serif' }}>
-      <header style={{ backgroundColor: headerBg, color: '#fff', padding: '0.75rem 2rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-          <img src="/logo.png" alt="Workready Logo" style={{ height: '42px', width: 'auto', backgroundColor: '#fff', padding: '2px', borderRadius: '6px' }} />
-          <div>
-            <h1 style={{ margin: 0, fontSize: '1.25rem', fontWeight: 700 }}>Work Ready Portal</h1>
-            <span style={{ fontSize: '0.75rem', color: '#cbd5e1' }}>Straight Up Training</span>
+    <div className="min-h-screen bg-slate-50 text-slate-900 pb-16 font-sans">
+      
+      {/* Header Banner */}
+      <header className="bg-gradient-to-r from-rose-950 via-[#24083b] to-[#1a052c] text-white shadow-md border-b border-rose-900/40">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex flex-col sm:flex-row items-center justify-between gap-4">
+          <div className="flex items-center gap-3">
+            <div className="p-2 bg-rose-500/20 text-rose-300 rounded-xl border border-rose-500/30">
+              <ShieldCheck className="w-6 h-6" />
+            </div>
+            <div>
+              <div className="flex items-center gap-2">
+                <span className="font-black text-xl tracking-tight text-white font-heading">
+                  System Admin Portal
+                </span>
+                <span className="bg-rose-900/80 text-rose-200 border border-rose-700 text-[10px] font-bold px-2.5 py-0.5 rounded-full uppercase">
+                  Root System Access
+                </span>
+              </div>
+              <p className="text-xs text-rose-200">Platform Health, Provider Licences, & Sales Dispatch Monitoring</p>
+            </div>
           </div>
-        </div>
 
-        <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
-          <button 
-            onClick={() => setWcagHighContrast(!wcagHighContrast)}
-            style={{ backgroundColor: wcagHighContrast ? '#f59e0b' : '#fbbf24', color: '#000', border: 'none', padding: '0.45rem 0.9rem', borderRadius: '6px', fontWeight: 700, cursor: 'pointer', fontSize: '0.8rem', display: 'flex', alignItems: 'center', gap: '0.4rem' }}
-          >
-            WCAG Contrast
-          </button>
-          <button 
-            onClick={() => navigate('/')} 
-            style={{ backgroundColor: '#be123c', color: '#fff', border: 'none', padding: '0.45rem 0.9rem', borderRadius: '6px', fontWeight: 700, cursor: 'pointer', fontSize: '0.8rem' }}
+          <button
+            onClick={() => { localStorage.clear(); window.location.href = "/login"; }}
+            className="px-3 py-2 bg-white/10 hover:bg-white/20 border border-white/20 text-white text-xs font-bold rounded-xl transition-all"
           >
             Sign Out
           </button>
         </div>
       </header>
 
-      <nav style={{ backgroundColor: '#fff', borderBottom: '1px solid #e2e8f0', padding: '0 2rem', display: 'flex', gap: '2rem' }}>
-        {['Candidate Workspace', 'Case Manager Roster', 'Business Workspace', 'System Admin Console'].map((tab) => {
-          const isSysAdmin = tab === 'System Admin Console';
-          return (
-            <button
-              key={tab}
-              onClick={() => setActiveTab(isSysAdmin ? 'sysadmin' : 'other')}
-              style={{
-                padding: '0.85rem 0.5rem',
-                border: 'none',
-                background: 'none',
-                cursor: 'pointer',
-                fontWeight: isSysAdmin ? 700 : 500,
-                color: isSysAdmin ? '#0f172a' : '#64748b',
-                borderBottom: isSysAdmin ? '3px solid #16a34a' : '3px solid transparent',
-                fontSize: '0.9rem'
-              }}
-            >
-              {tab}
-            </button>
-          );
-        })}
-      </nav>
-
-      <main style={{ padding: '2rem', maxWidth: '1200px', margin: '0 auto' }}>
+      {/* Main Container */}
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6 space-y-6">
         
-        <div style={{ backgroundColor: '#fff', border: '2px solid #ef4444', borderRadius: '12px', padding: '1.75rem', marginBottom: '2rem', boxShadow: '0 2px 4px rgba(0,0,0,0.05)' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1.5rem' }}>
+        {/* System Health Overview Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex items-center justify-between">
             <div>
-              <h2 style={{ margin: 0, fontSize: '1.4rem', color: '#881337', fontWeight: 700 }}>System Admin Master Command Console</h2>
-              <p style={{ margin: '0.25rem 0 0', color: '#64748b', fontSize: '0.85rem' }}>Provision Employment Providers, monitor seat capacity, track billing renewals, and inspect system audit logs.</p>
+              <p className="text-xs font-bold text-slate-500 uppercase tracking-wider">Active Providers</p>
+              <h3 className="text-2xl font-black text-[#24083b] mt-1">{providers.length} Registered</h3>
             </div>
-            <div style={{ display: 'flex', gap: '0.75rem' }}>
-              <button 
-                onClick={exportAuditLogCSV}
-                style={{ backgroundColor: '#1e293b', color: '#fff', border: 'none', padding: '0.55rem 1rem', borderRadius: '6px', fontWeight: 600, fontSize: '0.8rem', cursor: 'pointer' }}
-              >
-                Export Security Audit Log (.CSV)
-              </button>
-              <button style={{ backgroundColor: '#9f1239', color: '#fff', border: 'none', padding: '0.55rem 1rem', borderRadius: '6px', fontWeight: 700, fontSize: '0.8rem', cursor: 'pointer' }}>
-                + Invite & Provision Provider
-              </button>
+            <div className="p-3 bg-purple-50 text-purple-900 rounded-xl">
+              <Building2 className="w-6 h-6" />
             </div>
           </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '1.25rem' }}>
-            <div style={{ backgroundColor: '#f8fafc', padding: '1.25rem', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
-              <span style={{ color: '#64748b', fontSize: '0.75rem', fontWeight: 700, textTransform: 'uppercase' }}>ACTIVE PROVIDER ORGS</span>
-              <h3 style={{ margin: '0.4rem 0 0', fontSize: '1.8rem', color: '#0f172a' }}>3</h3>
-              <span style={{ fontSize: '0.75rem', color: '#94a3b8' }}>Employment Service Providers Enrolled</span>
+          <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex items-center justify-between">
+            <div>
+              <p className="text-xs font-bold text-slate-500 uppercase tracking-wider">Total Active Licences</p>
+              <h3 className="text-2xl font-black text-emerald-600 mt-1">75 Seats</h3>
             </div>
-
-            <div style={{ backgroundColor: '#f8fafc', padding: '1.25rem', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
-              <span style={{ color: '#64748b', fontSize: '0.75rem', fontWeight: 700, textTransform: 'uppercase' }}>CANDIDATE CAPACITY UTILIZATION</span>
-              <h3 style={{ margin: '0.4rem 0 0.5rem', fontSize: '1.3rem', color: '#0f172a' }}>137 / 175 (78%)</h3>
-              <div style={{ backgroundColor: '#e2e8f0', height: '6px', borderRadius: '3px', overflow: 'hidden' }}>
-                <div style={{ backgroundColor: '#0f172a', width: '78%', height: '100%' }}></div>
-              </div>
+            <div className="p-3 bg-emerald-50 text-emerald-600 rounded-xl">
+              <Key className="w-6 h-6" />
             </div>
+          </div>
 
-            <div style={{ backgroundColor: '#f8fafc', padding: '1.25rem', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
-              <span style={{ color: '#64748b', fontSize: '0.75rem', fontWeight: 700, textTransform: 'uppercase' }}>CASE MANAGER STAFF LICENSES</span>
-              <h3 style={{ margin: '0.4rem 0 0.5rem', fontSize: '1.3rem', color: '#9333ea' }}>15 / 18 (83%)</h3>
-              <div style={{ backgroundColor: '#e2e8f0', height: '6px', borderRadius: '3px', overflow: 'hidden' }}>
-                <div style={{ backgroundColor: '#a855f7', width: '83%', height: '100%' }}></div>
-              </div>
+          <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex items-center justify-between">
+            <div>
+              <p className="text-xs font-bold text-slate-500 uppercase tracking-wider">Sales Dispatches</p>
+              <h3 className="text-2xl font-black text-amber-600 mt-1">{dispatches.length} Incoming</h3>
             </div>
+            <div className="p-3 bg-amber-50 text-amber-600 rounded-xl">
+              <MessageSquare className="w-6 h-6" />
+            </div>
+          </div>
 
-            <div style={{ backgroundColor: '#fffbebf', padding: '1.25rem', borderRadius: '8px', border: '1px solid #fef08a' }}>
-              <span style={{ color: '#854d0e', fontSize: '0.75rem', fontWeight: 700, textTransform: 'uppercase' }}>SUBSCRIPTION RENEWAL ALERTS</span>
-              <h3 style={{ margin: '0.4rem 0 0', fontSize: '1.1rem', color: '#a16207', fontWeight: 700 }}>1 Due Soon • 1 Overdue</h3>
-              <span style={{ fontSize: '0.75rem', color: '#ca8a04' }}>Billing Expirations Tracked</span>
+          <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex items-center justify-between">
+            <div>
+              <p className="text-xs font-bold text-slate-500 uppercase tracking-wider">Platform Status</p>
+              <h3 className="text-2xl font-black text-emerald-600 mt-1">100% Operational</h3>
+            </div>
+            <div className="p-3 bg-emerald-50 text-emerald-600 rounded-xl">
+              <Server className="w-6 h-6" />
             </div>
           </div>
         </div>
 
-        <div style={{ backgroundColor: '#fff', border: '2px solid #0284c7', borderRadius: '12px', padding: '1.75rem', marginBottom: '2rem', boxShadow: '0 2px 4px rgba(0,0,0,0.05)' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem' }}>
+        {/* SECTION 1: SALES & TRAINING DISPATCH FEED */}
+        <section className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm space-y-4">
+          <div className="flex justify-between items-center border-b border-slate-100 pb-3">
             <div>
-              <h3 style={{ margin: 0, fontSize: '1.2rem', color: '#0369a1', fontWeight: 700 }}>Sales Representative Credentials & Demo Sandboxes</h3>
-              <p style={{ margin: '0.2rem 0 0', color: '#64748b', fontSize: '0.85rem' }}>Provision dedicated sales licenses, assign demo stream sandboxes, and view lead capture logs.</p>
+              <h2 className="text-lg font-bold text-[#24083b] flex items-center gap-2">
+                <MessageSquare className="w-5 h-5 text-amber-600" /> Sales Team Dispatch Feed
+              </h2>
+              <p className="text-xs text-slate-500">Leads, feature suggestions, and issues submitted directly by Sales.</p>
             </div>
-            <button style={{ backgroundColor: '#0284c7', color: '#fff', border: 'none', padding: '0.55rem 1rem', borderRadius: '6px', fontWeight: 700, fontSize: '0.8rem', cursor: 'pointer' }}>
-              + Assign New Sales Rep
-            </button>
           </div>
 
-          <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
-            <thead>
-              <tr style={{ backgroundColor: '#f8fafc', color: '#475569', fontSize: '0.85rem' }}>
-                <th style={{ padding: '0.75rem 1rem' }}>Sales Rep Name</th>
-                <th style={{ padding: '0.75rem 1rem' }}>Assigned Work Email</th>
-                <th style={{ padding: '0.75rem 1rem' }}>Default Stream Sandbox</th>
-                <th style={{ padding: '0.75rem 1rem' }}>Status</th>
-                <th style={{ padding: '0.75rem 1rem' }}>Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr style={{ borderBottom: '1px solid #f1f5f9', fontSize: '0.9rem' }}>
-                <td style={{ padding: '0.85rem 1rem', fontWeight: 600, color: '#0f172a' }}>Primary Sales Lead</td>
-                <td style={{ padding: '0.85rem 1rem', color: '#475569' }}>sales@straightuptraining.com</td>
-                <td style={{ padding: '0.85rem 1rem' }}>
-                  <span style={{ backgroundColor: '#e0f2fe', color: '#0369a1', padding: '0.25rem 0.6rem', borderRadius: '4px', fontSize: '0.8rem', fontWeight: 600 }}>
-                    TtW Youth Specialist
-                  </span>
-                </td>
-                <td style={{ padding: '0.85rem 1rem' }}>
-                  <span style={{ backgroundColor: '#dcfce7', color: '#15803d', padding: '0.2rem 0.6rem', borderRadius: '12px', fontSize: '0.75rem', fontWeight: 700 }}>
-                    Active
-                  </span>
-                </td>
-                <td style={{ padding: '0.85rem 1rem' }}>
-                  <button style={{ backgroundColor: '#e2e8f0', color: '#334155', border: 'none', padding: '0.35rem 0.75rem', borderRadius: '4px', cursor: 'pointer', fontSize: '0.8rem', fontWeight: 600 }}>
-                    Reset Sandbox
-                  </button>
-                </td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-
-        <div style={{ backgroundColor: '#fff', border: '2px solid #16a34a', borderRadius: '12px', padding: '1.75rem', boxShadow: '0 2px 4px rgba(0,0,0,0.05)' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem' }}>
-            <div>
-              <h3 style={{ margin: 0, fontSize: '1.2rem', color: '#15803d', fontWeight: 700 }}>Support Inbox: Sales Demo Logs & Business Manager Queries</h3>
-              <p style={{ margin: '0.2rem 0 0', color: '#64748b', fontSize: '0.85rem' }}>Inspect incoming rep suggestions and Business Manager help requests in real time.</p>
-            </div>
-            <button onClick={fetchAllLogs} style={{ backgroundColor: '#f1f5f9', color: '#475569', border: '1px solid #cbd5e1', padding: '0.45rem 0.85rem', borderRadius: '6px', cursor: 'pointer', fontSize: '0.8rem', fontWeight: 600 }}>
-              Refresh Logs
-            </button>
-          </div>
-
-          <div style={{ display: 'flex', gap: '0.75rem', marginBottom: '1.25rem' }}>
-            <button
-              onClick={() => setInboxTab('sales')}
-              style={{
-                padding: '0.5rem 1rem',
-                borderRadius: '6px',
-                border: 'none',
-                cursor: 'pointer',
-                fontWeight: 600,
-                fontSize: '0.85rem',
-                backgroundColor: inboxTab === 'sales' ? '#16a34a' : '#e2e8f0',
-                color: inboxTab === 'sales' ? '#fff' : '#475569'
-              }}
-            >
-              Sales Rep Feedback ({salesFeedback.length})
-            </button>
-            <button
-              onClick={() => setInboxTab('business')}
-              style={{
-                padding: '0.5rem 1rem',
-                borderRadius: '6px',
-                border: 'none',
-                cursor: 'pointer',
-                fontWeight: 600,
-                fontSize: '0.85rem',
-                backgroundColor: inboxTab === 'business' ? '#2563eb' : '#e2e8f0',
-                color: inboxTab === 'business' ? '#fff' : '#475569'
-              }}
-            >
-              Business Manager Queries ({businessQueries.length})
-            </button>
-          </div>
-
-          {loading ? (
-            <p style={{ color: '#64748b' }}>Loading support logs...</p>
-          ) : inboxTab === 'sales' ? (
-            <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
+          <div className="overflow-x-auto">
+            <table className="w-full text-left text-xs border-collapse">
               <thead>
-                <tr style={{ backgroundColor: '#f8fafc', color: '#475569', fontSize: '0.85rem' }}>
-                  <th style={{ padding: '0.75rem 1rem' }}>Submitted</th>
-                  <th style={{ padding: '0.75rem 1rem' }}>Feedback Details</th>
-                  <th style={{ padding: '0.75rem 1rem' }}>Status</th>
-                  <th style={{ padding: '0.75rem 1rem' }}>Action</th>
+                <tr className="bg-slate-50 text-slate-600 font-bold border-b border-slate-200">
+                  <th className="p-3">Date</th>
+                  <th className="p-3">Type</th>
+                  <th className="p-3">From</th>
+                  <th className="p-3">Details / Content</th>
+                  <th className="p-3">Status</th>
                 </tr>
               </thead>
-              <tbody>
-                {salesFeedback.length === 0 ? (
-                  <tr><td colSpan={4} style={{ padding: '1rem', fontStyle: 'italic', color: '#94a3b8' }}>No sales rep submissions.</td></tr>
-                ) : (
-                  salesFeedback.map(item => (
-                    <tr key={item.id} style={{ borderBottom: '1px solid #f1f5f9', fontSize: '0.9rem' }}>
-                      <td style={{ padding: '0.85rem 1rem', color: '#64748b', fontSize: '0.85rem' }}>{new Date(item.created_at).toLocaleString()}</td>
-                      <td style={{ padding: '0.85rem 1rem', color: '#1e293b' }}>{item.feedback_text}</td>
-                      <td style={{ padding: '0.85rem 1rem' }}>
-                        <span style={{ backgroundColor: item.status === 'Actioned' ? '#dcfce7' : '#fef3c7', color: item.status === 'Actioned' ? '#15803d' : '#b45309', padding: '0.2rem 0.6rem', borderRadius: '12px', fontSize: '0.75rem', fontWeight: 700 }}>
-                          {item.status || 'Pending'}
-                        </span>
-                      </td>
-                      <td style={{ padding: '0.85rem 1rem' }}>
-                        {item.status !== 'Actioned' ? (
-                          <button onClick={() => markActioned(item.id, 'sales_rep_feedback')} style={{ backgroundColor: '#16a34a', color: '#fff', border: 'none', padding: '0.35rem 0.75rem', borderRadius: '4px', cursor: 'pointer', fontSize: '0.8rem', fontWeight: 700 }}>
-                            Mark Actioned
-                          </button>
-                        ) : (
-                          <span style={{ color: '#16a34a', fontSize: '0.8rem', fontWeight: 600 }}>Actioned</span>
-                        )}
-                      </td>
-                    </tr>
-                  ))
-                )}
+              <tbody className="divide-y divide-slate-100">
+                {dispatches.map((disp) => (
+                  <tr key={disp.id} className="hover:bg-slate-50/80 transition-all">
+                    <td className="p-3 font-semibold text-slate-500">{disp.date}</td>
+                    <td className="p-3">
+                      <span className={`px-2.5 py-0.5 rounded-full text-[11px] font-bold ${
+                        disp.type === 'Lead' ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' :
+                        disp.type === 'Issue' ? 'bg-rose-50 text-rose-700 border border-rose-200' : 'bg-purple-50 text-purple-700 border border-purple-200'
+                      }`}>
+                        {disp.type}
+                      </span>
+                    </td>
+                    <td className="p-3 font-semibold text-slate-700">{disp.from}</td>
+                    <td className="p-3 text-slate-900 font-medium">{disp.content}</td>
+                    <td className="p-3 font-bold text-amber-700">{disp.status}</td>
+                  </tr>
+                ))}
               </tbody>
             </table>
-          ) : (
-            <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
+          </div>
+        </section>
+
+        {/* SECTION 2: PROVIDER LICENCE MANAGEMENT */}
+        <section className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm space-y-4">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-3">
+            <div>
+              <h2 className="text-lg font-bold text-[#24083b] flex items-center gap-2">
+                <Building2 className="w-5 h-5 text-purple-700" /> Registered Provider Accounts & Licences
+              </h2>
+              <p className="text-xs text-slate-500">Manage provider organizations, active seats, and operational status.</p>
+            </div>
+            
+            <button
+              onClick={() => setShowAddProviderModal(true)}
+              className="inline-flex items-center gap-1.5 px-4 py-2 bg-[#24083b] hover:bg-[#320b52] text-white font-bold text-xs rounded-xl shadow-sm transition-all"
+            >
+              <Plus className="w-4 h-4" /> Onboard New Provider
+            </button>
+          </div>
+
+          <div className="overflow-x-auto">
+            <table className="w-full text-left text-xs border-collapse">
               <thead>
-                <tr style={{ backgroundColor: '#f8fafc', color: '#475569', fontSize: '0.85rem' }}>
-                  <th style={{ padding: '0.75rem 1rem' }}>Date</th>
-                  <th style={{ padding: '0.75rem 1rem' }}>Manager Email</th>
-                  <th style={{ padding: '0.75rem 1rem' }}>Category</th>
-                  <th style={{ padding: '0.75rem 1rem' }}>Query / Request Details</th>
-                  <th style={{ padding: '0.75rem 1rem' }}>Status</th>
-                  <th style={{ padding: '0.75rem 1rem' }}>Action</th>
+                <tr className="bg-slate-50 text-slate-600 font-bold border-b border-slate-200">
+                  <th className="p-3">Provider Name</th>
+                  <th className="p-3">Contact Email</th>
+                  <th className="p-3">Licence Tier</th>
+                  <th className="p-3">Allocated Quota</th>
+                  <th className="p-3">Status</th>
                 </tr>
               </thead>
-              <tbody>
-                {businessQueries.length === 0 ? (
-                  <tr><td colSpan={6} style={{ padding: '1rem', fontStyle: 'italic', color: '#94a3b8' }}>No business manager queries logged.</td></tr>
-                ) : (
-                  businessQueries.map(item => (
-                    <tr key={item.id} style={{ borderBottom: '1px solid #f1f5f9', fontSize: '0.9rem' }}>
-                      <td style={{ padding: '0.85rem 1rem', color: '#64748b', fontSize: '0.85rem' }}>{new Date(item.created_at).toLocaleString()}</td>
-                      <td style={{ padding: '0.85rem 1rem', color: '#0f172a', fontWeight: 600 }}>{item.user_email || 'bizmanager@workready.com'}</td>
-                      <td style={{ padding: '0.85rem 1rem' }}>
-                        <span style={{ backgroundColor: '#e0f2fe', color: '#0369a1', padding: '0.2rem 0.5rem', borderRadius: '4px', fontSize: '0.75rem', fontWeight: 600 }}>
-                          {item.category || 'General Help'}
-                        </span>
-                      </td>
-                      <td style={{ padding: '0.85rem 1rem', color: '#1e293b' }}>{item.query_text}</td>
-                      <td style={{ padding: '0.85rem 1rem' }}>
-                        <span style={{ backgroundColor: item.status === 'Actioned' ? '#dcfce7' : '#fef3c7', color: item.status === 'Actioned' ? '#15803d' : '#b45309', padding: '0.2rem 0.6rem', borderRadius: '12px', fontSize: '0.75rem', fontWeight: 700 }}>
-                          {item.status || 'Pending'}
-                        </span>
-                      </td>
-                      <td style={{ padding: '0.85rem 1rem' }}>
-                        {item.status !== 'Actioned' ? (
-                          <button onClick={() => markActioned(item.id, 'business_manager_queries')} style={{ backgroundColor: '#2563eb', color: '#fff', border: 'none', padding: '0.35rem 0.75rem', borderRadius: '4px', cursor: 'pointer', fontSize: '0.8rem', fontWeight: 700 }}>
-                            Resolve Query
-                          </button>
-                        ) : (
-                          <span style={{ color: '#16a34a', fontSize: '0.8rem', fontWeight: 600 }}>Resolved</span>
-                        )}
-                      </td>
-                    </tr>
-                  ))
-                )}
+              <tbody className="divide-y divide-slate-100">
+                {providers.map((prov) => (
+                  <tr key={prov.id} className="hover:bg-slate-50/80 transition-all">
+                    <td className="p-3 font-bold text-slate-900">{prov.name}</td>
+                    <td className="p-3 text-slate-600">{prov.contactEmail}</td>
+                    <td className="p-3 font-semibold text-purple-900">{prov.licenceTier}</td>
+                    <td className="p-3 font-bold text-emerald-600">{prov.allocatedSeats} / {prov.totalSeats} Seats Used</td>
+                    <td className="p-3">
+                      <span className="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                        {prov.status}
+                      </span>
+                    </td>
+                  </tr>
+                ))}
               </tbody>
             </table>
-          )}
-        </div>
+          </div>
+        </section>
 
       </main>
+
+      {/* MODAL: ONBOARD NEW PROVIDER */}
+      {showAddProviderModal && (
+        <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+          <form onSubmit={handleAddProvider} className="bg-white rounded-2xl p-6 max-w-md w-full space-y-4 shadow-xl border border-slate-200">
+            <div className="border-b border-slate-100 pb-3 flex justify-between items-center">
+              <h3 className="font-bold text-base text-[#24083b]">Onboard New Provider Account 🏢</h3>
+              <button type="button" onClick={() => setShowAddProviderModal(false)} className="text-slate-400 hover:text-slate-600 font-bold">✕</button>
+            </div>
+            
+            <div className="space-y-3 text-xs">
+              <div>
+                <label className="block font-bold text-slate-700 mb-1">Provider Business Name *</label>
+                <input required type="text" value={provName} onChange={(e) => setProvName(e.target.value)} placeholder="e.g. Apex Regional Services" className="w-full p-2.5 border rounded-xl" />
+              </div>
+              <div>
+                <label className="block font-bold text-slate-700 mb-1">Primary Business Manager Email *</label>
+                <input required type="email" value={provEmail} onChange={(e) => setProvEmail(e.target.value)} placeholder="e.g. bessy@provider.com" className="w-full p-2.5 border rounded-xl" />
+              </div>
+              <div>
+                <label className="block font-bold text-slate-700 mb-1">Initial Licence Seat Quota</label>
+                <input type="number" value={provSeats} onChange={(e) => setProvSeats(Number(e.target.value))} className="w-full p-2.5 border rounded-xl" />
+              </div>
+            </div>
+
+            <div className="flex justify-end gap-2 pt-2 border-t border-slate-100">
+              <button type="button" onClick={() => setShowAddProviderModal(false)} className="px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100 rounded-xl">Cancel</button>
+              <button type="submit" className="px-4 py-2 text-xs bg-[#24083b] text-white font-bold rounded-xl shadow-sm">Create Provider Account</button>
+            </div>
+          </form>
+        </div>
+      )}
+
     </div>
   );
-}
+};
+
+export default AdminDashboard;

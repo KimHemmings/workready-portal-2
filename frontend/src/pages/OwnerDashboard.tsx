@@ -1,362 +1,251 @@
-import { useState } from "react";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Building2, Link as LinkIcon, Save, ShieldPlus } from "lucide-react";
-import { toast } from "sonner";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import AppShell from "@/components/AppShell";
-import SendInviteButton from "@/components/SendInviteButton";
-import { InviteLinkDialog } from "@/components/InviteLinkDialog";
-import { apiGet, apiPatch, apiPost, ApiError } from "@/lib/api";
-import { getSessionUser } from "@/lib/session";
-import type { InviteResult, Organization, OrgType, OwnerOverview } from "@/lib/types";
+import React, { useState } from 'react';
+import { 
+  Building2, Users, ShieldAlert, Award, FileSpreadsheet, Download, 
+  PieChart, RefreshCw, UserCheck, ArrowRightLeft, ShieldCheck, CheckCircle2 
+} from 'lucide-react';
 
-const ORG_TYPES: OrgType[] = ["School", "Workforce Australia", "TtW", "DES"];
-
-function detailOf(err: unknown, fallback: string): string {
-  const detail = err instanceof ApiError ? (err.body as { detail?: string } | null)?.detail : null;
-  return typeof detail === "string" ? detail : fallback;
+interface CaseManagerQuota {
+  id: string;
+  name: string;
+  email: string;
+  activeCandidates: number;
+  maxLicenceCapacity: number;
+  complianceRate: number;
 }
 
-export default function OwnerDashboard() {
-  const user = getSessionUser();
-  const qc = useQueryClient();
-  const [orgName, setOrgName] = useState("");
-  const [orgType, setOrgType] = useState<OrgType>("Workforce Australia");
-  const [adminName, setAdminName] = useState("");
-  const [adminEmail, setAdminEmail] = useState("");
-  const [coachSeats, setCoachSeats] = useState("5");
-  const [participantSeats, setParticipantSeats] = useState("100");
-  const [invite, setInvite] = useState<InviteResult | null>(null);
-  const [seatDraft, setSeatDraft] = useState<Record<string, { coach: string; participant: string }>>({});
+interface ProviderLicence {
+  providerName: string;
+  licenceTier: string;
+  totalLicences: number;
+  allocatedLicences: number;
+  expiryDate: string;
+  status: 'Active' | 'Near Capacity' | 'Expired';
+}
 
-  const overview = useQuery({
-    queryKey: ["owner-overview", user?.id],
-    queryFn: () => apiGet<OwnerOverview>(`/owner/${user!.id}/overview`),
-    enabled: Boolean(user),
+export const OwnerDashboard: React.FC = () => {
+  const [licenceInfo] = useState<ProviderLicence>({
+    providerName: 'Straight Up Training — Provider Hub',
+    licenceTier: 'Enterprise Workforce Australia',
+    totalLicences: 50,
+    allocatedLicences: 38,
+    expiryDate: '31/12/2026',
+    status: 'Active',
   });
 
-  const createProvider = useMutation({
-    mutationFn: () =>
-      apiPost<InviteResult>(`/owner/${user!.id}/providers`, {
-        organization_name: orgName.trim(),
-        type: orgType,
-        admin_name: adminName.trim(),
-        admin_email: adminEmail.trim(),
-        coach_seat_limit: Number(coachSeats) || 0,
-        participant_seat_limit: Number(participantSeats) || 0,
-      }),
-    onSuccess: (res) => {
-      qc.invalidateQueries({ queryKey: ["owner-overview"] });
-      setOrgName("");
-      setAdminName("");
-      setAdminEmail("");
-      setInvite(res);
-      toast.success(`${res.user.name} can now set up ${orgName || "the new provider"}.`);
+  const [caseManagers, setCaseManagers] = useState<CaseManagerQuota[]>([
+    {
+      id: 'cm-1',
+      name: 'Casey Miller (Case Manager)',
+      email: 'case@workready.com',
+      activeCandidates: 24,
+      maxLicenceCapacity: 30,
+      complianceRate: 94,
     },
-    onError: (err) => toast.error(detailOf(err, "Could not create that provider.")),
-  });
-
-  const saveSeats = useMutation({
-    mutationFn: (vars: { orgId: string; coach: number; participant: number }) =>
-      apiPatch<Organization>(`/owner/${user!.id}/providers/${vars.orgId}/seats`, {
-        coach_seat_limit: vars.coach,
-        participant_seat_limit: vars.participant,
-      }),
-    onSuccess: (org) => {
-      qc.invalidateQueries({ queryKey: ["owner-overview"] });
-      toast.success(`Seat limits updated for ${org.name}.`);
+    {
+      id: 'cm-2',
+      name: 'Jordan Lee (Senior Advisor)',
+      email: 'jordan.l@workready.com',
+      activeCandidates: 14,
+      maxLicenceCapacity: 20,
+      complianceRate: 88,
     },
-    onError: (err) => toast.error(detailOf(err, "Could not update those seat limits.")),
-  });
+  ]);
 
-  const reissue = useMutation({
-    mutationFn: (userId: string) =>
-      apiPost<InviteResult>(`/owner/${user!.id}/users/${userId}/invite-link`),
-    onSuccess: (res) => setInvite(res),
-    onError: (err) => toast.error(detailOf(err, "Could not create an invite link.")),
-  });
+  const [showReallocateModal, setShowReallocateModal] = useState<boolean>(false);
+  const [selectedCM, setSelectedCM] = useState<CaseManagerQuota | null>(null);
+  const [newCapacity, setNewCapacity] = useState<number>(30);
 
-  const d = overview.isError ? null : overview.data;
+  const handleUpdateCapacity = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!selectedCM) return;
+
+    setCaseManagers((prev) =>
+      prev.map((cm) => (cm.id === selectedCM.id ? { ...cm, maxLicenceCapacity: Number(newCapacity) } : cm))
+    );
+    setShowReallocateModal(false);
+    alert(`✅ Updated ${selectedCM.name}'s maximum licence capacity to ${newCapacity} candidate slots.`);
+  };
+
+  const handleExportComplianceReport = () => {
+    alert("📊 Exporting Provider Compliance & Licence Usage Summary for Workforce Australia audit...");
+  };
+
+  const usedPercentage = Math.round((licenceInfo.allocatedLicences / licenceInfo.totalLicences) * 100);
 
   return (
-    <AppShell>
-      <header className="mb-6">
-        <p className="text-xs uppercase tracking-wider font-semibold text-primary font-mono">
-          System Owner
-        </p>
-        <h1 className="font-heading text-3xl sm:text-4xl font-bold tracking-tight mt-1">
-          Provider accounts &amp; seats
-        </h1>
-        <p className="text-muted-foreground mt-2">
-          Stand up new providers, set the seats they've paid for and hand over magic invite links.
-        </p>
+    <div className="min-h-screen bg-slate-50 text-slate-900 pb-16 font-sans">
+      <header className="bg-gradient-to-r from-[#24083b] via-[#320b52] to-[#24083b] text-white shadow-md border-b border-purple-900/40">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex flex-col sm:flex-row items-center justify-between gap-4">
+          <div className="flex items-center gap-3">
+            <div className="p-2 bg-emerald-500/20 text-emerald-400 rounded-xl border border-emerald-500/30">
+              <Building2 className="w-6 h-6" />
+            </div>
+            <div>
+              <div className="flex items-center gap-2">
+                <span className="font-black text-xl tracking-tight text-white font-heading">
+                  Business Manager Executive Hub
+                </span>
+                <span className="bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 text-[10px] font-bold px-2 py-0.5 rounded-full uppercase">
+                  Bessy (Business View)
+                </span>
+              </div>
+              <p className="text-xs text-purple-200">Licence Allocation, Provider Compliance & Caseload Management</p>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <button
+              onClick={handleExportComplianceReport}
+              className="px-3.5 py-2 bg-emerald-500 hover:bg-emerald-600 text-white font-bold text-xs rounded-xl shadow-sm transition-all flex items-center gap-1.5"
+            >
+              <Download className="w-4 h-4" /> Export Executive Audit
+            </button>
+            <button
+              onClick={() => { localStorage.clear(); window.location.href = "/"; }}
+              className="px-3 py-2 bg-white/10 hover:bg-white/20 border border-white/20 text-white text-xs font-bold rounded-xl transition-all"
+            >
+              Sign Out
+            </button>
+          </div>
+        </div>
       </header>
 
-      <div className="grid grid-cols-3 gap-4 mb-6">
-        {[
-          { label: "Providers", value: d?.total_providers ?? 0, testId: "kpi-providers" },
-          { label: "Case Managers", value: d?.total_coaches ?? 0, testId: "kpi-total-coaches" },
-          { label: "Learners", value: d?.total_participants ?? 0, testId: "kpi-total-participants" },
-        ].map((kpi) => (
-          <Card key={kpi.label}>
-            <CardContent className="pt-6">
-              <p className="text-2xl font-bold font-heading tabular-nums" data-testid={kpi.testId}>
-                {kpi.value}
-              </p>
-              <p className="text-sm text-muted-foreground">{kpi.label}</p>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6 space-y-6">
+        <section className="bg-gradient-to-r from-purple-950 via-[#24083b] to-purple-900 text-white rounded-2xl p-6 shadow-lg border border-purple-800 space-y-4">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-purple-800/80 pb-3">
+            <div>
+              <h2 className="text-sm font-bold text-emerald-400 uppercase tracking-wider">{licenceInfo.providerName}</h2>
+              <p className="text-lg font-black text-white">{licenceInfo.licenceTier}</p>
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="text-xs font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 px-3 py-1 rounded-full">
+                Status: {licenceInfo.status}
+              </span>
+              <span className="text-xs font-mono text-purple-200 bg-purple-900/60 px-3 py-1 rounded-full border border-purple-700">
+                Renewal: {licenceInfo.expiryDate}
+              </span>
+            </div>
+          </div>
 
-      <div className="grid gap-6 lg:grid-cols-12">
-        <Card className="lg:col-span-4">
-          <CardHeader>
-            <CardTitle className="text-lg flex items-center gap-2">
-              <ShieldPlus className="h-5 w-5 text-primary" aria-hidden="true" /> Add a provider
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <form
-              className="space-y-4"
-              onSubmit={(e) => {
-                e.preventDefault();
-                if (!orgName.trim() || !adminName.trim() || !adminEmail.trim()) {
-                  toast.error("Provider name, admin name and admin email are all required.");
-                  return;
-                }
-                createProvider.mutate();
-              }}
-              data-testid="create-provider-form"
-            >
-              <div className="space-y-1.5">
-                <Label htmlFor="provider-name">Provider / site name</Label>
-                <Input
-                  id="provider-name"
-                  value={orgName}
-                  onChange={(e) => setOrgName(e.target.value)}
-                  data-testid="provider-name-input"
-                />
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 pt-2">
+            <div className="space-y-1">
+              <span className="text-xs text-purple-200 font-semibold">Licence Seats Utilized</span>
+              <p className="text-2xl font-black text-white">{licenceInfo.allocatedLicences} / {licenceInfo.totalLicences} <span className="text-xs font-normal text-purple-300">Slots Used</span></p>
+              <div className="w-full bg-purple-950 h-3 rounded-full overflow-hidden border border-purple-800 mt-2">
+                <div className="bg-emerald-400 h-full rounded-full transition-all duration-500" style={{ width: `${usedPercentage}%` }} />
               </div>
-              <div className="space-y-1.5">
-                <Label htmlFor="provider-type">Provider type</Label>
-                <Select value={orgType} onValueChange={(v: string) => setOrgType(v as OrgType)}>
-                  <SelectTrigger id="provider-type" data-testid="provider-type-select">
-                    <SelectValue>{(v) => (v as string) ?? "Workforce Australia"}</SelectValue>
-                  </SelectTrigger>
-                  <SelectContent>
-                    {ORG_TYPES.map((t) => (
-                      <SelectItem key={t} value={t} data-testid={`provider-type-${t.replace(/\s+/g, "-")}`}>
-                        {t}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="space-y-1.5">
-                <Label htmlFor="provider-admin-name">Provider Admin name</Label>
-                <Input
-                  id="provider-admin-name"
-                  value={adminName}
-                  onChange={(e) => setAdminName(e.target.value)}
-                  data-testid="provider-admin-name-input"
-                />
-              </div>
-              <div className="space-y-1.5">
-                <Label htmlFor="provider-admin-email">Provider Admin email</Label>
-                <Input
-                  id="provider-admin-email"
-                  type="email"
-                  value={adminEmail}
-                  onChange={(e) => setAdminEmail(e.target.value)}
-                  data-testid="provider-admin-email-input"
-                />
-              </div>
-              <div className="grid grid-cols-2 gap-3">
-                <div className="space-y-1.5">
-                  <Label htmlFor="provider-coach-seats">Case Manager seats</Label>
-                  <Input
-                    id="provider-coach-seats"
-                    type="number"
-                    min={0}
-                    value={coachSeats}
-                    onChange={(e) => setCoachSeats(e.target.value)}
-                    data-testid="provider-coach-seats-input"
-                  />
-                </div>
-                <div className="space-y-1.5">
-                  <Label htmlFor="provider-participant-seats">Learner seats</Label>
-                  <Input
-                    id="provider-participant-seats"
-                    type="number"
-                    min={0}
-                    value={participantSeats}
-                    onChange={(e) => setParticipantSeats(e.target.value)}
-                    data-testid="provider-participant-seats-input"
-                  />
-                </div>
-              </div>
-              <Button
-                type="submit"
-                className="w-full bg-cta text-cta-foreground hover:bg-cta/90"
-                disabled={createProvider.isPending}
-                data-testid="create-provider-submit-button"
-              >
-                {createProvider.isPending ? "Creating…" : "Create provider & invite admin"}
-              </Button>
-            </form>
-          </CardContent>
-        </Card>
+            </div>
 
-        <Card className="lg:col-span-8">
-          <CardHeader>
-            <CardTitle className="text-lg flex items-center gap-2">
-              <Building2 className="h-5 w-5 text-brand-purple" aria-hidden="true" /> Providers
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            {(d?.providers.length ?? 0) === 0 ? (
-              <p className="text-sm text-muted-foreground" data-testid="providers-empty">
-                No providers yet — add your first one on the left.
-              </p>
-            ) : (
-              (d?.providers ?? []).map((row) => {
-                const draft = seatDraft[row.organization.id] ?? {
-                  coach: String(row.organization.coach_seat_limit),
-                  participant: String(row.organization.participant_seat_limit),
-                };
-                return (
-                  <div
-                    key={row.organization.id}
-                    className="rounded-xl border bg-card p-4"
-                    data-testid={`provider-row-${row.organization.id}`}
-                  >
-                    <div className="flex flex-wrap items-start justify-between gap-3">
-                      <div>
-                        <p className="font-heading font-semibold" data-testid={`provider-name-${row.organization.id}`}>
-                          {row.organization.name}
-                        </p>
-                        <p className="text-xs text-muted-foreground">{row.organization.type}</p>
-                      </div>
-                      <div className="flex flex-wrap gap-2">
-                        <Badge variant="secondary" data-testid={`provider-coach-usage-${row.organization.id}`}>
-                          Case Managers {row.coach_seats_used}/{row.organization.coach_seat_limit}
-                        </Badge>
-                        <Badge variant="secondary" data-testid={`provider-participant-usage-${row.organization.id}`}>
-                          Learners {row.participant_seats_used}/{row.organization.participant_seat_limit}
-                        </Badge>
-                      </div>
-                    </div>
+            <div className="space-y-1 border-l border-purple-800/60 pl-0 md:pl-6">
+              <span className="text-xs text-purple-200 font-semibold">Available Unallocated Seats</span>
+              <p className="text-2xl font-black text-emerald-400">{licenceInfo.totalLicences - licenceInfo.allocatedLicences} Seats Ready</p>
+              <p className="text-xs text-purple-300">Ready to assign to new candidate intakes.</p>
+            </div>
 
-                    <div className="mt-3 flex flex-wrap items-end gap-3">
-                      <div className="space-y-1.5">
-                        <Label htmlFor={`coach-seats-${row.organization.id}`} className="text-xs">
-                          Case Manager seats
-                        </Label>
-                        <Input
-                          id={`coach-seats-${row.organization.id}`}
-                          type="number"
-                          min={0}
-                          className="w-28"
-                          value={draft.coach}
-                          onChange={(e) =>
-                            setSeatDraft((s) => ({
-                              ...s,
-                              [row.organization.id]: { ...draft, coach: e.target.value },
-                            }))
-                          }
-                          data-testid={`coach-seat-input-${row.organization.id}`}
-                        />
-                      </div>
-                      <div className="space-y-1.5">
-                        <Label htmlFor={`participant-seats-${row.organization.id}`} className="text-xs">
-                          Learner seats
-                        </Label>
-                        <Input
-                          id={`participant-seats-${row.organization.id}`}
-                          type="number"
-                          min={0}
-                          className="w-28"
-                          value={draft.participant}
-                          onChange={(e) =>
-                            setSeatDraft((s) => ({
-                              ...s,
-                              [row.organization.id]: { ...draft, participant: e.target.value },
-                            }))
-                          }
-                          data-testid={`participant-seat-input-${row.organization.id}`}
-                        />
-                      </div>
-                      <Button
-                        size="sm"
-                        onClick={() =>
-                          saveSeats.mutate({
-                            orgId: row.organization.id,
-                            coach: Number(draft.coach) || 0,
-                            participant: Number(draft.participant) || 0,
-                          })
-                        }
-                        disabled={saveSeats.isPending}
-                        data-testid={`save-seats-${row.organization.id}`}
-                      >
-                        <Save className="h-4 w-4 mr-1.5" aria-hidden="true" /> Save seats
-                      </Button>
-                    </div>
+            <div className="space-y-1 border-l border-purple-800/60 pl-0 md:pl-6">
+              <span className="text-xs text-purple-200 font-semibold">Average Provider Compliance</span>
+              <p className="text-2xl font-black text-purple-200">91.5%</p>
+              <p className="text-xs text-purple-300">Across all active case manager rosters.</p>
+            </div>
+          </div>
+        </section>
 
-                    <div className="mt-3 border-t pt-3 space-y-2">
-                      {row.admins.length === 0 ? (
-                        <p className="text-xs text-muted-foreground">No Provider Admin yet.</p>
-                      ) : (
-                        row.admins.map((a) => (
-                          <div key={a.id} className="flex flex-wrap items-center justify-between gap-2">
-                            <div>
-                              <p className="text-sm font-medium">{a.name}</p>
-                              <p className="text-xs text-muted-foreground">{a.email}</p>
-                            </div>
-                            <div className="flex items-center gap-2">
-                              <Badge variant={a.status === "active" ? "default" : "secondary"}>
-                                {a.status}
-                              </Badge>
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                onClick={() => reissue.mutate(a.id)}
-                                disabled={reissue.isPending}
-                                data-testid={`owner-invite-link-${a.id}`}
-                              >
-                                <LinkIcon className="h-4 w-4 mr-1.5" aria-hidden="true" /> Invite link
-                              </Button>
-                              <SendInviteButton
-                                inviterId={user!.id}
-                                userId={a.id}
-                                userName={a.name}
-                                testId={`owner-send-invite-${a.id}`}
-                              />
-                            </div>
+        <section className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm space-y-4">
+          <div className="flex justify-between items-center border-b border-slate-100 pb-3">
+            <div>
+              <h2 className="text-lg font-bold text-[#24083b] flex items-center gap-2">
+                <Users className="w-5 h-5 text-purple-700" /> Staff Licence & Caseload Allocations
+              </h2>
+              <p className="text-xs text-slate-500">Allocate candidate seats across Case Managers to stay within licensed limits.</p>
+            </div>
+          </div>
+
+          <div className="overflow-x-auto">
+            <table className="w-full text-left text-xs border-collapse">
+              <thead>
+                <tr className="bg-slate-50 text-slate-600 font-bold border-b border-slate-200">
+                  <th className="p-3">Case Manager</th>
+                  <th className="p-3">Assigned Candidates</th>
+                  <th className="p-3">Max Quota</th>
+                  <th className="p-3">Capacity Bar</th>
+                  <th className="p-3">Compliance Rate</th>
+                  <th className="p-3 text-right">Action</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-100">
+                {caseManagers.map((cm) => {
+                  const cmPct = Math.round((cm.activeCandidates / cm.maxLicenceCapacity) * 100);
+                  return (
+                    <tr key={cm.id} className="hover:bg-slate-50/80 transition-all">
+                      <td className="p-3">
+                        <span className="font-bold text-slate-900 block">{cm.name}</span>
+                        <span className="text-slate-500 text-[11px]">{cm.email}</span>
+                      </td>
+                      <td className="p-3 font-bold text-purple-900">{cm.activeCandidates} Active</td>
+                      <td className="p-3 font-semibold text-slate-700">{cm.maxLicenceCapacity} Max Slots</td>
+                      <td className="p-3 w-48">
+                        <div className="space-y-1">
+                          <div className="w-full bg-slate-100 h-2 rounded-full overflow-hidden border">
+                            <div className={`h-full rounded-full ${cmPct > 85 ? 'bg-amber-500' : 'bg-emerald-500'}`} style={{ width: `${cmPct}%` }} />
                           </div>
-                        ))
-                      )}
-                    </div>
-                  </div>
-                );
-              })
-            )}
-          </CardContent>
-        </Card>
-      </div>
+                          <span className="text-[10px] text-slate-500 font-bold">{cmPct}% Capacity Used</span>
+                        </div>
+                      </td>
+                      <td className="p-3">
+                        <span className="inline-flex items-center gap-1 font-bold text-emerald-700 bg-emerald-50 px-2.5 py-0.5 rounded-full border border-emerald-200">
+                          <CheckCircle2 className="w-3 h-3" /> {cm.complianceRate}%
+                        </span>
+                      </td>
+                      <td className="p-3 text-right">
+                        <button
+                          onClick={() => { setSelectedCM(cm); setNewCapacity(cm.maxLicenceCapacity); setShowReallocateModal(true); }}
+                          className="px-3 py-1.5 bg-[#24083b] hover:bg-[#320b52] text-white font-bold rounded-xl shadow-sm transition-all"
+                        >
+                          Adjust Quota
+                        </button>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        </section>
+      </main>
 
-      <InviteLinkDialog result={invite} onClose={() => setInvite(null)} />
-    </AppShell>
+      {showReallocateModal && selectedCM && (
+        <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+          <form onSubmit={handleUpdateCapacity} className="bg-white rounded-2xl p-6 max-w-md w-full space-y-4 shadow-xl border border-slate-200">
+            <div className="border-b border-slate-100 pb-3 flex justify-between items-center">
+              <h3 className="font-bold text-base text-[#24083b]">Reallocate Capacity ⚙️</h3>
+              <button type="button" onClick={() => setShowReallocateModal(false)} className="text-slate-400 hover:text-slate-600 font-bold">✕</button>
+            </div>
+
+            <div className="space-y-3 text-xs">
+              <p className="text-slate-600">Adjust maximum candidate seats for <strong>{selectedCM.name}</strong>.</p>
+              <div>
+                <label className="block font-bold text-slate-700 mb-1">New Seat Limit *</label>
+                <input
+                  type="number"
+                  required
+                  min={selectedCM.activeCandidates}
+                  max={licenceInfo.totalLicences}
+                  value={newCapacity}
+                  onChange={(e) => setNewCapacity(Number(e.target.value))}
+                  className="w-full p-2.5 border rounded-xl"
+                />
+              </div>
+            </div>
+
+            <div className="flex justify-end gap-2 pt-2 border-t border-slate-100">
+              <button type="button" onClick={() => setShowReallocateModal(false)} className="px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100 rounded-xl">Cancel</button>
+              <button type="submit" className="px-4 py-2 text-xs bg-[#24083b] text-white font-bold rounded-xl shadow-sm">Save Quota</button>
+            </div>
+          </form>
+        </div>
+      )}
+    </div>
   );
-}
+};
+
+export default OwnerDashboard;
