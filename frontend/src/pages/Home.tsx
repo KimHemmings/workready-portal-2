@@ -33,7 +33,6 @@ export default function Home() {
 
     const lowerEmail = email.trim().toLowerCase();
 
-    // 1. DIRECT BYPASS FOR SALES / ADMIN / DEMO (Executes BEFORE 2FA check)
     if (
       lowerEmail.includes('sales') || 
       lowerEmail.includes('demo') || 
@@ -54,7 +53,6 @@ export default function Home() {
       return;
     }
 
-    // 2. Standard Public Role Routing
     let target = '/';
     if (selectedRole === 'case_manager') target = '/case-manager/profile';
     if (selectedRole === 'candidate') target = '/candidate/workspace';
@@ -111,7 +109,7 @@ export default function Home() {
       alignItems: 'center',
       overflowX: 'hidden'
     }}>
-      {/* Background Classroom Image & Dark Navy Overlay */}
+      {/* Background Classroom Photo & Dark Navy Gradient Overlay */}
       <div style={{
         position: 'absolute',
         inset: 0,
@@ -142,7 +140,7 @@ export default function Home() {
           overflow: 'hidden',
           border: '1px solid rgba(255, 255, 255, 0.2)'
         }}>
-          {/* Header Branding - 110px LOGO & HIGH IMPACT TITLE */}
+          {/* Header Branding */}
           <div style={{ backgroundColor: '#1e293b', padding: '2.5rem 1.75rem 2rem', textAlign: 'center', color: '#fff', borderBottom: '4px solid #16a34a' }}>
             <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '1.25rem' }}>
               <img 
@@ -159,12 +157,10 @@ export default function Home() {
             </p>
           </div>
 
-          {/* Welcoming Blurb */}
           <div style={{ padding: '1.25rem 1.75rem 0.5rem', textAlign: 'center', color: '#475569', fontSize: '0.875rem', lineHeight: '1.5' }}>
             Welcome to the Workready Portal! Empowering employment pathways through tailored training, real opportunity, and dedicated support. Please sign in to access your workspace.
           </div>
 
-          {/* Form Container */}
           <form onSubmit={handleLogin} style={{ padding: '1.25rem 1.75rem 2rem' }}>
             {error && (
               <div style={{ backgroundColor: '#fef2f2', color: '#991b1b', border: '1px solid #fecaca', padding: '0.6rem 0.8rem', borderRadius: '8px', fontSize: '0.85rem', marginBottom: '1rem' }}>
@@ -172,7 +168,6 @@ export default function Home() {
               </div>
             )}
 
-            {/* Role Selection Tabs */}
             <label style={{ display: 'block', fontSize: '0.8rem', color: '#475569', fontWeight: 700, marginBottom: '0.5rem', textTransform: 'uppercase' }}>
               Select Workspace Role
             </label>
@@ -230,7 +225,6 @@ export default function Home() {
               </button>
             </div>
 
-            {/* Email Input */}
             <div style={{ marginBottom: '1rem' }}>
               <label style={{ display: 'block', fontSize: '0.85rem', color: '#334155', fontWeight: 600, marginBottom: '0.4rem' }}>Email Address</label>
               <input
@@ -243,7 +237,6 @@ export default function Home() {
               />
             </div>
 
-            {/* Password Input */}
             <div style={{ marginBottom: '1.25rem' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.4rem' }}>
                 <label style={{ fontSize: '0.85rem', color: '#334155', fontWeight: 600 }}>Password</label>
@@ -275,7 +268,6 @@ export default function Home() {
               </div>
             </div>
 
-            {/* Submit Button */}
             <button
               type="submit"
               style={{
@@ -295,7 +287,6 @@ export default function Home() {
               Sign In to {selectedRole === 'case_manager' ? 'Case Manager Portal' : selectedRole === 'candidate' ? 'Candidate Workspace' : 'Business Portal'}
             </button>
 
-            {/* Microsoft / Provider SSO Option */}
             <button
               type="button"
               onClick={handleSsoLogin}
@@ -318,7 +309,6 @@ export default function Home() {
               <span style={{ fontSize: '1.1rem' }}>❖</span> Sign in with Microsoft / Organization SSO
             </button>
 
-            {/* Footer Links & Interactive Legal Modals */}
             <div style={{ marginTop: '1.5rem', textAlign: 'center', fontSize: '0.75rem', color: '#94a3b8', lineHeight: '1.6' }}>
               <button
                 type="button"
@@ -343,7 +333,7 @@ export default function Home() {
         </div>
       </div>
 
-      {/* TERMS & PRIVACY POLICY MODALS */}
+      {/* POLICY MODALS */}
       {activePolicyModal && (
         <div style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.7)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1100, padding: '1.5rem' }}>
           <div style={{ backgroundColor: '#fff', borderRadius: '12px', padding: '2rem', maxWidth: '550px', width: '100%', maxHeight: '80vh', overflowY: 'auto', boxShadow: '0 20px 25px -5px rgba(0,0,0,0.3)' }}>
@@ -353,9 +343,9 @@ export default function Home() {
                 <div style={{ fontSize: '0.875rem', color: '#334155', lineHeight: '1.6' }}>
                   <p>Welcome to the Workready Portal, managed by Straight Up Training. By accessing or using this system, you agree to comply with the following operational terms:</p>
                   <ul>
-                    <li><strong>Authorized Access Only:</strong> Portals and workspaces are strictly restricted to registered Case Managers, Candidates, and Partner Organization Representatives.</li>
-                    <li><strong>Data Integrity & Confidentiality:</strong> Users must handle participant and performance data in accordance with Australian Privacy Principles (APPs).</li>
-                    <li><strong>Security Compliance:</strong> Shared or unverified credential usage is prohibited. Multi-factor authentication must be maintained for staff roles.</li>
+                    <li><strong>Authorized Access Only:</strong> Restricted to registered Case Managers, Candidates, and Partner Representatives.</li>
+                    <li><strong>Data Integrity & Confidentiality:</strong> Managed under Australian Privacy Principles (APPs).</li>
+                    <li><strong>Security Compliance:</strong> Multi-factor authentication required for staff roles.</li>
                   </ul>
                 </div>
               </div>
@@ -363,11 +353,11 @@ export default function Home() {
               <div>
                 <h3 style={{ margin: '0 0 1rem', color: '#0f172a' }}>🔒 Privacy Policy</h3>
                 <div style={{ fontSize: '0.875rem', color: '#334155', lineHeight: '1.6' }}>
-                  <p>Straight Up Training is committed to protecting your personal information and privacy within the Workready Portal:</p>
+                  <p>Straight Up Training is committed to protecting your personal information within the Workready Portal:</p>
                   <ul>
-                    <li><strong>Information Collection:</strong> We collect relevant contact, training progress, and employment outcome data essential for program delivery and compliance tracking.</li>
-                    <li><strong>Use of Data:</strong> Data is solely utilized to facilitate employment outcomes, audit logging, and authorized provider communication.</li>
-                    <li><strong>Data Protection:</strong> All records are encrypted in transit and at rest in compliance with Commonwealth employment provider standards.</li>
+                    <li><strong>Information Collection:</strong> Contact, progress, and employment outcome data for program delivery.</li>
+                    <li><strong>Use of Data:</strong> Used for employment outcomes, audit logging, and provider communication.</li>
+                    <li><strong>Data Protection:</strong> Encrypted in transit and at rest.</li>
                   </ul>
                 </div>
               </div>
@@ -389,7 +379,7 @@ export default function Home() {
         <div style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.6)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, padding: '1rem' }}>
           <div style={{ backgroundColor: '#fff', borderRadius: '12px', padding: '1.75rem', maxWidth: '380px', width: '100%', boxShadow: '0 10px 25px rgba(0,0,0,0.2)' }}>
             <h3 style={{ margin: '0 0 0.5rem', color: '#0f172a' }}>🔑 Reset Account Password</h3>
-            <p style={{ margin: '0 0 1.25rem', color: '#64748b', fontSize: '0.85rem' }}>Enter your email address and we'll send you a password reset authorization link.</p>
+            <p style={{ margin: '0 0 1.25rem', color: '#64748b', fontSize: '0.85rem' }}>Enter your email address and we'll send you a password reset link.</p>
             
             {resetMessage && (
               <div style={{ backgroundColor: '#f0fdf4', color: '#166534', border: '1px solid #bbf7d0', padding: '0.6rem', borderRadius: '6px', fontSize: '0.85rem', marginBottom: '1rem', fontWeight: 600 }}>
@@ -415,7 +405,7 @@ export default function Home() {
         </div>
       )}
 
-      {/* MFA 2-FACTOR VERIFICATION MODAL */}
+      {/* MFA MODAL */}
       {isMfaOpen && (
         <div style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.7)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, padding: '1rem' }}>
           <div style={{ backgroundColor: '#fff', borderRadius: '12px', padding: '2rem', maxWidth: '400px', width: '100%', boxShadow: '0 10px 25px rgba(0,0,0,0.3)', textAlign: 'center' }}>
@@ -473,5 +463,3 @@ export default function Home() {
     </div>
   );
 }
-
-// Trigger Vercel deploy: 2026-09-15 11:02:59
