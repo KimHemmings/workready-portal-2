@@ -194,15 +194,23 @@ export const ParticipantHome: React.FC = () => {
               </div>
             </div>
 
-            {/* Candidate Header Stats & Logout */}
-            <div className="flex items-center gap-4">
-              <div className="text-right hidden sm:block">
-                <div className="text-xs text-purple-200 font-bold">Alex Johnson</div>
-                <div className="text-[10px] text-emerald-300">Case Manager: Casey Smith</div>
-              </div>
+            {/* Top Action Buttons: Job & Interview Reporting */}
+            <div className="flex flex-wrap items-center gap-2">
+              <button
+                onClick={() => alert("🎉 Congratulations! Please enter job details for Casey to verify your +50 PBAS points.")}
+                className="px-3.5 py-1.5 bg-emerald-500 hover:bg-emerald-600 text-white font-black text-xs rounded-xl shadow-sm transition-all flex items-center gap-1.5"
+              >
+                🎉 I Got the Job! (+50 Pts)
+              </button>
+              <button
+                onClick={() => alert("📅 Great news! Log your interview details to claim your +25 PBAS points.")}
+                className="px-3.5 py-1.5 bg-purple-600 hover:bg-purple-700 text-white font-bold text-xs rounded-xl shadow-sm transition-all flex items-center gap-1.5"
+              >
+                📅 I Got an Interview! (+25 Pts)
+              </button>
               <button
                 onClick={() => { localStorage.clear(); window.location.href = "/login"; }}
-                className="px-3.5 py-1.5 bg-white/10 hover:bg-white/20 border border-white/20 text-white text-xs font-bold rounded-xl transition-all"
+                className="px-3 py-1.5 bg-white/10 hover:bg-white/20 border border-white/20 text-white text-xs font-bold rounded-xl transition-all"
               >
                 Sign Out
               </button>
@@ -631,6 +639,7 @@ export const ParticipantHome: React.FC = () => {
 };
 
 export default ParticipantHome;
+
 
 
 
