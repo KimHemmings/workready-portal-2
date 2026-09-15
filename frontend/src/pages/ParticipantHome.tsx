@@ -1,6 +1,7 @@
 ﻿import React, { useState } from 'react';
 import LmsModuleHub from '../components/LmsModuleHub';
-import { ResumeBuilder } from '../components/ResumeBuilder';
+import ResumeBuilder from '../components/ResumeBuilder';
+import StarInterviewSimulator from '../components/StarInterviewSimulator';
 import { Briefcase, Award, LifeBuoy, Trophy, BookOpen } from 'lucide-react';
 
 export const ParticipantHome: React.FC = () => {
@@ -14,6 +15,10 @@ export const ParticipantHome: React.FC = () => {
   const [showHelpModal, setShowHelpModal] = useState<boolean>(false);
 
   const handleModuleCompleted = (moduleId: string, points: number) => {
+    setPbasPoints((prev) => Math.min(prev + points, targetPoints));
+  };
+
+  const handleAwardPoints = (points: number) => {
     setPbasPoints((prev) => Math.min(prev + points, targetPoints));
   };
 
@@ -87,7 +92,7 @@ export const ParticipantHome: React.FC = () => {
       {/* Main Content Container */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6 space-y-6">
         
-        {/* 3-Milestone Navigation Cards */}
+        {/* 3-Milestone Navigation Header */}
         <section aria-label="Milestone Navigation" className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <button
             onClick={() => setActiveMilestone(1)}
@@ -126,7 +131,7 @@ export const ParticipantHome: React.FC = () => {
               <Award className={`w-4 h-4 ${activeMilestone === 2 ? 'text-[#24083b]' : 'text-slate-400'}`} />
             </div>
             <div className="text-sm font-bold text-slate-900 mt-2">Job Readiness & AI Tools</div>
-            <div className="text-xs text-slate-500 mt-0.5">Resume & Cover Letter Builder</div>
+            <div className="text-xs text-slate-500 mt-0.5">Interview Coach & Resume Builder</div>
           </button>
 
           <button
@@ -152,7 +157,7 @@ export const ParticipantHome: React.FC = () => {
           </button>
         </section>
 
-        {/* Dynamic Milestone Content */}
+        {/* Dynamic Milestone Body Views */}
         <div className="mt-4">
           {activeMilestone === 1 && (
             <div className="space-y-4">
@@ -161,8 +166,11 @@ export const ParticipantHome: React.FC = () => {
           )}
 
           {activeMilestone === 2 && (
-            <div className="space-y-4">
-              <ResumeBuilder />
+            <div className="space-y-8">
+              <StarInterviewSimulator onAwardPoints={handleAwardPoints} />
+              <div className="border-t border-slate-200 pt-8">
+                <ResumeBuilder maxAttempts={3} />
+              </div>
             </div>
           )}
 
