@@ -24,7 +24,7 @@ const FALLBACK_DASHBOARD: ParticipantDashboard = {
     avatar_url: "",
     job_seeker_id: "JS-99821",
     pbas_target: 100
-  } as User,
+  } as unknown as User,
   completion_percent: 65,
   completed_modules: 8,
   total_modules: 12,
