@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import type { UserRole } from '../App';
-import { ShieldCheck, Lock, Mail, ArrowRight } from 'lucide-react';
+import { ShieldCheck, Lock, Mail, ArrowRight, AlertCircle } from 'lucide-react';
 
 interface LoginProps {
   onLoginSuccess: (role: UserRole) => void;
@@ -9,6 +9,7 @@ interface LoginProps {
 export const Login: React.FC<LoginProps> = ({ onLoginSuccess }) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [errorMsg, setErrorMsg] = useState('');
 
   const navigateToRole = (role: UserRole) => {
     const url = new URL(window.location.href);
@@ -20,10 +21,14 @@ export const Login: React.FC<LoginProps> = ({ onLoginSuccess }) => {
   const handleFormSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     e.stopPropagation();
+    setErrorMsg('');
 
     const cleanEmail = email.trim().toLowerCase();
 
-    if (cleanEmail === 'case@workready.com') {
+    // Strict profile matching logic
+    if (cleanEmail === 'alex@workready.com') {
+      navigateToRole('candidate');
+    } else if (cleanEmail === 'casey@workready.com') {
       navigateToRole('coach');
     } else if (cleanEmail === 'bessy@workready.com') {
       navigateToRole('owner');
@@ -32,7 +37,7 @@ export const Login: React.FC<LoginProps> = ({ onLoginSuccess }) => {
     } else if (cleanEmail === 'admin@straightuptraining.com' || cleanEmail === 'admin@workready.com') {
       navigateToRole('admin');
     } else {
-      navigateToRole('candidate');
+      setErrorMsg('Invalid credentials. Please enter a valid registered portal account.');
     }
   };
 
@@ -51,6 +56,14 @@ export const Login: React.FC<LoginProps> = ({ onLoginSuccess }) => {
 
         {/* Secure Form Body */}
         <form onSubmit={handleFormSubmit} className="p-8 space-y-4">
+          
+          {errorMsg && (
+            <div className="p-3 bg-rose-50 border border-rose-200 text-rose-700 text-xs rounded-xl flex items-center gap-2 font-bold animate-fadeIn">
+              <AlertCircle className="w-4 h-4 text-rose-600 shrink-0" />
+              {errorMsg}
+            </div>
+          )}
+
           <div className="space-y-1">
             <label className="block text-xs font-bold text-slate-700">Email Address</label>
             <div className="relative">
@@ -60,7 +73,7 @@ export const Login: React.FC<LoginProps> = ({ onLoginSuccess }) => {
                 required
                 autoComplete="username"
                 value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                onChange={(e) => { setEmail(e.target.value); setErrorMsg(''); }}
                 placeholder="Enter your registered email"
                 className="w-full pl-9 pr-3 py-2.5 border border-slate-200 rounded-xl text-xs outline-none focus:ring-2 focus:ring-purple-600"
               />
@@ -76,7 +89,7 @@ export const Login: React.FC<LoginProps> = ({ onLoginSuccess }) => {
                 required
                 autoComplete="current-password"
                 value={password}
-                onChange={(e) => setPassword(e.target.value)}
+                onChange={(e) => { setPassword(e.target.value); setErrorMsg(''); }}
                 placeholder="••••••••"
                 className="w-full pl-9 pr-3 py-2.5 border border-slate-200 rounded-xl text-xs outline-none focus:ring-2 focus:ring-purple-600"
               />
