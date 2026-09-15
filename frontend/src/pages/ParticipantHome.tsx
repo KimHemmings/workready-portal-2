@@ -9,7 +9,7 @@ import UsageMeter from "@/components/UsageMeter";
 import AppShell from "@/components/AppShell";
 import { apiGet } from "@/lib/api";
 import { getSessionUser } from "@/lib/session";
-import type { ParticipantDashboard } from "@/lib/types";
+import type { ParticipantDashboard, User } from "@/lib/types";
 
 const FALLBACK_DASHBOARD: ParticipantDashboard = {
   user: {
@@ -21,12 +21,10 @@ const FALLBACK_DASHBOARD: ParticipantDashboard = {
     phone: "0400 000 000",
     status: "active",
     coach_id: "coach-1",
-    sub_role: "candidate",
     avatar_url: "",
     job_seeker_id: "JS-99821",
-    pbas_target: 100,
-    created_at: "2026-01-01T00:00:00Z"
-  },
+    pbas_target: 100
+  } as User,
   completion_percent: 65,
   completed_modules: 8,
   total_modules: 12,
