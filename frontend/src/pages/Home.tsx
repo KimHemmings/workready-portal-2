@@ -1,6 +1,5 @@
 ﻿import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { bgBase64 } from '../assets/bgBase64';
 
 type PublicRole = 'case_manager' | 'candidate' | 'business_manager';
 
@@ -100,10 +99,6 @@ export default function Home() {
     }
   };
 
-  const bgStyle = bgBase64 
-    ? `linear-gradient(to right, rgba(15, 23, 42, 0.94) 0%, rgba(15, 23, 42, 0.82) 42%, rgba(15, 23, 42, 0.35) 100%), url('${bgBase64}')`
-    : `linear-gradient(to right, rgba(15, 23, 42, 0.95) 0%, rgba(15, 23, 42, 0.88) 100%), url('/success1.png')`;
-
   return (
     <div style={{
       minHeight: '100vh',
@@ -119,9 +114,10 @@ export default function Home() {
       <div style={{
         position: 'absolute',
         inset: 0,
-        backgroundImage: bgStyle,
+        backgroundImage: "linear-gradient(to right, rgba(15, 23, 42, 0.92) 0%, rgba(15, 23, 42, 0.78) 45%, rgba(15, 23, 42, 0.25) 100%), url('/success1.png')",
         backgroundSize: 'cover',
         backgroundPosition: 'right center',
+        backgroundRepeat: 'no-repeat',
         zIndex: 1
       }} />
 
