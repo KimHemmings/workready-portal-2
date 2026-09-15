@@ -57,7 +57,14 @@ export const AppointmentsWidget: React.FC = () => {
               {appointments.length} Scheduled
             </span>
           </div>
-          <p className="text-xs text-slate-500 mt-0.5">
+          <button
+  onClick={() => alert("📅 Appointment Schedule Request sent to Casey (Case Manager).")}
+  className="inline-flex items-center gap-1.5 px-3.5 py-2 bg-[#24083b] hover:bg-[#320b52] text-white font-bold text-xs rounded-xl shadow-sm transition-all"
+>
+  <Plus className="w-4 h-4" /> + Add / Schedule Appointment
+</button>
+</div>
+<p className="text-xs text-slate-500 mt-0.5">
             Keep track of upcoming Case Manager check-ins, interviews, and face-to-face workshops.
           </p>
         </div>
@@ -158,3 +165,4 @@ export const AppointmentsWidget: React.FC = () => {
 };
 
 export default AppointmentsWidget;
+
