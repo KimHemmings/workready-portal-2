@@ -174,6 +174,24 @@ export const ParticipantHome: React.FC = () => {
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
             
             <div className="flex items-center gap-3">
+  <img
+    src="/logo.png"
+    alt="Straight Up Training Logo"
+    className="h-10 w-auto object-contain bg-white/10 p-1.5 rounded-xl border border-white/20"
+    onError={(e) => { (e.target as HTMLElement).style.display = 'none'; }}
+  />
+  <div>
+    <div className="flex items-center gap-2">
+      <span className="font-black text-xl tracking-tight text-white font-heading">
+        Straight Up Training
+      </span>
+      <span className="bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 text-[10px] font-bold px-2 py-0.5 rounded-full uppercase">
+        WorkReady Partner
+      </span>
+    </div>
+    <p className="text-xs text-purple-200">Candidate Portal • Powered by Workforce Australia PBAS</p>
+  </div>
+</div>
               <img
                 src="/logo.png"
                 alt="Straight Up Training Logo"
@@ -636,6 +654,7 @@ export const ParticipantHome: React.FC = () => {
 };
 
 export default ParticipantHome;
+
 
 
 
