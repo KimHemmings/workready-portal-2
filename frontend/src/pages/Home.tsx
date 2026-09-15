@@ -32,7 +32,7 @@ export default function Home() {
 
     const lowerEmail = email.trim().toLowerCase();
 
-    // Direct Credential Checks (Sales & Admin bypass public roles)
+    // 1. Direct Credential Checks (Sales & Admin IMMEDIATELY BYPASS 2FA & Role Selection)
     if (lowerEmail.includes('admin') || lowerEmail === 'admin@workready.com' || lowerEmail === 'admin@straightuptraining.com') {
       navigate('/admin');
       return;
@@ -43,7 +43,7 @@ export default function Home() {
       return;
     }
 
-    // Standard Public Role Routing
+    // 2. Standard Public Role Routing (2FA applies to standard staff logins)
     let target = '/';
     if (selectedRole === 'case_manager') target = '/case-manager/profile';
     if (selectedRole === 'candidate') target = '/candidate/workspace';
@@ -100,20 +100,14 @@ export default function Home() {
       alignItems: 'center',
       overflowX: 'hidden'
     }}>
-      {/* Background Image & Overlay */}
+      {/* Background Image & Brand Tint Overlay */}
       <div style={{
         position: 'absolute',
         inset: 0,
-        backgroundImage: "url('/background.png')",
+        backgroundImage: "linear-gradient(to right, rgba(15, 23, 42, 0.94) 0%, rgba(15, 23, 42, 0.82) 42%, rgba(15, 23, 42, 0.35) 100%), url('/success1.png'), url('/background.png')",
         backgroundSize: 'cover',
         backgroundPosition: 'right center',
         zIndex: 1
-      }} />
-      <div style={{
-        position: 'absolute',
-        inset: 0,
-        background: 'linear-gradient(to right, rgba(15, 23, 42, 0.95) 0%, rgba(15, 23, 42, 0.85) 45%, rgba(15, 23, 42, 0.25) 100%)',
-        zIndex: 2
       }} />
 
       {/* Main Container Aligned Left */}
@@ -131,20 +125,24 @@ export default function Home() {
           backgroundColor: '#ffffff',
           borderRadius: '16px',
           width: '100%',
-          maxWidth: '440px',
-          boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5)',
+          maxWidth: '460px',
+          boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.6)',
           overflow: 'hidden',
           border: '1px solid rgba(255, 255, 255, 0.2)'
         }}>
-          {/* Header Branding */}
-          <div style={{ backgroundColor: '#1e293b', padding: '2rem 1.5rem', textAlign: 'center', color: '#fff' }}>
-            <img 
-              src="/logo.png" 
-              alt="Straight Up Training Logo" 
-              style={{ height: '55px', marginBottom: '0.75rem', objectFit: 'contain' }}
-            />
-            <h1 style={{ margin: 0, fontSize: '1.5rem', fontWeight: 700, color: '#fff' }}>Workready Portal</h1>
-            <p style={{ color: '#94a3b8', fontSize: '0.75rem', margin: '0.2rem 0 0', textTransform: 'uppercase', letterSpacing: '1px', fontWeight: 600 }}>
+          {/* Header Branding - ENLARGED LOGO & CENTERED HIGH IMPACT TITLE */}
+          <div style={{ backgroundColor: '#1e293b', padding: '2.5rem 1.75rem 2rem', textAlign: 'center', color: '#fff', borderBottom: '4px solid #16a34a' }}>
+            <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '1rem' }}>
+              <img 
+                src="/logo.png" 
+                alt="Straight Up Training Logo" 
+                style={{ height: '75px', width: 'auto', objectFit: 'contain' }}
+              />
+            </div>
+            <h1 style={{ margin: 0, fontSize: '1.85rem', fontWeight: 800, color: '#fff', letterSpacing: '-0.5px' }}>
+              Workready <span style={{ color: '#16a34a' }}>Portal</span>
+            </h1>
+            <p style={{ color: '#94a3b8', fontSize: '0.8rem', margin: '0.3rem 0 0', textTransform: 'uppercase', letterSpacing: '1.5px', fontWeight: 700 }}>
               Straight Up Training
             </p>
           </div>
@@ -171,7 +169,7 @@ export default function Home() {
                 type="button"
                 onClick={() => setSelectedRole('case_manager')}
                 style={{
-                  padding: '0.55rem 0.2rem',
+                  padding: '0.6rem 0.2rem',
                   fontSize: '0.75rem',
                   fontWeight: 700,
                   borderRadius: '7px',
@@ -188,7 +186,7 @@ export default function Home() {
                 type="button"
                 onClick={() => setSelectedRole('candidate')}
                 style={{
-                  padding: '0.55rem 0.2rem',
+                  padding: '0.6rem 0.2rem',
                   fontSize: '0.75rem',
                   fontWeight: 700,
                   borderRadius: '7px',
@@ -205,7 +203,7 @@ export default function Home() {
                 type="button"
                 onClick={() => setSelectedRole('business_manager')}
                 style={{
-                  padding: '0.55rem 0.2rem',
+                  padding: '0.6rem 0.2rem',
                   fontSize: '0.75rem',
                   fontWeight: 700,
                   borderRadius: '7px',
@@ -227,9 +225,9 @@ export default function Home() {
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                placeholder="name@workready.com.au"
+                placeholder="sales@workready.com or name@workready.com.au"
                 required
-                style={{ width: '100%', padding: '0.7rem 0.8rem', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '0.9rem', boxSizing: 'border-box', outline: 'none' }}
+                style={{ width: '100%', padding: '0.75rem 0.8rem', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '0.9rem', boxSizing: 'border-box', outline: 'none' }}
               />
             </div>
 
@@ -252,7 +250,7 @@ export default function Home() {
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="Enter account password"
                   required
-                  style={{ width: '100%', padding: '0.7rem 2.5rem 0.7rem 0.8rem', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '0.9rem', boxSizing: 'border-box', outline: 'none' }}
+                  style={{ width: '100%', padding: '0.75rem 2.5rem 0.75rem 0.8rem', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '0.9rem', boxSizing: 'border-box', outline: 'none' }}
                 />
                 <button
                   type="button"
@@ -273,10 +271,10 @@ export default function Home() {
                 backgroundColor: '#16a34a',
                 color: '#fff',
                 border: 'none',
-                padding: '0.85rem',
+                padding: '0.9rem',
                 borderRadius: '8px',
                 fontWeight: 700,
-                fontSize: '0.95rem',
+                fontSize: '1rem',
                 cursor: 'pointer',
                 boxShadow: '0 4px 12px rgba(22, 163, 74, 0.3)',
                 marginBottom: '0.85rem'
