@@ -21,7 +21,7 @@ const DEMO_USERS: Record<string, User> = {
     avatar_url: "",
     job_seeker_id: "JS-99821",
     pbas_target: 100
-  } as User,
+  } as unknown as User,
   "casey@workready.com.au": {
     id: "demo-coach-1",
     email: "casey@workready.com.au",
@@ -30,7 +30,7 @@ const DEMO_USERS: Record<string, User> = {
     organization_id: "org-1",
     phone: "0411 111 111",
     status: "active"
-  } as User,
+  } as unknown as User,
   "bessy@workready.com.au": {
     id: "demo-owner-1",
     email: "bessy@workready.com.au",
@@ -39,7 +39,7 @@ const DEMO_USERS: Record<string, User> = {
     organization_id: "org-1",
     phone: "0422 222 222",
     status: "active"
-  } as User
+  } as unknown as User
 };
 
 export default function Home() {
