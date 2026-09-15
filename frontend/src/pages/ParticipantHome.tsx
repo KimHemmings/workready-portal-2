@@ -220,7 +220,12 @@ export const ParticipantHome: React.FC = () => {
                 📅 I Got an Interview! (+25 Pts)
               </button>
               <button
-                onClick={() => { localStorage.clear(); window.location.href = "/login"; }}
+                onClick={() => {
+                  const url = new URL(window.location.href);
+                  url.searchParams.delete('role');
+                  window.history.pushState({}, '', url.pathname);
+                  window.dispatchEvent(new Event('popstate'));
+                }}
                 className="px-3 py-1.5 bg-white/10 hover:bg-white/20 border border-white/20 text-white text-xs font-bold rounded-xl transition-all"
               >
                 Sign Out

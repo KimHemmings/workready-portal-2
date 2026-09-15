@@ -112,8 +112,13 @@ export const AdminDashboard: React.FC = () => {
             </div>
           </div>
 
-          <button
-            onClick={() => { localStorage.clear(); window.location.href = "/login"; }}
+         <button
+            onClick={() => {
+              const url = new URL(window.location.href);
+              url.searchParams.delete('role');
+              window.history.pushState({}, '', url.pathname);
+              window.dispatchEvent(new Event('popstate'));
+            }}
             className="px-3 py-2 bg-white/10 hover:bg-white/20 border border-white/20 text-white text-xs font-bold rounded-xl transition-all"
           >
             Sign Out

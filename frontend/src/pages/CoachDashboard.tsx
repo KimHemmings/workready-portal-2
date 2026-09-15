@@ -173,18 +173,17 @@ export const CoachDashboard: React.FC = () => {
           </div>
 
           <div className="flex items-center gap-2">
-            <button
-              onClick={handleGenerateMonthlyAudit}
-              className="px-3.5 py-2 bg-emerald-500 hover:bg-emerald-600 text-white font-bold text-xs rounded-xl shadow-sm transition-all flex items-center gap-1.5"
-            >
-              <Download className="w-4 h-4" /> Export PBAS Audit Report
-            </button>
-            <button
-              onClick={() => { localStorage.clear(); window.location.href = "/login"; }}
-              className="px-3 py-2 bg-white/10 hover:bg-white/20 border border-white/20 text-white text-xs font-bold rounded-xl transition-all"
-            >
-              Sign Out
-            </button>
+           <button
+            onClick={() => {
+              const url = new URL(window.location.href);
+              url.searchParams.delete('role');
+              window.history.pushState({}, '', url.pathname);
+              window.dispatchEvent(new Event('popstate'));
+            }}
+            className="px-3 py-2 bg-white/10 hover:bg-white/20 border border-white/20 text-white text-xs font-bold rounded-xl transition-all"
+          >
+            Sign Out
+          </button>
           </div>
         </div>
       </header>

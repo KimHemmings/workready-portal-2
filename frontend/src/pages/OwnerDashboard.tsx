@@ -101,11 +101,16 @@ export const OwnerDashboard: React.FC = () => {
               <Download className="w-4 h-4" /> Export Executive Audit
             </button>
             <button
-              onClick={() => { localStorage.clear(); window.location.href = "/"; }}
-              className="px-3 py-2 bg-white/10 hover:bg-white/20 border border-white/20 text-white text-xs font-bold rounded-xl transition-all"
-            >
-              Sign Out
-            </button>
+            onClick={() => {
+              const url = new URL(window.location.href);
+              url.searchParams.delete('role');
+              window.history.pushState({}, '', url.pathname);
+              window.dispatchEvent(new Event('popstate'));
+            }}
+            className="px-3 py-2 bg-white/10 hover:bg-white/20 border border-white/20 text-white text-xs font-bold rounded-xl transition-all"
+          >
+            Sign Out
+          </button>
           </div>
         </div>
       </header>
