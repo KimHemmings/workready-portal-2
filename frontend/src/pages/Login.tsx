@@ -10,21 +10,29 @@ export const Login: React.FC<LoginProps> = ({ onLoginSuccess }) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
 
+  const navigateToRole = (role: UserRole) => {
+    const url = new URL(window.location.href);
+    url.searchParams.set('role', role || 'candidate');
+    window.history.pushState({}, '', url.toString());
+    onLoginSuccess(role);
+  };
+
   const handleFormSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    e.stopPropagation();
+
     const cleanEmail = email.trim().toLowerCase();
 
     if (cleanEmail === 'case@workready.com') {
-      onLoginSuccess('coach');
+      navigateToRole('coach');
     } else if (cleanEmail === 'bessy@workready.com') {
-      onLoginSuccess('owner');
+      navigateToRole('owner');
     } else if (cleanEmail === 'training@straightuptraining.com') {
-      onLoginSuccess('sales');
-    } else if (cleanEmail === 'admin@straightuptraining.com') {
-      onLoginSuccess('admin');
+      navigateToRole('sales');
+    } else if (cleanEmail === 'admin@straightuptraining.com' || cleanEmail === 'admin@workready.com') {
+      navigateToRole('admin');
     } else {
-      // Default fallback for candidate logins
-      onLoginSuccess('candidate');
+      navigateToRole('candidate');
     }
   };
 
@@ -32,7 +40,7 @@ export const Login: React.FC<LoginProps> = ({ onLoginSuccess }) => {
     <div className="min-h-screen bg-gradient-to-br from-[#24083b] via-[#320b52] to-[#1a052c] flex items-center justify-center p-4 font-sans text-slate-900">
       <div className="max-w-md w-full bg-white rounded-3xl shadow-2xl overflow-hidden border border-purple-800/30">
         
-        {/* Brand Header */}
+        {/* Header */}
         <div className="bg-purple-950 p-8 text-center text-white border-b border-purple-800/50 relative">
           <div className="inline-flex p-3 bg-emerald-500/20 text-emerald-400 rounded-2xl border border-emerald-500/30 mb-3">
             <ShieldCheck className="w-8 h-8" />
@@ -41,7 +49,7 @@ export const Login: React.FC<LoginProps> = ({ onLoginSuccess }) => {
           <p className="text-xs text-purple-200 mt-1">WorkReady Partner Portal Access</p>
         </div>
 
-        {/* Form Body */}
+        {/* Form */}
         <form onSubmit={handleFormSubmit} className="p-8 space-y-4">
           <div className="space-y-1">
             <label className="block text-xs font-bold text-slate-700">Email Address</label>
@@ -50,6 +58,7 @@ export const Login: React.FC<LoginProps> = ({ onLoginSuccess }) => {
               <input
                 type="email"
                 required
+                autoComplete="username"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="e.g. case@workready.com"
@@ -65,6 +74,7 @@ export const Login: React.FC<LoginProps> = ({ onLoginSuccess }) => {
               <input
                 type="password"
                 required
+                autoComplete="current-password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="••••••••"
@@ -81,36 +91,47 @@ export const Login: React.FC<LoginProps> = ({ onLoginSuccess }) => {
           </button>
         </form>
 
-        {/* Quick Role Shortcuts */}
+        {/* Direct Demo Access Buttons */}
         <div className="bg-slate-50 p-6 border-t border-slate-100 space-y-3">
           <div className="flex items-center gap-1.5 text-xs font-bold text-slate-600">
-            <KeyRound className="w-3.5 h-3.5 text-purple-700" /> Quick Demo Testing Shortcuts:
+            <KeyRound className="w-3.5 h-3.5 text-purple-700" /> Direct Demo Access Shortcuts:
           </div>
 
           <div className="grid grid-cols-2 gap-2 text-[11px]">
             <button
-              onClick={() => onLoginSuccess('candidate')}
+              type="button"
+              onClick={() => navigateToRole('candidate')}
               className="p-2 bg-white hover:bg-emerald-50 border border-slate-200 hover:border-emerald-300 text-slate-800 font-bold rounded-xl text-left transition-all"
             >
               👤 Candidate View
             </button>
             <button
-              onClick={() => onLoginSuccess('coach')}
+              type="button"
+              onClick={() => navigateToRole('coach')}
               className="p-2 bg-white hover:bg-purple-50 border border-slate-200 hover:border-purple-300 text-slate-800 font-bold rounded-xl text-left transition-all"
             >
               📋 Case Manager (Casey)
             </button>
             <button
-              onClick={() => onLoginSuccess('owner')}
+              type="button"
+              onClick={() => navigateToRole('owner')}
               className="p-2 bg-white hover:bg-purple-50 border border-slate-200 hover:border-purple-300 text-slate-800 font-bold rounded-xl text-left transition-all"
             >
               🏢 Business Manager (Bessy)
             </button>
             <button
-              onClick={() => onLoginSuccess('sales')}
+              type="button"
+              onClick={() => navigateToRole('sales')}
               className="p-2 bg-white hover:bg-purple-50 border border-slate-200 hover:border-purple-300 text-slate-800 font-bold rounded-xl text-left transition-all"
             >
               💼 Sales & Training View
+            </button>
+            <button
+              type="button"
+              onClick={() => navigateToRole('admin')}
+              className="p-2 bg-white hover:bg-rose-50 border border-slate-200 hover:border-rose-300 text-slate-800 font-bold rounded-xl text-left transition-all col-span-2"
+            >
+              🛡️ System Admin View
             </button>
           </div>
         </div>
