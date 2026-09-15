@@ -17,7 +17,8 @@ import {
   Settings,
 } from 'lucide-react';
 import { BRAND_LOGO } from '../lib/brand';
-import { endSession, getImpersonator, getSessionUser, homePathFor, Role } from '../lib/session';
+import { endSession, getImpersonator, getSessionUser, homePathFor } from '../lib/session';
+import type { Role } from '../lib/session';
 
 interface NavItem {
   label: string;
@@ -126,3 +127,4 @@ export default function AppShell({ children }: AppShellProps) {
     </div>
   );
 }
+
