@@ -1,4 +1,5 @@
-﻿import StarInterviewHistory from '../components/StarInterviewHistory';
+﻿import { CertifiedLmsModule } from '../components/CertifiedLmsModule';
+import StarInterviewHistory from '../components/StarInterviewHistory';
 import AppointmentsWidget from '../components/AppointmentsWidget';
 import PointProjectionWheel from '../components/PointProjectionWheel';
 import DocumentLocker from '../components/DocumentLocker';
@@ -639,6 +640,7 @@ export const ParticipantHome: React.FC = () => {
 };
 
 export default ParticipantHome;
+
 
 
 
