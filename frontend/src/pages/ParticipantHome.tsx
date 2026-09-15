@@ -24,9 +24,15 @@ export const ParticipantHome: React.FC = () => {
   const [verifiedPoints, setVerifiedPoints] = useState<number>(35);
   const targetPoints = 100;
 
-  // Monthly Confidence Review Banner State
+  // Monthly 5-Pillar Employability Review Banner State
   const [showConfidenceBanner, setShowConfidenceBanner] = useState<boolean>(true);
-  const [confidenceScore, setConfidenceScore] = useState<number>(3);
+  const [pillarScores, setPillarScores] = useState<Record<string, number>>({
+    'Job Search & Applications': 3,
+    'Interview Readiness': 3,
+    'Technical & Core Skills': 3,
+    'Logistics & Transport': 3,
+    'Mindset & Workplace Fit': 3,
+  });
   const [primaryBlocker, setPrimaryBlocker] = useState<string>('Resume / Applications');
   const [reviewNote, setReviewNote] = useState<string>('');
   const [reviewSubmitted, setReviewSubmitted] = useState<boolean>(false);
@@ -88,10 +94,14 @@ export const ParticipantHome: React.FC = () => {
 
   const handleConfidenceSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    const scoresSummary = Object.entries(pillarScores)
+      .map(([key, val]) => `${key.split(' ')[0]}: ${val}/5`)
+      .join(', ');
+
     const newAct: ActivityLog = {
       id: Date.now().toString(),
       type: 'Confidence Review',
-      title: `Monthly Check-in: Score ${confidenceScore}/5 (${primaryBlocker})`,
+      title: `5-Pillar Assessment (${primaryBlocker}) — [${scoresSummary}]`,
       reference: `REV-${new Date().getMonth() + 1}-2026`,
       points: 10,
       status: 'Pending Verification',
@@ -101,7 +111,7 @@ export const ParticipantHome: React.FC = () => {
     setReviewSubmitted(true);
     setTimeout(() => {
       setShowConfidenceBanner(false);
-    }, 3500);
+    }, 4500);
   };
 
   const handleSubmitJobSearch = (e: React.FormEvent) => {
@@ -198,13 +208,13 @@ export const ParticipantHome: React.FC = () => {
             {/* Top Action Buttons: Job & Interview Reporting */}
             <div className="flex flex-wrap items-center gap-2">
               <button
-                onClick={() => alert("🎉 Congratulations! Please enter job details for Casey to verify your +50 PBAS points.")}
+                onClick={() => setShowJobModal(true)}
                 className="px-3.5 py-1.5 bg-emerald-500 hover:bg-emerald-600 text-white font-black text-xs rounded-xl shadow-sm transition-all flex items-center gap-1.5"
               >
                 🎉 I Got the Job! (+50 Pts)
               </button>
               <button
-                onClick={() => alert("📅 Great news! Log your interview details to claim your +25 PBAS points.")}
+                onClick={() => setShowInterviewModal(true)}
                 className="px-3.5 py-1.5 bg-purple-600 hover:bg-purple-700 text-white font-bold text-xs rounded-xl shadow-sm transition-all flex items-center gap-1.5"
               >
                 📅 I Got an Interview! (+25 Pts)
@@ -245,7 +255,7 @@ export const ParticipantHome: React.FC = () => {
       {/* Main Container */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6 space-y-6">
         
-        {/* MONTHLY CONFIDENCE REVIEW BANNER */}
+        {/* MONTHLY 5-PILLAR EMPLOYABILITY REVIEW BANNER */}
         {showConfidenceBanner && (
           <section className="bg-gradient-to-r from-purple-900 via-[#24083b] to-purple-950 text-white rounded-2xl p-6 shadow-lg border border-purple-800 relative overflow-hidden">
             <div className="absolute top-0 right-0 w-64 h-64 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none" />
@@ -258,8 +268,8 @@ export const ParticipantHome: React.FC = () => {
                       <Smile className="w-5 h-5" />
                     </div>
                     <div>
-                      <h2 className="text-sm font-bold text-white uppercase tracking-wider">Monthly Confidence Check-In</h2>
-                      <p className="text-xs text-purple-200">How are you feeling about your current job search and skills progress this month?</p>
+                      <h2 className="text-sm font-bold text-white uppercase tracking-wider">Employability Self-Assessment</h2>
+                      <p className="text-xs text-purple-200">Rate your confidence across key pillars (1 = Low, 5 = High) so Casey can tailor your support.</p>
                     </div>
                   </div>
                   <span className="text-[11px] font-bold bg-purple-800/80 text-purple-200 px-3 py-1 rounded-full border border-purple-700">
@@ -267,29 +277,37 @@ export const ParticipantHome: React.FC = () => {
                   </span>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-1">
-                  
-                  {/* Rating Selector */}
-                  <div className="space-y-2">
-                    <label className="block text-xs font-bold text-purple-200">1. Confidence Level (1 to 5):</label>
-                    <div className="flex items-center gap-1.5">
-                      {[1, 2, 3, 4, 5].map((score) => (
-                        <button
-                          key={score}
-                          type="button"
-                          onClick={() => setConfidenceScore(score)}
-                          className={`flex-1 py-2 rounded-xl text-xs font-bold border transition-all ${
-                            confidenceScore === score
-                              ? 'bg-emerald-500 text-slate-950 border-emerald-400 ring-2 ring-emerald-400/40 shadow-md'
-                              : 'bg-purple-900/50 text-purple-200 border-purple-700/60 hover:bg-purple-800'
-                          }`}
-                        >
-                          {score} {score === 1 ? '😟' : score === 3 ? '😐' : score === 5 ? '🚀' : ''}
-                        </button>
-                      ))}
-                    </div>
+                {/* 5-Pillar Rating Grid */}
+                <div className="space-y-2 pt-1">
+                  <label className="block text-xs font-bold text-purple-200">1. Rate your 5 Key Employability Pillars:</label>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-3">
+                    {Object.keys(pillarScores).map((pillar) => (
+                      <div key={pillar} className="bg-purple-950/70 p-3 rounded-xl border border-purple-700/60 flex flex-col justify-between space-y-2">
+                        <span className="text-[11px] font-bold text-purple-200 leading-tight h-7 flex items-center">
+                          {pillar}
+                        </span>
+                        <div className="flex items-center gap-1">
+                          {[1, 2, 3, 4, 5].map((score) => (
+                            <button
+                              key={score}
+                              type="button"
+                              onClick={() => setPillarScores((prev) => ({ ...prev, [pillar]: score }))}
+                              className={`flex-1 py-1 rounded-lg text-xs font-bold border transition-all ${
+                                pillarScores[pillar] === score
+                                  ? 'bg-emerald-500 text-slate-950 border-emerald-400 ring-2 ring-emerald-400/40 font-black shadow-md'
+                                  : 'bg-purple-900/40 text-purple-200 border-purple-700/50 hover:bg-purple-800'
+                              }`}
+                            >
+                              {score}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    ))}
                   </div>
+                </div>
 
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-1">
                   {/* Primary Blocker */}
                   <div className="space-y-2">
                     <label className="block text-xs font-bold text-purple-200">2. Current Primary Challenge:</label>
@@ -325,7 +343,7 @@ export const ParticipantHome: React.FC = () => {
                     type="submit"
                     className="inline-flex items-center gap-2 px-5 py-2.5 bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-extrabold text-xs rounded-xl shadow-md transition-all"
                   >
-                    <Send className="w-4 h-4" /> Submit Review to Casey (+10 Pts)
+                    <Send className="w-4 h-4" /> Submit Assessment to Casey (+10 Pts)
                   </button>
                 </div>
               </form>
@@ -334,9 +352,9 @@ export const ParticipantHome: React.FC = () => {
                 <div className="inline-flex p-3 bg-emerald-500/20 text-emerald-400 rounded-full border border-emerald-500/40 mb-1">
                   <CheckCircle2 className="w-8 h-8" />
                 </div>
-                <h3 className="text-base font-extrabold text-white">Monthly Review Submitted! 🎉</h3>
-                <p className="text-xs text-purple-200 max-w-md mx-auto">
-                  Thank you, Alex! Your score of <strong>{confidenceScore}/5</strong> and feedback regarding <strong>"{primaryBlocker}"</strong> have been sent to Casey for verification.
+                <h3 className="text-base font-extrabold text-white">Employability Assessment Submitted! 🎉</h3>
+                <p className="text-xs text-purple-200 max-w-lg mx-auto">
+                  Thank you, Alex! Your score breakdown across all 5 pillars and note regarding <strong>"{primaryBlocker}"</strong> have been sent to Casey for review.
                 </p>
               </div>
             )}
@@ -640,15 +658,3 @@ export const ParticipantHome: React.FC = () => {
 };
 
 export default ParticipantHome;
-
-
-
-
-
-
-
-
-
-
-
-
