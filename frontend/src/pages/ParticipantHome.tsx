@@ -16,8 +16,7 @@ const FALLBACK_DASHBOARD: ParticipantDashboard = {
     id: "demo-part-1",
     email: "alex@workready.com.au",
     name: "Alex Johnson",
-    role: "participant",
-    created_at: "2026-01-01T00:00:00Z"
+    role: "participant"
   },
   completion_percent: 65,
   completed_modules: 8,
