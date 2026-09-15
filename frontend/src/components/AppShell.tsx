@@ -86,9 +86,7 @@ export default function AppShell({ children }: AppShellProps) {
           <div className="flex items-center gap-4">
             <Link to={userRole ? homePathFor(userRole as Role) : '/participant'} className="flex items-center gap-2.5">
               <img src="/logo.png" alt="WorkReady Logo" className="h-8 w-auto object-contain" onError={(e) => { (e.target as HTMLElement).style.display = 'none'; }} />
-              <span className="font-extrabold text-lg tracking-tight text-white font-heading">
-                {BRAND_LOGO}
-              </span>
+              <span className="font-extrabold text-lg tracking-tight text-white font-heading">Straight Up Training</span>
             </Link>
 
             <span className="hidden sm:inline-block text-[11px] bg-emerald-500/20 text-emerald-300 font-bold px-2.5 py-0.5 rounded-full border border-emerald-500/30">
@@ -127,4 +125,8 @@ export default function AppShell({ children }: AppShellProps) {
     </div>
   );
 }
+
+
+
+
 

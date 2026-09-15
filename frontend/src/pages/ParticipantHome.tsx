@@ -175,7 +175,7 @@ export const ParticipantHome: React.FC = () => {
           <div className="flex flex-col md:flex-row items-center justify-between gap-4">
             
             {/* Logo and Brand Title */}
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-3 shrink-0">
               <img
                 src="/logo.png"
                 alt="Straight Up Training Logo"
@@ -640,6 +640,7 @@ export const ParticipantHome: React.FC = () => {
 };
 
 export default ParticipantHome;
+
 
 
 
