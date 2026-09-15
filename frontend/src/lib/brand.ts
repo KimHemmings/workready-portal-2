@@ -1,4 +1,4 @@
-﻿// WorkReady Portal - Enterprise Branding & Asset Configuration
+﻿import React from 'react';
 
 export const BRAND_CONFIG = {
   name: "WorkReady Portal",
@@ -20,3 +20,5 @@ export const BRAND_CONFIG = {
     alt: "WorkReady Portal Logo"
   }
 };
+
+export const BRAND_LOGO = "WorkReady Portal";
