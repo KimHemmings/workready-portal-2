@@ -1,310 +1,258 @@
-﻿import { useQuery } from "@tanstack/react-query";
-import { Link } from "react-router-dom";
-import { Award, ClipboardList, MessagesSquare, Sparkles, Target, FileText } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import ProgressRing from "@/components/ProgressRing";
-import UsageMeter from "@/components/UsageMeter";
-import AppShell from "@/components/AppShell";
-import { apiGet } from "@/lib/api";
-import { getSessionUser } from "@/lib/session";
-import type { ParticipantDashboard, User } from "@/lib/types";
+﻿import React, { useState } from 'react';
+import LmsModuleHub from '../components/LmsModuleHub';
+import { ResumeBuilder } from '../components/ResumeBuilder';
+import { Briefcase, Award, LifeBuoy, Trophy, BookOpen } from 'lucide-react';
 
-const FALLBACK_DASHBOARD: ParticipantDashboard = {
-  user: {
-    id: "demo-part-1",
-    email: "alex@workready.com.au",
-    name: "Alex Johnson",
-    role: "participant",
-    organization_id: "org-1",
-    phone: "0400 000 000",
-    status: "active",
-    coach_id: "coach-1",
-    avatar_url: "",
-    job_seeker_id: "JS-99821",
-    pbas_target: 100
-  } as unknown as User,
-  completion_percent: 65,
-  completed_modules: 8,
-  total_modules: 12,
-  in_progress_modules: 2,
-  certificates: 3,
-  pbas_points: 75,
-  pbas_target: 100,
-  latest_interview_score: 82,
-  next_module: {
-    id: "mod-101",
-    title: "Effective Workplace Communication",
-    category: "Core Skills",
-    description: "Learn essential verbal and written communication techniques for modern team environments.",
-    estimated_minutes: 25,
-    video_url: "",
-    content_markdown: "Effective workplace communication ensures team alignment.",
-    order: 1
-  },
-  usage: {
-    participant_id: "demo-part-1",
-    month: "2026-03",
-    interviews: { kind: "interviews", remaining: 3, limit: 5, used: 2, base_limit: 5, granted_extra: 0 },
-    resumes: { kind: "resumes", remaining: 4, limit: 5, used: 1, base_limit: 5, granted_extra: 0 },
-    cover_letters: { kind: "cover_letters", remaining: 3, limit: 5, used: 2, base_limit: 5, granted_extra: 0 },
-    job_logs: { kind: "job_logs", remaining: 15, limit: 20, used: 5, base_limit: 20, granted_extra: 0 }
-  },
-  recent_logs: [
-    {
-      id: "log-1",
-      participant_id: "demo-part-1",
-      position_title: "Warehouse Logistics Assistant",
-      employer_name: "Apex Logistics",
-      application_date: "2026-03-10",
-      application_type: "Online Portal",
-      evidence_filename: "apex_confirm.pdf",
-      evidence_data: "",
-      evidence_mime: "application/pdf",
-      evidence_size: 1024,
-      notes: "Submitted application via company site.",
-      points: 20,
-      status: "verified",
-      review_status: "approved",
-      review_note: "Verified by case manager.",
-      reviewed_by: "cm-1",
-      reviewed_at: "2026-03-10T11:00:00Z",
-      created_at: "2026-03-10T09:00:00Z"
-    },
-    {
-      id: "log-2",
-      participant_id: "demo-part-1",
-      position_title: "Customer Support Officer",
-      employer_name: "Metro Call Solutions",
-      application_date: "2026-03-08",
-      application_type: "Email",
-      evidence_filename: "metro_email.pdf",
-      evidence_data: "",
-      evidence_mime: "application/pdf",
-      evidence_size: 2048,
-      notes: "Sent resume directly to HR.",
-      points: 15,
-      status: "submitted",
-      review_status: "pending",
-      review_note: "",
-      reviewed_by: "",
-      reviewed_at: "",
-      created_at: "2026-03-08T14:30:00Z"
-    }
-  ]
-};
+export const ParticipantHome: React.FC = () => {
+  const [activeMilestone, setActiveMilestone] = useState<number>(1);
+  const [pbasPoints, setPbasPoints] = useState<number>(35);
+  const targetPoints = 100;
 
-export default function ParticipantHome() {
-  const user = getSessionUser();
-  const { data, isError } = useQuery({
-    queryKey: ["participant-dashboard", user?.id],
-    queryFn: () => apiGet<ParticipantDashboard>(`/participants/${user!.id}/dashboard`),
-    enabled: Boolean(user?.id),
-    retry: false
-  });
+  // Banner Modal States
+  const [showJobModal, setShowJobModal] = useState<boolean>(false);
+  const [showInterviewModal, setShowInterviewModal] = useState<boolean>(false);
+  const [showHelpModal, setShowHelpModal] = useState<boolean>(false);
 
-  const live = (!isError && data) ? data : FALLBACK_DASHBOARD;
-  const pbasPercent = Math.min(100, Math.round((live.pbas_points / live.pbas_target) * 100));
+  const handleModuleCompleted = (moduleId: string, points: number) => {
+    setPbasPoints((prev) => Math.min(prev + points, targetPoints));
+  };
+
+  const handleReportJob = (e: React.FormEvent) => {
+    e.preventDefault();
+    setPbasPoints((prev) => Math.min(prev + 50, targetPoints));
+    setShowJobModal(false);
+    alert("🎉 Job reported! +50 PBAS Points awarded.");
+  };
+
+  const handleReportInterview = (e: React.FormEvent) => {
+    e.preventDefault();
+    setPbasPoints((prev) => Math.min(prev + 25, targetPoints));
+    setShowInterviewModal(false);
+    alert("💼 Interview reported! +25 PBAS Points awarded.");
+  };
+
+  const handleRequestHelp = (e: React.FormEvent) => {
+    e.preventDefault();
+    setShowHelpModal(false);
+    alert("💬 High-priority support request sent to your Case Manager roster.");
+  };
+
+  const pbasPercentage = Math.min(Math.round((pbasPoints / targetPoints) * 100), 100);
 
   return (
-    <AppShell>
-      <header className="mb-8">
-        <p className="text-xs uppercase tracking-wider font-bold text-[#16a34a] font-mono">
-          Learner Dashboard
-        </p>
-        <h1 className="font-heading text-3xl sm:text-4xl font-bold tracking-tight mt-1 text-slate-900">
-          G'day {user?.name?.split(" ")[0] ?? "Alex"} 👋
-        </h1>
-        <p className="text-muted-foreground mt-2 max-w-2xl">
-          Keep building your Core Skills for Work, practise interviews, manage your resume, and stay on top of your Mutual Obligation requirements.
-        </p>
+    <div className="min-h-screen bg-slate-50 text-slate-900 pb-12">
+      {/* Top Header Banner */}
+      <header className="bg-[#24083b] text-white shadow-lg border-b border-purple-900">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+            <div>
+              <div className="flex items-center gap-2">
+                <span className="bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 text-[11px] font-bold px-2.5 py-0.5 rounded-full uppercase tracking-wide">
+                  Candidate Workspace
+                </span>
+              </div>
+              <h1 className="text-2xl font-extrabold tracking-tight text-white mt-1">
+                Mutual Obligation Hub
+              </h1>
+              <p className="text-xs text-slate-300 mt-0.5">
+                Complete modules, track compliance targets, and access AI career tools.
+              </p>
+            </div>
+
+            {/* Quick Action Buttons */}
+            <div className="flex flex-wrap items-center gap-2">
+              <button
+                onClick={() => setShowJobModal(true)}
+                className="inline-flex items-center gap-1.5 px-3.5 py-2 bg-[#16a34a] hover:bg-emerald-700 text-white font-bold text-xs rounded-lg shadow-sm transition-all"
+              >
+                <Briefcase className="w-4 h-4" /> Got a Job! 🎉 (+50 Pts)
+              </button>
+              <button
+                onClick={() => setShowInterviewModal(true)}
+                className="inline-flex items-center gap-1.5 px-3.5 py-2 bg-purple-600 hover:bg-purple-700 text-white font-bold text-xs rounded-lg shadow-sm transition-all"
+              >
+                <Award className="w-4 h-4" /> Got an Interview! 💼 (+25 Pts)
+              </button>
+              <button
+                onClick={() => setShowHelpModal(true)}
+                className="inline-flex items-center gap-1.5 px-3.5 py-2 bg-amber-600 hover:bg-amber-700 text-white font-bold text-xs rounded-lg shadow-sm transition-all"
+              >
+                <LifeBuoy className="w-4 h-4" /> Request Help 💬
+              </button>
+            </div>
+          </div>
+        </div>
       </header>
 
-      <div className="grid gap-6 lg:grid-cols-12">
-        <Card className="lg:col-span-5 border-slate-200 shadow-sm">
-          <CardHeader>
-            <CardTitle className="text-lg font-bold text-slate-900">Your Training Progress</CardTitle>
-          </CardHeader>
-          <CardContent className="flex items-center gap-6">
-            <ProgressRing percent={live.completion_percent} testId="progress-ring" />
-            <div className="space-y-1.5 text-sm">
-              <p data-testid="modules-completed-stat">
-                <span className="text-2xl font-bold font-heading text-slate-900">{live.completed_modules}</span>
-                <span className="text-muted-foreground"> / {live.total_modules} modules done</span>
-              </p>
-              <p className="text-muted-foreground">{live.in_progress_modules} in progress</p>
-              <p className="flex items-center gap-1.5 text-muted-foreground">
-                <Award className="h-4 w-4 text-[#16a34a]" aria-hidden="true" />
-                {live.certificates} certificates earned
-              </p>
-              <Link
-                to="/participant/certificates"
-                className="inline-block text-sm font-semibold text-[#16a34a] hover:underline pt-1"
-                data-testid="goto-certificates-link"
-              >
-                View certificates →
-              </Link>
+      {/* Main Content Container */}
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6 space-y-6">
+        
+        {/* 3-Milestone Navigation Cards */}
+        <section aria-label="Milestone Navigation" className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <button
+            onClick={() => setActiveMilestone(1)}
+            className={`p-4 rounded-xl text-left border transition-all shadow-sm ${
+              activeMilestone === 1
+                ? 'bg-white border-[#24083b] ring-2 ring-[#24083b]/20 shadow-md'
+                : 'bg-white border-slate-200 hover:border-slate-300 text-slate-600'
+            }`}
+          >
+            <div className="flex items-center justify-between mb-1">
+              <span className={`text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded ${
+                activeMilestone === 1 ? 'bg-[#24083b] text-white' : 'bg-slate-100 text-slate-600'
+              }`}>
+                Milestone 1
+              </span>
+              <BookOpen className={`w-4 h-4 ${activeMilestone === 1 ? 'text-[#24083b]' : 'text-slate-400'}`} />
             </div>
-          </CardContent>
-        </Card>
+            <div className="text-sm font-bold text-slate-900 mt-2">Core Skills & Orientation</div>
+            <div className="text-xs text-slate-500 mt-0.5">Non-Vocational LMS & Study Hub</div>
+          </button>
 
-        <Card className="lg:col-span-7 border-slate-200 shadow-sm">
-          <CardHeader>
-            <CardTitle className="text-lg font-bold flex items-center gap-2 text-slate-900">
-              <Target className="h-5 w-5 text-[#16a34a]" aria-hidden="true" />
-              Mutual Obligation — PBAS Points This Period
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="flex items-end justify-between mb-2">
-              <p className="text-3xl font-bold font-heading tabular-nums text-slate-900" data-testid="pbas-points-total">
-                {live.pbas_points}
-                <span className="text-base font-normal text-muted-foreground"> / {live.pbas_target} points</span>
-              </p>
-              <Badge 
-                style={{ backgroundColor: pbasPercent >= 100 ? '#16a34a' : '#24083b', color: '#fff' }} 
-                data-testid="pbas-status-badge"
-              >
-                {pbasPercent >= 100 ? "Target met" : `${100 - pbasPercent}% to go`}
-              </Badge>
+          <button
+            onClick={() => setActiveMilestone(2)}
+            className={`p-4 rounded-xl text-left border transition-all shadow-sm ${
+              activeMilestone === 2
+                ? 'bg-white border-[#24083b] ring-2 ring-[#24083b]/20 shadow-md'
+                : 'bg-white border-slate-200 hover:border-slate-300 text-slate-600'
+            }`}
+          >
+            <div className="flex items-center justify-between mb-1">
+              <span className={`text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded ${
+                activeMilestone === 2 ? 'bg-[#24083b] text-white' : 'bg-slate-100 text-slate-600'
+              }`}>
+                Milestone 2
+              </span>
+              <Award className={`w-4 h-4 ${activeMilestone === 2 ? 'text-[#24083b]' : 'text-slate-400'}`} />
             </div>
-            <div className="h-3 w-full rounded-full bg-slate-100 overflow-hidden">
-              <div
-                className="h-full rounded-full bg-[#16a34a] transition-[width] duration-700 ease-out"
-                style={{ width: `${pbasPercent}%` }}
-              />
-            </div>
-            <p className="text-sm text-muted-foreground mt-3">
-              Log every application, phone enquiry, and interview to keep your points updated.
-            </p>
-            <Link to="/participant/job-logs">
-              <Button variant="outline" size="sm" className="mt-4 border-slate-300 font-semibold" data-testid="goto-job-logs-button">
-                <ClipboardList className="h-4 w-4 mr-1.5 text-[#16a34a]" aria-hidden="true" /> Log an Activity
-              </Button>
-            </Link>
-          </CardContent>
-        </Card>
+            <div className="text-sm font-bold text-slate-900 mt-2">Job Readiness & AI Tools</div>
+            <div className="text-xs text-slate-500 mt-0.5">Resume & Cover Letter Builder</div>
+          </button>
 
-        <Card className="lg:col-span-7 border-slate-200 shadow-sm">
-          <CardHeader>
-            <CardTitle className="text-lg font-bold text-slate-900">Pick Up Where You Left Off</CardTitle>
-          </CardHeader>
-          <CardContent>
-            {live.next_module ? (
-              <div className="flex flex-col sm:flex-row sm:items-center gap-4 justify-between">
+          <button
+            onClick={() => setActiveMilestone(3)}
+            className={`p-4 rounded-xl text-left border transition-all shadow-sm ${
+              activeMilestone === 3
+                ? 'bg-white border-[#24083b] ring-2 ring-[#24083b]/20 shadow-md'
+                : 'bg-white border-slate-200 hover:border-slate-300 text-slate-600'
+            }`}
+          >
+            <div className="flex items-center justify-between mb-1">
+              <span className={`text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded ${
+                activeMilestone === 3 ? 'bg-[#24083b] text-white' : 'bg-slate-100 text-slate-600'
+              }`}>
+                Milestone 3
+              </span>
+              <Trophy className={`w-4 h-4 ${activeMilestone === 3 ? 'text-[#16a34a]' : 'text-slate-400'}`} />
+            </div>
+            <div className="text-sm font-bold text-slate-900 mt-2">Placement & PBAS Progress</div>
+            <div className="text-xs font-semibold text-[#16a34a] mt-0.5">
+              {pbasPoints} / {targetPoints} PBAS Points Logged
+            </div>
+          </button>
+        </section>
+
+        {/* Dynamic Milestone Content */}
+        <div className="mt-4">
+          {activeMilestone === 1 && (
+            <div className="space-y-4">
+              <LmsModuleHub onModuleCompleted={handleModuleCompleted} />
+            </div>
+          )}
+
+          {activeMilestone === 2 && (
+            <div className="space-y-4">
+              <ResumeBuilder />
+            </div>
+          )}
+
+          {activeMilestone === 3 && (
+            <div className="bg-white border border-slate-200 rounded-2xl p-6 space-y-6 shadow-sm">
+              <div className="border-b border-slate-100 pb-4 flex justify-between items-center">
                 <div>
-                  <Badge variant="secondary" className="mb-2 bg-slate-100 text-slate-700">
-                    {live.next_module.category}
-                  </Badge>
-                  <p className="font-semibold text-lg font-heading text-slate-900">{live.next_module.title}</p>
-                  <p className="text-sm text-muted-foreground mt-1">
-                    {live.next_module.description} · approx {live.next_module.estimated_minutes} minutes
-                  </p>
+                  <h2 className="text-lg font-bold text-[#24083b]">Active Monthly Compliance Target</h2>
+                  <p className="text-xs text-slate-500">Workforce Australia PBAS Points Progress Tracker</p>
                 </div>
-                <Link to={`/participant/modules/${live.next_module.id}`}>
-                  <Button style={{ backgroundColor: '#16a34a', color: '#fff' }} className="font-bold hover:bg-green-700" data-testid="start-next-module-button">
-                    Start Module
-                  </Button>
-                </Link>
+                <span className="px-3 py-1 bg-emerald-50 text-[#16a34a] border border-emerald-200 font-bold text-xs rounded-full">
+                  {pbasPercentage}% Target Achieved
+                </span>
               </div>
-            ) : (
-              <p className="text-muted-foreground" data-testid="next-module-empty">
-                All modules complete — brilliant work. Head to the Learning Centre to revise.
-              </p>
-            )}
-          </CardContent>
-        </Card>
 
-        <Card className="lg:col-span-5 bg-slate-50 border-slate-200 shadow-sm">
-          <CardHeader>
-            <CardTitle className="text-lg font-bold flex items-center gap-2 text-slate-900">
-              <MessagesSquare className="h-5 w-5 text-[#16a34a]" aria-hidden="true" /> AI Interview & Resume
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-sm text-muted-foreground">
-              Practise realistic interview questions with feedback, or update your tailored resume.
-            </p>
-            {live.latest_interview_score != null && (
-              <p className="mt-3 text-sm text-slate-700" data-testid="latest-interview-score">
-                Last readiness score:{" "}
-                <span className="font-bold text-lg text-[#16a34a]">{live.latest_interview_score}/100</span>
-              </p>
-            )}
-            
-            <div className="flex flex-col sm:flex-row gap-2 mt-4">
-              <Link to="/participant/interview" className="flex-1">
-                <Button style={{ backgroundColor: '#24083b', color: '#fff' }} className="w-full font-semibold hover:bg-purple-950" data-testid="goto-interview-button">
-                  <Sparkles className="h-4 w-4 mr-1.5 text-green-400" aria-hidden="true" /> Practice Interview
-                </Button>
-              </Link>
-              <Link to="/participant/resume-builder" className="flex-1">
-                <Button variant="outline" className="w-full border-slate-300 font-semibold" data-testid="goto-resume-button">
-                  <FileText className="h-4 w-4 mr-1.5 text-[#16a34a]" aria-hidden="true" /> Resume Builder
-                </Button>
-              </Link>
+              <div className="space-y-2">
+                <div className="flex justify-between text-xs font-bold text-slate-700">
+                  <span>Progress: {pbasPoints} Points</span>
+                  <span>Monthly Requirement: {targetPoints} Points</span>
+                </div>
+                <div className="w-full bg-slate-100 h-3.5 rounded-full overflow-hidden p-0.5 border border-slate-200">
+                  <div
+                    className="bg-[#16a34a] h-full rounded-full transition-all duration-500"
+                    style={{ width: `${pbasPercentage}%` }}
+                  />
+                </div>
+              </div>
             </div>
-          </CardContent>
-        </Card>
+          )}
+        </div>
+      </main>
 
-        <Card className="lg:col-span-12 border-slate-200 shadow-sm">
-          <CardHeader>
-            <CardTitle className="text-lg font-bold text-slate-900">Your Monthly Allowances</CardTitle>
-          </CardHeader>
-          <CardContent>
-            {live.usage ? (
-              <div className="flex flex-wrap gap-2" data-testid="usage-summary-panel">
-                <UsageMeter metric={live.usage.interviews} testId="usage-interviews" />
-                <UsageMeter metric={live.usage.resumes} testId="usage-resumes" />
-                <UsageMeter metric={live.usage.cover_letters} testId="usage-cover-letters" />
-                <UsageMeter metric={live.usage.job_logs} testId="usage-job-logs" showIcon={false} />
-              </div>
-            ) : (
-              <p className="text-muted-foreground text-sm" data-testid="usage-summary-empty">
-                Allowances will appear here.
-              </p>
-            )}
-            <p className="text-xs text-muted-foreground mt-3">
-              Allowances reset on the first of each month. Saved resumes, cover letters, scorecards, and certificates can be viewed and downloaded anytime.
-            </p>
-          </CardContent>
-        </Card>
+      {/* Action Modals */}
+      {showJobModal && (
+        <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+          <form onSubmit={handleReportJob} className="bg-white rounded-2xl p-6 max-w-md w-full space-y-4 shadow-xl">
+            <div className="border-b border-slate-100 pb-3 flex justify-between items-center">
+              <h3 className="font-bold text-base text-[#24083b]">Report New Employment 🎉</h3>
+              <button type="button" onClick={() => setShowJobModal(false)} className="text-slate-400 hover:text-slate-600 font-bold">✕</button>
+            </div>
+            <div className="space-y-3 text-xs">
+              <input required type="text" placeholder="Employer Name" className="w-full p-2.5 border rounded-lg text-xs" />
+              <input required type="text" placeholder="Role Title" className="w-full p-2.5 border rounded-lg text-xs" />
+              <input required type="date" className="w-full p-2.5 border rounded-lg text-xs" />
+            </div>
+            <div className="flex justify-end gap-2 pt-2 border-t border-slate-100">
+              <button type="button" onClick={() => setShowJobModal(false)} className="px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100 rounded-lg">Cancel</button>
+              <button type="submit" className="px-4 py-2 text-xs bg-[#16a34a] text-white font-bold rounded-lg shadow-sm">Submit (+50 Pts)</button>
+            </div>
+          </form>
+        </div>
+      )}
 
-        <Card className="lg:col-span-12 border-slate-200 shadow-sm">
-          <CardHeader>
-            <CardTitle className="text-lg font-bold text-slate-900">Recent Job Search Activity</CardTitle>
-          </CardHeader>
-          <CardContent>
-            {live.recent_logs.length > 0 ? (
-              <ul className="divide-y divide-slate-100" data-testid="recent-logs-list">
-                {live.recent_logs.map((log) => (
-                  <li key={log.id} className="py-3 flex flex-wrap items-center justify-between gap-2">
-                    <div>
-                      <p className="font-semibold text-slate-800">
-                        {log.position_title} — {log.employer_name}
-                      </p>
-                      <p className="text-sm text-muted-foreground">
-                        {log.application_date} · {log.application_type}
-                      </p>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <Badge variant="outline" className="font-semibold border-slate-300">{log.points} pts</Badge>
-                      <Badge style={{ backgroundColor: log.status === "verified" ? "#16a34a" : "#24083b", color: "#fff" }}>
-                        {log.status}
-                      </Badge>
-                    </div>
-                  </li>
-                ))}
-              </ul>
-            ) : (
-              <p className="text-muted-foreground" data-testid="recent-logs-empty">
-                No activity logged yet — record your first application to start earning points.
-              </p>
-            )}
-          </CardContent>
-        </Card>
-      </div>
-    </AppShell>
+      {showInterviewModal && (
+        <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+          <form onSubmit={handleReportInterview} className="bg-white rounded-2xl p-6 max-w-md w-full space-y-4 shadow-xl">
+            <div className="border-b border-slate-100 pb-3 flex justify-between items-center">
+              <h3 className="font-bold text-base text-[#24083b]">Report Upcoming Interview 💼</h3>
+              <button type="button" onClick={() => setShowInterviewModal(false)} className="text-slate-400 hover:text-slate-600 font-bold">✕</button>
+            </div>
+            <div className="space-y-3 text-xs">
+              <input required type="text" placeholder="Employer Name" className="w-full p-2.5 border rounded-lg text-xs" />
+              <input required type="text" placeholder="Position Title" className="w-full p-2.5 border rounded-lg text-xs" />
+              <input required type="datetime-local" className="w-full p-2.5 border rounded-lg text-xs" />
+            </div>
+            <div className="flex justify-end gap-2 pt-2 border-t border-slate-100">
+              <button type="button" onClick={() => setShowInterviewModal(false)} className="px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100 rounded-lg">Cancel</button>
+              <button type="submit" className="px-4 py-2 text-xs bg-purple-600 text-white font-bold rounded-lg shadow-sm">Submit (+25 Pts)</button>
+            </div>
+          </form>
+        </div>
+      )}
+
+      {showHelpModal && (
+        <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+          <form onSubmit={handleRequestHelp} className="bg-white rounded-2xl p-6 max-w-md w-full space-y-4 shadow-xl">
+            <div className="border-b border-slate-100 pb-3 flex justify-between items-center">
+              <h3 className="font-bold text-base text-[#24083b]">Request Priority Coach Support 💬</h3>
+              <button type="button" onClick={() => setShowHelpModal(false)} className="text-slate-400 hover:text-slate-600 font-bold">✕</button>
+            </div>
+            <div className="space-y-3 text-xs">
+              <textarea required rows={4} placeholder="Describe the assistance you need..." className="w-full p-2.5 border rounded-lg text-xs" />
+            </div>
+            <div className="flex justify-end gap-2 pt-2 border-t border-slate-100">
+              <button type="button" onClick={() => setShowHelpModal(false)} className="px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100 rounded-lg">Cancel</button>
+              <button type="submit" className="px-4 py-2 text-xs bg-amber-600 text-white font-bold rounded-lg shadow-sm">Send Priority Alert</button>
+            </div>
+          </form>
+        </div>
+      )}
+    </div>
   );
-}
+};
