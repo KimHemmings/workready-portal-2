@@ -1,4 +1,18 @@
-﻿import React from 'react';
+﻿export interface ProviderBrandConfig {
+  providerName: string;
+  secondaryColor: string;
+  logoDataUrl: string | null;
+  disclaimerText: string;
+}
+
+const BRAND_STORAGE_KEY = 'workready_provider_brand';
+
+export const DEFAULT_BRAND_CONFIG: ProviderBrandConfig = {
+  providerName: "Co-Branded Provider Partner",
+  secondaryColor: "#FFB74D",
+  logoDataUrl: null,
+  disclaimerText: "Straight Up Training Shell & Co-Branded Provider Licensee",
+};
 
 export const BRAND_CONFIG = {
   name: "WorkReady Portal",
@@ -16,9 +30,23 @@ export const BRAND_CONFIG = {
     "Disability Employment Services (DES)"
   ],
   logo: {
-    svg: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" class="w-6 h-6 text-[#16a34a]"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>`,
+    src: "/logo.png",
     alt: "WorkReady Portal Logo"
   }
 };
 
-export const BRAND_LOGO = "WorkReady Portal";
+export const BRAND_LOGO = "/logo.png";
+
+export const getProviderBrandConfig = (): ProviderBrandConfig => {
+  try {
+    const raw = localStorage.getItem(BRAND_STORAGE_KEY);
+    if (raw) return JSON.parse(raw);
+  } catch (e) {
+    console.error("Error reading provider brand config:", e);
+  }
+  return DEFAULT_BRAND_CONFIG;
+};
+
+export const saveProviderBrandConfig = (config: ProviderBrandConfig): void => {
+  localStorage.setItem(BRAND_STORAGE_KEY, JSON.stringify(config));
+};
