@@ -419,8 +419,8 @@ export const ParticipantHome: React.FC = () => {
           )}
 
           {activeTab === 3 && (
-              <DocumentLocker />
             <div className="space-y-6">
+              <DocumentLocker />
               
               {/* Compliance & Verification Card */}
               <div className="bg-white border border-slate-200 rounded-2xl p-6 space-y-6 shadow-sm">
@@ -630,4 +630,5 @@ export const ParticipantHome: React.FC = () => {
 };
 
 export default ParticipantHome;
+
 
