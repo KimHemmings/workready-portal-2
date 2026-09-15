@@ -109,18 +109,18 @@ export default function Home() {
       alignItems: 'center',
       overflowX: 'hidden'
     }}>
-      {/* Background Classroom Photo & Dark Navy Gradient Overlay */}
+      {/* Background Classroom Photo & Reversed Navy Gradient (Darker on Left, Clearer on Right) */}
       <div style={{
         position: 'absolute',
         inset: 0,
-        backgroundImage: `linear-gradient(to right, rgba(15, 23, 42, 0.94) 0%, rgba(15, 23, 42, 0.82) 42%, rgba(15, 23, 42, 0.35) 100%), url(${classroomBg})`,
+        backgroundImage: `linear-gradient(to left, rgba(15, 23, 42, 0.94) 0%, rgba(15, 23, 42, 0.82) 42%, rgba(15, 23, 42, 0.35) 100%), url(${classroomBg})`,
         backgroundSize: 'cover',
-        backgroundPosition: 'right center',
+        backgroundPosition: 'left center',
         backgroundRepeat: 'no-repeat',
         zIndex: 1
       }} />
 
-      {/* Left-Aligned Login Panel */}
+      {/* RIGHT-ALIGNED Login Panel Container */}
       <div style={{
         position: 'relative',
         zIndex: 3,
@@ -129,7 +129,7 @@ export default function Home() {
         margin: '0 auto',
         padding: '2rem 3rem',
         display: 'flex',
-        justifyContent: 'flex-start'
+        justifyContent: 'flex-end'
       }}>
         <div style={{
           backgroundColor: '#ffffff',
