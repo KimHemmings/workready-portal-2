@@ -16,7 +16,16 @@ const FALLBACK_DASHBOARD: ParticipantDashboard = {
     id: "demo-part-1",
     email: "alex@workready.com.au",
     name: "Alex Johnson",
-    role: "participant"
+    role: "participant",
+    organization_id: "org-1",
+    phone: "0400 000 000",
+    status: "active",
+    coach_id: "coach-1",
+    sub_role: "candidate",
+    avatar_url: "",
+    job_seeker_id: "JS-99821",
+    pbas_target: 100,
+    created_at: "2026-01-01T00:00:00Z"
   },
   completion_percent: 65,
   completed_modules: 8,
