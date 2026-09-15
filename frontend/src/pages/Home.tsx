@@ -103,13 +103,13 @@ export default function Home() {
       minHeight: '100vh',
       width: '100vw',
       position: 'relative',
-      backgroundColor: '#130526',
+      backgroundColor: '#24083b',
       fontFamily: 'system-ui, -apple-system, sans-serif',
       display: 'flex',
       alignItems: 'center',
       overflowX: 'hidden'
     }}>
-      {/* Background Classroom Photo (Soft Ambient Texture) */}
+      {/* Background Classroom Photo (Clear & Bright) */}
       <div style={{
         position: 'absolute',
         inset: 0,
@@ -117,16 +117,16 @@ export default function Home() {
         backgroundSize: 'cover',
         backgroundPosition: 'left center',
         backgroundRepeat: 'no-repeat',
-        opacity: 0.35,
-        filter: 'contrast(110%) brightness(75%)',
+        opacity: 0.75,
+        filter: 'brightness(98%) contrast(102%)',
         zIndex: 1
       }} />
 
-      {/* Deep Shadow Purple High-Opacity Overlay */}
+      {/* Balanced Purple Tint Overlay (Lighter on Left to Highlight Candidate) */}
       <div style={{
         position: 'absolute',
         inset: 0,
-        background: 'linear-gradient(105deg, rgba(30, 8, 69, 0.70) 0%, rgba(20, 5, 48, 0.92) 45%, rgba(13, 3, 33, 0.97) 100%)',
+        background: 'linear-gradient(to right, rgba(46, 16, 101, 0.40) 0%, rgba(36, 8, 59, 0.65) 45%, rgba(20, 4, 36, 0.88) 100%)',
         zIndex: 2
       }} />
 
