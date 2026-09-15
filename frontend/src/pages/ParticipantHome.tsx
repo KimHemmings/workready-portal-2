@@ -11,7 +11,7 @@ import { apiGet } from "@/lib/api";
 import { getSessionUser } from "@/lib/session";
 import type { ParticipantDashboard } from "@/lib/types";
 
-// Default resilient candidate data for seamless rendering
+// Fully typed fallback dashboard satisfying TrainingModule, UsageMetric, and JobSearchLog interfaces
 const FALLBACK_DASHBOARD: ParticipantDashboard = {
   completion_percent: 65,
   completed_modules: 8,
@@ -26,32 +26,53 @@ const FALLBACK_DASHBOARD: ParticipantDashboard = {
     title: "Effective Workplace Communication",
     category: "Core Skills",
     description: "Learn essential verbal and written communication techniques for modern team environments.",
-    estimated_minutes: 25
+    estimated_minutes: 25,
+    video_url: "",
+    content_markdown: "Effective workplace communication ensures team alignment.",
+    order: 1
   },
   usage: {
-    interviews: { remaining: 3, limit: 5, used: 2 },
-    resumes: { remaining: 4, limit: 5, used: 1 },
-    cover_letters: { remaining: 3, limit: 5, used: 2 },
-    job_logs: { remaining: 15, limit: 20, used: 5 }
+    interviews: { kind: "interviews", remaining: 3, limit: 5, used: 2, base_limit: 5, granted_extra: 0 },
+    resumes: { kind: "resumes", remaining: 4, limit: 5, used: 1, base_limit: 5, granted_extra: 0 },
+    cover_letters: { kind: "cover_letters", remaining: 3, limit: 5, used: 2, base_limit: 5, granted_extra: 0 },
+    job_logs: { kind: "job_logs", remaining: 15, limit: 20, used: 5, base_limit: 20, granted_extra: 0 }
   },
   recent_logs: [
     {
       id: "log-1",
+      participant_id: "demo-part-1",
       position_title: "Warehouse Logistics Assistant",
       employer_name: "Apex Logistics",
+      employer_contact: "hr@apexlogistics.com.au",
       application_date: "2026-03-10",
+      application_method: "online",
       application_type: "Online Portal",
+      evidence_type: "confirmation_email",
+      evidence_filename: "apex_confirm.pdf",
+      evidence_data: "",
+      evidence_mime: "application/pdf",
+      notes: "Submitted application via company site.",
       points: 20,
-      status: "verified"
+      status: "verified",
+      created_at: "2026-03-10T09:00:00Z"
     },
     {
       id: "log-2",
+      participant_id: "demo-part-1",
       position_title: "Customer Support Officer",
       employer_name: "Metro Call Solutions",
+      employer_contact: "careers@metrocall.com.au",
       application_date: "2026-03-08",
+      application_method: "email",
       application_type: "Email",
+      evidence_type: "confirmation_email",
+      evidence_filename: "metro_email.pdf",
+      evidence_data: "",
+      evidence_mime: "application/pdf",
+      notes: "Sent resume directly to HR.",
       points: 15,
-      status: "pending"
+      status: "submitted",
+      created_at: "2026-03-08T14:30:00Z"
     }
   ]
 };
