@@ -201,7 +201,7 @@ export const ParticipantHome: React.FC = () => {
                 <div className="text-[10px] text-emerald-300">Case Manager: Casey Smith</div>
               </div>
               <button
-                onClick={handleLogout}
+                onClick={() => { localStorage.clear(); window.location.href = "/login"; }}
                 className="px-3.5 py-1.5 bg-white/10 hover:bg-white/20 border border-white/20 text-white text-xs font-bold rounded-xl transition-all"
               >
                 Sign Out
@@ -631,6 +631,7 @@ export const ParticipantHome: React.FC = () => {
 };
 
 export default ParticipantHome;
+
 
 
 
