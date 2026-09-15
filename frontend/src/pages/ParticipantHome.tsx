@@ -1,4 +1,5 @@
-﻿import AppointmentsWidget from '../components/AppointmentsWidget';
+﻿import StarInterviewHistory from '../components/StarInterviewHistory';
+import AppointmentsWidget from '../components/AppointmentsWidget';
 import PointProjectionWheel from '../components/PointProjectionWheel';
 import DocumentLocker from '../components/DocumentLocker';
 import React, { useState } from 'react';
@@ -414,6 +415,7 @@ export const ParticipantHome: React.FC = () => {
           {activeTab === 2 && (
             <div className="space-y-8">
               <StarInterviewSimulator />
+              <StarInterviewHistory />
               <div className="border-t border-slate-200 pt-8">
                 <ResumeBuilder maxAttempts={3} />
               </div>
@@ -634,6 +636,7 @@ export const ParticipantHome: React.FC = () => {
 };
 
 export default ParticipantHome;
+
 
 
 
