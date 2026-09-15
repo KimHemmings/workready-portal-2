@@ -6,6 +6,15 @@ interface LoginProps {
   onLoginSuccess: (role: UserRole) => void;
 }
 
+// Authorized user accounts mapping (Email -> { Password, Role })
+const AUTHORIZED_USERS: Record<string, { password: string; role: UserRole }> = {
+  'alex@workready.com': { password: 'password', role: 'candidate' },
+  'casey@workready.com': { password: 'password', role: 'coach' },
+  'bessy@workready.com': { password: 'password', role: 'owner' },
+  'training@straightuptraining.com': { password: 'Welcome01', role: 'sales' },
+  'admin@straightuptraining.com': { password: 'WorkReadyAdmin2026!', role: 'admin' },
+};
+
 export const Login: React.FC<LoginProps> = ({ onLoginSuccess }) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -24,20 +33,13 @@ export const Login: React.FC<LoginProps> = ({ onLoginSuccess }) => {
     setErrorMsg('');
 
     const cleanEmail = email.trim().toLowerCase();
+    const userAccount = AUTHORIZED_USERS[cleanEmail];
 
-    // Strict profile matching logic
-    if (cleanEmail === 'alex@workready.com') {
-      navigateToRole('candidate');
-    } else if (cleanEmail === 'casey@workready.com') {
-      navigateToRole('coach');
-    } else if (cleanEmail === 'bessy@workready.com') {
-      navigateToRole('owner');
-    } else if (cleanEmail === 'training@straightuptraining.com') {
-      navigateToRole('sales');
-    } else if (cleanEmail === 'admin@straightuptraining.com' || cleanEmail === 'admin@workready.com') {
-      navigateToRole('admin');
+    // Check if email exists and password matches
+    if (userAccount && userAccount.password === password) {
+      navigateToRole(userAccount.role);
     } else {
-      setErrorMsg('Invalid credentials. Please enter a valid registered portal account.');
+      setErrorMsg('Invalid email address or password. Please try again.');
     }
   };
 
