@@ -1,13 +1,6 @@
-﻿export type Role = 'PARTICIPANT' | 'COACH' | 'OWNER';
+﻿import { User, Role } from './types';
 
-export interface User {
-  id: string;
-  name: string;
-  email: string;
-  role: Role;
-  avatarUrl?: string;
-  pbasPoints?: number;
-}
+export type { User, Role };
 
 const STORAGE_KEY = 'workready_session_user';
 const IMPERSONATOR_KEY = 'workready_impersonator_user';
@@ -23,9 +16,11 @@ export const getSessionUser = (): User | null => {
     id: 'demo-candidate-1',
     name: 'Alex Johnson',
     email: 'alex.johnson@example.com',
-    role: 'PARTICIPANT',
+    role: 'participant',
+    phone: '0412 345 678',
+    organization_id: 'org-demo-1',
     pbasPoints: 35,
-  };
+  } as User;
 };
 
 export const beginSession = (user: User): void => {
@@ -67,11 +62,12 @@ export const stopImpersonation = (): void => {
 
 export const homePathFor = (role: Role): string => {
   switch (role) {
-    case 'COACH':
+    case 'coach':
       return '/coach';
-    case 'OWNER':
+    case 'owner':
+    case 'admin':
       return '/owner';
-    case 'PARTICIPANT':
+    case 'participant':
     default:
       return '/participant';
   }
