@@ -1,5 +1,6 @@
 ﻿import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { bgBase64 } from '../assets/bgBase64';
 
 type PublicRole = 'case_manager' | 'candidate' | 'business_manager';
 
@@ -32,18 +33,28 @@ export default function Home() {
 
     const lowerEmail = email.trim().toLowerCase();
 
-    // 1. Direct Credential Checks (Sales & Admin IMMEDIATELY BYPASS 2FA & Role Selection)
-    if (lowerEmail.includes('admin') || lowerEmail === 'admin@workready.com' || lowerEmail === 'admin@straightuptraining.com') {
-      navigate('/admin');
-      return;
-    }
-
-    if (lowerEmail.includes('sales') || lowerEmail.includes('demo') || lowerEmail === 'sales@workready.com' || lowerEmail === 'sales@straightuptraining.com') {
+    // 1. DIRECT BYPASS FOR SALES / ADMIN / DEMO (Executes BEFORE 2FA check)
+    if (
+      lowerEmail.includes('sales') || 
+      lowerEmail.includes('demo') || 
+      lowerEmail.includes('training') || 
+      lowerEmail === 'sales@workready.com' || 
+      lowerEmail === 'sales@straightuptraining.com'
+    ) {
       navigate('/sales-demo');
       return;
     }
 
-    // 2. Standard Public Role Routing (2FA applies to standard staff logins)
+    if (
+      lowerEmail.includes('admin') || 
+      lowerEmail === 'admin@workready.com' || 
+      lowerEmail === 'admin@straightuptraining.com'
+    ) {
+      navigate('/admin');
+      return;
+    }
+
+    // 2. Standard Public Role Routing
     let target = '/';
     if (selectedRole === 'case_manager') target = '/case-manager/profile';
     if (selectedRole === 'candidate') target = '/candidate/workspace';
@@ -89,6 +100,10 @@ export default function Home() {
     }
   };
 
+  const bgStyle = bgBase64 
+    ? `linear-gradient(to right, rgba(15, 23, 42, 0.94) 0%, rgba(15, 23, 42, 0.82) 42%, rgba(15, 23, 42, 0.35) 100%), url('${bgBase64}')`
+    : `linear-gradient(to right, rgba(15, 23, 42, 0.95) 0%, rgba(15, 23, 42, 0.88) 100%), url('/success1.png')`;
+
   return (
     <div style={{
       minHeight: '100vh',
@@ -100,17 +115,17 @@ export default function Home() {
       alignItems: 'center',
       overflowX: 'hidden'
     }}>
-      {/* Background Image & Brand Tint Overlay */}
+      {/* Background Classroom Image & Dark Navy Overlay */}
       <div style={{
         position: 'absolute',
         inset: 0,
-        backgroundImage: "linear-gradient(to right, rgba(15, 23, 42, 0.94) 0%, rgba(15, 23, 42, 0.82) 42%, rgba(15, 23, 42, 0.35) 100%), url('/success1.png'), url('/background.png')",
+        backgroundImage: bgStyle,
         backgroundSize: 'cover',
         backgroundPosition: 'right center',
         zIndex: 1
       }} />
 
-      {/* Main Container Aligned Left */}
+      {/* Left-Aligned Login Panel */}
       <div style={{
         position: 'relative',
         zIndex: 3,
@@ -123,26 +138,26 @@ export default function Home() {
       }}>
         <div style={{
           backgroundColor: '#ffffff',
-          borderRadius: '16px',
+          borderRadius: '18px',
           width: '100%',
           maxWidth: '460px',
-          boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.6)',
+          boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.7)',
           overflow: 'hidden',
           border: '1px solid rgba(255, 255, 255, 0.2)'
         }}>
-          {/* Header Branding - ENLARGED LOGO & CENTERED HIGH IMPACT TITLE */}
+          {/* Header Branding - 110px LOGO & HIGH IMPACT TITLE */}
           <div style={{ backgroundColor: '#1e293b', padding: '2.5rem 1.75rem 2rem', textAlign: 'center', color: '#fff', borderBottom: '4px solid #16a34a' }}>
-            <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '1rem' }}>
+            <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '1.25rem' }}>
               <img 
                 src="/logo.png" 
                 alt="Straight Up Training Logo" 
-                style={{ height: '75px', width: 'auto', objectFit: 'contain' }}
+                style={{ height: '110px', width: 'auto', objectFit: 'contain' }}
               />
             </div>
-            <h1 style={{ margin: 0, fontSize: '1.85rem', fontWeight: 800, color: '#fff', letterSpacing: '-0.5px' }}>
+            <h1 style={{ margin: 0, fontSize: '2rem', fontWeight: 800, color: '#fff', letterSpacing: '-0.5px' }}>
               Workready <span style={{ color: '#16a34a' }}>Portal</span>
             </h1>
-            <p style={{ color: '#94a3b8', fontSize: '0.8rem', margin: '0.3rem 0 0', textTransform: 'uppercase', letterSpacing: '1.5px', fontWeight: 700 }}>
+            <p style={{ color: '#94a3b8', fontSize: '0.85rem', margin: '0.35rem 0 0', textTransform: 'uppercase', letterSpacing: '1.5px', fontWeight: 700 }}>
               Straight Up Training
             </p>
           </div>
@@ -225,7 +240,7 @@ export default function Home() {
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                placeholder="sales@workready.com or name@workready.com.au"
+                placeholder="sales@straightuptraining.com"
                 required
                 style={{ width: '100%', padding: '0.75rem 0.8rem', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '0.9rem', boxSizing: 'border-box', outline: 'none' }}
               />
