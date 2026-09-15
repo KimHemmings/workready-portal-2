@@ -1,5 +1,5 @@
-﻿import React, { useState, useEffect } from 'react';
-import { Sparkles, Award, RefreshCw, Send, CheckCircle2, Briefcase } from 'lucide-react';
+﻿import React, { useState, useEffect, useRef } from 'react';
+import { Sparkles, RefreshCw, Send, CheckCircle2, Briefcase, Mic, MicOff, Pause, Play } from 'lucide-react';
 
 export interface StarQuestion {
   id: string;
@@ -10,12 +10,11 @@ export interface StarQuestion {
 }
 
 const ROLE_QUESTION_BANK: StarQuestion[] = [
-  // WAREHOUSE & LOGISTICS
   {
     id: 'wh-1',
     roleCategory: 'Warehouse & Logistics',
     category: 'WHS & Spill Response',
-    question: 'Describe a time you identified a potential safety hazard (like a chemical spill or damaged pallet) in the warehouse. What immediate action did you take?',
+    question: 'Describe a time you identified a potential safety hazard in the warehouse. What immediate action did you take?',
     contextHint: 'Focus on your immediate hazard isolation, high-vis PPE, and supervisor reporting.',
   },
   {
@@ -25,14 +24,12 @@ const ROLE_QUESTION_BANK: StarQuestion[] = [
     question: 'Tell me about a time you had to pick and pack orders under an urgent dispatch deadline. How did you maintain accuracy?',
     contextHint: 'Highlight double-checking SKU barcodes, staying calm, and maintaining zero pick errors.',
   },
-
-  // RETAIL & HOSPITALITY
   {
     id: 'ret-1',
     roleCategory: 'Retail & Hospitality',
     category: 'De-escalation & Service',
     question: 'Describe a scenario where an angry customer brought back a damaged product or complained about long wait times. How did you resolve it?',
-    contextHint: 'Emphasize active listening, apologizing professionally, and offering an immediate refund or replacement solution.',
+    contextHint: 'Emphasize active listening, apologizing professionally, and offering an immediate refund or replacement.',
   },
   {
     id: 'ret-2',
@@ -41,8 +38,6 @@ const ROLE_QUESTION_BANK: StarQuestion[] = [
     question: 'Tell me about a shift where your store or venue was understaffed during peak hours. How did you prioritize tasks?',
     contextHint: 'Focus on teamwork, quick communication with team members, and keeping customer wait times down.',
   },
-
-  // ADMINISTRATION & SUPPORT
   {
     id: 'admin-1',
     roleCategory: 'Administration & Support',
@@ -54,16 +49,14 @@ const ROLE_QUESTION_BANK: StarQuestion[] = [
     id: 'admin-2',
     roleCategory: 'Administration & Support',
     category: 'Multitasking & Software',
-    question: 'Describe a situation where you had to quickly learn a new CRM or scheduling software while managing incoming phone inquiries.',
-    contextHint: 'Highlight adaptability, taking notes during training, and maintaining high customer service quality.',
+    question: 'Describe a situation where you had to quickly learn a new CRM software while managing incoming calls.',
+    contextHint: 'Highlight adaptability, taking notes during training, and maintaining high service quality.',
   },
-
-  // CONSTRUCTION & TRADES
   {
     id: 'trade-1',
     roleCategory: 'Construction & Trades',
     category: 'Site Safety & PPE',
-    question: 'Describe a situation on-site where a sub-contractor or teammate was not wearing required safety gear or operating unsafely.',
+    question: 'Describe a situation on-site where a sub-contractor or teammate was not wearing required safety gear.',
     contextHint: 'Highlight site safety rules, respectful peer-to-peer intervention, and stop-work authority.',
   },
   {
@@ -86,13 +79,24 @@ export const StarInterviewSimulator: React.FC = () => {
   const [action, setAction] = useState('');
   const [result, setResult] = useState('');
 
+  // Microphone / Voice Input States
+  const [isListening, setIsListening] = useState(false);
+  const [activeMicField, setActiveMicField] = useState<'situation' | 'task' | 'action' | 'result' | null>(null);
+  const recognitionRef = useRef<any>(null);
+
   const [isEvaluating, setIsEvaluating] = useState(false);
   const [feedback, setFeedback] = useState<{ score: number; strengths: string; improvement: string } | null>(null);
 
-  // Filter and shuffle questions whenever the selected role changes
   useEffect(() => {
     filterAndShuffleByRole(selectedRole);
   }, [selectedRole]);
+
+  // Clean up microphone stream on unmount
+  useEffect(() => {
+    return () => {
+      stopAndResetMicrophone();
+    };
+  }, []);
 
   const filterAndShuffleByRole = (role: typeof selectedRole) => {
     const roleSpecific = ROLE_QUESTION_BANK.filter((q) => q.roleCategory === role);
@@ -102,7 +106,70 @@ export const StarInterviewSimulator: React.FC = () => {
     resetForm();
   };
 
+  const stopAndResetMicrophone = () => {
+    if (recognitionRef.current) {
+      try {
+        recognitionRef.current.stop();
+        recognitionRef.current.abort();
+      } catch (err) {
+        // Safe catch for already stopped instances
+      }
+      recognitionRef.current = null;
+    }
+    setIsListening(false);
+    setActiveMicField(null);
+  };
+
+  const toggleMicrophone = (field: 'situation' | 'task' | 'action' | 'result') => {
+    // If clicking active listening field, perform full pause & reset
+    if (isListening && activeMicField === field) {
+      stopAndResetMicrophone();
+      return;
+    }
+
+    // Stop any existing session before starting new one
+    stopAndResetMicrophone();
+
+    const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+    if (!SpeechRecognition) {
+      alert("Voice input is not supported in this browser. Please type your response directly.");
+      return;
+    }
+
+    const recognition = new SpeechRecognition();
+    recognition.continuous = true;
+    recognition.interimResults = true;
+    recognition.lang = 'en-AU';
+
+    recognition.onresult = (event: any) => {
+      let transcript = '';
+      for (let i = event.resultIndex; i < event.results.length; i++) {
+        transcript += event.results[i][0].transcript;
+      }
+
+      if (field === 'situation') setSituation((prev) => `${prev} ${transcript}`.trim());
+      if (field === 'task') setTask((prev) => `${prev} ${transcript}`.trim());
+      if (field === 'action') setAction((prev) => `${prev} ${transcript}`.trim());
+      if (field === 'result') setResult((prev) => `${prev} ${transcript}`.trim());
+    };
+
+    recognition.onerror = () => {
+      stopAndResetMicrophone();
+    };
+
+    recognition.onend = () => {
+      setIsListening(false);
+      setActiveMicField(null);
+    };
+
+    recognitionRef.current = recognition;
+    recognition.start();
+    setIsListening(true);
+    setActiveMicField(field);
+  };
+
   const resetForm = () => {
+    stopAndResetMicrophone();
     setSituation('');
     setTask('');
     setAction('');
@@ -121,14 +188,15 @@ export const StarInterviewSimulator: React.FC = () => {
 
   const handleEvaluate = (e: React.FormEvent) => {
     e.preventDefault();
+    stopAndResetMicrophone();
     setIsEvaluating(true);
 
     setTimeout(() => {
       setIsEvaluating(false);
       setFeedback({
-        score: Math.floor(Math.random() * 12) + 86, // 86% to 98%
+        score: Math.floor(Math.random() * 12) + 86,
         strengths: `Excellent industry alignment for ${selectedRole}! Clear STAR structure and specific action steps.`,
-        improvement: 'Add a specific metric or time timeframe in your Result to quantify your success for interviewers.',
+        improvement: 'Add a specific metric or timeframe in your Result to quantify your success for interviewers.',
       });
     }, 1200);
   };
@@ -144,15 +212,15 @@ export const StarInterviewSimulator: React.FC = () => {
           <div className="flex items-center gap-2">
             <h2 className="text-lg font-bold text-[#24083b]">AI STAR Interview Simulator</h2>
             <span className="bg-purple-50 text-[#24083b] text-[10px] font-bold px-2.5 py-0.5 rounded-full border border-purple-200 flex items-center gap-1">
-              <Sparkles className="w-3 h-3 text-purple-600" /> Role-Targeted Practice
+              <Sparkles className="w-3 h-3 text-purple-600" /> Voice Input Supported
             </span>
           </div>
           <p className="text-xs text-slate-500 mt-0.5">
-            Select your target employment sector to practice customized behavioral interview questions.
+            Select your target sector and practice structuring responses via typing or dictation.
           </p>
         </div>
 
-        {/* Industry Sector Dropdown Selector */}
+        {/* Industry Sector Dropdown */}
         <div className="flex items-center gap-2">
           <label className="text-xs font-bold text-slate-700 flex items-center gap-1">
             <Briefcase className="w-4 h-4 text-purple-700" /> Target Industry:
@@ -189,8 +257,24 @@ export const StarInterviewSimulator: React.FC = () => {
       {/* Form */}
       <form onSubmit={handleEvaluate} className="space-y-4 text-xs">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          
+          {/* Field 1: Situation */}
           <div className="space-y-1">
-            <label className="block font-bold text-slate-800">1. Situation (Where & When)</label>
+            <div className="flex items-center justify-between">
+              <label className="block font-bold text-slate-800">1. Situation (Where & When)</label>
+              <button
+                type="button"
+                onClick={() => toggleMicrophone('situation')}
+                className={`flex items-center gap-1 text-[11px] px-2 py-0.5 rounded-lg border font-bold transition-all ${
+                  isListening && activeMicField === 'situation'
+                    ? 'bg-red-50 text-red-600 border-red-200 animate-pulse'
+                    : 'bg-slate-100 text-slate-600 border-slate-200 hover:bg-slate-200'
+                }`}
+              >
+                {isListening && activeMicField === 'situation' ? <Pause className="w-3 h-3" /> : <Mic className="w-3 h-3 text-purple-700" />}
+                {isListening && activeMicField === 'situation' ? 'Pause / Reset Mic' : 'Voice Input'}
+              </button>
+            </div>
             <textarea
               required
               rows={3}
@@ -201,8 +285,23 @@ export const StarInterviewSimulator: React.FC = () => {
             />
           </div>
 
+          {/* Field 2: Task */}
           <div className="space-y-1">
-            <label className="block font-bold text-slate-800">2. Task (What was your objective?)</label>
+            <div className="flex items-center justify-between">
+              <label className="block font-bold text-slate-800">2. Task (What was your objective?)</label>
+              <button
+                type="button"
+                onClick={() => toggleMicrophone('task')}
+                className={`flex items-center gap-1 text-[11px] px-2 py-0.5 rounded-lg border font-bold transition-all ${
+                  isListening && activeMicField === 'task'
+                    ? 'bg-red-50 text-red-600 border-red-200 animate-pulse'
+                    : 'bg-slate-100 text-slate-600 border-slate-200 hover:bg-slate-200'
+                }`}
+              >
+                {isListening && activeMicField === 'task' ? <Pause className="w-3 h-3" /> : <Mic className="w-3 h-3 text-purple-700" />}
+                {isListening && activeMicField === 'task' ? 'Pause / Reset Mic' : 'Voice Input'}
+              </button>
+            </div>
             <textarea
               required
               rows={3}
@@ -213,8 +312,23 @@ export const StarInterviewSimulator: React.FC = () => {
             />
           </div>
 
+          {/* Field 3: Action */}
           <div className="space-y-1">
-            <label className="block font-bold text-slate-800">3. Action (What specific steps did YOU take?)</label>
+            <div className="flex items-center justify-between">
+              <label className="block font-bold text-slate-800">3. Action (What specific steps did YOU take?)</label>
+              <button
+                type="button"
+                onClick={() => toggleMicrophone('action')}
+                className={`flex items-center gap-1 text-[11px] px-2 py-0.5 rounded-lg border font-bold transition-all ${
+                  isListening && activeMicField === 'action'
+                    ? 'bg-red-50 text-red-600 border-red-200 animate-pulse'
+                    : 'bg-slate-100 text-slate-600 border-slate-200 hover:bg-slate-200'
+                }`}
+              >
+                {isListening && activeMicField === 'action' ? <Pause className="w-3 h-3" /> : <Mic className="w-3 h-3 text-purple-700" />}
+                {isListening && activeMicField === 'action' ? 'Pause / Reset Mic' : 'Voice Input'}
+              </button>
+            </div>
             <textarea
               required
               rows={3}
@@ -225,8 +339,23 @@ export const StarInterviewSimulator: React.FC = () => {
             />
           </div>
 
+          {/* Field 4: Result */}
           <div className="space-y-1">
-            <label className="block font-bold text-slate-800">4. Result (What was the outcome?)</label>
+            <div className="flex items-center justify-between">
+              <label className="block font-bold text-slate-800">4. Result (What was the outcome?)</label>
+              <button
+                type="button"
+                onClick={() => toggleMicrophone('result')}
+                className={`flex items-center gap-1 text-[11px] px-2 py-0.5 rounded-lg border font-bold transition-all ${
+                  isListening && activeMicField === 'result'
+                    ? 'bg-red-50 text-red-600 border-red-200 animate-pulse'
+                    : 'bg-slate-100 text-slate-600 border-slate-200 hover:bg-slate-200'
+                }`}
+              >
+                {isListening && activeMicField === 'result' ? <Pause className="w-3 h-3" /> : <Mic className="w-3 h-3 text-purple-700" />}
+                {isListening && activeMicField === 'result' ? 'Pause / Reset Mic' : 'Voice Input'}
+              </button>
+            </div>
             <textarea
               required
               rows={3}
