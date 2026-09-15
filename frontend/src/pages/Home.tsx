@@ -1,6 +1,7 @@
 ﻿import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { beginSession, homePathFor, User } from '../lib/session';
+import { beginSession, homePathFor } from '../lib/session';
+import type { User } from '../lib/session';
 import { Shield, User as UserIcon, Award, ArrowRight } from 'lucide-react';
 
 export const Home: React.FC = () => {
@@ -176,3 +177,4 @@ export const Home: React.FC = () => {
 };
 
 export default Home;
+
