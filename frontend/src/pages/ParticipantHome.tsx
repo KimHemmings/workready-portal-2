@@ -1,4 +1,5 @@
-﻿import PointProjectionWheel from '../components/PointProjectionWheel';
+﻿import AppointmentsWidget from '../components/AppointmentsWidget';
+import PointProjectionWheel from '../components/PointProjectionWheel';
 import DocumentLocker from '../components/DocumentLocker';
 import React, { useState } from 'react';
 import LmsModuleHub from '../components/LmsModuleHub';
@@ -421,6 +422,7 @@ export const ParticipantHome: React.FC = () => {
 
           {activeTab === 3 && (
             <div className="space-y-6">
+              <AppointmentsWidget />
               <PointProjectionWheel verifiedPoints={verifiedPoints} pendingPoints={pendingPoints} targetPoints={targetPoints} />
               <DocumentLocker />
               
@@ -632,6 +634,7 @@ export const ParticipantHome: React.FC = () => {
 };
 
 export default ParticipantHome;
+
 
 
 
