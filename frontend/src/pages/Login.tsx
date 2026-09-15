@@ -6,7 +6,6 @@ interface LoginProps {
   onLoginSuccess: (role: UserRole) => void;
 }
 
-// Authorized user accounts mapping (Email -> { Password, Role })
 const AUTHORIZED_USERS: Record<string, { password: string; role: UserRole }> = {
   'alex@workready.com': { password: 'password', role: 'candidate' },
   'casey@workready.com': { password: 'password', role: 'coach' },
@@ -35,7 +34,6 @@ export const Login: React.FC<LoginProps> = ({ onLoginSuccess }) => {
     const cleanEmail = email.trim().toLowerCase();
     const userAccount = AUTHORIZED_USERS[cleanEmail];
 
-    // Check if email exists and password matches
     if (userAccount && userAccount.password === password) {
       navigateToRole(userAccount.role);
     } else {
@@ -46,8 +44,6 @@ export const Login: React.FC<LoginProps> = ({ onLoginSuccess }) => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-[#24083b] via-[#320b52] to-[#1a052c] flex items-center justify-center p-4 font-sans text-slate-900">
       <div className="max-w-md w-full bg-white rounded-3xl shadow-2xl overflow-hidden border border-purple-800/30">
-        
-        {/* Brand Header */}
         <div className="bg-purple-950 p-8 text-center text-white border-b border-purple-800/50 relative">
           <div className="inline-flex p-3 bg-emerald-500/20 text-emerald-400 rounded-2xl border border-emerald-500/30 mb-3">
             <ShieldCheck className="w-8 h-8" />
@@ -56,9 +52,7 @@ export const Login: React.FC<LoginProps> = ({ onLoginSuccess }) => {
           <p className="text-xs text-purple-200 mt-1">WorkReady Partner Portal Access</p>
         </div>
 
-        {/* Secure Form Body */}
         <form onSubmit={handleFormSubmit} className="p-8 space-y-4">
-          
           {errorMsg && (
             <div className="p-3 bg-rose-50 border border-rose-200 text-rose-700 text-xs rounded-xl flex items-center gap-2 font-bold animate-fadeIn">
               <AlertCircle className="w-4 h-4 text-rose-600 shrink-0" />
@@ -105,7 +99,6 @@ export const Login: React.FC<LoginProps> = ({ onLoginSuccess }) => {
             Sign In to Dashboard <ArrowRight className="w-4 h-4 text-emerald-400" />
           </button>
         </form>
-
       </div>
     </div>
   );
