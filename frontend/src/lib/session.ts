@@ -1,4 +1,4 @@
-﻿import { User, Role } from './types';
+﻿import type { User, Role } from './types';
 
 export type { User, Role };
 
@@ -17,17 +17,23 @@ export const getSessionUser = (): User | null => {
     name: 'Alex Johnson',
     email: 'alex.johnson@example.com',
     role: 'participant',
+    status: 'active',
+    coach_id: 'coach-1',
+    cohort_id: 'cohort-1',
+    last_login: new Date().toISOString(),
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString(),
     phone: '0412 345 678',
     organization_id: 'org-demo-1',
     pbasPoints: 35,
-  } as User;
+  } as unknown as User;
 };
 
-export const beginSession = (user: User): void => {
+export const beginSession = (user: User, _qc?: any): void => {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(user));
 };
 
-export const endSession = (): void => {
+export const endSession = (_qc?: any): void => {
   localStorage.removeItem(STORAGE_KEY);
   localStorage.removeItem(IMPERSONATOR_KEY);
   sessionStorage.clear();
@@ -44,20 +50,22 @@ export const getImpersonator = (): User | null => {
   }
 };
 
-export const startImpersonation = (targetUser: User): void => {
+export const startImpersonation = (targetUser: User, _qc?: any): void => {
   const current = getSessionUser();
   if (current && !getImpersonator()) {
     localStorage.setItem(IMPERSONATOR_KEY, JSON.stringify(current));
   }
-  beginSession(targetUser);
+  beginSession(targetUser, _qc);
 };
 
-export const stopImpersonation = (): void => {
+export const stopImpersonation = (_qc?: any): User | null => {
   const original = getImpersonator();
   if (original) {
-    beginSession(original);
+    beginSession(original, _qc);
     localStorage.removeItem(IMPERSONATOR_KEY);
+    return original;
   }
+  return null;
 };
 
 export const homePathFor = (role: Role): string => {
