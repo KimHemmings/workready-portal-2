@@ -110,11 +110,11 @@ export default function Home() {
       alignItems: 'center',
       overflowX: 'hidden'
     }}>
-      {/* Background Overlay Layer with Multiple Fallback URLs */}
+      {/* Background Classroom Image & Dark Navy Gradient Overlay */}
       <div style={{
         position: 'absolute',
         inset: 0,
-        backgroundImage: "linear-gradient(to right, rgba(15, 23, 42, 0.93) 0%, rgba(15, 23, 42, 0.80) 45%, rgba(15, 23, 42, 0.35) 100%), url('/success1.png'), url('/Success 1.png'), url('/background.png')",
+        backgroundImage: "linear-gradient(to right, rgba(15, 23, 42, 0.93) 0%, rgba(15, 23, 42, 0.80) 45%, rgba(15, 23, 42, 0.35) 100%), url('/Success 1.png')",
         backgroundSize: 'cover',
         backgroundPosition: 'right center',
         backgroundRepeat: 'no-repeat',
