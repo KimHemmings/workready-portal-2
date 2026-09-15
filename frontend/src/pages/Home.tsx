@@ -1,478 +1,178 @@
 ﻿import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import classroomBg from '../assets/classroom.png';
+import { beginSession, homePathFor, User } from '../lib/session';
+import { Shield, User as UserIcon, Award, ArrowRight } from 'lucide-react';
 
-type PublicRole = 'case_manager' | 'candidate' | 'business_manager';
-
-export default function Home() {
+export const Home: React.FC = () => {
   const navigate = useNavigate();
-  const [selectedRole, setSelectedRole] = useState<PublicRole>('case_manager');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [showPassword, setShowPassword] = useState(false);
-  const [error, setError] = useState('');
 
-  // Modal States
-  const [isForgotOpen, setIsForgotOpen] = useState(false);
-  const [resetEmail, setResetEmail] = useState('');
-  const [resetMessage, setResetMessage] = useState('');
+  // Primary Accounts with updated emails and credentials
+  const mockUsers: Record<string, User> = {
+    candidate: {
+      id: 'candidate-alex',
+      name: 'Alex Johnson',
+      email: 'alex@workready.com',
+      role: 'participant',
+      status: 'active',
+      phone: '0412 345 678',
+      organization_id: 'org-straight-up',
+      pbasPoints: 35,
+    } as unknown as User,
+    casemanager: {
+      id: 'cm-casey',
+      name: 'Casey Smith',
+      email: 'casey@workready.com',
+      role: 'coach',
+      status: 'active',
+      organization_id: 'org-straight-up',
+    } as unknown as User,
+    businessmanager: {
+      id: 'bm-bessy',
+      name: 'Bessy Davis',
+      email: 'bessy@workready.com',
+      role: 'owner',
+      status: 'active',
+      organization_id: 'org-straight-up',
+    } as unknown as User,
+  };
 
-  const [isMfaOpen, setIsMfaOpen] = useState(false);
-  const [mfaCode, setMfaCode] = useState(['', '', '', '', '', '']);
-  const [pendingTargetRoute, setPendingTargetRoute] = useState('');
+  const handleQuickLogin = (roleKey: 'candidate' | 'casemanager' | 'businessmanager') => {
+    const selectedUser = mockUsers[roleKey];
+    beginSession(selectedUser);
+    navigate(homePathFor(selectedUser.role));
+  };
 
-  const [activePolicyModal, setActivePolicyModal] = useState<'terms' | 'privacy' | null>(null);
-
-  const handleLogin = (e: React.FormEvent) => {
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!email || !password) {
-      setError('Please enter both email and password.');
-      return;
-    }
-    setError('');
+    const cleanEmail = email.trim().toLowerCase();
 
-    const lowerEmail = email.trim().toLowerCase();
+    let authenticatedUser: User;
 
-    if (
-      lowerEmail.includes('sales') || 
-      lowerEmail.includes('demo') || 
-      lowerEmail.includes('training') || 
-      lowerEmail === 'sales@workready.com' || 
-      lowerEmail === 'sales@straightuptraining.com'
-    ) {
-      navigate('/sales-demo');
-      return;
-    }
-
-    if (
-      lowerEmail.includes('admin') || 
-      lowerEmail === 'admin@workready.com' || 
-      lowerEmail === 'admin@straightuptraining.com'
-    ) {
-      navigate('/admin');
-      return;
-    }
-
-    let target = '/';
-    if (selectedRole === 'case_manager') target = '/case-manager/profile';
-    if (selectedRole === 'candidate') target = '/candidate/workspace';
-    if (selectedRole === 'business_manager') target = '/business/workspace';
-
-    if (selectedRole === 'case_manager' || selectedRole === 'business_manager') {
-      setPendingTargetRoute(target);
-      setIsMfaOpen(true);
+    if (cleanEmail === 'alex@workready.com') {
+      authenticatedUser = mockUsers.candidate;
+    } else if (cleanEmail === 'casey@workready.com') {
+      authenticatedUser = mockUsers.casemanager;
+    } else if (cleanEmail === 'bessy@workready.com') {
+      authenticatedUser = mockUsers.businessmanager;
     } else {
-      navigate(target);
+      // Fallback for custom entries
+      authenticatedUser = {
+        id: 'user-custom',
+        name: cleanEmail.split('@')[0] || 'WorkReady User',
+        email: cleanEmail || 'user@workready.com',
+        role: cleanEmail.includes('casey') || cleanEmail.includes('coach') ? 'coach' : cleanEmail.includes('bessy') || cleanEmail.includes('admin') ? 'owner' : 'participant',
+        status: 'active',
+        organization_id: 'org-straight-up',
+        pbasPoints: 35,
+      } as unknown as User;
     }
-  };
 
-  const handleSsoLogin = () => {
-    let target = '/case-manager/profile';
-    if (selectedRole === 'candidate') target = '/candidate/workspace';
-    if (selectedRole === 'business_manager') target = '/business/workspace';
-    navigate(target);
-  };
-
-  const handleForgotPasswordSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!resetEmail) return;
-    setResetMessage(`Password reset link sent to ${resetEmail}`);
-    setTimeout(() => {
-      setIsForgotOpen(false);
-      setResetEmail('');
-      setResetMessage('');
-    }, 1800);
-  };
-
-  const handleMfaInput = (val: string, index: number) => {
-    if (val.length > 1) return;
-    const updated = [...mfaCode];
-    updated[index] = val;
-    setMfaCode(updated);
-
-    if (updated.every(digit => digit !== '') && index === 5) {
-      setTimeout(() => {
-        setIsMfaOpen(false);
-        navigate(pendingTargetRoute || '/');
-      }, 300);
-    }
+    beginSession(authenticatedUser);
+    navigate(homePathFor(authenticatedUser.role));
   };
 
   return (
-    <div style={{
-      minHeight: '100vh',
-      width: '100vw',
-      position: 'relative',
-      backgroundColor: '#24083b',
-      fontFamily: 'system-ui, -apple-system, sans-serif',
-      display: 'flex',
-      alignItems: 'center',
-      overflowX: 'hidden'
-    }}>
-      {/* Background Classroom Photo */}
-      <div style={{
-        position: 'absolute',
-        inset: 0,
-        backgroundImage: `url(${classroomBg})`,
-        backgroundSize: 'cover',
-        backgroundPosition: 'left center',
-        backgroundRepeat: 'no-repeat',
-        opacity: 0.75,
-        filter: 'brightness(98%) contrast(102%)',
-        zIndex: 1
-      }} />
-
-      {/* Balanced Purple Tint Overlay */}
-      <div style={{
-        position: 'absolute',
-        inset: 0,
-        background: 'linear-gradient(to right, rgba(46, 16, 101, 0.40) 0%, rgba(36, 8, 59, 0.65) 45%, rgba(20, 4, 36, 0.88) 100%)',
-        zIndex: 2
-      }} />
-
-      {/* RIGHT-ALIGNED Login Panel Container */}
-      <div style={{
-        position: 'relative',
-        zIndex: 3,
-        width: '100%',
-        maxWidth: '1280px',
-        margin: '0 auto',
-        padding: '2rem 3rem',
-        display: 'flex',
-        justifyContent: 'flex-end'
-      }}>
-        {/* Sign In Card with Finished Border & Glow */}
-        <div style={{
-          backgroundColor: '#ffffff',
-          borderRadius: '18px',
-          width: '100%',
-          maxWidth: '460px',
-          boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.55), 0 0 0 1px rgba(255, 255, 255, 0.15)',
-          overflow: 'hidden',
-          border: '2px solid rgba(226, 232, 240, 0.9)',
-          borderTop: '5px solid #16a34a'
-        }}>
-          {/* Header Branding */}
-          <div style={{ backgroundColor: '#1e293b', padding: '2.5rem 1.75rem 2rem', textAlign: 'center', color: '#fff', borderBottom: '3px solid #e2e8f0' }}>
-            <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '1.25rem' }}>
-              <img 
-                src="/logo.png" 
-                alt="Straight Up Training Logo" 
-                style={{ height: '110px', width: 'auto', objectFit: 'contain' }}
-              />
-            </div>
-            <h1 style={{ margin: 0, fontSize: '2rem', fontWeight: 800, color: '#fff', letterSpacing: '-0.5px' }}>
-              Workready <span style={{ color: '#16a34a' }}>Portal</span>
-            </h1>
-            <p style={{ color: '#94a3b8', fontSize: '0.85rem', margin: '0.35rem 0 0', textTransform: 'uppercase', letterSpacing: '1.5px', fontWeight: 700 }}>
-              Straight Up Training
-            </p>
-          </div>
-
-          <div style={{ padding: '1.25rem 1.75rem 0.5rem', textAlign: 'center', color: '#475569', fontSize: '0.875rem', lineHeight: '1.5' }}>
-            Welcome to the Workready Portal! Empowering employment pathways through tailored training, real opportunity, and dedicated support. Please sign in to access your workspace.
-          </div>
-
-          <form onSubmit={handleLogin} style={{ padding: '1.25rem 1.75rem 2rem' }}>
-            {error && (
-              <div style={{ backgroundColor: '#fef2f2', color: '#991b1b', border: '1px solid #fecaca', padding: '0.6rem 0.8rem', borderRadius: '8px', fontSize: '0.85rem', marginBottom: '1rem' }}>
-                {error}
-              </div>
-            )}
-
-            <label style={{ display: 'block', fontSize: '0.8rem', color: '#475569', fontWeight: 700, marginBottom: '0.5rem', textTransform: 'uppercase' }}>
-              Select Workspace Role
-            </label>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '0.4rem', marginBottom: '1.25rem', backgroundColor: '#f1f5f9', padding: '0.3rem', borderRadius: '10px', border: '1px solid #e2e8f0' }}>
-              <button
-                type="button"
-                onClick={() => setSelectedRole('case_manager')}
-                style={{
-                  padding: '0.6rem 0.2rem',
-                  fontSize: '0.75rem',
-                  fontWeight: 700,
-                  borderRadius: '7px',
-                  border: 'none',
-                  cursor: 'pointer',
-                  backgroundColor: selectedRole === 'case_manager' ? '#16a34a' : 'transparent',
-                  color: selectedRole === 'case_manager' ? '#fff' : '#475569',
-                  transition: 'all 0.2s ease'
-                }}
-              >
-                Case Manager
-              </button>
-              <button
-                type="button"
-                onClick={() => setSelectedRole('candidate')}
-                style={{
-                  padding: '0.6rem 0.2rem',
-                  fontSize: '0.75rem',
-                  fontWeight: 700,
-                  borderRadius: '7px',
-                  border: 'none',
-                  cursor: 'pointer',
-                  backgroundColor: selectedRole === 'candidate' ? '#16a34a' : 'transparent',
-                  color: selectedRole === 'candidate' ? '#fff' : '#475569',
-                  transition: 'all 0.2s ease'
-                }}
-              >
-                Candidate
-              </button>
-              <button
-                type="button"
-                onClick={() => setSelectedRole('business_manager')}
-                style={{
-                  padding: '0.6rem 0.2rem',
-                  fontSize: '0.75rem',
-                  fontWeight: 700,
-                  borderRadius: '7px',
-                  border: 'none',
-                  cursor: 'pointer',
-                  backgroundColor: selectedRole === 'business_manager' ? '#16a34a' : 'transparent',
-                  color: selectedRole === 'business_manager' ? '#fff' : '#475569',
-                  transition: 'all 0.2s ease'
-                }}
-              >
-                Business Mgr
-              </button>
-            </div>
-
-            <div style={{ marginBottom: '1rem' }}>
-              <label style={{ display: 'block', fontSize: '0.85rem', color: '#334155', fontWeight: 600, marginBottom: '0.4rem' }}>Email Address</label>
-              <input
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="sales@straightuptraining.com"
-                required
-                style={{ width: '100%', padding: '0.75rem 0.8rem', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '0.9rem', boxSizing: 'border-box', outline: 'none' }}
-              />
-            </div>
-
-            <div style={{ marginBottom: '1.25rem' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.4rem' }}>
-                <label style={{ fontSize: '0.85rem', color: '#334155', fontWeight: 600 }}>Password</label>
-                <button
-                  type="button"
-                  onClick={() => setIsForgotOpen(true)}
-                  style={{ background: 'none', border: 'none', color: '#2563eb', fontSize: '0.75rem', fontWeight: 600, cursor: 'pointer' }}
-                >
-                  Forgot password?
-                </button>
-              </div>
-              <div style={{ position: 'relative' }}>
-                <input
-                  type={showPassword ? 'text' : 'password'}
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  placeholder="Enter account password"
-                  required
-                  style={{ width: '100%', padding: '0.75rem 2.5rem 0.75rem 0.8rem', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '0.9rem', boxSizing: 'border-box', outline: 'none' }}
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  style={{ position: 'absolute', right: '0.75rem', top: '50%', transform: 'translateY(-50%)', border: 'none', background: 'none', cursor: 'pointer', fontSize: '1.1rem', color: '#64748b' }}
-                  title={showPassword ? 'Hide password' : 'Show password'}
-                >
-                  {showPassword ? '👁️' : '🙈'}
-                </button>
-              </div>
-            </div>
-
-            <button
-              type="submit"
-              style={{
-                width: '100%',
-                backgroundColor: '#16a34a',
-                color: '#fff',
-                border: 'none',
-                padding: '0.9rem',
-                borderRadius: '8px',
-                fontWeight: 700,
-                fontSize: '1rem',
-                cursor: 'pointer',
-                boxShadow: '0 4px 12px rgba(22, 163, 74, 0.3)',
-                marginBottom: '0.85rem'
-              }}
-            >
-              Sign In to {selectedRole === 'case_manager' ? 'Case Manager Portal' : selectedRole === 'candidate' ? 'Candidate Workspace' : 'Business Portal'}
-            </button>
-
-            <button
-              type="button"
-              onClick={handleSsoLogin}
-              style={{
-                width: '100%',
-                backgroundColor: '#f8fafc',
-                color: '#334155',
-                border: '1px solid #cbd5e1',
-                padding: '0.65rem',
-                borderRadius: '8px',
-                fontWeight: 600,
-                fontSize: '0.85rem',
-                cursor: 'pointer',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                gap: '0.5rem'
-              }}
-            >
-              <span style={{ fontSize: '1.1rem' }}>❖</span> Sign in with Microsoft / Organization SSO
-            </button>
-
-            <div style={{ marginTop: '1.5rem', textAlign: 'center', fontSize: '0.75rem', color: '#94a3b8', lineHeight: '1.6' }}>
-              <button
-                type="button"
-                onClick={() => setActivePolicyModal('terms')}
-                style={{ background: 'none', border: 'none', color: '#64748b', cursor: 'pointer', fontSize: '0.75rem', padding: 0 }}
-              >
-                Terms & Conditions
-              </button>
-              <span style={{ margin: '0 0.4rem' }}>•</span>
-              <button
-                type="button"
-                onClick={() => setActivePolicyModal('privacy')}
-                style={{ background: 'none', border: 'none', color: '#64748b', cursor: 'pointer', fontSize: '0.75rem', padding: 0 }}
-              >
-                Privacy Policy
-              </button>
-              <div style={{ marginTop: '0.4rem', color: '#94a3b8' }}>
-                © {new Date().getFullYear()} Straight Up Training. All rights reserved.
-              </div>
-            </div>
-          </form>
+    <div className="min-h-screen bg-slate-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8 font-sans text-slate-900">
+      <div className="sm:mx-auto sm:w-full sm:max-w-md text-center space-y-3">
+        <div className="flex justify-center items-center gap-2">
+          <img src="/logo.png" alt="Straight Up Training Logo" className="h-10 w-auto object-contain" onError={(e) => { (e.target as HTMLElement).style.display = 'none'; }} />
+          <span className="text-2xl font-black text-[#24083b] tracking-tight">Straight Up Training</span>
         </div>
+        <h2 className="text-xl font-bold text-slate-800">WorkReady Portal Sign-In</h2>
+        <p className="text-xs text-slate-500">Access your mutual obligation dashboard, training modules, & AI coach.</p>
       </div>
 
-      {/* POLICY MODALS */}
-      {activePolicyModal && (
-        <div style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.7)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1100, padding: '1.5rem' }}>
-          <div style={{ backgroundColor: '#fff', borderRadius: '12px', padding: '2rem', maxWidth: '550px', width: '100%', maxHeight: '80vh', overflowY: 'auto', boxShadow: '0 20px 25px -5px rgba(0,0,0,0.3)' }}>
-            {activePolicyModal === 'terms' ? (
-              <div>
-                <h3 style={{ margin: '0 0 1rem', color: '#0f172a' }}>📜 Terms & Conditions</h3>
-                <div style={{ fontSize: '0.875rem', color: '#334155', lineHeight: '1.6' }}>
-                  <p>Welcome to the Workready Portal, managed by Straight Up Training. By accessing or using this system, you agree to comply with the following operational terms:</p>
-                  <ul>
-                    <li><strong>Authorized Access Only:</strong> Restricted to registered Case Managers, Candidates, and Partner Representatives.</li>
-                    <li><strong>Data Integrity & Confidentiality:</strong> Managed under Australian Privacy Principles (APPs).</li>
-                    <li><strong>Security Compliance:</strong> Multi-factor authentication required for staff roles.</li>
-                  </ul>
-                </div>
-              </div>
-            ) : (
-              <div>
-                <h3 style={{ margin: '0 0 1rem', color: '#0f172a' }}>🔒 Privacy Policy</h3>
-                <div style={{ fontSize: '0.875rem', color: '#334155', lineHeight: '1.6' }}>
-                  <p>Straight Up Training is committed to protecting your personal information within the Workready Portal:</p>
-                  <ul>
-                    <li><strong>Information Collection:</strong> Contact, progress, and employment outcome data for program delivery.</li>
-                    <li><strong>Use of Data:</strong> Used for employment outcomes, audit logging, and provider communication.</li>
-                    <li><strong>Data Protection:</strong> Encrypted in transit and at rest.</li>
-                  </ul>
-                </div>
-              </div>
-            )}
-            <div style={{ marginTop: '1.5rem', textAlign: 'right' }}>
-              <button
-                onClick={() => setActivePolicyModal(null)}
-                style={{ backgroundColor: '#16a34a', color: '#fff', border: 'none', padding: '0.6rem 1.25rem', borderRadius: '6px', fontWeight: 600, cursor: 'pointer', fontSize: '0.85rem' }}
-              >
-                Close & Return
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* FORGOT PASSWORD MODAL */}
-      {isForgotOpen && (
-        <div style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.6)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, padding: '1rem' }}>
-          <div style={{ backgroundColor: '#fff', borderRadius: '12px', padding: '1.75rem', maxWidth: '380px', width: '100%', boxShadow: '0 10px 25px rgba(0,0,0,0.2)' }}>
-            <h3 style={{ margin: '0 0 0.5rem', color: '#0f172a' }}>🔑 Reset Account Password</h3>
-            <p style={{ margin: '0 0 1.25rem', color: '#64748b', fontSize: '0.85rem' }}>Enter your email address and we'll send you a password reset link.</p>
-            
-            {resetMessage && (
-              <div style={{ backgroundColor: '#f0fdf4', color: '#166534', border: '1px solid #bbf7d0', padding: '0.6rem', borderRadius: '6px', fontSize: '0.85rem', marginBottom: '1rem', fontWeight: 600 }}>
-                {resetMessage}
-              </div>
-            )}
-
-            <form onSubmit={handleForgotPasswordSubmit}>
+      <div className="mt-6 sm:mx-auto sm:w-full sm:max-w-md">
+        <div className="bg-white py-8 px-6 shadow-xl border border-slate-200 rounded-2xl sm:px-10 space-y-6">
+          
+          {/* Manual Form Login */}
+          <form onSubmit={handleSubmit} className="space-y-4 text-xs">
+            <div>
+              <label className="block font-bold text-slate-700 mb-1">Email Address</label>
               <input
                 type="email"
-                value={resetEmail}
-                onChange={(e) => setResetEmail(e.target.value)}
-                placeholder="name@workready.com.au"
                 required
-                style={{ width: '100%', padding: '0.65rem 0.8rem', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '0.9rem', marginBottom: '1.25rem', boxSizing: 'border-box' }}
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="alex@workready.com"
+                className="w-full p-3 border border-slate-200 rounded-xl bg-slate-50 focus:bg-white focus:ring-2 focus:ring-[#24083b]/20 outline-none"
               />
-              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.5rem' }}>
-                <button type="button" onClick={() => setIsForgotOpen(false)} style={{ backgroundColor: '#f1f5f9', border: 'none', padding: '0.5rem 1rem', borderRadius: '6px', cursor: 'pointer', fontSize: '0.85rem' }}>Cancel</button>
-                <button type="submit" style={{ backgroundColor: '#16a34a', color: '#fff', border: 'none', padding: '0.5rem 1rem', borderRadius: '6px', cursor: 'pointer', fontWeight: 600, fontSize: '0.85rem' }}>Send Link</button>
+            </div>
+            <div>
+              <label className="block font-bold text-slate-700 mb-1">Password</label>
+              <input
+                type="password"
+                required
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="password"
+                className="w-full p-3 border border-slate-200 rounded-xl bg-slate-50 focus:bg-white focus:ring-2 focus:ring-[#24083b]/20 outline-none"
+              />
+            </div>
+            <button
+              type="submit"
+              className="w-full py-3 bg-[#24083b] hover:bg-[#320b52] text-white font-bold rounded-xl shadow-sm transition-all flex items-center justify-center gap-2"
+            >
+              Sign In to Account <ArrowRight className="w-4 h-4" />
+            </button>
+          </form>
+
+          <div className="relative my-4">
+            <div className="absolute inset-0 flex items-center"><div className="w-full border-t border-slate-200" /></div>
+            <div className="relative flex justify-center text-xs uppercase"><span className="bg-white px-2 text-slate-400 font-bold">Or Instant Demo Access</span></div>
+          </div>
+
+          {/* Instant Quick Login Shortcuts */}
+          <div className="space-y-2">
+            <button
+              onClick={() => handleQuickLogin('candidate')}
+              className="w-full p-3 bg-emerald-50 hover:bg-emerald-100 text-[#16a34a] border border-emerald-200 rounded-xl text-left font-bold text-xs flex items-center justify-between transition-all"
+            >
+              <div className="flex items-center gap-2">
+                <UserIcon className="w-4 h-4" />
+                <div>
+                  <div>Candidate / Learner</div>
+                  <div className="text-[10px] font-normal text-emerald-800">alex@workready.com</div>
+                </div>
               </div>
-            </form>
+              <span>/participant →</span>
+            </button>
+
+            <button
+              onClick={() => handleQuickLogin('casemanager')}
+              className="w-full p-3 bg-purple-50 hover:bg-purple-100 text-[#24083b] border border-purple-200 rounded-xl text-left font-bold text-xs flex items-center justify-between transition-all"
+            >
+              <div className="flex items-center gap-2">
+                <Award className="w-4 h-4" />
+                <div>
+                  <div>Case Manager</div>
+                  <div className="text-[10px] font-normal text-purple-800">casey@workready.com</div>
+                </div>
+              </div>
+              <span>/coach →</span>
+            </button>
+
+            <button
+              onClick={() => handleQuickLogin('businessmanager')}
+              className="w-full p-3 bg-slate-100 hover:bg-slate-200 text-slate-800 border border-slate-300 rounded-xl text-left font-bold text-xs flex items-center justify-between transition-all"
+            >
+              <div className="flex items-center gap-2">
+                <Shield className="w-4 h-4" />
+                <div>
+                  <div>Business Manager / Admin</div>
+                  <div className="text-[10px] font-normal text-slate-600">bessy@workready.com</div>
+                </div>
+              </div>
+              <span>/owner →</span>
+            </button>
           </div>
+
         </div>
-      )}
-
-      {/* MFA MODAL */}
-      {isMfaOpen && (
-        <div style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.7)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, padding: '1rem' }}>
-          <div style={{ backgroundColor: '#fff', borderRadius: '12px', padding: '2rem', maxWidth: '400px', width: '100%', boxShadow: '0 10px 25px rgba(0,0,0,0.3)', textAlign: 'center' }}>
-            <div style={{ fontSize: '2rem', marginBottom: '0.5rem' }}>🔐</div>
-            <h3 style={{ margin: '0 0 0.5rem', color: '#0f172a' }}>Two-Factor Verification</h3>
-            <p style={{ margin: '0 0 1.5rem', color: '#64748b', fontSize: '0.85rem', lineHeight: '1.4' }}>
-              For staff security, enter the 6-digit verification code sent to your registered authenticator or email.
-            </p>
-
-            <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'center', marginBottom: '1.5rem' }}>
-              {mfaCode.map((digit, idx) => (
-                <input
-                  key={idx}
-                  type="text"
-                  maxLength={1}
-                  value={digit}
-                  onChange={(e) => handleMfaInput(e.target.value, idx)}
-                  style={{
-                    width: '42px',
-                    height: '48px',
-                    textAlign: 'center',
-                    fontSize: '1.25rem',
-                    fontWeight: 700,
-                    borderRadius: '8px',
-                    border: '2px solid #cbd5e1',
-                    outline: 'none',
-                    backgroundColor: '#f8fafc'
-                  }}
-                />
-              ))}
-            </div>
-
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <button
-                type="button"
-                onClick={() => setIsMfaOpen(false)}
-                style={{ backgroundColor: '#f1f5f9', color: '#475569', border: 'none', padding: '0.55rem 1rem', borderRadius: '6px', cursor: 'pointer', fontSize: '0.85rem' }}
-              >
-                Cancel
-              </button>
-              <button
-                type="button"
-                onClick={() => {
-                  setIsMfaOpen(false);
-                  navigate(pendingTargetRoute || '/');
-                }}
-                style={{ backgroundColor: '#16a34a', color: '#fff', border: 'none', padding: '0.55rem 1.2rem', borderRadius: '6px', fontWeight: 700, cursor: 'pointer', fontSize: '0.85rem' }}
-              >
-                Verify & Access
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      </div>
     </div>
   );
-}
+};
 
+export default Home;
