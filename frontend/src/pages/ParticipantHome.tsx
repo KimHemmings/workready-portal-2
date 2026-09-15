@@ -1,4 +1,5 @@
-﻿import React, { useState } from 'react';
+﻿import DocumentLocker from '../components/DocumentLocker';
+import React, { useState } from 'react';
 import LmsModuleHub from '../components/LmsModuleHub';
 import ResumeBuilder from '../components/ResumeBuilder';
 import StarInterviewSimulator from '../components/StarInterviewSimulator';
@@ -418,6 +419,7 @@ export const ParticipantHome: React.FC = () => {
           )}
 
           {activeTab === 3 && (
+              <DocumentLocker />
             <div className="space-y-6">
               
               {/* Compliance & Verification Card */}
@@ -628,3 +630,4 @@ export const ParticipantHome: React.FC = () => {
 };
 
 export default ParticipantHome;
+
