@@ -11,7 +11,6 @@ import { apiGet } from "@/lib/api";
 import { getSessionUser } from "@/lib/session";
 import type { ParticipantDashboard } from "@/lib/types";
 
-// Fully typed fallback dashboard satisfying TrainingModule, UsageMetric, and JobSearchLog interfaces
 const FALLBACK_DASHBOARD: ParticipantDashboard = {
   completion_percent: 65,
   completed_modules: 8,
@@ -32,6 +31,8 @@ const FALLBACK_DASHBOARD: ParticipantDashboard = {
     order: 1
   },
   usage: {
+    participant_id: "demo-part-1",
+    month: "2026-03",
     interviews: { kind: "interviews", remaining: 3, limit: 5, used: 2, base_limit: 5, granted_extra: 0 },
     resumes: { kind: "resumes", remaining: 4, limit: 5, used: 1, base_limit: 5, granted_extra: 0 },
     cover_letters: { kind: "cover_letters", remaining: 3, limit: 5, used: 2, base_limit: 5, granted_extra: 0 },
@@ -43,7 +44,6 @@ const FALLBACK_DASHBOARD: ParticipantDashboard = {
       participant_id: "demo-part-1",
       position_title: "Warehouse Logistics Assistant",
       employer_name: "Apex Logistics",
-      employer_contact: "hr@apexlogistics.com.au",
       application_date: "2026-03-10",
       application_method: "online",
       application_type: "Online Portal",
@@ -61,7 +61,6 @@ const FALLBACK_DASHBOARD: ParticipantDashboard = {
       participant_id: "demo-part-1",
       position_title: "Customer Support Officer",
       employer_name: "Metro Call Solutions",
-      employer_contact: "careers@metrocall.com.au",
       application_date: "2026-03-08",
       application_method: "email",
       application_type: "Email",
@@ -104,7 +103,6 @@ export default function ParticipantHome() {
       </header>
 
       <div className="grid gap-6 lg:grid-cols-12">
-        {/* Training Progress Card */}
         <Card className="lg:col-span-5 border-slate-200 shadow-sm">
           <CardHeader>
             <CardTitle className="text-lg font-bold text-slate-900">Your Training Progress</CardTitle>
@@ -132,7 +130,6 @@ export default function ParticipantHome() {
           </CardContent>
         </Card>
 
-        {/* Mutual Obligation PBAS Card */}
         <Card className="lg:col-span-7 border-slate-200 shadow-sm">
           <CardHeader>
             <CardTitle className="text-lg font-bold flex items-center gap-2 text-slate-900">
@@ -170,7 +167,6 @@ export default function ParticipantHome() {
           </CardContent>
         </Card>
 
-        {/* Next Module Card */}
         <Card className="lg:col-span-7 border-slate-200 shadow-sm">
           <CardHeader>
             <CardTitle className="text-lg font-bold text-slate-900">Pick Up Where You Left Off</CardTitle>
@@ -201,7 +197,6 @@ export default function ParticipantHome() {
           </CardContent>
         </Card>
 
-        {/* AI Interview & Resume Card */}
         <Card className="lg:col-span-5 bg-slate-50 border-slate-200 shadow-sm">
           <CardHeader>
             <CardTitle className="text-lg font-bold flex items-center gap-2 text-slate-900">
@@ -234,7 +229,6 @@ export default function ParticipantHome() {
           </CardContent>
         </Card>
 
-        {/* Monthly Allowances */}
         <Card className="lg:col-span-12 border-slate-200 shadow-sm">
           <CardHeader>
             <CardTitle className="text-lg font-bold text-slate-900">Your Monthly Allowances</CardTitle>
@@ -258,7 +252,6 @@ export default function ParticipantHome() {
           </CardContent>
         </Card>
 
-        {/* Recent Job Search Activity */}
         <Card className="lg:col-span-12 border-slate-200 shadow-sm">
           <CardHeader>
             <CardTitle className="text-lg font-bold text-slate-900">Recent Job Search Activity</CardTitle>
