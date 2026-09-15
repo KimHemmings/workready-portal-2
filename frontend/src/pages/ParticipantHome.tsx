@@ -49,9 +49,14 @@ const FALLBACK_DASHBOARD: ParticipantDashboard = {
       evidence_filename: "apex_confirm.pdf",
       evidence_data: "",
       evidence_mime: "application/pdf",
+      evidence_size: 1024,
       notes: "Submitted application via company site.",
       points: 20,
       status: "verified",
+      review_status: "approved",
+      review_note: "Verified by case manager.",
+      reviewed_by: "cm-1",
+      reviewed_at: "2026-03-10T11:00:00Z",
       created_at: "2026-03-10T09:00:00Z"
     },
     {
@@ -64,9 +69,14 @@ const FALLBACK_DASHBOARD: ParticipantDashboard = {
       evidence_filename: "metro_email.pdf",
       evidence_data: "",
       evidence_mime: "application/pdf",
+      evidence_size: 2048,
       notes: "Sent resume directly to HR.",
       points: 15,
       status: "submitted",
+      review_status: "pending",
+      review_note: "",
+      reviewed_by: "",
+      reviewed_at: "",
       created_at: "2026-03-08T14:30:00Z"
     }
   ]
@@ -99,7 +109,6 @@ export default function ParticipantHome() {
       </header>
 
       <div className="grid gap-6 lg:grid-cols-12">
-        {/* Training Progress Card */}
         <Card className="lg:col-span-5 border-slate-200 shadow-sm">
           <CardHeader>
             <CardTitle className="text-lg font-bold text-slate-900">Your Training Progress</CardTitle>
@@ -127,7 +136,6 @@ export default function ParticipantHome() {
           </CardContent>
         </Card>
 
-        {/* Mutual Obligation PBAS Card */}
         <Card className="lg:col-span-7 border-slate-200 shadow-sm">
           <CardHeader>
             <CardTitle className="text-lg font-bold flex items-center gap-2 text-slate-900">
@@ -165,7 +173,6 @@ export default function ParticipantHome() {
           </CardContent>
         </Card>
 
-        {/* Next Module Card */}
         <Card className="lg:col-span-7 border-slate-200 shadow-sm">
           <CardHeader>
             <CardTitle className="text-lg font-bold text-slate-900">Pick Up Where You Left Off</CardTitle>
@@ -196,7 +203,6 @@ export default function ParticipantHome() {
           </CardContent>
         </Card>
 
-        {/* AI Interview & Resume Card */}
         <Card className="lg:col-span-5 bg-slate-50 border-slate-200 shadow-sm">
           <CardHeader>
             <CardTitle className="text-lg font-bold flex items-center gap-2 text-slate-900">
@@ -229,7 +235,6 @@ export default function ParticipantHome() {
           </CardContent>
         </Card>
 
-        {/* Monthly Allowances */}
         <Card className="lg:col-span-12 border-slate-200 shadow-sm">
           <CardHeader>
             <CardTitle className="text-lg font-bold text-slate-900">Your Monthly Allowances</CardTitle>
@@ -253,7 +258,6 @@ export default function ParticipantHome() {
           </CardContent>
         </Card>
 
-        {/* Recent Job Search Activity */}
         <Card className="lg:col-span-12 border-slate-200 shadow-sm">
           <CardHeader>
             <CardTitle className="text-lg font-bold text-slate-900">Recent Job Search Activity</CardTitle>
