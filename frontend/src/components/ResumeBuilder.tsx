@@ -1,7 +1,11 @@
 ﻿import React, { useState } from 'react';
-import { FileText, Sparkles, Plus, Trash2, Download, Check, RefreshCw, User, Briefcase, GraduationCap, Award } from 'lucide-react';
+import { FileText, Sparkles, Plus, Trash2, Download, Check, RefreshCw, Briefcase } from 'lucide-react';
 
-export const ResumeBuilder: React.FC = () => {
+export interface ResumeBuilderProps {
+  maxAttempts?: number;
+}
+
+export const ResumeBuilder: React.FC<ResumeBuilderProps> = ({ maxAttempts = 3 }) => {
   const [activeTab, setActiveTab] = useState<'resume' | 'cover-letter' | 'gap-helper'>('resume');
 
   // Candidate Profile State
