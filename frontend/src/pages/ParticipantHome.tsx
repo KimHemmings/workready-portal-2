@@ -1,4 +1,5 @@
-﻿import DocumentLocker from '../components/DocumentLocker';
+﻿import PointProjectionWheel from '../components/PointProjectionWheel';
+import DocumentLocker from '../components/DocumentLocker';
 import React, { useState } from 'react';
 import LmsModuleHub from '../components/LmsModuleHub';
 import ResumeBuilder from '../components/ResumeBuilder';
@@ -420,6 +421,7 @@ export const ParticipantHome: React.FC = () => {
 
           {activeTab === 3 && (
             <div className="space-y-6">
+              <PointProjectionWheel verifiedPoints={verifiedPoints} pendingPoints={pendingPoints} targetPoints={targetPoints} />
               <DocumentLocker />
               
               {/* Compliance & Verification Card */}
@@ -630,5 +632,6 @@ export const ParticipantHome: React.FC = () => {
 };
 
 export default ParticipantHome;
+
 
 
