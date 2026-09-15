@@ -12,6 +12,13 @@ import { getSessionUser } from "@/lib/session";
 import type { ParticipantDashboard } from "@/lib/types";
 
 const FALLBACK_DASHBOARD: ParticipantDashboard = {
+  user: {
+    id: "demo-part-1",
+    email: "alex@workready.com.au",
+    name: "Alex Johnson",
+    role: "participant",
+    created_at: "2026-01-01T00:00:00Z"
+  },
   completion_percent: 65,
   completed_modules: 8,
   total_modules: 12,
