@@ -1,6 +1,6 @@
-import { useQueryClient } from "@tanstack/react-query";
-import { Link, useLocation, useNavigate } from "react-router-dom";
-import {
+﻿import { Outlet,  useQueryClient } from "@tanstack/react-query";
+import { Outlet,  Link, useLocation, useNavigate } from "react-router-dom";
+import { Outlet, 
   Award,
   BarChart3,
   BookOpen,
@@ -13,12 +13,12 @@ import {
   MessagesSquare,
   Users,
 } from "lucide-react";
-import { BRAND_LOGO } from "@/lib/brand";
-import { Button } from "@/components/ui/button";
+import { Outlet,  BRAND_LOGO } from "@/lib/brand";
+import { Outlet,  Button } from "@/components/ui/button";
 import LegalFooter from "@/components/LegalFooter";
 import RoleSwitcher from "@/components/RoleSwitcher";
-import { endSession, getImpersonator, getSessionUser } from "@/lib/session";
-import { ROLE_LABEL } from "@/lib/roles";
+import { Outlet,  endSession, getImpersonator, getSessionUser } from "@/lib/session";
+import { Outlet,  ROLE_LABEL } from "@/lib/roles";
 import type { User } from "@/lib/types";
 
 type NavItem = { to: string; label: string; icon: React.ComponentType<{ className?: string }> };
@@ -48,7 +48,7 @@ const NAV: Record<User["role"], NavItem[]> = {
   ],
 };
 
-export default function AppShell({ children }: { children: React.ReactNode }) {
+export default function AppShell({ children }: { children?: React.ReactNode }) {
   const user = getSessionUser();
   const location = useLocation();
   const navigate = useNavigate();
@@ -139,7 +139,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
                 className="rounded-lg border border-warning/40 bg-warning/10 px-3 py-2 text-sm"
                 data-testid="impersonation-banner"
               >
-                Viewing as <strong>{roleLabel}</strong> ({user?.name}) — signed in as{" "}
+                Viewing as <strong>{roleLabel}</strong> ({user?.name}) â€” signed in as{" "}
                 {impersonator.name}
               </p>
             ) : (
@@ -148,9 +148,10 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
             <RoleSwitcher />
           </div>
         </div>
-        <div className="max-w-6xl mx-auto w-full wr-rise">{children}</div>
+        <div className="max-w-6xl mx-auto w-full wr-rise">{children || <Outlet />}</div>
         <LegalFooter className="max-w-6xl mx-auto w-full mt-12 border-t pt-6" />
       </main>
     </div>
   );
 }
+
