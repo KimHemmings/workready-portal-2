@@ -109,7 +109,7 @@ export default function Home() {
       alignItems: 'center',
       overflowX: 'hidden'
     }}>
-      {/* Background Classroom Photo (Clear & Bright) */}
+      {/* Background Classroom Photo */}
       <div style={{
         position: 'absolute',
         inset: 0,
@@ -122,7 +122,7 @@ export default function Home() {
         zIndex: 1
       }} />
 
-      {/* Balanced Purple Tint Overlay (Lighter on Left to Highlight Candidate) */}
+      {/* Balanced Purple Tint Overlay */}
       <div style={{
         position: 'absolute',
         inset: 0,
@@ -141,17 +141,19 @@ export default function Home() {
         display: 'flex',
         justifyContent: 'flex-end'
       }}>
+        {/* Sign In Card with Finished Border & Glow */}
         <div style={{
           backgroundColor: '#ffffff',
           borderRadius: '18px',
           width: '100%',
           maxWidth: '460px',
-          boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.7)',
+          boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.55), 0 0 0 1px rgba(255, 255, 255, 0.15)',
           overflow: 'hidden',
-          border: '1px solid rgba(255, 255, 255, 0.2)'
+          border: '2px solid rgba(226, 232, 240, 0.9)',
+          borderTop: '5px solid #16a34a'
         }}>
           {/* Header Branding */}
-          <div style={{ backgroundColor: '#1e293b', padding: '2.5rem 1.75rem 2rem', textAlign: 'center', color: '#fff', borderBottom: '4px solid #16a34a' }}>
+          <div style={{ backgroundColor: '#1e293b', padding: '2.5rem 1.75rem 2rem', textAlign: 'center', color: '#fff', borderBottom: '3px solid #e2e8f0' }}>
             <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '1.25rem' }}>
               <img 
                 src="/logo.png" 
@@ -181,7 +183,7 @@ export default function Home() {
             <label style={{ display: 'block', fontSize: '0.8rem', color: '#475569', fontWeight: 700, marginBottom: '0.5rem', textTransform: 'uppercase' }}>
               Select Workspace Role
             </label>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '0.4rem', marginBottom: '1.25rem', backgroundColor: '#f1f5f9', padding: '0.3rem', borderRadius: '10px' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '0.4rem', marginBottom: '1.25rem', backgroundColor: '#f1f5f9', padding: '0.3rem', borderRadius: '10px', border: '1px solid #e2e8f0' }}>
               <button
                 type="button"
                 onClick={() => setSelectedRole('case_manager')}
