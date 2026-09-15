@@ -1,5 +1,6 @@
 ﻿import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import classroomBg from '../assets/classroom.png';
 
 type PublicRole = 'case_manager' | 'candidate' | 'business_manager';
 
@@ -110,11 +111,11 @@ export default function Home() {
       alignItems: 'center',
       overflowX: 'hidden'
     }}>
-      {/* Background Classroom Image & Dark Navy Gradient Overlay */}
+      {/* Background Classroom Image & Dark Navy Overlay */}
       <div style={{
         position: 'absolute',
         inset: 0,
-        backgroundImage: "linear-gradient(to right, rgba(15, 23, 42, 0.93) 0%, rgba(15, 23, 42, 0.80) 45%, rgba(15, 23, 42, 0.35) 100%), url('/Success 1.png')",
+        backgroundImage: `linear-gradient(to right, rgba(15, 23, 42, 0.94) 0%, rgba(15, 23, 42, 0.82) 42%, rgba(15, 23, 42, 0.35) 100%), url(${classroomBg})`,
         backgroundSize: 'cover',
         backgroundPosition: 'right center',
         backgroundRepeat: 'no-repeat',
@@ -242,7 +243,7 @@ export default function Home() {
               />
             </div>
 
-            {/* Password Input with Eye Toggle & Forgot Password Link */}
+            {/* Password Input */}
             <div style={{ marginBottom: '1.25rem' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.4rem' }}>
                 <label style={{ fontSize: '0.85rem', color: '#334155', fontWeight: 600 }}>Password</label>
