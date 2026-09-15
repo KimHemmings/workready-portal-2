@@ -2,12 +2,11 @@
 import LmsModuleHub from '../components/LmsModuleHub';
 import ResumeBuilder from '../components/ResumeBuilder';
 import StarInterviewSimulator from '../components/StarInterviewSimulator';
-import { Briefcase, Award, LifeBuoy, Trophy, BookOpen, Search, CheckCircle2, Clock } from 'lucide-react';
-import { BRAND_LOGO } from '../lib/brand';
+import { Briefcase, Award, LifeBuoy, Trophy, BookOpen, Search, CheckCircle2, Clock, Smile, Frown, Meh, AlertCircle, Send } from 'lucide-react';
 
 interface ActivityLog {
   id: string;
-  type: 'Job Search' | 'Interview' | 'Job Placement' | 'LMS Module';
+  type: 'Job Search' | 'Interview' | 'Job Placement' | 'LMS Module' | 'Confidence Review';
   title: string;
   reference: string;
   points: number;
@@ -19,6 +18,13 @@ export const ParticipantHome: React.FC = () => {
   const [activeTab, setActiveTab] = useState<number>(1);
   const [verifiedPoints, setVerifiedPoints] = useState<number>(35);
   const targetPoints = 100;
+
+  // Monthly Confidence Review Banner State
+  const [showConfidenceBanner, setShowConfidenceBanner] = useState<boolean>(true);
+  const [confidenceScore, setConfidenceScore] = useState<number>(3);
+  const [primaryBlocker, setPrimaryBlocker] = useState<string>('Resume / Applications');
+  const [reviewNote, setReviewNote] = useState<string>('');
+  const [reviewSubmitted, setReviewSubmitted] = useState<boolean>(false);
 
   // Verification Activity Log State
   const [activities, setActivities] = useState<ActivityLog[]>([
@@ -75,6 +81,24 @@ export const ParticipantHome: React.FC = () => {
     setVerifiedPoints((prev) => Math.min(prev + points, targetPoints));
   };
 
+  const handleConfidenceSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    const newAct: ActivityLog = {
+      id: Date.now().toString(),
+      type: 'Confidence Review',
+      title: `Monthly Check-in: Score ${confidenceScore}/5 (${primaryBlocker})`,
+      reference: `REV-${new Date().getMonth() + 1}-2026`,
+      points: 10,
+      status: 'Pending Verification',
+      date: new Date().toLocaleDateString('en-AU'),
+    };
+    setActivities((prev) => [newAct, ...prev]);
+    setReviewSubmitted(true);
+    setTimeout(() => {
+      setShowConfidenceBanner(false);
+    }, 3500);
+  };
+
   const handleSubmitJobSearch = (e: React.FormEvent) => {
     e.preventDefault();
     const newAct: ActivityLog = {
@@ -89,7 +113,7 @@ export const ParticipantHome: React.FC = () => {
     setActivities((prev) => [newAct, ...prev]);
     setShowJobSearchModal(false);
     setJsEmployer(''); setJsRole(''); setJsRef('');
-    alert("✨ Job search logged! Status: Pending Verification. Your Case Manager will verify your points soon.");
+    alert("✨ Job search logged! Status: Pending Verification. Casey (Case Manager) will verify your points soon.");
   };
 
   const handleReportJob = (e: React.FormEvent) => {
@@ -106,7 +130,7 @@ export const ParticipantHome: React.FC = () => {
     setActivities((prev) => [newAct, ...prev]);
     setShowJobModal(false);
     setJobEmployer(''); setJobRole(''); setJobRef('');
-    alert("🎉 Job placement reported! Status: Pending Verification by your Case Manager.");
+    alert("🎉 Job placement reported! Status: Pending Verification by Casey.");
   };
 
   const handleReportInterview = (e: React.FormEvent) => {
@@ -123,13 +147,13 @@ export const ParticipantHome: React.FC = () => {
     setActivities((prev) => [newAct, ...prev]);
     setShowInterviewModal(false);
     setIntEmployer(''); setIntRole(''); setIntRef('');
-    alert("💼 Interview reported! Status: Pending Verification by your Case Manager.");
+    alert("💼 Interview reported! Status: Pending Verification by Casey.");
   };
 
   const handleRequestHelp = (e: React.FormEvent) => {
     e.preventDefault();
     setShowHelpModal(false);
-    alert("💬 High-priority support request sent to your Case Manager roster.");
+    alert("💬 High-priority support request sent directly to Casey.");
   };
 
   const pbasPercentage = Math.min(Math.round((verifiedPoints / targetPoints) * 100), 100);
@@ -138,14 +162,13 @@ export const ParticipantHome: React.FC = () => {
     .reduce((sum, a) => sum + a.points, 0);
 
   return (
-    <div className="min-h-screen bg-slate-50 text-slate-900 pb-16">
+    <div className="min-h-screen bg-slate-50 text-slate-900 pb-16 font-sans">
       
-      {/* Top Header Banner with Straight Up Training Branding */}
+      {/* Header Banner */}
       <header className="bg-gradient-to-r from-[#24083b] via-[#320b52] to-[#24083b] text-white shadow-md border-b border-purple-900/40">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-5">
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
             
-            {/* Logo + Provider Identity */}
             <div className="flex items-center gap-3">
               <img
                 src="/logo.png"
@@ -166,7 +189,6 @@ export const ParticipantHome: React.FC = () => {
               </div>
             </div>
 
-            {/* Inviting Quick Action Pill Buttons */}
             <div className="flex flex-wrap items-center gap-2">
               <button
                 onClick={() => setShowJobSearchModal(true)}
@@ -191,15 +213,15 @@ export const ParticipantHome: React.FC = () => {
         </div>
       </header>
 
-      {/* Inviting Second Sub-Banner */}
-      <section className="bg-white border-b border-slate-200 shadow-sm py-5">
+      {/* Inviting Sub-Header */}
+      <section className="bg-white border-b border-slate-200 shadow-sm py-4">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
             <h1 className="text-xl font-extrabold text-[#24083b] tracking-tight">
               Your Career Journey Dashboard
             </h1>
             <p className="text-xs text-slate-500 mt-0.5">
-              Welcome back! Explore training, build your job kit, and track your progress toward placement.
+              Welcome back, Alex! Explore training, build your job kit, and track your progress.
             </p>
           </div>
 
@@ -207,7 +229,7 @@ export const ParticipantHome: React.FC = () => {
             onClick={() => setShowHelpModal(true)}
             className="self-start sm:self-auto inline-flex items-center gap-1.5 px-3.5 py-2 bg-amber-50 hover:bg-amber-100 text-amber-800 font-bold text-xs rounded-xl border border-amber-200 transition-all"
           >
-            <LifeBuoy className="w-4 h-4 text-amber-600" /> Need Support? Talk to your Coach 💬
+            <LifeBuoy className="w-4 h-4 text-amber-600" /> Need Support? Message Casey 💬
           </button>
         </div>
       </section>
@@ -215,7 +237,105 @@ export const ParticipantHome: React.FC = () => {
       {/* Main Container */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6 space-y-6">
         
-        {/* 3 Inviting Action Navigation Cards (No Milestones) */}
+        {/* MONTHLY CONFIDENCE REVIEW BANNER */}
+        {showConfidenceBanner && (
+          <section className="bg-gradient-to-r from-purple-900 via-[#24083b] to-purple-950 text-white rounded-2xl p-6 shadow-lg border border-purple-800 relative overflow-hidden">
+            <div className="absolute top-0 right-0 w-64 h-64 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none" />
+
+            {!reviewSubmitted ? (
+              <form onSubmit={handleConfidenceSubmit} className="space-y-4 relative z-10">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-purple-800/80 pb-3">
+                  <div className="flex items-center gap-2.5">
+                    <div className="p-2 bg-emerald-500/20 text-emerald-400 rounded-xl border border-emerald-500/30">
+                      <Smile className="w-5 h-5" />
+                    </div>
+                    <div>
+                      <h2 className="text-sm font-bold text-white uppercase tracking-wider">Monthly Confidence Check-In</h2>
+                      <p className="text-xs text-purple-200">How are you feeling about your current job search and skills progress this month?</p>
+                    </div>
+                  </div>
+                  <span className="text-[11px] font-bold bg-purple-800/80 text-purple-200 px-3 py-1 rounded-full border border-purple-700">
+                    Earns +10 PBAS Points
+                  </span>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-1">
+                  
+                  {/* Rating Selector */}
+                  <div className="space-y-2">
+                    <label className="block text-xs font-bold text-purple-200">1. Confidence Level (1 to 5):</label>
+                    <div className="flex items-center gap-1.5">
+                      {[1, 2, 3, 4, 5].map((score) => (
+                        <button
+                          key={score}
+                          type="button"
+                          onClick={() => setConfidenceScore(score)}
+                          className={`flex-1 py-2 rounded-xl text-xs font-bold border transition-all ${
+                            confidenceScore === score
+                              ? 'bg-emerald-500 text-slate-950 border-emerald-400 ring-2 ring-emerald-400/40 shadow-md'
+                              : 'bg-purple-900/50 text-purple-200 border-purple-700/60 hover:bg-purple-800'
+                          }`}
+                        >
+                          {score} {score === 1 ? '😟' : score === 3 ? '😐' : score === 5 ? '🚀' : ''}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Primary Blocker */}
+                  <div className="space-y-2">
+                    <label className="block text-xs font-bold text-purple-200">2. Current Primary Challenge:</label>
+                    <select
+                      value={primaryBlocker}
+                      onChange={(e) => setPrimaryBlocker(e.target.value)}
+                      className="w-full p-2.5 bg-purple-950/80 border border-purple-700 text-purple-100 rounded-xl text-xs outline-none focus:ring-2 focus:ring-emerald-400"
+                    >
+                      <option value="Resume / Applications">Resume & ATS Applications</option>
+                      <option value="Interview Anxiety">Interview Anxiety / Practice</option>
+                      <option value="Transport / Location">Transport & Location</option>
+                      <option value="Mental Health / Motivation">Mental Health & Motivation</option>
+                      <option value="Childcare / Scheduling">Childcare / Family Schedule</option>
+                      <option value="No Major Blockers">No Major Blockers (On Track!)</option>
+                    </select>
+                  </div>
+
+                  {/* Quick Note for Case Manager */}
+                  <div className="space-y-2">
+                    <label className="block text-xs font-bold text-purple-200">3. Quick Note for Casey (Optional):</label>
+                    <input
+                      type="text"
+                      value={reviewNote}
+                      onChange={(e) => setReviewNote(e.target.value)}
+                      placeholder="e.g. Need help updating my forklift experience..."
+                      className="w-full p-2.5 bg-purple-950/80 border border-purple-700 text-purple-100 rounded-xl text-xs outline-none focus:ring-2 focus:ring-emerald-400"
+                    />
+                  </div>
+                </div>
+
+                <div className="flex justify-end pt-2">
+                  <button
+                    type="submit"
+                    className="inline-flex items-center gap-2 px-5 py-2.5 bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-extrabold text-xs rounded-xl shadow-md transition-all"
+                  >
+                    <Send className="w-4 h-4" /> Submit Review to Casey (+10 Pts)
+                  </button>
+                </div>
+              </form>
+            ) : (
+              <div className="py-6 text-center space-y-2 animate-fadeIn relative z-10">
+                <div className="inline-flex p-3 bg-emerald-500/20 text-emerald-400 rounded-full border border-emerald-500/40 mb-1">
+                  <CheckCircle2 className="w-8 h-8" />
+                </div>
+                <h3 className="text-base font-extrabold text-white">Monthly Review Submitted! 🎉</h3>
+                <p className="text-xs text-purple-200 max-w-md mx-auto">
+                  Thank you, Alex! Your score of <strong>{confidenceScore}/5</strong> and feedback regarding <strong>"{primaryBlocker}"</strong> have been sent to Casey for verification.
+                </p>
+              </div>
+            )}
+          </section>
+        )}
+
+        {/* 3 Main Action Navigation Cards */}
         <section aria-label="Main Navigation" className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <button
             onClick={() => setActiveTab(1)}
@@ -305,7 +425,7 @@ export const ParticipantHome: React.FC = () => {
                 <div className="border-b border-slate-100 pb-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                   <div>
                     <h2 className="text-lg font-bold text-[#24083b]">Workforce Australia Mutual Obligation Summary</h2>
-                    <p className="text-xs text-slate-500">Points commit to your official total once verified by your Case Manager.</p>
+                    <p className="text-xs text-slate-500">Points commit to your official total once verified by Casey (Case Manager).</p>
                   </div>
                   <div className="flex items-center gap-2">
                     <span className="px-3 py-1 bg-emerald-50 text-[#16a34a] border border-emerald-200 font-bold text-xs rounded-full">
@@ -402,7 +522,7 @@ export const ParticipantHome: React.FC = () => {
               <h3 className="font-bold text-base text-[#24083b]">Log Job Search Effort 🔎</h3>
               <button type="button" onClick={() => setShowJobSearchModal(false)} className="text-slate-400 hover:text-slate-600 font-bold">✕</button>
             </div>
-            <p className="text-xs text-slate-500">Provide proof details (Job ID, reference, or portal link). Points convert after Case Manager verification.</p>
+            <p className="text-xs text-slate-500">Provide proof details (Job ID, reference, or portal link). Points convert after Casey verifies.</p>
             <div className="space-y-3 text-xs">
               <div>
                 <label className="block font-bold text-slate-700 mb-1">Employer / Business Name *</label>
@@ -490,11 +610,11 @@ export const ParticipantHome: React.FC = () => {
         <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm flex items-center justify-center p-4 z-50">
           <form onSubmit={handleRequestHelp} className="bg-white rounded-2xl p-6 max-w-md w-full space-y-4 shadow-xl border border-slate-200">
             <div className="border-b border-slate-100 pb-3 flex justify-between items-center">
-              <h3 className="font-bold text-base text-[#24083b]">Request Support from your Coach 💬</h3>
+              <h3 className="font-bold text-base text-[#24083b]">Request Support from Casey 💬</h3>
               <button type="button" onClick={() => setShowHelpModal(false)} className="text-slate-400 hover:text-slate-600 font-bold">✕</button>
             </div>
             <div className="space-y-3 text-xs">
-              <textarea required rows={4} placeholder="Let your Case Manager know what assistance or resources you need..." className="w-full p-2.5 border rounded-xl" />
+              <textarea required rows={4} placeholder="Let Casey know what assistance or resources you need..." className="w-full p-2.5 border rounded-xl" />
             </div>
             <div className="flex justify-end gap-2 pt-2 border-t border-slate-100">
               <button type="button" onClick={() => setShowHelpModal(false)} className="px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100 rounded-xl">Cancel</button>
