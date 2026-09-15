@@ -1,5 +1,5 @@
 ﻿import React, { useState } from 'react';
-import { BookOpen, Award, CheckCircle2, Volume2, VolumeX, ShieldCheck, Calendar, Clock, Download } from 'lucide-react';
+import { BookOpen, Award, CheckCircle2, Volume2, VolumeX, Clock, Download } from 'lucide-react';
 
 export interface QuizQuestion {
   id: number;
@@ -12,17 +12,14 @@ export const CertifiedLmsModule: React.FC = () => {
   const [activeStep, setActiveStep] = useState<'content' | 'quiz' | 'certificate'>('content');
   const [isPlayingAudio, setIsPlayingAudio] = useState(false);
   const [quizAnswers, setQuizAnswers] = useState<number[]>(Array(8).fill(-1));
-  const [quizSubmitted, setQuizSubmitted] = useState(false);
   const [quizPassed, setQuizPassed] = useState(false);
 
-  // Unalterable Date and Timestamp for Evidence
   const completionTimestamp = new Date().toLocaleString('en-AU', {
     dateStyle: 'medium',
     timeStyle: 'medium',
     timeZone: 'Australia/Brisbane',
   });
 
-  // 15 Comprehensive Learning Points (Warehouse WHS & Operations)
   const learningPoints = [
     "1. Hazard Identification: Conduct a 360-degree visual risk assessment before commencing any task.",
     "2. Personal Protective Equipment (PPE): Steel-cap boots, high-vis vests, and safety glasses must be worn at all times.",
@@ -41,7 +38,6 @@ export const CertifiedLmsModule: React.FC = () => {
     "15. Fatigue & Hydration: Take mandatory scheduled rest breaks and stay hydrated during heavy physical shifts."
   ];
 
-  // 8 Quiz Questions
   const quizQuestions: QuizQuestion[] = [
     { id: 1, question: "What is the minimum safe exclusion zone distance around operating forklifts?", options: ["1 meter", "3 meters", "5 meters", "10 meters"], correctIndex: 1 },
     { id: 2, question: "Which procedure should you follow when lifting heavy equipment manually?", options: ["Bend at waist", "Bend knees & keep load close", "Twist torso rapidly", "Lift without assistance"], correctIndex: 1 },
@@ -79,19 +75,16 @@ export const CertifiedLmsModule: React.FC = () => {
       if (quizAnswers[idx] === q.correctIndex) score += 1;
     });
 
-    setQuizSubmitted(true);
-    if (score >= 6) { // 75% pass mark
+    if (score >= 6) { // 75% pass rate
       setQuizPassed(true);
       setActiveStep('certificate');
     } else {
-      setQuizPassed(false);
+      alert(`You scored ${score}/8. Please review the 15 points and try again!`);
     }
   };
 
   return (
     <div className="bg-white border border-slate-200 rounded-2xl p-6 space-y-6 shadow-sm font-sans my-6">
-      
-      {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-100 pb-4">
         <div>
           <div className="flex items-center gap-2">
@@ -103,7 +96,7 @@ export const CertifiedLmsModule: React.FC = () => {
           <p className="text-xs text-slate-500 mt-0.5 flex items-center gap-2">
             <span>Straight Up Training Accredited</span>
             <span>•</span>
-            <span className="flex items-center gap-1"><Clock className="w-3 h-3" /> Timestamped Evidence Log</span>
+            <span className="flex items-center gap-1"><Clock className="w-3 h-3" /> ISO Timestamped Evidence Log</span>
           </p>
         </div>
 
@@ -118,7 +111,6 @@ export const CertifiedLmsModule: React.FC = () => {
         </button>
       </div>
 
-      {/* STEP 1: 15 DETAILED LEARNING POINTS */}
       {activeStep === 'content' && (
         <div className="space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs">
@@ -130,7 +122,7 @@ export const CertifiedLmsModule: React.FC = () => {
           </div>
 
           <div className="flex justify-between items-center pt-4 border-t border-slate-100">
-            <span className="text-[11px] text-slate-400 font-bold">15 Points Reviewed • Ready for Assessment</span>
+            <span className="text-[11px] text-slate-400 font-bold">15 Comprehensive Points Reviewed</span>
             <button
               onClick={() => setActiveStep('quiz')}
               className="px-6 py-2.5 bg-[#24083b] text-white font-bold text-xs rounded-xl shadow-sm"
@@ -141,7 +133,6 @@ export const CertifiedLmsModule: React.FC = () => {
         </div>
       )}
 
-      {/* STEP 2: 8-QUESTION QUIZ */}
       {activeStep === 'quiz' && (
         <div className="space-y-6 text-xs">
           <div className="p-4 bg-purple-50 border border-purple-200 rounded-xl font-bold text-[#24083b]">
@@ -185,12 +176,9 @@ export const CertifiedLmsModule: React.FC = () => {
         </div>
       )}
 
-      {/* STEP 3: LANDSCAPE BRANDED CERTIFICATE */}
       {activeStep === 'certificate' && (
         <div className="space-y-6">
-          <div className="p-8 border-4 border-double border-[#24083b] rounded-3xl bg-gradient-to-br from-slate-50 via-white to-purple-50 text-slate-900 space-y-6 shadow-xl relative overflow-hidden">
-            
-            {/* Header Branding */}
+          <div className="p-8 border-4 border-double border-[#24083b] rounded-3xl bg-gradient-to-br from-slate-50 via-white to-purple-50 text-slate-900 space-y-6 shadow-xl relative">
             <div className="flex justify-between items-start border-b border-purple-200 pb-4">
               <div>
                 <h1 className="text-2xl font-black text-[#24083b] tracking-wide uppercase">Straight Up Training</h1>
@@ -198,22 +186,20 @@ export const CertifiedLmsModule: React.FC = () => {
               </div>
               <div className="text-right">
                 <span className="bg-emerald-100 text-emerald-800 text-[10px] font-bold px-3 py-1 rounded-full border border-emerald-300">
-                  OFFICIAL VERIFIED EVIDENCE
+                  VERIFIED PBAS EVIDENCE
                 </span>
                 <p className="text-[10px] text-slate-400 mt-1">ID: SUT-WHS-2026-9912</p>
               </div>
             </div>
 
-            {/* Recipient Details */}
             <div className="text-center space-y-2 py-4">
-              <p className="text-xs text-slate-500 uppercase tracking-wider font-bold">This is to certify that</p>
-              <h2 className="text-2xl font-black text-[#24083b] underline underline-offset-8 decoration-purple-300">Alex Johnson</h2>
+              <p className="text-xs text-slate-500 uppercase tracking-wider font-bold">This certifies that</p>
+              <h2 className="text-2xl font-black text-[#24083b] underline underline-offset-8">Alex Johnson</h2>
               <p className="text-xs text-slate-600 max-w-lg mx-auto pt-2">
-                Has successfully completed the accredited <strong>Warehouse WHS & Operational Safety Assessment</strong> (8/8 Questions Passed) earning <strong>+20 PBAS Points</strong>.
+                Has successfully passed the 8-Question <strong>Warehouse WHS & Operational Safety Assessment</strong> earning <strong>+20 PBAS Points</strong>.
               </p>
             </div>
 
-            {/* Timestamp & Signature Footer */}
             <div className="grid grid-cols-2 gap-4 pt-6 border-t border-purple-200 text-xs">
               <div>
                 <span className="block text-slate-400 font-bold text-[10px] uppercase">Verified Date & Time Stamp</span>
@@ -224,7 +210,6 @@ export const CertifiedLmsModule: React.FC = () => {
                 <strong className="text-[#24083b]">Casey Smith (Straight Up Training)</strong>
               </div>
             </div>
-
           </div>
 
           <div className="flex justify-end gap-3">
@@ -234,7 +219,6 @@ export const CertifiedLmsModule: React.FC = () => {
           </div>
         </div>
       )}
-
     </div>
   );
 };
