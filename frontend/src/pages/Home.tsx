@@ -103,7 +103,7 @@ export default function Home() {
       minHeight: '100vh',
       width: '100vw',
       position: 'relative',
-      backgroundColor: '#2e1065',
+      backgroundColor: '#581c87',
       fontFamily: 'system-ui, -apple-system, sans-serif',
       display: 'flex',
       alignItems: 'center',
@@ -117,16 +117,16 @@ export default function Home() {
         backgroundSize: 'cover',
         backgroundPosition: 'left center',
         backgroundRepeat: 'no-repeat',
-        opacity: 0.4,
-        filter: 'contrast(105%) brightness(90%)',
+        opacity: 0.60,
+        filter: 'contrast(105%) brightness(95%)',
         zIndex: 1
       }} />
 
-      {/* Brand Purple Gradient Overlay */}
+      {/* Lighter, More Opaque Brand Purple Gradient Overlay */}
       <div style={{
         position: 'absolute',
         inset: 0,
-        background: 'linear-gradient(105deg, rgba(88, 28, 135, 0.55) 0%, rgba(58, 12, 99, 0.88) 50%, rgba(30, 7, 54, 0.96) 100%)',
+        background: 'linear-gradient(105deg, rgba(126, 34, 206, 0.72) 0%, rgba(147, 51, 234, 0.88) 50%, rgba(88, 28, 135, 0.95) 100%)',
         zIndex: 2
       }} />
 
