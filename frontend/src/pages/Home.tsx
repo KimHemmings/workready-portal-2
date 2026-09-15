@@ -1,6 +1,5 @@
 ﻿import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import classroomBg from '../assets/classroom.png';
 
 type PublicRole = 'case_manager' | 'candidate' | 'business_manager';
 
@@ -111,11 +110,11 @@ export default function Home() {
       alignItems: 'center',
       overflowX: 'hidden'
     }}>
-      {/* Background Classroom Image & Dark Navy Overlay */}
+      {/* Background Overlay Layer with Multiple Fallback URLs */}
       <div style={{
         position: 'absolute',
         inset: 0,
-        backgroundImage: `linear-gradient(to right, rgba(15, 23, 42, 0.94) 0%, rgba(15, 23, 42, 0.82) 42%, rgba(15, 23, 42, 0.35) 100%), url(${classroomBg})`,
+        backgroundImage: "linear-gradient(to right, rgba(15, 23, 42, 0.93) 0%, rgba(15, 23, 42, 0.80) 45%, rgba(15, 23, 42, 0.35) 100%), url('/success1.png'), url('/Success 1.png'), url('/background.png')",
         backgroundSize: 'cover',
         backgroundPosition: 'right center',
         backgroundRepeat: 'no-repeat',
