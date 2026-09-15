@@ -103,13 +103,13 @@ export default function Home() {
       minHeight: '100vh',
       width: '100vw',
       position: 'relative',
-      backgroundColor: '#0b1329',
+      backgroundColor: '#2e1065',
       fontFamily: 'system-ui, -apple-system, sans-serif',
       display: 'flex',
       alignItems: 'center',
       overflowX: 'hidden'
     }}>
-      {/* Background Classroom Photo (Faded & Blended) */}
+      {/* Background Classroom Photo */}
       <div style={{
         position: 'absolute',
         inset: 0,
@@ -117,16 +117,16 @@ export default function Home() {
         backgroundSize: 'cover',
         backgroundPosition: 'left center',
         backgroundRepeat: 'no-repeat',
-        opacity: 0.45,
+        opacity: 0.4,
         filter: 'contrast(105%) brightness(90%)',
         zIndex: 1
       }} />
 
-      {/* Rich Slate/Navy Gradient Overlay */}
+      {/* Brand Purple Gradient Overlay */}
       <div style={{
         position: 'absolute',
         inset: 0,
-        background: 'linear-gradient(105deg, rgba(11, 19, 41, 0.5) 0%, rgba(15, 23, 42, 0.85) 50%, rgba(11, 19, 41, 0.96) 100%)',
+        background: 'linear-gradient(105deg, rgba(88, 28, 135, 0.55) 0%, rgba(58, 12, 99, 0.88) 50%, rgba(30, 7, 54, 0.96) 100%)',
         zIndex: 2
       }} />
 
