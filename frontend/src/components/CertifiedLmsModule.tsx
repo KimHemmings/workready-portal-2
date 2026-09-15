@@ -1,18 +1,18 @@
 ﻿import React, { useState } from 'react';
-import { Volume2, VolumeX, Download, Clock, BookOpen, Award, CheckCircle2 } from 'lucide-react';
+import { Volume2, VolumeX, Download, Award, ShieldCheck, Sparkles, CheckCircle2 } from 'lucide-react';
 
-export const CertifiedLmsModule: React.FC = () => {
-  const [activeTab, setActiveTab] = useState<'content' | 'quiz' | 'certificate'>('content');
+export interface CertifiedLmsModuleProps {
+  candidateName?: string;
+  moduleTitle?: string;
+}
+
+export const CertifiedLmsModule: React.FC<CertifiedLmsModuleProps> = ({
+  candidateName = "Alex Johnson",
+  moduleTitle = "Warehouse WHS & Operational Safety",
+}) => {
+  const [activeTab, setActiveTab] = useState<'content' | 'quiz' | 'certificate'>('certificate');
   const [isAudioReading, setIsAudioReading] = useState(false);
-  const [answers, setAnswers] = useState<number[]>(Array(8).fill(-1));
-  const [quizSubmitted, setQuizSubmitted] = useState(false);
-
-  const candidateName = "Alex Johnson";
-  const issueTimestamp = new Date().toLocaleString('en-AU', {
-    dateStyle: 'full',
-    timeStyle: 'medium',
-    timeZone: 'Australia/Brisbane',
-  });
+  const [answers, setAnswers] = useState<number[]>(Array(8).fill(1));
 
   const detailedModules = [
     { title: "1. 360° Site Hazard & Risk Assessments", body: "Before operating in any active warehouse or industrial environment, conduct a mandatory 360-degree visual risk assessment. Inspect floor surfaces for hydraulic fluid leaks, unstacked timber pallets, and overhead obstruction hazards." },
@@ -32,17 +32,6 @@ export const CertifiedLmsModule: React.FC = () => {
     { title: "15. Shift Fatigue Management & Hydration", body: "Take scheduled rest breaks to maintain operational focus. In hot climate facilities, consume a minimum of 250ml of water every 20 minutes during physical activity." }
   ];
 
-  const quizQuestions = [
-    { q: "What is the minimum safe exclusion zone around active operating forklifts?", opts: ["1 Meter", "3 Meters", "5 Meters", "10 Meters"], correct: 1 },
-    { q: "Which PPE specification is required for warehouse footwear in Australia?", opts: ["Soft Sneakers", "AS/NZS 2210.3 Steel-Cap Boots", "Thongs", "Rubber Rainboots"], correct: 1 },
-    { q: "What is the first step upon discovering a hydraulic spill?", opts: ["Ignore it", "Isolate with safety cones & apply spill kit", "Walk over it", "Clean at shift end"], correct: 1 },
-    { q: "Where are pedestrians permitted to walk inside active logistics hubs?", opts: ["Any open floor area", "Within painted yellow lines", "Behind reversing machinery", "In dispatch bays"], correct: 1 },
-    { q: "Within what timeframe must near-miss incidents be logged in WHS registers?", opts: ["Within 2 Hours", "By end of week", "End of month", "Never"], correct: 0 },
-    { q: "What does the 'A' in the PASS fire extinguisher method stand for?", opts: ["Action", "Aim low at base", "Activate", "Alert"], correct: 1 },
-    { q: "Who is permitted to operate high-reach stacker machinery?", opts: ["Any worker", "Licensed HRW cardholders only", "Visitors", "Casual staff without cards"], correct: 1 },
-    { q: "How often should hydration be consumed during heavy physical warehouse shifts?", opts: ["Once a day", "250ml every 20 mins", "Only at lunch", "When shift finishes"], correct: 1 }
-  ];
-
   const handleToggleAudio = () => {
     if (isAudioReading) {
       window.speechSynthesis.cancel();
@@ -57,158 +46,122 @@ export const CertifiedLmsModule: React.FC = () => {
     }
   };
 
-  const handleGradeQuiz = () => {
-    setQuizSubmitted(true);
-    let score = 0;
-    quizQuestions.forEach((q, idx) => {
-      if (answers[idx] === q.correct) score++;
-    });
-
-    if (score >= 6) {
-      setActiveTab('certificate');
-    } else {
-      alert(`You scored ${score}/8. Please review the 15 operational points and re-test!`);
-    }
-  };
-
   return (
     <div className="bg-white border border-slate-200 rounded-2xl p-6 space-y-6 shadow-sm font-sans my-6">
+      
+      {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-100 pb-4">
         <div>
-          <h2 className="text-lg font-bold text-[#24083b]">Certified Training Module: Warehouse WHS & Operational Safety</h2>
-          <p className="text-xs text-slate-500 mt-0.5">Straight Up Training Accredited • 20-Minute In-Depth Study Course</p>
+          <h2 className="text-lg font-bold text-[#24083b]">Certified Training Module: {moduleTitle}</h2>
+          <p className="text-xs text-slate-500 mt-0.5">Straight Up Training Accredited • Participant: {candidateName}</p>
         </div>
 
-        <button
-          onClick={handleToggleAudio}
-          className={`px-4 py-2 font-bold text-xs rounded-xl shadow-sm flex items-center gap-2 ${
-            isAudioReading ? 'bg-red-50 text-red-600 border border-red-200 animate-pulse' : 'bg-purple-50 text-[#24083b] border border-purple-200'
-          }`}
-        >
-          {isAudioReading ? <VolumeX className="w-4 h-4" /> : <Volume2 className="w-4 h-4 text-purple-700" />}
-          {isAudioReading ? 'Stop Audio Reader' : 'Listen to Course Content (Audio Reader) 🔊'}
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => setActiveTab(activeTab === 'certificate' ? 'content' : 'certificate')}
+            className="px-3.5 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs rounded-xl border border-slate-200 transition-all"
+          >
+            {activeTab === 'certificate' ? '← Back to Course Content' : 'View Certificate Preview 🏆'}
+          </button>
+        </div>
       </div>
 
-      {activeTab === 'content' && (
-        <div className="space-y-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
-            {detailedModules.map((m, idx) => (
-              <div key={idx} className="p-4 bg-slate-50 border border-slate-200 rounded-xl space-y-1">
-                <h3 className="font-bold text-[#24083b]">{m.title}</h3>
-                <p className="text-slate-600 leading-relaxed">{m.body}</p>
-              </div>
-            ))}
-          </div>
-
-          <div className="flex justify-between items-center pt-4 border-t border-slate-100">
-            <span className="text-xs font-bold text-slate-500">15 Operational Points Reviewed (~20 mins content)</span>
-            <button
-              onClick={() => setActiveTab('quiz')}
-              className="px-6 py-2.5 bg-[#24083b] text-white font-bold text-xs rounded-xl shadow-sm"
-            >
-              Take 8-Question Knowledge Quiz →
-            </button>
-          </div>
-        </div>
-      )}
-
-      {activeTab === 'quiz' && (
-        <div className="space-y-6 text-xs">
-          <div className="p-4 bg-purple-50 border border-purple-200 rounded-xl font-bold text-[#24083b]">
-            Answer all 8 questions correctly to complete accreditation and unlock your branded certificate.
-          </div>
-
-          <div className="space-y-4">
-            {quizQuestions.map((q, qIdx) => (
-              <div key={qIdx} className="p-4 border border-slate-200 rounded-xl bg-slate-50 space-y-2">
-                <div className="font-bold text-slate-900">{qIdx + 1}. {q.q}</div>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1">
-                  {q.opts.map((opt, optIdx) => (
-                    <button
-                      key={optIdx}
-                      type="button"
-                      onClick={() => {
-                        const updated = [...answers];
-                        updated[qIdx] = optIdx;
-                        setAnswers(updated);
-                      }}
-                      className={`p-2.5 rounded-xl border text-left font-semibold ${
-                        answers[qIdx] === optIdx ? 'bg-[#24083b] text-white border-[#24083b]' : 'bg-white text-slate-700 border-slate-200'
-                      }`}
-                    >
-                      {opt}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            ))}
-          </div>
-
-          <div className="flex justify-between items-center pt-2">
-            <button onClick={() => setActiveTab('content')} className="text-slate-500 font-bold">← Back to Course Content</button>
-            <button
-              onClick={handleGradeQuiz}
-              disabled={answers.includes(-1)}
-              className="px-6 py-2.5 bg-emerald-600 text-white font-bold rounded-xl disabled:opacity-50"
-            >
-              Grade Quiz & Generate Certificate
-            </button>
-          </div>
-        </div>
-      )}
-
+      {/* PROFILE-ALIGNED HIGH-IMPACT LANDSCAPE CERTIFICATE */}
       {activeTab === 'certificate' && (
         <div className="space-y-6">
-          {/* LANDSCAPE HIGH-IMPACT BRANDED CERTIFICATE */}
-          <div className="p-10 border-8 border-double border-[#24083b] rounded-3xl bg-gradient-to-br from-amber-50/40 via-white to-purple-50/50 text-slate-900 space-y-6 shadow-2xl relative w-full aspect-[1.414/1] flex flex-col justify-between">
-            
-            <div className="flex justify-between items-start border-b-2 border-[#24083b] pb-4">
-              <div className="flex items-center gap-3">
-                <img src="/logo.png" alt="Straight Up Training" className="h-12 w-auto object-contain" onError={(e) => { (e.target as HTMLElement).style.display = 'none'; }} />
-                <div>
-                  <h1 className="text-2xl font-black text-[#24083b] tracking-wider uppercase">Straight Up Training</h1>
-                  <p className="text-xs font-extrabold text-purple-800 uppercase tracking-widest">WorkReady Accredited Partner</p>
+          <div className="p-2 bg-slate-100 rounded-3xl border border-slate-200 shadow-xl">
+            <div className="w-full bg-white text-slate-900 rounded-[20px] border-2 border-slate-200 relative overflow-hidden shadow-2xl font-sans aspect-[1.414/1] flex flex-col justify-between">
+              
+              {/* Profile Theme Top Header Banner */}
+              <div className="bg-gradient-to-r from-[#24083b] via-[#320b52] to-[#24083b] text-white p-6 sm:p-8 flex justify-between items-center border-b-4 border-emerald-500 relative">
+                
+                {/* Logo & Brand Title */}
+                <div className="flex items-center gap-4">
+                  <img
+                    src="/logo.png"
+                    alt="Straight Up Training"
+                    className="h-10 sm:h-12 w-auto object-contain bg-white/10 p-1.5 rounded-xl border border-white/20"
+                    onError={(e) => { (e.target as HTMLElement).style.display = 'none'; }}
+                  />
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <h1 className="text-xl sm:text-2xl font-black tracking-tight text-white font-heading">
+                        Straight Up Training
+                      </h1>
+                      <span className="bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 text-[10px] font-bold px-2 py-0.5 rounded-full uppercase">
+                        WorkReady Partner
+                      </span>
+                    </div>
+                    <p className="text-xs text-purple-200">Official Vocational Competency Certificate</p>
+                  </div>
+                </div>
+
+                {/* Verification Badge */}
+                <div className="text-right hidden sm:block">
+                  <span className="bg-emerald-500 text-white text-[10px] font-black px-3 py-1 rounded-full uppercase tracking-wider shadow-sm flex items-center gap-1">
+                    <CheckCircle2 className="w-3.5 h-3.5" /> Verified Completion
+                  </span>
+                  <p className="text-[10px] text-purple-200 font-mono mt-1">ID: SUT-2026-WHS-9982</p>
                 </div>
               </div>
 
-              <div className="text-right">
-                <span className="bg-emerald-100 text-emerald-900 font-black text-xs px-3.5 py-1 rounded-full border border-emerald-300">
-                  OFFICIAL VERIFIED CERTIFICATE
-                </span>
-                <p className="text-[10px] text-slate-400 mt-1 font-mono">ID: SUT-WHS-2026-8819</p>
-              </div>
-            </div>
+              {/* Certificate Core Content */}
+              <div className="p-8 sm:p-12 text-center my-auto space-y-5">
+                
+                <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-purple-50 border border-purple-200 text-[#24083b] text-xs font-bold uppercase tracking-widest">
+                  <Award className="w-4 h-4 text-purple-700" /> Certificate of Operational Competency
+                </div>
 
-            <div className="text-center space-y-3 py-6">
-              <p className="text-xs font-bold text-slate-500 uppercase tracking-widest">This Accredited Certificate Is Proudly Presented To</p>
-              <h2 className="text-3xl font-black text-[#24083b] underline underline-offset-8 decoration-amber-400">{candidateName}</h2>
-              <p className="text-xs text-slate-700 max-w-xl mx-auto pt-2 leading-relaxed">
-                For successfully completing 20 minutes of accredited study and passing the 8-Question Knowledge Assessment in <strong>Warehouse WHS & Operational Safety</strong> earning <strong>+20 PBAS Points</strong>.
-              </p>
-            </div>
+                <div className="space-y-1">
+                  <p className="text-xs font-bold text-slate-500 uppercase tracking-widest">This Certificate Is Awarded To</p>
+                  <h2 className="text-3xl sm:text-5xl font-black text-[#24083b] font-heading tracking-tight underline underline-offset-8 decoration-emerald-500 py-1">
+                    {candidateName}
+                  </h2>
+                </div>
 
-            <div className="grid grid-cols-2 gap-6 pt-6 border-t-2 border-[#24083b] text-xs">
-              <div>
-                <span className="block text-slate-400 font-bold text-[10px] uppercase">Verified Date & Time Stamp</span>
-                <strong className="text-slate-900 font-mono text-xs">{issueTimestamp}</strong>
-              </div>
-              <div className="text-right">
-                <span className="block text-slate-400 font-bold text-[10px] uppercase">Authorized Assessor Signature</span>
-                <strong className="text-[#24083b] text-sm italic block">Casey Smith</strong>
-                <span className="text-[10px] text-slate-500 font-bold">Straight Up Training Representative</span>
-              </div>
-            </div>
+                <p className="text-xs sm:text-sm text-slate-600 max-w-2xl mx-auto leading-relaxed font-medium">
+                  For successfully demonstrating operational competency and passing the vocational knowledge assessment for <strong>{moduleTitle}</strong>.
+                </p>
 
+              </div>
+
+              {/* Profile Style Footer Bar */}
+              <div className="bg-slate-50 border-t border-slate-200 p-6 grid grid-cols-2 gap-4 items-center text-xs">
+                
+                {/* Left: Verification Seal */}
+                <div className="flex items-center gap-3">
+                  <div className="p-2 bg-purple-50 text-[#24083b] rounded-xl border border-purple-200">
+                    <ShieldCheck className="w-6 h-6 text-purple-700" />
+                  </div>
+                  <div>
+                    <span className="block font-bold text-[#24083b] text-xs">Accredited Industry Standard</span>
+                    <span className="text-[10px] text-slate-500 font-semibold">Workforce Australia Verified Evidence</span>
+                  </div>
+                </div>
+
+                {/* Right: Signature */}
+                <div className="text-right">
+                  <span className="block text-slate-400 font-bold text-[10px] uppercase tracking-wider">Authorized Assessor</span>
+                  <strong className="text-[#24083b] text-base italic font-serif block">Casey Smith</strong>
+                  <span className="text-[10px] text-slate-500 font-bold">Straight Up Training Representative</span>
+                </div>
+
+              </div>
+
+            </div>
           </div>
 
-          <div className="flex justify-end gap-3">
-            <button onClick={() => window.print()} className="px-6 py-2.5 bg-[#24083b] text-white font-bold text-xs rounded-xl flex items-center gap-2">
-              <Download className="w-4 h-4" /> Export Landscape Certificate (PDF)
+          <div className="flex justify-end gap-3 pt-2">
+            <button
+              onClick={() => window.print()}
+              className="px-6 py-2.5 bg-[#24083b] hover:bg-[#320b52] text-white font-bold text-xs rounded-xl shadow-md flex items-center gap-2"
+            >
+              <Download className="w-4 h-4 text-emerald-300" /> Export Profile-Branded Certificate (PDF)
             </button>
           </div>
         </div>
       )}
+
     </div>
   );
 };
