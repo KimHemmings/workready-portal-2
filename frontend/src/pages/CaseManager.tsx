@@ -14,13 +14,20 @@ import {
   Users,
   MessageSquare,
   Download,
+  Upload,
   Award,
   Send,
   FileSpreadsheet,
   Briefcase,
   BookOpen,
   BarChart3,
-  FileText
+  FileText,
+  Calendar,
+  FolderLock,
+  Plus,
+  File,
+  ChevronRight,
+  AlertTriangle
 } from 'lucide-react';
 
 interface Candidate {
@@ -45,6 +52,28 @@ interface ActivityLog {
   reportData?: any;
 }
 
+interface Appointment {
+  id: string;
+  candidateId: string;
+  candidateName: string;
+  type: string;
+  date: string;
+  time: string;
+  location: string;
+  status: 'Scheduled' | 'Completed' | 'Rescheduled';
+}
+
+interface DocumentFile {
+  id: string;
+  candidateId: string;
+  candidateName: string;
+  name: string;
+  category: 'Resume' | 'Cover Letter' | 'Compliance' | 'Provider Upload';
+  uploadedBy: string;
+  date: string;
+  size: string;
+}
+
 interface SupportMessage {
   id: string;
   candidateId: string;
@@ -57,10 +86,11 @@ interface SupportMessage {
 }
 
 export const CaseManager: React.FC = () => {
-  const [activeTab, setActiveTab] = useState<'queue' | 'candidate_profile' | 'communication' | 'exports'>('queue');
+  // Navigation Tabs
+  const [activeTab, setActiveTab] = useState<'queue' | 'profile' | 'appointments' | 'documents' | 'communication' | 'exports'>('queue');
   const [profileSection, setProfileSection] = useState<'star' | 'job_search' | 'pillars' | 'lms'>('star');
 
-  // Candidate Roster
+  // Candidate Roster State
   const [candidates, setCandidates] = useState<Candidate[]>([
     { id: 'c1', name: 'Alex Participant', waId: 'WA-882194', pbasTarget: 100, verifiedPoints: 35, status: 'On Track' },
     { id: 'c2', name: 'Jordan Smith', waId: 'WA-904112', pbasTarget: 80, verifiedPoints: 60, status: 'On Track' },
@@ -68,38 +98,67 @@ export const CaseManager: React.FC = () => {
   ]);
 
   const [selectedCandidateId, setSelectedCandidateId] = useState<string>('c1');
+  const activeCandidate = candidates.find((c) => c.id === selectedCandidateId) || candidates[0];
 
-  // Modals
-  const [showAddModal, setShowAddModal] = useState(false);
-  const [editingCandidate, setEditingCandidate] = useState<Candidate | null>(null);
-  const [selectedReport, setSelectedReport] = useState<any | null>(null);
+  // Appointment State
+  const [appointments, setAppointments] = useState<Appointment[]>([
+    { id: 'apt-1', candidateId: 'c1', candidateName: 'Alex Participant', type: 'Monthly PBAS Progress Audit', date: '2026-09-22', time: '10:00 AM', location: 'Provider Office (In-Person)', status: 'Scheduled' },
+    { id: 'apt-2', candidateId: 'c1', candidateName: 'Alex Participant', type: 'STAR Interview Coaching Session', date: '2026-09-29', time: '02:30 PM', location: 'Phone Check-in', status: 'Scheduled' },
+    { id: 'apt-3', candidateId: 'c2', candidateName: 'Jordan Smith', type: 'Job Placement Agreement Sign-off', date: '2026-09-24', time: '11:15 AM', location: 'Provider Office (In-Person)', status: 'Scheduled' }
+  ]);
+  const [showAptModal, setShowAptModal] = useState(false);
+  const [aptType, setAptType] = useState('Monthly PBAS Progress Audit');
+  const [aptDate, setAptDate] = useState('2026-09-25');
+  const [aptTime, setAptTime] = useState('10:00 AM');
+  const [aptLocation, setAptLocation] = useState('Provider Office (In-Person)');
 
-  // Form Inputs
-  const [newCandidateName, setNewCandidateName] = useState('');
-  const [newCandidateWaId, setNewCandidateWaId] = useState('');
-  const [newCandidateTarget, setNewCandidateTarget] = useState(100);
+  // Document Locker State
+  const [documents, setDocuments] = useState<DocumentFile[]>([
+    { id: 'doc-1', candidateId: 'c1', candidateName: 'Alex Participant', name: 'Alex_Participant_Resume_2026.pdf', category: 'Resume', uploadedBy: 'Alex Participant', date: '12/09/2026', size: '1.2 MB' },
+    { id: 'doc-2', candidateId: 'c1', candidateName: 'Alex Participant', name: 'Warehouse_Logistics_CoverLetter.pdf', category: 'Cover Letter', uploadedBy: 'Alex Participant', date: '14/09/2026', size: '450 KB' },
+    { id: 'doc-3', candidateId: 'c1', candidateName: 'Alex Participant', name: 'Job_Search_Plan_Casey_Signed.pdf', category: 'Provider Upload', uploadedBy: 'Casey (Case Manager)', date: '10/09/2026', size: '890 KB' },
+    { id: 'doc-4', candidateId: 'c2', candidateName: 'Jordan Smith', name: 'Jordan_Smith_Resume.pdf', category: 'Resume', uploadedBy: 'Jordan Smith', date: '08/09/2026', size: '980 KB' }
+  ]);
 
-  // Queue & Data
-  const [activities, setActivities] = useState<ActivityLog[]>([]);
-  const [filterType, setFilterType] = useState<string>('All');
-
-  // Support Messages
+  // Support Inbox State
   const [supportMessages, setSupportMessages] = useState<SupportMessage[]>([
     {
       id: 'msg-1',
       candidateId: 'c1',
       candidateName: 'Alex Participant',
-      topic: 'Application Feedback',
-      message: 'Hi Casey, I submitted my STAR interview practice for the Warehouse role. Can you let me know if the Action section needs more detail?',
+      topic: 'STAR Practice Feedback',
+      message: 'Hi Casey, I completed my interview practice for the Warehouse role. Can you review my Action section and let me know if it covers safety protocols sufficiently?',
       date: '15/09/2026',
+      status: 'Unread'
+    },
+    {
+      id: 'msg-2',
+      candidateId: 'c3',
+      candidateName: 'Sam Taylor',
+      topic: 'Schedule Target Adjustment',
+      message: 'I have medical appointments next week. Can we adjust my monthly PBAS obligation target down to 60 points for this cycle?',
+      date: '12/09/2026',
       status: 'Unread'
     }
   ]);
   const [coachingInput, setCoachingInput] = useState<string>('');
   const [selectedMsgId, setSelectedMsgId] = useState<string>('msg-1');
 
-  const activeCandidate = candidates.find((c) => c.id === selectedCandidateId) || candidates[0];
+  // Verification Queue State
+  const [activities, setActivities] = useState<ActivityLog[]>([]);
+  const [filterType, setFilterType] = useState<string>('All');
 
+  // Modals
+  const [showAddModal, setShowAddModal] = useState(false);
+  const [editingCandidate, setEditingCandidate] = useState<Candidate | null>(null);
+  const [selectedReport, setSelectedReport] = useState<any | null>(null);
+
+  // Form Inputs for Adding Candidate
+  const [newCandidateName, setNewCandidateName] = useState('');
+  const [newCandidateWaId, setNewCandidateWaId] = useState('');
+  const [newCandidateTarget, setNewCandidateTarget] = useState(100);
+
+  // Load Submissions from localStorage & Initialise Queue
   const loadSubmissions = () => {
     try {
       const storedHistory = localStorage.getItem('workready_star_history');
@@ -174,6 +233,7 @@ export const CaseManager: React.FC = () => {
     loadSubmissions();
   }, []);
 
+  // Handlers
   const handleAddCandidate = (e: React.FormEvent) => {
     e.preventDefault();
     if (!newCandidateName || !newCandidateWaId) return;
@@ -224,6 +284,41 @@ export const CaseManager: React.FC = () => {
     );
   };
 
+  const handleAddAppointment = (e: React.FormEvent) => {
+    e.preventDefault();
+    const newApt: Appointment = {
+      id: `apt-${Date.now()}`,
+      candidateId: activeCandidate.id,
+      candidateName: activeCandidate.name,
+      type: aptType,
+      date: aptDate,
+      time: aptTime,
+      location: aptLocation,
+      status: 'Scheduled'
+    };
+
+    setAppointments([...appointments, newApt]);
+    setShowAptModal(false);
+  };
+
+  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const newDoc: DocumentFile = {
+      id: `doc-${Date.now()}`,
+      candidateId: activeCandidate.id,
+      candidateName: activeCandidate.name,
+      name: file.name,
+      category: 'Provider Upload',
+      uploadedBy: 'Casey (Case Manager)',
+      date: new Date().toLocaleDateString('en-AU'),
+      size: `${(file.size / 1024).toFixed(1)} KB`
+    };
+
+    setDocuments([...documents, newDoc]);
+  };
+
   const handleSendCoachingNote = (msgId: string) => {
     if (!coachingInput.trim()) return;
 
@@ -260,6 +355,7 @@ export const CaseManager: React.FC = () => {
     document.body.removeChild(link);
   };
 
+  // Filtered Lists
   const candidateActivities = activities.filter((a) => a.candidateId === activeCandidate.id);
   const pendingList = candidateActivities.filter((a) => a.status === 'Pending Verification');
   const pendingPointsTotal = pendingList.reduce((sum, a) => sum + a.points, 0);
@@ -271,13 +367,15 @@ export const CaseManager: React.FC = () => {
     return act.type === filterType;
   });
 
+  const candidateDocs = documents.filter((d) => d.candidateId === activeCandidate.id);
+  const candidateApts = appointments.filter((a) => a.candidateId === activeCandidate.id);
   const activeMsg = supportMessages.find((m) => m.id === selectedMsgId);
 
   return (
     <div className="min-h-screen bg-slate-50 text-slate-900 pb-16 font-sans">
       
-      {/* Header Banner */}
-      <header className="bg-gradient-to-r from-[#1e1b4b] via-[#24083b] to-[#1e1b4b] text-white shadow-md">
+      {/* Top Banner Header */}
+      <header className="bg-gradient-to-r from-[#1e1b4b] via-[#24083b] to-[#1e1b4b] text-white shadow-md border-b border-indigo-900/40">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex flex-col md:flex-row items-center justify-between gap-4">
           <div className="flex items-center gap-3">
             <div className="p-2 bg-emerald-500/20 rounded-xl border border-emerald-500/30 text-emerald-300">
@@ -286,13 +384,13 @@ export const CaseManager: React.FC = () => {
             <div>
               <div className="flex items-center gap-2">
                 <span className="font-black text-xl tracking-tight text-white">
-                  Case Manager Verification Hub
+                  Case Manager Verification & Management Hub
                 </span>
-                <span className="bg-purple-500/30 text-purple-200 border border-purple-400/30 text-[10px] font-bold px-2 py-0.5 rounded-full uppercase">
+                <span className="bg-purple-500/30 text-purple-200 border border-purple-400/30 text-[10px] font-bold px-2.5 py-0.5 rounded-full uppercase">
                   Casey Profile
                 </span>
               </div>
-              <p className="text-xs text-purple-200">Straight Up Training • Workforce Australia Compliance Hub</p>
+              <p className="text-xs text-purple-200">Straight Up Training • Workforce Australia PBAS Sign-off & Audit System</p>
             </div>
           </div>
 
@@ -305,15 +403,15 @@ export const CaseManager: React.FC = () => {
             </button>
             <button
               onClick={loadSubmissions}
-              className="px-3 py-1.5 bg-white/10 hover:bg-white/20 border border-white/20 text-white font-bold text-xs rounded-xl transition-all flex items-center gap-1.5"
+              className="px-3.5 py-1.5 bg-white/10 hover:bg-white/20 border border-white/20 text-white font-bold text-xs rounded-xl transition-all flex items-center gap-1.5"
             >
-              <RefreshCw className="w-3.5 h-3.5" /> Refresh Queue
+              <RefreshCw className="w-3.5 h-3.5" /> Refresh Submissions
             </button>
           </div>
         </div>
       </header>
 
-      {/* Candidate Roster Selector */}
+      {/* Candidate Roster Selector Bar */}
       <section className="bg-white border-b border-slate-200 shadow-xs py-3">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none">
@@ -342,9 +440,9 @@ export const CaseManager: React.FC = () => {
         </div>
       </section>
 
-      {/* Active Candidate Banner */}
+      {/* Active Candidate Header Bar */}
       <section className="bg-white border-b border-slate-200 shadow-sm py-4">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col lg:flex-row lg:items-center justify-between gap-4">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-full bg-purple-100 text-purple-800 flex items-center justify-center font-bold text-sm border border-purple-200">
               {activeCandidate.name.split(' ').map(n=>n[0]).join('')}
@@ -360,13 +458,13 @@ export const CaseManager: React.FC = () => {
                 </button>
               </div>
               <p className="text-xs text-slate-500">
-                Workforce Australia ID: <span className="font-mono text-slate-700">{activeCandidate.waId}</span>
+                Workforce Australia ID: <span className="font-mono text-slate-700">{activeCandidate.waId}</span> • Target: <span className="font-bold text-purple-900">{activeCandidate.pbasTarget} Pts/Mo</span>
               </p>
             </div>
           </div>
 
           {/* Module Navigation Tabs */}
-          <div className="flex items-center bg-slate-100 p-1 rounded-xl border border-slate-200 text-xs font-bold">
+          <div className="flex items-center bg-slate-100 p-1 rounded-xl border border-slate-200 text-xs font-bold overflow-x-auto">
             <button
               onClick={() => setActiveTab('queue')}
               className={`px-3.5 py-1.5 rounded-lg transition-all ${
@@ -376,16 +474,32 @@ export const CaseManager: React.FC = () => {
               Sign-Off Queue
             </button>
             <button
-              onClick={() => setActiveTab('candidate_profile')}
-              className={`px-3.5 py-1.5 rounded-lg transition-all flex items-center gap-1.5 ${
-                activeTab === 'candidate_profile' ? 'bg-white text-purple-900 shadow-xs' : 'text-slate-600 hover:text-slate-900'
+              onClick={() => setActiveTab('profile')}
+              className={`px-3.5 py-1.5 rounded-lg transition-all flex items-center gap-1 ${
+                activeTab === 'profile' ? 'bg-white text-purple-900 shadow-xs' : 'text-slate-600 hover:text-slate-900'
               }`}
             >
-              <FileText className="w-3.5 h-3.5" /> Candidate Profile Data
+              <FileText className="w-3.5 h-3.5" /> Candidate Profile
+            </button>
+            <button
+              onClick={() => setActiveTab('appointments')}
+              className={`px-3.5 py-1.5 rounded-lg transition-all flex items-center gap-1 ${
+                activeTab === 'appointments' ? 'bg-white text-purple-900 shadow-xs' : 'text-slate-600 hover:text-slate-900'
+              }`}
+            >
+              <Calendar className="w-3.5 h-3.5" /> Appointments
+            </button>
+            <button
+              onClick={() => setActiveTab('documents')}
+              className={`px-3.5 py-1.5 rounded-lg transition-all flex items-center gap-1 ${
+                activeTab === 'documents' ? 'bg-white text-purple-900 shadow-xs' : 'text-slate-600 hover:text-slate-900'
+              }`}
+            >
+              <FolderLock className="w-3.5 h-3.5" /> Document Locker
             </button>
             <button
               onClick={() => setActiveTab('communication')}
-              className={`px-3.5 py-1.5 rounded-lg transition-all flex items-center gap-1.5 ${
+              className={`px-3.5 py-1.5 rounded-lg transition-all flex items-center gap-1 ${
                 activeTab === 'communication' ? 'bg-white text-purple-900 shadow-xs' : 'text-slate-600 hover:text-slate-900'
               }`}
             >
@@ -393,7 +507,7 @@ export const CaseManager: React.FC = () => {
             </button>
             <button
               onClick={() => setActiveTab('exports')}
-              className={`px-3.5 py-1.5 rounded-lg transition-all flex items-center gap-1.5 ${
+              className={`px-3.5 py-1.5 rounded-lg transition-all flex items-center gap-1 ${
                 activeTab === 'exports' ? 'bg-white text-purple-900 shadow-xs' : 'text-slate-600 hover:text-slate-900'
               }`}
             >
@@ -403,7 +517,7 @@ export const CaseManager: React.FC = () => {
         </div>
       </section>
 
-      {/* Main Content Area */}
+      {/* Main Workspace */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6 space-y-6">
         
         {/* TAB 1: VERIFICATION QUEUE */}
@@ -422,7 +536,7 @@ export const CaseManager: React.FC = () => {
 
               <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex items-center justify-between">
                 <div>
-                  <p className="text-xs font-bold text-slate-500 uppercase">Verified Progress</p>
+                  <p className="text-xs font-bold text-slate-500 uppercase">Verified Points Credit</p>
                   <p className="text-2xl font-black text-emerald-600 mt-1">+{activeCandidate.verifiedPoints} Pts</p>
                 </div>
                 <div className="p-3 bg-emerald-50 text-emerald-600 rounded-xl border border-emerald-100">
@@ -432,8 +546,10 @@ export const CaseManager: React.FC = () => {
 
               <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex items-center justify-between">
                 <div>
-                  <p className="text-xs font-bold text-slate-500 uppercase">Monthly Target</p>
-                  <p className="text-2xl font-black text-purple-900 mt-1">{activeCandidate.pbasTarget} Pts</p>
+                  <p className="text-xs font-bold text-slate-500 uppercase">Monthly Compliance</p>
+                  <p className="text-2xl font-black text-purple-900 mt-1">
+                    {Math.min(Math.round(((activeCandidate.verifiedPoints + pendingPointsTotal) / activeCandidate.pbasTarget) * 100), 100)}%
+                  </p>
                 </div>
                 <div className="p-3 bg-purple-50 text-purple-800 rounded-xl border border-purple-100">
                   <TrendingUp className="w-6 h-6" />
@@ -445,9 +561,9 @@ export const CaseManager: React.FC = () => {
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-4">
                 <div>
                   <h2 className="font-bold text-base text-[#24083b] flex items-center gap-2">
-                    <Search className="w-5 h-5 text-purple-700" /> Submissions for {activeCandidate.name}
+                    <Search className="w-5 h-5 text-purple-700" /> Activity Verification Queue: {activeCandidate.name}
                   </h2>
-                  <p className="text-xs text-slate-500">Audit candidate practice runs and credit points.</p>
+                  <p className="text-xs text-slate-500">Audit candidate practice runs and credit PBAS points to official record.</p>
                 </div>
 
                 <div className="flex flex-wrap items-center gap-2">
@@ -455,10 +571,10 @@ export const CaseManager: React.FC = () => {
                     <button
                       key={type}
                       onClick={() => setFilterType(type)}
-                      className={`px-3 py-1 rounded-xl text-xs font-bold border ${
+                      className={`px-3 py-1 rounded-xl text-xs font-bold border transition-all ${
                         filterType === type
                           ? 'bg-[#24083b] text-white border-[#24083b]'
-                          : 'bg-slate-50 text-slate-600 border-slate-200'
+                          : 'bg-slate-50 text-slate-600 border-slate-200 hover:bg-slate-100'
                       }`}
                     >
                       {type}
@@ -472,41 +588,45 @@ export const CaseManager: React.FC = () => {
                   <thead>
                     <tr className="bg-slate-50 text-slate-600 font-bold border-b border-slate-200">
                       <th className="p-3">Submitted</th>
+                      <th className="p-3">Candidate</th>
                       <th className="p-3">Type</th>
                       <th className="p-3">Details</th>
                       <th className="p-3">Ref ID</th>
                       <th className="p-3">Points</th>
                       <th className="p-3">Status</th>
-                      <th className="p-3 text-right">Action</th>
+                      <th className="p-3 text-right">Audit & Decision</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-100">
                     {filteredActivities.length === 0 ? (
                       <tr>
-                        <td colSpan={7} className="p-6 text-center text-slate-400">
+                        <td colSpan={8} className="p-6 text-center text-slate-400 font-medium">
                           No submissions found for {activeCandidate.name}.
                         </td>
                       </tr>
                     ) : (
                       filteredActivities.map((act) => (
-                        <tr key={act.id} className="hover:bg-slate-50 transition-all">
+                        <tr key={act.id} className="hover:bg-slate-50/80 transition-all">
                           <td className="p-3 font-semibold text-slate-500">{act.date}</td>
+                          <td className="p-3 font-bold text-slate-800">{act.candidateName}</td>
                           <td className="p-3 font-bold text-purple-900">{act.type}</td>
                           <td className="p-3 text-slate-700">{act.title}</td>
-                          <td className="p-3 font-mono text-slate-500">{act.reference}</td>
+                          <td className="p-3 font-mono text-slate-500 bg-slate-100/70 px-2 py-0.5 rounded text-[11px] w-max">
+                            {act.reference}
+                          </td>
                           <td className="p-3 font-extrabold text-emerald-600">+{act.points} Pts</td>
                           <td className="p-3">
                             {act.status === 'Verified' ? (
-                              <span className="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
-                                Approved
+                              <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                                <CheckCircle2 className="w-3.5 h-3.5" /> Approved
                               </span>
                             ) : act.status === 'Rejected' ? (
-                              <span className="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-red-50 text-red-700 border border-red-200">
-                                Rejected
+                              <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-red-50 text-red-700 border border-red-200">
+                                <XCircle className="w-3.5 h-3.5" /> Re-submission Needed
                               </span>
                             ) : (
-                              <span className="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-amber-50 text-amber-700 border border-amber-200">
-                                Pending Approval
+                              <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-amber-50 text-amber-700 border border-amber-200">
+                                <Clock className="w-3.5 h-3.5" /> Pending Casey Sign-off
                               </span>
                             )}
                           </td>
@@ -514,18 +634,26 @@ export const CaseManager: React.FC = () => {
                             {act.reportData && (
                               <button
                                 onClick={() => setSelectedReport(act.reportData)}
-                                className="px-2.5 py-1 bg-purple-50 text-purple-700 border border-purple-200 rounded-lg text-[11px] font-bold"
+                                className="px-2.5 py-1 bg-purple-50 hover:bg-purple-100 text-purple-700 border border-purple-200 rounded-lg text-[11px] font-bold inline-flex items-center gap-1 transition-all"
                               >
-                                Audit Report
+                                <Eye className="w-3.5 h-3.5" /> Audit Report
                               </button>
                             )}
                             {act.status === 'Pending Verification' && (
-                              <button
-                                onClick={() => handleApprove(act.id, act.points, act.candidateId)}
-                                className="px-2.5 py-1 bg-emerald-500 hover:bg-emerald-600 text-white rounded-lg text-[11px] font-bold"
-                              >
-                                Approve (+{act.points})
-                              </button>
+                              <>
+                                <button
+                                  onClick={() => handleApprove(act.id, act.points, act.candidateId)}
+                                  className="px-2.5 py-1 bg-emerald-500 hover:bg-emerald-600 text-white rounded-lg text-[11px] font-bold inline-flex items-center gap-1 transition-all"
+                                >
+                                  <Check className="w-3.5 h-3.5" /> Approve (+{act.points})
+                                </button>
+                                <button
+                                  onClick={() => handleReject(act.id)}
+                                  className="px-2 py-1 bg-slate-100 hover:bg-red-50 text-slate-600 hover:text-red-600 border border-slate-200 rounded-lg text-[11px] font-bold transition-all"
+                                >
+                                  Reject
+                                </button>
+                              </>
                             )}
                           </td>
                         </tr>
@@ -538,15 +666,13 @@ export const CaseManager: React.FC = () => {
           </>
         )}
 
-        {/* TAB 2: CANDIDATE PROFILE DATA FULL VIEW */}
-        {activeTab === 'candidate_profile' && (
+        {/* TAB 2: CANDIDATE PROFILE DATA */}
+        {activeTab === 'profile' && (
           <div className="space-y-6">
-            
-            {/* Inner Sub-Navigation Bar for Candidate Data */}
-            <div className="flex items-center gap-2 border-b border-slate-200 pb-3">
+            <div className="flex items-center gap-2 border-b border-slate-200 pb-3 overflow-x-auto">
               <button
                 onClick={() => setProfileSection('star')}
-                className={`px-3.5 py-1.5 rounded-xl text-xs font-bold flex items-center gap-1.5 border transition-all ${
+                className={`px-3.5 py-1.5 rounded-xl text-xs font-bold flex items-center gap-1.5 border transition-all whitespace-nowrap ${
                   profileSection === 'star'
                     ? 'bg-[#24083b] text-white border-[#24083b]'
                     : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-50'
@@ -557,7 +683,7 @@ export const CaseManager: React.FC = () => {
 
               <button
                 onClick={() => setProfileSection('job_search')}
-                className={`px-3.5 py-1.5 rounded-xl text-xs font-bold flex items-center gap-1.5 border transition-all ${
+                className={`px-3.5 py-1.5 rounded-xl text-xs font-bold flex items-center gap-1.5 border transition-all whitespace-nowrap ${
                   profileSection === 'job_search'
                     ? 'bg-[#24083b] text-white border-[#24083b]'
                     : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-50'
@@ -568,7 +694,7 @@ export const CaseManager: React.FC = () => {
 
               <button
                 onClick={() => setProfileSection('pillars')}
-                className={`px-3.5 py-1.5 rounded-xl text-xs font-bold flex items-center gap-1.5 border transition-all ${
+                className={`px-3.5 py-1.5 rounded-xl text-xs font-bold flex items-center gap-1.5 border transition-all whitespace-nowrap ${
                   profileSection === 'pillars'
                     ? 'bg-[#24083b] text-white border-[#24083b]'
                     : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-50'
@@ -579,7 +705,7 @@ export const CaseManager: React.FC = () => {
 
               <button
                 onClick={() => setProfileSection('lms')}
-                className={`px-3.5 py-1.5 rounded-xl text-xs font-bold flex items-center gap-1.5 border transition-all ${
+                className={`px-3.5 py-1.5 rounded-xl text-xs font-bold flex items-center gap-1.5 border transition-all whitespace-nowrap ${
                   profileSection === 'lms'
                     ? 'bg-[#24083b] text-white border-[#24083b]'
                     : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-50'
@@ -589,13 +715,13 @@ export const CaseManager: React.FC = () => {
               </button>
             </div>
 
-            {/* SECTION 1: STAR INTERVIEW PRACTICE LOGS */}
+            {/* STAR PRACTICE LOGS */}
             {profileSection === 'star' && (
               <div className="bg-white border border-slate-200 rounded-2xl p-6 space-y-4 shadow-sm">
-                <div className="flex items-center justify-between">
+                <div className="flex items-center justify-between border-b border-slate-100 pb-3">
                   <div>
                     <h3 className="font-extrabold text-base text-[#24083b]">STAR Interview Submissions</h3>
-                    <p className="text-xs text-slate-500">Full history of recorded STAR responses and qualitative rubrics for {activeCandidate.name}.</p>
+                    <p className="text-xs text-slate-500">Recorded sessions and qualitative rubric evaluations for {activeCandidate.name}.</p>
                   </div>
                   <span className="px-2.5 py-1 bg-purple-50 text-purple-900 border border-purple-200 rounded-lg text-xs font-bold">
                     +25 Points / Session
@@ -615,9 +741,9 @@ export const CaseManager: React.FC = () => {
                       {item.reportData && (
                         <button
                           onClick={() => setSelectedReport(item.reportData)}
-                          className="px-3 py-1.5 bg-purple-900 text-white rounded-lg text-xs font-bold hover:bg-purple-950 transition-all"
+                          className="px-3 py-1.5 bg-purple-900 text-white rounded-lg text-xs font-bold hover:bg-purple-950 transition-all flex items-center gap-1"
                         >
-                          View Full Evaluation
+                          <Eye className="w-3.5 h-3.5" /> Inspect STAR Evaluation
                         </button>
                       )}
                     </div>
@@ -626,11 +752,11 @@ export const CaseManager: React.FC = () => {
               </div>
             )}
 
-            {/* SECTION 2: JOB SEARCH LOG */}
+            {/* JOB SEARCH LOG */}
             {profileSection === 'job_search' && (
               <div className="bg-white border border-slate-200 rounded-2xl p-6 space-y-4 shadow-sm">
                 <h3 className="font-extrabold text-base text-[#24083b]">Job Application History</h3>
-                <p className="text-xs text-slate-500">Verified applications logged by {activeCandidate.name} for PBAS compliance.</p>
+                <p className="text-xs text-slate-500">Verified job applications logged by {activeCandidate.name} for PBAS compliance.</p>
 
                 <div className="space-y-3 pt-2">
                   <div className="p-4 border border-slate-200 rounded-xl bg-slate-50 flex items-center justify-between">
@@ -652,7 +778,7 @@ export const CaseManager: React.FC = () => {
               </div>
             )}
 
-            {/* SECTION 3: 5-PILLAR READINESS */}
+            {/* 5-PILLAR READINESS */}
             {profileSection === 'pillars' && (
               <div className="bg-white border border-slate-200 rounded-2xl p-6 space-y-4 shadow-sm">
                 <h3 className="font-extrabold text-base text-[#24083b]">5-Pillar Work Readiness Assessment</h3>
@@ -677,7 +803,7 @@ export const CaseManager: React.FC = () => {
               </div>
             )}
 
-            {/* SECTION 4: LMS MODULES */}
+            {/* LMS MODULES */}
             {profileSection === 'lms' && (
               <div className="bg-white border border-slate-200 rounded-2xl p-6 space-y-4 shadow-sm">
                 <h3 className="font-extrabold text-base text-[#24083b]">LMS Training & Certificates</h3>
@@ -690,18 +816,119 @@ export const CaseManager: React.FC = () => {
                       <h4 className="font-bold text-xs text-slate-800 mt-1">WHS Fundamentals & Safe Work</h4>
                       <p className="text-[11px] text-slate-500">Completed 10/09/2026 • Ref: MOD-WHS-01</p>
                     </div>
-                    <button className="px-3 py-1.5 bg-purple-900 text-white rounded-lg text-xs font-bold hover:bg-purple-950 transition-all">
-                      Inspect Certificate
+                    <button className="px-3 py-1.5 bg-purple-900 text-white rounded-lg text-xs font-bold hover:bg-purple-950 transition-all flex items-center gap-1">
+                      <Award className="w-3.5 h-3.5" /> Inspect PDF Certificate
                     </button>
                   </div>
                 </div>
               </div>
             )}
-
           </div>
         )}
 
-        {/* TAB 3: SUPPORT INBOX & COACHING */}
+        {/* TAB 3: APPOINTMENT SCHEDULER */}
+        {activeTab === 'appointments' && (
+          <div className="bg-white border border-slate-200 rounded-2xl p-6 space-y-4 shadow-sm">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-4">
+              <div>
+                <h3 className="font-extrabold text-base text-[#24083b] flex items-center gap-2">
+                  <Calendar className="w-5 h-5 text-purple-700" /> Mutual Obligation Appointment Scheduler
+                </h3>
+                <p className="text-xs text-slate-500">Schedule, adjust, or track compliance check-ins for {activeCandidate.name}.</p>
+              </div>
+
+              <button
+                onClick={() => setShowAptModal(true)}
+                className="px-4 py-2 bg-purple-900 hover:bg-purple-950 text-white font-bold text-xs rounded-xl flex items-center gap-1.5 transition-all shadow-xs"
+              >
+                <Plus className="w-4 h-4" /> Schedule New Appointment
+              </button>
+            </div>
+
+            <div className="space-y-3 pt-2">
+              {candidateApts.length === 0 ? (
+                <p className="text-xs text-slate-400 text-center py-8 font-medium">No upcoming appointments scheduled for {activeCandidate.name}.</p>
+              ) : (
+                candidateApts.map((apt) => (
+                  <div key={apt.id} className="p-4 border border-slate-200 rounded-xl bg-slate-50 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                    <div className="space-y-1">
+                      <div className="flex items-center gap-2">
+                        <span className="px-2.5 py-0.5 bg-purple-100 text-purple-900 text-[10px] font-bold rounded-full uppercase">
+                          {apt.type}
+                        </span>
+                        <span className="text-xs font-mono text-slate-500">{apt.location}</span>
+                      </div>
+                      <h4 className="font-extrabold text-sm text-slate-800">
+                        Date: {apt.date} at {apt.time}
+                      </h4>
+                      <p className="text-[11px] text-slate-500">Assigned Candidate: <strong>{apt.candidateName}</strong></p>
+                    </div>
+
+                    <div className="flex items-center gap-2">
+                      <span className="px-3 py-1 bg-emerald-50 text-emerald-700 border border-emerald-200 text-xs font-bold rounded-lg flex items-center gap-1">
+                        <CheckCircle2 className="w-3.5 h-3.5" /> {apt.status}
+                      </span>
+                      <button className="px-3 py-1 bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-200 text-xs font-bold rounded-lg transition-all">
+                        Reschedule
+                      </button>
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* TAB 4: DOCUMENT LOCKER */}
+        {activeTab === 'documents' && (
+          <div className="bg-white border border-slate-200 rounded-2xl p-6 space-y-4 shadow-sm">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-4">
+              <div>
+                <h3 className="font-extrabold text-base text-[#24083b] flex items-center gap-2">
+                  <FolderLock className="w-5 h-5 text-purple-700" /> Candidate Document Locker: {activeCandidate.name}
+                </h3>
+                <p className="text-xs text-slate-500">Download resumes and cover letters or upload provider job plans.</p>
+              </div>
+
+              <label className="px-4 py-2 bg-emerald-500 hover:bg-emerald-600 text-white font-bold text-xs rounded-xl flex items-center gap-1.5 cursor-pointer shadow-xs transition-all">
+                <Upload className="w-4 h-4" /> Upload Document
+                <input type="file" onChange={handleFileUpload} className="hidden" />
+              </label>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
+              {candidateDocs.length === 0 ? (
+                <p className="text-xs text-slate-400 text-center col-span-2 py-8 font-medium">No documents stored in locker for {activeCandidate.name}.</p>
+              ) : (
+                candidateDocs.map((doc) => (
+                  <div key={doc.id} className="p-4 border border-slate-200 rounded-xl bg-slate-50 flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <div className="p-2.5 bg-purple-100 text-purple-800 rounded-xl">
+                        <File className="w-5 h-5" />
+                      </div>
+                      <div>
+                        <h4 className="font-bold text-xs text-slate-800">{doc.name}</h4>
+                        <p className="text-[11px] text-slate-500 mt-0.5">
+                          {doc.category} • {doc.size} • Uploaded by {doc.uploadedBy}
+                        </p>
+                      </div>
+                    </div>
+
+                    <button
+                      onClick={() => alert(`Downloading ${doc.name}...`)}
+                      className="p-2 bg-white hover:bg-purple-50 text-slate-700 hover:text-purple-900 border border-slate-200 rounded-lg transition-all"
+                      title="Download File"
+                    >
+                      <Download className="w-4 h-4 text-purple-800" />
+                    </button>
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* TAB 5: SUPPORT INBOX & COACHING */}
         {activeTab === 'communication' && (
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             <div className="bg-white border border-slate-200 rounded-2xl p-5 space-y-4 shadow-sm">
@@ -780,7 +1007,7 @@ export const CaseManager: React.FC = () => {
           </div>
         )}
 
-        {/* TAB 4: DEWR EXPORTS */}
+        {/* TAB 6: DEWR EXPORTS */}
         {activeTab === 'exports' && (
           <div className="bg-gradient-to-r from-purple-900 to-[#24083b] rounded-2xl p-6 text-white flex flex-col sm:flex-row items-center justify-between gap-4 shadow-md">
             <div className="space-y-1">
@@ -839,7 +1066,7 @@ export const CaseManager: React.FC = () => {
               </div>
 
               <div>
-                <label className="block font-bold text-slate-700 mb-1">Monthly PBAS Points Schedule Target:</label>
+                <label className="block font-bold text-slate-700 mb-1">Monthly PBAS Points Target Schedule:</label>
                 <select
                   value={newCandidateTarget}
                   onChange={(e) => setNewCandidateTarget(Number(e.target.value))}
@@ -922,43 +1149,143 @@ export const CaseManager: React.FC = () => {
         </div>
       )}
 
-      {/* MODAL 3: AUDIT REPORT */}
-      {selectedReport && (
+      {/* MODAL 3: SCHEDULE APPOINTMENT */}
+      {showAptModal && (
         <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-2xl p-6 max-w-2xl w-full space-y-4 shadow-2xl border border-slate-200 font-sans">
-            <div className="border-b border-slate-100 pb-3 flex justify-between items-start">
-              <div>
-                <span className="px-2 py-0.5 bg-purple-100 text-purple-800 text-[10px] font-bold rounded-full uppercase">
-                  Candidate STAR Audit
-                </span>
-                <h3 className="font-extrabold text-lg text-[#24083b] mt-1">
-                  {selectedReport.jobRole} Practice Report
-                </h3>
-              </div>
-              <button onClick={() => setSelectedReport(null)} className="text-slate-400 font-bold text-lg">✕</button>
+          <form onSubmit={handleAddAppointment} className="bg-white rounded-2xl p-6 max-w-md w-full space-y-4 shadow-2xl border border-slate-200 font-sans">
+            <div className="border-b border-slate-100 pb-3 flex justify-between items-center">
+              <h3 className="font-extrabold text-base text-[#24083b]">Schedule Mutual Obligation Appointment</h3>
+              <button type="button" onClick={() => setShowAptModal(false)} className="text-slate-400 font-bold">✕</button>
             </div>
 
-            <div className="p-3 bg-purple-50 border border-purple-200 rounded-xl space-y-2 text-xs">
-              <span className="font-bold text-purple-900">Rubric Rating: <strong className="text-emerald-700">{selectedReport.rubricScore}</strong></span>
-              <div className="space-y-1">
+            <div className="space-y-3 text-xs">
+              <div>
+                <label className="block font-bold text-slate-700 mb-1">Appointment Type:</label>
+                <select value={aptType} onChange={(e) => setAptType(e.target.value)} className="w-full p-2.5 border border-slate-200 rounded-xl bg-slate-50 outline-none font-bold text-purple-900">
+                  <option value="Monthly PBAS Progress Audit">Monthly PBAS Progress Audit</option>
+                  <option value="STAR Interview Coaching Session">STAR Interview Coaching Session</option>
+                  <option value="Job Application & Resume Audit">Job Application & Resume Audit</option>
+                  <option value="Job Placement Sign-off">Job Placement Sign-off</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block font-bold text-slate-700 mb-1">Date:</label>
+                <input type="date" value={aptDate} onChange={(e) => setAptDate(e.target.value)} className="w-full p-2.5 border border-slate-200 rounded-xl bg-slate-50 outline-none" />
+              </div>
+
+              <div>
+                <label className="block font-bold text-slate-700 mb-1">Time:</label>
+                <input type="text" value={aptTime} onChange={(e) => setAptTime(e.target.value)} placeholder="e.g. 10:00 AM" className="w-full p-2.5 border border-slate-200 rounded-xl bg-slate-50 outline-none" />
+              </div>
+
+              <div>
+                <label className="block font-bold text-slate-700 mb-1">Location / Channel:</label>
+                <select value={aptLocation} onChange={(e) => setAptLocation(e.target.value)} className="w-full p-2.5 border border-slate-200 rounded-xl bg-slate-50 outline-none">
+                  <option value="Provider Office (In-Person)">Provider Office (In-Person)</option>
+                  <option value="Phone Check-in">Phone Check-in</option>
+                  <option value="Virtual Video Audit">Virtual Video Audit</option>
+                </select>
+              </div>
+            </div>
+
+            <div className="flex justify-end gap-2 pt-2 border-t border-slate-100">
+              <button type="button" onClick={() => setShowAptModal(false)} className="px-4 py-2 bg-slate-100 font-bold text-xs rounded-xl">
+                Cancel
+              </button>
+              <button type="submit" className="px-4 py-2 bg-purple-900 hover:bg-purple-950 text-white font-bold text-xs rounded-xl shadow-xs">
+                Schedule Appointment
+              </button>
+            </div>
+          </form>
+        </div>
+      )}
+
+      {/* MODAL 4: AUDIT STAR REPORT */}
+      {selectedReport && (
+        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-2xl p-6 max-w-2xl w-full space-y-5 shadow-2xl border border-slate-200 max-h-[90vh] overflow-y-auto font-sans">
+            <div className="border-b border-slate-100 pb-4 flex justify-between items-start">
+              <div>
+                <div className="flex items-center gap-2">
+                  <span className="px-2.5 py-0.5 bg-purple-100 text-purple-800 text-[10px] font-bold rounded-full uppercase">
+                    Audit Inspection
+                  </span>
+                  <span className="text-xs text-slate-400">{selectedReport.timestamp}</span>
+                </div>
+                <h3 className="font-extrabold text-lg text-[#24083b] mt-1">
+                  STAR Interview Evaluation • {selectedReport.jobRole}
+                </h3>
+              </div>
+              <button onClick={() => setSelectedReport(null)} className="text-slate-400 font-bold text-lg px-2">✕</button>
+            </div>
+
+            <div className="p-4 bg-purple-50/70 border border-purple-200 rounded-xl space-y-3">
+              <div className="flex items-center justify-between text-xs font-bold text-purple-900">
+                <span>Rubric Rating: <strong className="text-emerald-700 text-sm ml-1">{selectedReport.rubricScore}</strong></span>
+                <span className="text-purple-800 bg-purple-100 px-2.5 py-0.5 rounded-full border border-purple-200 text-[10px]">
+                  Participant: {activeCandidate.name}
+                </span>
+              </div>
+
+              <div className="space-y-1.5 text-xs text-slate-700 pt-1">
                 {selectedReport.feedbackNotes?.map((note: string, idx: number) => (
-                  <div key={idx} className="p-2 bg-white rounded border border-purple-100">{note}</div>
+                  <div key={idx} className="p-2.5 bg-white rounded-lg border border-purple-100 shadow-2xs">
+                    {note}
+                  </div>
                 ))}
               </div>
             </div>
 
-            <div className="flex justify-between pt-2 border-t border-slate-100">
+            <div className="space-y-3 text-xs">
+              <h4 className="font-bold text-slate-800 uppercase tracking-wider text-[11px]">STAR Structure Response Analysis:</h4>
+              
+              <div className="space-y-2.5 bg-slate-50 p-4 rounded-xl border border-slate-200">
+                <div>
+                  <span className="font-bold text-purple-900">Primary Question:</span>
+                  <p className="text-slate-700 mt-0.5 font-medium">"{selectedReport.question}"</p>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
+                  <div className="bg-white p-3 rounded-lg border border-slate-200">
+                    <span className="font-bold text-emerald-700 block mb-0.5">Situation:</span>
+                    <p className="text-slate-600">{selectedReport.situation}</p>
+                  </div>
+
+                  <div className="bg-white p-3 rounded-lg border border-slate-200">
+                    <span className="font-bold text-emerald-700 block mb-0.5">Task:</span>
+                    <p className="text-slate-600">{selectedReport.task}</p>
+                  </div>
+
+                  <div className="bg-white p-3 rounded-lg border border-slate-200">
+                    <span className="font-bold text-emerald-700 block mb-0.5">Action:</span>
+                    <p className="text-slate-600">{selectedReport.action}</p>
+                  </div>
+
+                  <div className="bg-white p-3 rounded-lg border border-slate-200">
+                    <span className="font-bold text-emerald-700 block mb-0.5">Result:</span>
+                    <p className="text-slate-600">{selectedReport.result}</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="flex items-center justify-between pt-3 border-t border-slate-100">
               <button
                 onClick={() => {
-                  handleApprove(selectedReport.id, 25, 'c1');
+                  handleApprove(selectedReport.id, 25, activeCandidate.id);
                   setSelectedReport(null);
                 }}
-                className="px-4 py-2 bg-emerald-500 hover:bg-emerald-600 text-white font-bold text-xs rounded-xl"
+                className="px-5 py-2 bg-emerald-500 hover:bg-emerald-600 text-white font-bold text-xs rounded-xl shadow-sm transition-all flex items-center gap-1.5"
               >
-                Approve & Credit +25 Points
+                <Check className="w-4 h-4" /> Approve Session & Credit +25 Pts
               </button>
-              <button onClick={() => setSelectedReport(null)} className="px-4 py-2 bg-slate-100 text-slate-700 font-bold text-xs rounded-xl">
-                Close
+
+              <button
+                onClick={() => setSelectedReport(null)}
+                className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs rounded-xl transition-all"
+              >
+                Close Audit
               </button>
             </div>
           </div>
