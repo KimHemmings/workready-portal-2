@@ -1,5 +1,4 @@
 ﻿import { CertifiedLmsModule } from '../components/CertifiedLmsModule';
-import StarInterviewHistory from '../components/StarInterviewHistory';
 import AppointmentsWidget from '../components/AppointmentsWidget';
 import PointProjectionWheel from '../components/PointProjectionWheel';
 import DocumentLocker from '../components/DocumentLocker';
@@ -59,36 +58,36 @@ export const ParticipantHome: React.FC = () => {
     },
   ]);
 
-  // Sync STAR Interview Practice sessions into the central Activity Verification Log
+  // Sync STAR Interview Practice sessions directly into the Activity Verification Log as Pending Verification
   useEffect(() => {
-    const syncStarActivityLog = () => {
+    const syncStarActivityLog = (e?: any) => {
       try {
-        const storedHistory = localStorage.getItem('workready_star_history');
-        if (!storedHistory) return;
+        let recordToSync = e?.detail;
 
-        const parsedRecords = JSON.parse(storedHistory);
-        if (parsedRecords.length === 0) return;
-
-        const latestRecord = parsedRecords[0];
+        if (!recordToSync) {
+          const storedHistory = localStorage.getItem('workready_star_history');
+          if (!storedHistory) return;
+          const parsedRecords = JSON.parse(storedHistory);
+          if (parsedRecords.length === 0) return;
+          recordToSync = parsedRecords[0];
+        }
 
         setActivities((prev) => {
-          const exists = prev.some((act) => act.id === latestRecord.id);
+          const exists = prev.some((act) => act.id === recordToSync.id);
           if (exists) return prev;
 
           const newStarActivity: ActivityLog = {
-            id: latestRecord.id,
+            id: recordToSync.id,
             type: 'Interview',
-            title: `STAR Practice: ${latestRecord.jobRole} (${latestRecord.score}% Match)`,
-            reference: `STAR-${latestRecord.id.slice(-6).toUpperCase()}`,
+            title: `STAR Practice: ${recordToSync.jobRole} (${recordToSync.rubricScore || 'Completed Session'})`,
+            reference: `STAR-${recordToSync.id.slice(-6).toUpperCase()}`,
             points: 25,
-            status: 'Verified',
-            date: latestRecord.date || new Date().toLocaleDateString('en-AU'),
+            status: 'Pending Verification',
+            date: recordToSync.date || new Date().toLocaleDateString('en-AU'),
           };
 
           return [newStarActivity, ...prev];
         });
-
-        setVerifiedPoints((prev) => Math.min(prev + 25, targetPoints));
       } catch (err) {
         console.error('Error syncing STAR history to main log', err);
       }
@@ -98,7 +97,7 @@ export const ParticipantHome: React.FC = () => {
 
     window.addEventListener('starHistoryUpdated', syncStarActivityLog);
     return () => window.removeEventListener('starHistoryUpdated', syncStarActivityLog);
-  }, [targetPoints]);
+  }, []);
 
   // Modal States
   const [showJobModal, setShowJobModal] = useState<boolean>(false);
@@ -483,7 +482,6 @@ export const ParticipantHome: React.FC = () => {
           {activeTab === 2 && (
             <div className="space-y-8">
               <StarInterviewSimulator />
-              <StarInterviewHistory />
               <div className="border-t border-slate-200 pt-8">
                 <ResumeBuilder maxAttempts={3} />
               </div>
