@@ -44,6 +44,11 @@ const Login: React.FC<LoginProps> = ({ onLoginSuccess }) => {
     const cleanEmail = email.trim().toLowerCase();
     const cleanPassword = password.trim();
 
+    // Console Diagnostics for Login Investigation
+    console.log('1. Sanitized Email:', cleanEmail);
+    console.log('2. Matched User Record:', AUTHORIZED_USERS[cleanEmail]);
+    console.log('3. Password Match:', AUTHORIZED_USERS[cleanEmail]?.pass === cleanPassword);
+
     const user = AUTHORIZED_USERS[cleanEmail];
 
     if (user && user.pass === cleanPassword) {
