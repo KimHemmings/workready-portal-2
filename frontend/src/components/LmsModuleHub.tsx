@@ -1,11 +1,13 @@
-﻿import React, { useState } from "react";
+﻿import React, { useState, useEffect } from "react";
 import { 
   BookOpen, 
   CheckCircle2, 
   Clock, 
   RotateCcw, 
   Award,
-  Download
+  Calendar,
+  Lock,
+  Sparkles,
 } from "lucide-react";
 import CertificateModal, { type CertificateData } from "@/components/CertificateModal";
 import { QUIZ_DATA, type QuizQuestion } from "@/data/quizQuestions";
@@ -29,7 +31,7 @@ export const MODULES_LIST: LMSModule[] = [
     studyGuide: [
       "1. Duty of Care: Employers must provide a safe environment; employees must follow safety procedures.",
       "2. Hazard Reporting: Identify and report slip/trip/fall hazards immediately to safety officers.",
-      "3. National Employment Standards (NES): 11 statutory entitlements protecting all Australian employees.",
+      "3. National Employment Standards (NES): statutory entitlements protecting Australian employees.",
       "4. Emergency Evacuation: Memorize emergency assembly points and exit routes in your workplace.",
       "5. PPE Compliance: Correctly wear required Personal Protective Equipment (PPE) at all times on site.",
       "6. Incident Logging: Report all injuries or near-misses immediately, no matter how minor.",
@@ -83,7 +85,7 @@ export const MODULES_LIST: LMSModule[] = [
       "6. Initiative: Identify quiet shift periods and ask team leaders how you can assist.",
       "7. Punctuality Impact: Arrive on time to avoid placing unfair pressure on shift co-workers.",
       "8. Customer Service Excellence: Strive to create positive, helpful experiences for every client.",
-      "9. Digital Messaging: Keep Slack or Microsoft Teams chats concise, clear, and work-appropriate.",
+      "9. Digital Messaging: Keep messaging chats concise, clear, and work-appropriate.",
       "10. Phone Courtesy: Speak clearly, state your name, and capture accurate messages.",
       "11. Handover Reports: Provide structured end-of-shift updates to oncoming team members.",
       "12. Cultural Competency: Demonstrate inclusive behavior in multicultural work environments.",
@@ -128,7 +130,7 @@ export const MODULES_LIST: LMSModule[] = [
       "3. Achievable Milestones: Set realistic goals aligned with your current skills and support resources.",
       "4. Relevant Objectives: Ensure short-term tasks directly advance your long-term career path.",
       "5. Time-Bound Deadlines: Set target dates to build momentum and avoid procrastination.",
-      "6. Barrier Identification: Address practical challenges (e.g., transport, tickets) early with your Provider.",
+      "6. Barrier Identification: Address practical challenges early with your Provider.",
       "7. Application Logging: Maintain systematic records of job applications for compliance proof.",
       "8. Micro-Habits: Break large career objectives into manageable daily action steps.",
       "9. Strategy Adjustments: Review application feedback with your Case Manager every 3-4 weeks.",
@@ -169,19 +171,19 @@ export const MODULES_LIST: LMSModule[] = [
     title: "Financial Literacy, Pay Slips & Tax",
     category: "Non-Vocational Life Skills",
     estimatedMinutes: 20,
-    description: "Understanding Tax File Numbers, superannuation, gross vs net pay, and Centrelink reporting.",
+    description: "Understanding tax declarations, superannuation, gross vs net pay, and income reporting.",
     studyGuide: [
       "1. Gross vs Net Pay: Gross is total earnings before deductions; Net is take-home pay.",
       "2. Payment Arrears: Plan for initial 2-4 week pay cycles when starting a new position.",
-      "3. Centrelink Reporting: Report gross income earned during the specific reporting fortnight.",
-      "4. Tax-Free Threshold: Claim the $18,200 threshold on your TFN declaration for your primary job.",
+      "3. Income Reporting: Report gross income earned during the specific reporting fortnight.",
+      "4. Tax-Free Threshold: Claim the tax-free threshold on your declaration for your primary job.",
       "5. Budgeting Strategy: Base personal budget calculations on guaranteed base hours, not overtime.",
       "6. Provider Assistance: Access clothing, boot, and ticket support through your Employment Provider.",
       "7. Receipt Tracking: Keep digital copies of work-related expenses for tax deduction time.",
       "8. Pay Slip Checks: Verify hourly rates, gross pay, tax withheld, and super contributions weekly.",
       "9. Superannuation Guarantee: Ensure compulsory employer super payments enter your chosen fund.",
-      "10. TFN Declaration: Submit your Tax File Number declaration promptly to avoid top-rate withholding.",
-      "11. Award Conditions: Understand minimum pay rates set by Fair Work Modern Awards.",
+      "10. Tax Declaration: Submit your declaration promptly to avoid top-rate withholding.",
+      "11. Award Conditions: Understand minimum pay rates set by Modern Awards.",
       "12. Allowance Tracking: Check that meal, travel, or uniform allowances appear on pay slips.",
       "13. Emergency Savings: Build a modest financial buffer for unexpected living expenses.",
       "14. Super Fund Choice: Select a high-performing super fund to protect long-term retirement savings.",
@@ -199,7 +201,7 @@ export const MODULES_LIST: LMSModule[] = [
       "2. Employee Support (EAP): Access free, confidential employer counseling programs when available.",
       "3. Sleep Hygiene: Prioritize 7-9 hours of restful sleep in dark, screen-free environments.",
       "4. Anxiety De-escalation: Use box breathing (in 4s, hold 4s, out 4s) to calm acute stress.",
-      "5. Bulk-Billed Care: Access Medicare bulk-billed mental health plans via your local GP.",
+      "5. Professional Support: Access bulk-billed mental health care options via your local GP.",
       "6. Imposter Syndrome: Recognize early job self-doubt as temporary and normal.",
       "7. Shift Decompression: Take dedicated time to unwind after demanding shifts to prevent burnout.",
       "8. Hydration & Nutrition: Maintain proper hydration and balanced meals on physical shifts.",
@@ -214,12 +216,16 @@ export const MODULES_LIST: LMSModule[] = [
   }
 ];
 
+interface ModuleCompletionMeta {
+  lastCompletedTimestamp: number;
+}
+
 interface Props {
   onModuleCompleted?: (moduleId: string, pbasPoints: number) => void;
 }
 
 export default function LmsModuleHub({ onModuleCompleted }: Props) {
-  const [completedModuleIds, setCompletedModuleIds] = useState<string[]>(["mod-1"]);
+  const [completionRecords, setCompletionRecords] = useState<Record<string, ModuleCompletionMeta>>({});
   const [activeModule, setActiveModule] = useState<LMSModule | null>(null);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [selectedAnswers, setSelectedAnswers] = useState<Record<number, number>>({});
@@ -227,6 +233,42 @@ export default function LmsModuleHub({ onModuleCompleted }: Props) {
   
   // Unified Landscape Certificate Modal State
   const [activeCertificate, setActiveCertificate] = useState<CertificateData | null>(null);
+
+  // Load completion timestamps from localStorage
+  useEffect(() => {
+    try {
+      const stored = localStorage.getItem("workready_pbas_module_meta");
+      if (stored) {
+        setCompletionRecords(JSON.parse(stored));
+      } else {
+        // Default seed: Module 1 completed 10 days ago
+        const defaultMeta = {
+          "mod-1": { lastCompletedTimestamp: Date.now() - 10 * 24 * 60 * 60 * 1000 }
+        };
+        setCompletionRecords(defaultMeta);
+        localStorage.setItem("workready_pbas_module_meta", JSON.stringify(defaultMeta));
+      }
+    } catch (err) {
+      console.error("Error reading module completion meta", err);
+    }
+  }, []);
+
+  const getQuarterlyStatus = (moduleId: string) => {
+    const meta = completionRecords[moduleId];
+    if (!meta) return { isCompleted: false, daysRemaining: 0, canClaimPoints: true };
+
+    const ninetyDaysMs = 90 * 24 * 60 * 60 * 1000;
+    const elapsedMs = Date.now() - meta.lastCompletedTimestamp;
+    const isCompleted = true;
+
+    if (elapsedMs >= ninetyDaysMs) {
+      return { isCompleted: true, daysRemaining: 0, canClaimPoints: true };
+    } else {
+      const remainingMs = ninetyDaysMs - elapsedMs;
+      const daysRemaining = Math.ceil(remainingMs / (24 * 60 * 60 * 1000));
+      return { isCompleted: true, daysRemaining, canClaimPoints: false };
+    }
+  };
 
   const handleOpenModule = (module: LMSModule) => {
     setActiveModule(module);
@@ -261,11 +303,18 @@ export default function LmsModuleHub({ onModuleCompleted }: Props) {
 
       // Pass threshold: >= 75% (6 out of 8 correct)
       if (calculatedScore >= 75) {
-        if (!completedModuleIds.includes(activeModule.id)) {
-          setCompletedModuleIds((prev) => [...prev, activeModule.id]);
-          if (onModuleCompleted) {
-            onModuleCompleted(activeModule.id, 15);
-          }
+        const status = getQuarterlyStatus(activeModule.id);
+        const now = Date.now();
+
+        const updatedMeta = {
+          ...completionRecords,
+          [activeModule.id]: { lastCompletedTimestamp: now }
+        };
+        setCompletionRecords(updatedMeta);
+        localStorage.setItem("workready_pbas_module_meta", JSON.stringify(updatedMeta));
+
+        if (status.canClaimPoints && onModuleCompleted) {
+          onModuleCompleted(activeModule.id, 15);
         }
       }
     }
@@ -283,6 +332,8 @@ export default function LmsModuleHub({ onModuleCompleted }: Props) {
     });
   };
 
+  const completedCount = Object.keys(completionRecords).length;
+
   return (
     <div className="space-y-6">
       {/* HEADER BAR */}
@@ -290,23 +341,24 @@ export default function LmsModuleHub({ onModuleCompleted }: Props) {
         <div>
           <div className="flex items-center gap-2">
             <h2 className="text-xl font-bold text-slate-900 font-heading">LMS Non-Vocational Modules</h2>
-            <span className="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-200">
-              Pre-Employment Units
+            <span className="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-purple-100 text-purple-800 border border-purple-200">
+              3-Month PBAS Cycle Rules
             </span>
           </div>
           <p className="text-xs sm:text-sm text-slate-500 mt-1">
-            Complete 15-point modules, pass 8-question quizzes, earn +15 PBAS points per unit, and view landscape certificates.
+            Complete 15-point modules, pass 8-question quizzes, earn +15 PBAS points per unit, and claim rewards every 90 days.
           </p>
         </div>
         <div className="px-3.5 py-1.5 rounded-lg bg-slate-100 text-slate-700 text-xs font-bold border border-slate-200 w-fit">
-          {completedModuleIds.length} of {MODULES_LIST.length} Units Complete
+          {completedCount} of {MODULES_LIST.length} Units Completed
         </div>
       </div>
 
       {/* MODULE CARDS GRID */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         {MODULES_LIST.map((mod) => {
-          const isCompleted = completedModuleIds.includes(mod.id);
+          const { isCompleted, daysRemaining, canClaimPoints } = getQuarterlyStatus(mod.id);
+          
           return (
             <div
               key={mod.id}
@@ -319,7 +371,7 @@ export default function LmsModuleHub({ onModuleCompleted }: Props) {
                   </span>
                   {isCompleted ? (
                     <span className="text-xs font-bold text-emerald-700 flex items-center gap-1">
-                      <CheckCircle2 className="w-3.5 h-3.5" /> Done
+                      <CheckCircle2 className="w-3.5 h-3.5" /> Completed
                     </span>
                   ) : (
                     <span className="text-xs text-slate-400 flex items-center gap-1">
@@ -332,6 +384,21 @@ export default function LmsModuleHub({ onModuleCompleted }: Props) {
               </div>
 
               <div className="mt-4 space-y-2">
+                {/* PBAS Quarterly Lock Status Badge */}
+                {isCompleted && !canClaimPoints && (
+                  <div className="bg-purple-50 border border-purple-200 rounded-lg p-2 text-[10px] text-purple-900 flex items-center gap-1.5 font-semibold">
+                    <Calendar className="w-3.5 h-3.5 text-purple-700 shrink-0" />
+                    <span>Next PBAS Point Claim in <strong>{daysRemaining} Days</strong></span>
+                  </div>
+                )}
+
+                {isCompleted && canClaimPoints && (
+                  <div className="bg-emerald-50 border border-emerald-200 rounded-lg p-2 text-[10px] text-emerald-800 flex items-center gap-1.5 font-bold">
+                    <Sparkles className="w-3.5 h-3.5 text-emerald-600 shrink-0" strokeWidth={3} />
+                    <span>Quarterly Point Claim Available (+15 Pts)</span>
+                  </div>
+                )}
+
                 <button
                   onClick={() => handleOpenModule(mod)}
                   className={`w-full py-2 px-3 rounded-lg text-xs font-bold transition-all ${
@@ -453,7 +520,7 @@ export default function LmsModuleHub({ onModuleCompleted }: Props) {
                     <CheckCircle2 className="w-16 h-16 text-emerald-600 mx-auto" />
                     <h4 className="text-2xl font-bold text-slate-900">Module Passed! 🎉</h4>
                     <p className="text-sm text-slate-600 max-w-md mx-auto">
-                      You scored <span className="font-bold text-emerald-600 text-base">{quizScorePercent}%</span>. You have earned <span className="font-bold text-slate-900">+15 PBAS points</span> and unlocked your printable landscape certificate.
+                      You scored <span className="font-bold text-emerald-600 text-base">{quizScorePercent}%</span>. You have refreshed your study material and unlocked your printable landscape certificate.
                     </p>
                     <button
                       onClick={() => {
