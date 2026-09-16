@@ -69,13 +69,14 @@ function speak(text: string) {
 
 /** PDF scorecard generator — streams the server-rendered PDF and saves it locally. */
 async function downloadScorecardPdf(session: InterviewSession) {
+  const targetName = session.job_target || "interview";
   const res = await fetch(`${API_BASE}/interviews/${session.id}/scorecard.pdf`);
   if (!res.ok) throw new Error("scorecard download failed");
   const blob = await res.blob();
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");
   a.href = url;
-  a.download = `interview-scorecard-${session.job_target.replace(/\W+/g, "-").toLowerCase()}.pdf`;
+  a.download = `interview-scorecard-${targetName.replace(/\W+/g, "-").toLowerCase()}.pdf`;
   a.click();
   URL.revokeObjectURL(url);
 }
@@ -85,25 +86,25 @@ function downloadScorecard(session: InterviewSession) {
   const lines = [
     "Straight Up Training — Interview Feedback Scorecard",
     "==============================================",
-    `Role target : ${session.job_target}`,
-    `Industry    : ${session.industry}`,
-    `Date        : ${new Date(session.created_at).toLocaleDateString("en-AU")}`,
-    `Overall readiness score: ${session.overall_score}/100`,
+    `Role target : ${session.job_target || 'N/A'}`,
+    `Industry    : ${session.industry || 'N/A'}`,
+    `Date        : ${session.created_at ? new Date(session.created_at).toLocaleDateString("en-AU") : 'N/A'}`,
+    `Overall readiness score: ${session.overall_score ?? 0}/100`,
     "",
     "Summary",
     fb?.summary ?? "",
     "",
     "Core Skills for Work",
-    ...(fb?.skills ?? []).map((s) => `- ${s.skill}: ${s.score}/100 — ${s.comment}`),
+    ...(fb?.skills ?? []).map((s: any) => `- ${s.skill}: ${s.score}/100 — ${s.comment}`),
     "",
     "Strengths",
-    ...(fb?.strengths ?? []).map((s) => `- ${s}`),
+    ...(fb?.strengths ?? []).map((s: any) => `- ${s}`),
     "",
     "Areas for improvement",
-    ...(fb?.improvements ?? []).map((s) => `- ${s}`),
+    ...(fb?.improvements ?? []).map((s: any) => `- ${s}`),
     "",
     "Transcript",
-    ...session.transcript_json.map((t) => `${t.role.toUpperCase()}: ${t.content}`),
+    ...(session.transcript_json || []).map((t: any) => `${(t.role || '').toUpperCase()}: ${t.content}`),
   ];
   const blob = new Blob([lines.join("\n")], { type: "text/plain" });
   const url = URL.createObjectURL(blob);
@@ -136,7 +137,7 @@ export default function Interview() {
     enabled: Boolean(user),
   });
 
-  const dictation = useDictation((chunk) =>
+  const dictation = useDictation((chunk: string) =>
     setAnswer((prev) => (prev ? `${prev.replace(/\s+$/, "")} ${chunk}` : chunk)),
   );
   const [consentOpen, setConsentOpen] = useState(false);
@@ -149,7 +150,10 @@ export default function Interview() {
     toast.success("Listening — speak your answer, then press the mic again to stop.");
   };
 
-  const interviewsLeft = usage.data?.interviews.remaining ?? 1;
+  const historyData = history.data || [];
+  const completedSessions = historyData.filter((s: any) => s.finished);
+
+  const interviewsLeft = usage.data?.interviews?.remaining ?? 1;
 
   const start = useMutation({
     mutationFn: () =>
@@ -159,12 +163,12 @@ export default function Interview() {
         industry,
         mode,
       }),
-    onSuccess: (data) => {
+    onSuccess: (data: InterviewSession) => {
       setSession(data);
       toast.success("Your practice interview has started — good luck!");
-      if (readAloud && data.questions[0]) speak(data.questions[0]);
+      if (readAloud && data.questions && data.questions[0]) speak(data.questions[0]);
     },
-    onError: (err) => {
+    onError: (err: unknown) => {
       const detail = err instanceof ApiError ? (err.body as { detail?: string } | null)?.detail : null;
       toast.error(detail ?? "Could not start the interview. Please try again.");
       qc.invalidateQueries({ queryKey: ["usage"] });
@@ -174,11 +178,12 @@ export default function Interview() {
   const reply = useMutation({
     mutationFn: (text: string) =>
       apiPost<InterviewSession>(`/interviews/${session!.id}/answer`, { answer: text }),
-    onSuccess: (data) => {
+    onSuccess: (data: InterviewSession) => {
       setSession(data);
       setAnswer("");
-      if (readAloud && !data.finished) {
-        const next = data.questions[data.current_index];
+      if (readAloud && !data.finished && data.questions) {
+        const currentIndex = data.current_index ?? 0;
+        const next = data.questions[currentIndex];
         if (next) speak(next);
       }
       if (data.finished) {
@@ -196,6 +201,9 @@ export default function Interview() {
   });
 
   const fb = session?.feedback_summary_json;
+  const sessionQuestions = session?.questions || [];
+  const currentIndex = session?.current_index ?? 0;
+  const transcriptList = session?.transcript_json || [];
 
   return (
     <AppShell>
@@ -218,7 +226,7 @@ export default function Interview() {
             <CardHeader>
               <div className="flex flex-wrap items-center justify-between gap-2">
                 <CardTitle className="text-lg">Choose your job target</CardTitle>
-                {usage.data && <UsageMeter metric={usage.data.interviews} testId="interview-usage-meter" />}
+                {usage.data && usage.data.interviews && <UsageMeter metric={usage.data.interviews} testId="interview-usage-meter" />}
               </div>
             </CardHeader>
             <CardContent className="space-y-4">
@@ -294,7 +302,7 @@ export default function Interview() {
                 <Label htmlFor="industry">Industry</Label>
                 <Select value={industry} onValueChange={(v: string) => setIndustry(v)}>
                   <SelectTrigger id="industry" data-testid="industry-select">
-                    <SelectValue>{(v) => (v as string) || "Select an industry"}</SelectValue>
+                    <SelectValue>{(v: any) => (v as string) || "Select an industry"}</SelectValue>
                   </SelectTrigger>
                   <SelectContent>
                     {INDUSTRIES.map((i) => (
@@ -341,41 +349,39 @@ export default function Interview() {
               <CardTitle className="text-lg">Previous practice sessions</CardTitle>
             </CardHeader>
             <CardContent>
-              {(history.data ?? []).filter((s) => s.finished).length === 0 ? (
+              {completedSessions.length === 0 ? (
                 <p className="text-muted-foreground text-sm" data-testid="interview-history-empty">
                   No completed sessions yet. Your scorecards will appear here.
                 </p>
               ) : (
                 <ul className="space-y-3" data-testid="interview-history-list">
-                  {(history.data ?? [])
-                    .filter((s) => s.finished)
-                    .map((s) => (
-                      <li key={s.id} className="flex items-center justify-between gap-3 border-b pb-2 last:border-0">
-                        <div>
-                          <p className="font-medium text-sm">{s.job_target}</p>
-                          <p className="text-xs text-muted-foreground">
-                            {s.industry} · {new Date(s.created_at).toLocaleDateString("en-AU")}
-                            {s.mode === "llnd" ? " · LLND mode" : ""}
-                          </p>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <Badge>{s.overall_score}/100</Badge>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            aria-label="Download PDF scorecard"
-                            onClick={() =>
-                              downloadScorecardPdf(s).catch(() =>
-                                toast.error("Could not download the PDF scorecard. Please try again."),
-                              )
-                            }
-                            data-testid={`download-scorecard-${s.id}`}
-                          >
-                            <Download className="h-4 w-4" aria-hidden="true" />
-                          </Button>
-                        </div>
-                      </li>
-                    ))}
+                  {completedSessions.map((s: any) => (
+                    <li key={s.id} className="flex items-center justify-between gap-3 border-b pb-2 last:border-0">
+                      <div>
+                        <p className="font-medium text-sm">{s.job_target}</p>
+                        <p className="text-xs text-muted-foreground">
+                          {s.industry} · {s.created_at ? new Date(s.created_at).toLocaleDateString("en-AU") : ''}
+                          {s.mode === "llnd" ? " · LLND mode" : ""}
+                        </p>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Badge>{s.overall_score ?? 0}/100</Badge>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          aria-label="Download PDF scorecard"
+                          onClick={() =>
+                            downloadScorecardPdf(s).catch(() =>
+                              toast.error("Could not download the PDF scorecard. Please try again."),
+                            )
+                          }
+                          data-testid={`download-scorecard-${s.id}`}
+                        >
+                          <Download className="h-4 w-4" aria-hidden="true" />
+                        </Button>
+                      </div>
+                    </li>
+                  ))}
                 </ul>
               )}
             </CardContent>
@@ -399,23 +405,23 @@ export default function Interview() {
                     variant="outline"
                     size="sm"
                     onClick={() => {
-                      const q = session.questions[Math.min(session.current_index, session.questions.length - 1)];
-                      if (!speak(q)) toast.error("Your browser does not support read aloud.");
+                      const q = sessionQuestions[Math.min(currentIndex, Math.max(0, sessionQuestions.length - 1))];
+                      if (q && !speak(q)) toast.error("Your browser does not support read aloud.");
                     }}
                     data-testid="speak-question-button"
                   >
                     <Volume2 className="h-4 w-4 mr-1.5" aria-hidden="true" /> Read question
                   </Button>
                   <Badge variant="secondary" data-testid="interview-progress-badge">
-                    Question {Math.min(session.current_index + 1, session.questions.length)} of{" "}
-                    {session.questions.length}
+                    Question {Math.min(currentIndex + 1, sessionQuestions.length)} of{" "}
+                    {sessionQuestions.length}
                   </Badge>
                 </div>
               </div>
             </CardHeader>
             <CardContent>
               <div className="space-y-3 max-h-[420px] overflow-y-auto pr-1" data-testid="interview-transcript">
-                {session.transcript_json.map((turn, i) => (
+                {transcriptList.map((turn: any, i: number) => (
                   <div
                     key={i}
                     className={`wr-rise max-w-[85%] rounded-2xl px-4 py-3 text-sm ${
@@ -516,13 +522,13 @@ export default function Interview() {
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <p className="text-4xl font-bold font-heading" data-testid="overall-score">
-                    {session.overall_score}
+                    {session.overall_score ?? 0}
                     <span className="text-lg font-normal text-muted-foreground">/100 readiness</span>
                   </p>
                   <p className="text-sm text-muted-foreground">{fb.summary}</p>
 
                   <div className="space-y-2">
-                    {fb.skills.map((s) => (
+                    {(fb.skills || []).map((s: any) => (
                       <div key={s.skill}>
                         <div className="flex justify-between text-sm">
                           <span>{s.skill}</span>
@@ -539,7 +545,7 @@ export default function Interview() {
                   <div>
                     <p className="font-semibold text-sm mb-1">Strengths</p>
                     <ul className="list-disc ml-5 text-sm text-muted-foreground space-y-1">
-                      {fb.strengths.map((s, i) => (
+                      {(fb.strengths || []).map((s: any, i: number) => (
                         <li key={i}>{s}</li>
                       ))}
                     </ul>
@@ -547,7 +553,7 @@ export default function Interview() {
                   <div>
                     <p className="font-semibold text-sm mb-1">Areas for improvement</p>
                     <ul className="list-disc ml-5 text-sm text-muted-foreground space-y-1">
-                      {fb.improvements.map((s, i) => (
+                      {(fb.improvements || []).map((s: any, i: number) => (
                         <li key={i}>{s}</li>
                       ))}
                     </ul>

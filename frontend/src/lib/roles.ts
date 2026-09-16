@@ -1,24 +1,19 @@
-import type { Role } from "@/lib/types";
+import type { Role } from './types';
 
-/**
- * Role labels shown across the whole product. The stored role values are unchanged — only the
- * wording is client-facing, so relabelling never touches the database.
- */
-export const ROLE_LABEL: Record<Role, string> = {
-  owner: "System Admin",
-  admin: "Provider",
-  coach: "Case Manager",
-  participant: "Learner",
+export const ROLE_LABELS: Record<Role, string> = {
+  owner: 'Organization Owner',
+  admin: 'Administrator',
+  coach: 'Case Manager / Coach',
+  candidate: 'Candidate / Participant',
+  participant: 'Candidate / Participant',
+  sales: 'Sales Representative',
 };
 
-/** Plural form, for headings and counters. */
-export const ROLE_LABEL_PLURAL: Record<Role, string> = {
-  owner: "System Admins",
-  admin: "Providers",
-  coach: "Case Managers",
-  participant: "Learners",
+export const ROLE_DESCRIPTIONS: Record<Role, string> = {
+  owner: 'Full administrative control over organization settings and staff.',
+  admin: 'Manage platform users, candidate roster, and view analytics.',
+  coach: 'View caseload, verify evidence, and support candidate progress.',
+  candidate: 'Track requirements, log job searches, and submit milestones.',
+  participant: 'Track requirements, log job searches, and submit milestones.',
+  sales: 'Explore product functionality with preview access.',
 };
-
-export function roleLabel(role: Role | undefined | null): string {
-  return role ? ROLE_LABEL[role] : "";
-}

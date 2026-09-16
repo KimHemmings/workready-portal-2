@@ -11,11 +11,13 @@ import { apiGet, apiPost, ApiError } from "@/lib/api";
 import { beginSession, homePathFor } from "@/lib/session";
 import type { InvitePreview, Role, User } from "@/lib/types";
 
-const ROLE_LABEL: Record<Role, string> = {
-  participant: "Learner",
-  coach: "Case Manager",
-  admin: "Provider",
-  owner: "System Admin",
+const ROLE_LABELS: Record<Role, string> = {
+  owner: 'Organization Owner',
+  admin: 'Administrator',
+  coach: 'Case Manager / Coach',
+  candidate: 'Candidate / Participant',
+  participant: 'Candidate / Participant',
+  sales: 'Sales Representative',
 };
 
 function errorDetail(err: unknown, fallback: string): string {
@@ -94,11 +96,11 @@ export default function Register() {
               Complete registration
             </p>
             <h1 className="font-heading text-2xl font-bold tracking-tight mt-1" data-testid="invite-greeting">
-              G'day {preview.data?.name.split(" ")[0]}
+              G'day {preview.data?.name?.split(" ")[0]}
             </h1>
             <p className="text-muted-foreground mt-2 text-sm" data-testid="invite-summary">
               You've been set up with <strong>{preview.data?.organization_name}</strong> as a{" "}
-              <strong>{preview.data ? ROLE_LABEL[preview.data.role] : ""}</strong>. Choose a password to
+              <strong>{preview.data?.role ? ROLE_LABELS[preview.data.role] : ""}</strong>. Choose a password to
               finish.
             </p>
             <p className="mt-3 rounded-lg bg-muted/60 px-3 py-2 text-sm font-mono" data-testid="invite-email">

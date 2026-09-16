@@ -36,7 +36,7 @@ export default function ModuleDetail() {
       start.mutate();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [detail.data?.module.id]);
+  }, [detail.data?.module?.id]);
 
   const submit = useMutation({
     mutationFn: (payload: number[]) =>
@@ -50,7 +50,7 @@ export default function ModuleDetail() {
       toast[data.passed ? "success" : "warning"](
         data.passed ? `Passed with ${data.score}% — certificate earned!` : `You scored ${data.score}%. Have another go.`,
       );
-      if (data.new_certificates.length > 0) {
+      if (data.new_certificates && data.new_certificates.length > 0) {
         setAwarded(data.new_certificates[0]);
       }
     },
@@ -59,7 +59,7 @@ export default function ModuleDetail() {
 
   const module = detail.data?.module;
   const quiz = detail.data?.quiz;
-  const allAnswered = quiz ? quiz.questions.every((_, i) => answers[i] !== undefined) : false;
+  const allAnswered = quiz?.questions ? quiz.questions.every((_: any, i: number) => answers[i] !== undefined) : false;
 
   return (
     <AppShell>
@@ -94,11 +94,11 @@ export default function ModuleDetail() {
 
           <Card className="mb-8">
             <CardContent className="pt-6">
-              <Markdown markdown={module.content_markdown} />
+              <Markdown markdown={module.content_markdown || module.content} />
             </CardContent>
           </Card>
 
-          {quiz && quiz.questions.length > 0 && (
+          {quiz && quiz.questions && quiz.questions.length > 0 && (
             <Card data-testid="quiz-card">
               <CardHeader>
                 <CardTitle className="text-xl">Knowledge check</CardTitle>
@@ -107,8 +107,8 @@ export default function ModuleDetail() {
                 </p>
               </CardHeader>
               <CardContent className="space-y-6">
-                {quiz.questions.map((q, qi) => {
-                  const answerResult = result?.results[qi];
+                {quiz.questions.map((q: any, qi: number) => {
+                  const answerResult = result?.results ? result.results[qi] : null;
                   return (
                     <fieldset key={qi} className="border-t pt-5 first:border-t-0 first:pt-0">
                       {q.scenario && (
@@ -126,7 +126,7 @@ export default function ModuleDetail() {
                         {qi + 1}. {q.question}
                       </legend>
                       <div className="grid gap-2">
-                        {q.options.map((opt, oi) => {
+                        {q.options.map((opt: any, oi: number) => {
                           const selected = answers[qi] === oi;
                           const showCorrect = result && oi === q.correct_answer;
                           const showWrong = result && selected && oi !== q.correct_answer;
@@ -202,7 +202,7 @@ export default function ModuleDetail() {
                   <Button
                     className="w-full sm:w-auto"
                     disabled={!allAnswered || submit.isPending}
-                    onClick={() => submit.mutate(quiz.questions.map((_, i) => answers[i]))}
+                    onClick={() => submit.mutate(quiz.questions.map((_: any, i: number) => answers[i]))}
                     data-testid="submit-quiz-button"
                   >
                     {submit.isPending ? "Marking…" : "Submit answers"}

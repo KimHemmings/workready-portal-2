@@ -77,7 +77,7 @@ export default function JobLogs() {
         evidence_mime: fileMime,
         notes,
       }),
-    onSuccess: (data) => {
+    onSuccess: (data: JobSearchLog) => {
       qc.invalidateQueries({ queryKey: ["job-logs"] });
       qc.invalidateQueries({ queryKey: ["participant-dashboard"] });
       qc.invalidateQueries({ queryKey: ["usage"] });
@@ -88,9 +88,9 @@ export default function JobLogs() {
       setFileMime("");
       setFileSize(0);
       setNotes("");
-      toast.success(`Activity logged — ${data.points} PBAS points added.`);
+      toast.success(`Activity logged — ${data.points ?? 0} PBAS points added.`);
     },
-    onError: (err) => {
+    onError: (err: unknown) => {
       const detail = err instanceof ApiError ? (err.body as { detail?: string } | null)?.detail : null;
       toast.error(detail ?? "Could not save that activity. Please check the fields.");
       qc.invalidateQueries({ queryKey: ["usage"] });
@@ -98,7 +98,9 @@ export default function JobLogs() {
   });
 
   const rows = logs.isError ? [] : (logs.data ?? []);
-  const total = rows.reduce((sum, r) => sum + r.points, 0);
+  const total = rows.reduce((sum: number, r: any) => sum + (r.points ?? 0), 0);
+  const remainingLogs = usage.data?.job_logs?.remaining ?? 1;
+  const limitLogs = usage.data?.job_logs?.limit ?? 10;
 
   return (
     <AppShell>
@@ -120,7 +122,7 @@ export default function JobLogs() {
           <CardHeader>
             <div className="flex flex-wrap items-center justify-between gap-2">
               <CardTitle className="text-lg">Log a new activity</CardTitle>
-              {usage.data && <UsageMeter metric={usage.data.job_logs} testId="job-logs-usage-meter" showIcon={false} />}
+              {usage.data && usage.data.job_logs && <UsageMeter metric={usage.data.job_logs} testId="job-logs-usage-meter" showIcon={false} />}
             </div>
           </CardHeader>
           <CardContent>
@@ -148,7 +150,7 @@ export default function JobLogs() {
                 <Label htmlFor="type">Method</Label>
                 <Select value={type} onValueChange={(v: string) => setType(v)}>
                   <SelectTrigger id="type" data-testid="pbas-type-select">
-                    <SelectValue>{(v) => (v as string) || "Select a method"}</SelectValue>
+                    <SelectValue>{(v: any) => (v as string) || "Select a method"}</SelectValue>
                   </SelectTrigger>
                   <SelectContent>
                     {Object.entries(TYPES).map(([label, pts]) => (
@@ -176,7 +178,6 @@ export default function JobLogs() {
                     const reader = new FileReader();
                     reader.onload = () => {
                       const result = String(reader.result);
-                      // Store the bare base64 payload; the data-URL prefix is stripped.
                       setFileData(result.includes(",") ? result.split(",")[1] : result);
                       setFileMime(file.type || "application/octet-stream");
                       setFileSize(file.size);
@@ -213,13 +214,13 @@ export default function JobLogs() {
                 <Label htmlFor="notes">Notes</Label>
                 <Textarea id="notes" rows={2} value={notes} onChange={(e) => setNotes(e.target.value)} data-testid="pbas-notes-input" />
               </div>
-              <Button type="submit" className="w-full bg-cta text-cta-foreground hover:bg-cta/90" disabled={create.isPending || (usage.data?.job_logs.remaining ?? 1) <= 0} data-testid="pbas-submit-button">
+              <Button type="submit" className="w-full bg-cta text-cta-foreground hover:bg-cta/90" disabled={create.isPending || remainingLogs <= 0} data-testid="pbas-submit-button">
                 <Plus className="h-4 w-4 mr-1.5" aria-hidden="true" />
                 {create.isPending ? "Saving…" : `Log activity (${TYPES[type]} pts)`}
               </Button>
-              {(usage.data?.job_logs.remaining ?? 1) <= 0 && (
+              {remainingLogs <= 0 && (
                 <p className="text-sm text-destructive" data-testid="job-logs-limit-notice">
-                  You have reached this month's cap of {usage.data?.job_logs.limit} entries. Your case
+                  You have reached this month's cap of {limitLogs} entries. Your case
                   manager can raise it from your record.
                 </p>
               )}
@@ -252,62 +253,65 @@ export default function JobLogs() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {rows.map((log) => (
-                    <TableRow key={log.id} data-testid={`job-log-row-${log.id}`}>
-                      <TableCell className="whitespace-nowrap">{log.application_date}</TableCell>
-                      <TableCell>
-                        <p className="font-medium">{log.employer_name}</p>
-                        <p className="text-xs text-muted-foreground">{log.position_title}</p>
-                      </TableCell>
-                      <TableCell className="text-sm">{log.application_type}</TableCell>
-                      <TableCell className="text-sm">
-                        {log.evidence_size > 0 ? (
-                          <span
-                            className="flex items-center gap-1.5"
-                            data-testid={`job-log-file-${log.id}`}
+                  {rows.map((log: any) => {
+                    const eSize = log.evidence_size ? parseInt(String(log.evidence_size), 10) : 0;
+                    return (
+                      <TableRow key={log.id} data-testid={`job-log-row-${log.id}`}>
+                        <TableCell className="whitespace-nowrap">{log.application_date || log.dateApplied}</TableCell>
+                        <TableCell>
+                          <p className="font-medium">{log.employer_name || log.company}</p>
+                          <p className="text-xs text-muted-foreground">{log.position_title || log.jobTitle}</p>
+                        </TableCell>
+                        <TableCell className="text-sm">{log.application_type || log.type}</TableCell>
+                        <TableCell className="text-sm">
+                          {eSize > 0 ? (
+                            <span
+                              className="flex items-center gap-1.5"
+                              data-testid={`job-log-file-${log.id}`}
+                            >
+                              <Paperclip className="h-3.5 w-3.5 text-primary" aria-hidden="true" />
+                              <span className="max-w-[8rem] truncate">{log.evidence_filename || log.evidenceFileName}</span>
+                            </span>
+                          ) : (
+                            <span className="text-muted-foreground text-xs">
+                              {log.evidence_filename || log.evidenceFileName || "No file"}
+                            </span>
+                          )}
+                        </TableCell>
+                        <TableCell className="text-right tabular-nums">{log.points ?? 0}</TableCell>
+                        <TableCell>
+                          <Badge
+                            className={
+                              log.review_status === "approved" || log.status === "Approved"
+                                ? "bg-success text-success-foreground gap-1"
+                                : log.review_status === "flagged" || log.status === "Declined"
+                                  ? "bg-destructive text-destructive-foreground gap-1"
+                                  : "gap-1"
+                            }
+                            variant={log.review_status === "pending" || log.status === "Pending" ? "secondary" : "default"}
+                            data-testid={`job-log-review-${log.id}`}
                           >
-                            <Paperclip className="h-3.5 w-3.5 text-primary" aria-hidden="true" />
-                            <span className="max-w-[8rem] truncate">{log.evidence_filename}</span>
-                          </span>
-                        ) : (
-                          <span className="text-muted-foreground text-xs">
-                            {log.evidence_filename || "No file"}
-                          </span>
-                        )}
-                      </TableCell>
-                      <TableCell className="text-right tabular-nums">{log.points}</TableCell>
-                      <TableCell>
-                        <Badge
-                          className={
-                            log.review_status === "approved"
-                              ? "bg-success text-success-foreground gap-1"
-                              : log.review_status === "flagged"
-                                ? "bg-destructive text-destructive-foreground gap-1"
-                                : "gap-1"
-                          }
-                          variant={log.review_status === "pending" ? "secondary" : "default"}
-                          data-testid={`job-log-review-${log.id}`}
-                        >
-                          {log.review_status === "approved" && (
-                            <CheckCircle2 className="h-3 w-3" aria-hidden="true" />
+                            {(log.review_status === "approved" || log.status === "Approved") && (
+                              <CheckCircle2 className="h-3 w-3" aria-hidden="true" />
+                            )}
+                            {(log.review_status === "flagged" || log.status === "Declined") && (
+                              <Flag className="h-3 w-3" aria-hidden="true" />
+                            )}
+                            {log.review_status === "approved" || log.status === "Approved"
+                              ? "Approved"
+                              : log.review_status === "flagged" || log.status === "Declined"
+                                ? "Flagged"
+                                : "Awaiting review"}
+                          </Badge>
+                          {log.review_note && (
+                            <p className="text-xs text-muted-foreground mt-1 max-w-[14rem]">
+                              {log.review_note}
+                            </p>
                           )}
-                          {log.review_status === "flagged" && (
-                            <Flag className="h-3 w-3" aria-hidden="true" />
-                          )}
-                          {log.review_status === "approved"
-                            ? "Approved"
-                            : log.review_status === "flagged"
-                              ? "Flagged"
-                              : "Awaiting review"}
-                        </Badge>
-                        {log.review_note && (
-                          <p className="text-xs text-muted-foreground mt-1 max-w-[14rem]">
-                            {log.review_note}
-                          </p>
-                        )}
-                      </TableCell>
-                    </TableRow>
-                  ))}
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })}
                 </TableBody>
               </Table>
             )}
