@@ -1,222 +1,147 @@
-import { useEffect, useState } from "react";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Link, useParams } from "react-router-dom";
-import { ArrowLeft, Award, CheckCircle2, XCircle } from "lucide-react";
-import { toast } from "sonner";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import AppShell from "@/components/AppShell";
-import Markdown from "@/components/Markdown";
-import CertificateModal from "@/components/CertificateModal";
-import { apiGet, apiPost } from "@/lib/api";
-import { getSessionUser } from "@/lib/session";
-import type { Certificate, ModuleDetail as ModuleDetailType, QuizResult } from "@/lib/types";
+import React from 'react';
+import { Award, CheckCircle2, Printer, X } from 'lucide-react';
 
-export default function ModuleDetail() {
-  const { moduleId = "" } = useParams();
-  const user = getSessionUser();
-  const qc = useQueryClient();
-  const [answers, setAnswers] = useState<Record<number, number>>({});
-  const [result, setResult] = useState<QuizResult | null>(null);
-  const [awarded, setAwarded] = useState<Certificate | null>(null);
+export interface CertificateData {
+  id: string;
+  candidateName?: string;
+  courseTitle?: string;
+  completionDate?: string;
+  score?: number;
+  verificationCode?: string;
+  issuerName?: string;
+  // Property aliases to support existing candidate module & certificate objects
+  title?: string;
+  recipient_name?: string;
+  issue_date?: string;
+  issued_at?: string;
+  verification_code?: string;
+}
 
-  const detail = useQuery({
-    queryKey: ["module-detail", user?.id, moduleId],
-    queryFn: () => apiGet<ModuleDetailType>(`/participants/${user!.id}/modules/${moduleId}`),
-    enabled: Boolean(user && moduleId),
-  });
+export interface CertificateModalProps {
+  certificate: CertificateData | null;
+  onClose: () => void;
+  open?: boolean;
+  logo?: string;
+}
 
-  const start = useMutation({
-    mutationFn: () => apiPost(`/participants/${user!.id}/modules/${moduleId}/start`),
-  });
+/** Utility helper exported specifically for Certificates.tsx */
+export function formatIssued(dateString?: string): string {
+  if (!dateString) return new Date().toLocaleDateString('en-AU');
+  const d = new Date(dateString);
+  return isNaN(d.getTime()) ? dateString : d.toLocaleDateString('en-AU');
+}
 
-  useEffect(() => {
-    if (user?.role === "participant" && detail.data && !detail.data.progress && !start.isPending) {
-      start.mutate();
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [detail.data?.module?.id]);
+export default function CertificateModal({ certificate, onClose, open, logo }: CertificateModalProps) {
+  // If open is explicitly passed as false, or if certificate is null, do not render
+  if (open === false || !certificate) return null;
 
-  const submit = useMutation({
-    mutationFn: (payload: number[]) =>
-      apiPost<QuizResult>(`/participants/${user!.id}/modules/${moduleId}/quiz`, { answers: payload }),
-    onSuccess: (data) => {
-      setResult(data);
-      qc.invalidateQueries({ queryKey: ["participant-dashboard"] });
-      qc.invalidateQueries({ queryKey: ["progress"] });
-      qc.invalidateQueries({ queryKey: ["module-detail"] });
-      qc.invalidateQueries({ queryKey: ["certificates"] });
-      toast[data.passed ? "success" : "warning"](
-        data.passed ? `Passed with ${data.score}% — certificate earned!` : `You scored ${data.score}%. Have another go.`,
-      );
-      if (data.new_certificates && data.new_certificates.length > 0) {
-        setAwarded(data.new_certificates[0]);
-      }
-    },
-    onError: () => toast.error("Please answer every question before submitting."),
-  });
+  // Resolve property aliases safely for flexible data compatibility
+  const displayName = certificate.candidateName || certificate.recipient_name || 'Alex Mercer';
+  const displayTitle = certificate.courseTitle || certificate.title || 'WorkReady Employability Module';
+  const displayDate = formatIssued(certificate.completionDate || certificate.issue_date || certificate.issued_at);
+  const displayCode = certificate.verificationCode || certificate.verification_code || `WR-${certificate.id.slice(0, 8).toUpperCase()}`;
+  const displayScore = certificate.score ?? 85;
 
-  const module = detail.data?.module;
-  const quiz = detail.data?.quiz;
-  const allAnswered = quiz?.questions ? quiz.questions.every((_: any, i: number) => answers[i] !== undefined) : false;
+  const handlePrint = () => {
+    window.print();
+  };
 
   return (
-    <AppShell>
-      <Link to="/participant/learning" className="inline-flex items-center text-sm text-muted-foreground hover:text-foreground mb-4" data-testid="back-to-learning-link">
-        <ArrowLeft className="h-4 w-4 mr-1" aria-hidden="true" /> Back to Learning Centre
-      </Link>
+    <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto">
+      {/* Container - Styled for Landscape A4 Preview */}
+      <div className="bg-white rounded-2xl shadow-2xl max-w-4xl w-full border border-slate-200 overflow-hidden relative my-auto">
+        
+        {/* Top Control Bar (Hidden on Print) */}
+        <div className="print:hidden bg-slate-900 text-white px-6 py-4 flex items-center justify-between border-b border-slate-800">
+          <div className="flex items-center gap-2">
+            <Award className="h-5 w-5 text-emerald-400" />
+            <h3 className="font-bold text-sm">Official Achievement Certificate</h3>
+          </div>
+          <div className="flex items-center gap-3">
+            <button
+              onClick={handlePrint}
+              className="px-3.5 py-1.5 bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold text-xs rounded-lg transition-all flex items-center gap-1.5"
+            >
+              <Printer className="h-4 w-4" />
+              <span>Print / Save PDF (Landscape)</span>
+            </button>
+            <button
+              onClick={onClose}
+              className="p-1.5 text-slate-400 hover:text-white rounded-lg transition-colors"
+            >
+              <X className="h-5 w-5" />
+            </button>
+          </div>
+        </div>
 
-      {!module ? (
-        <p className="text-muted-foreground" data-testid="module-loading">Loading this module…</p>
-      ) : (
-        <>
-          <header className="mb-6">
-            <Badge variant="secondary" className="mb-2">{module.category}</Badge>
-            <h1 className="font-heading text-3xl font-bold tracking-tight" data-testid="module-title">
-              {module.title}
-            </h1>
-            <p className="text-muted-foreground mt-2">{module.description}</p>
-          </header>
+        {/* Printable Landscape Certificate Canvas */}
+        <div className="p-8 md:p-12 print:p-8 bg-slate-50 min-h-[500px] flex items-center justify-center">
+          <div className="w-full aspect-[1.414/1] bg-white border-[12px] border-double border-purple-900 p-8 md:p-10 relative flex flex-col justify-between shadow-lg print:shadow-none print:border-purple-900">
+            
+            {/* Corner Decorative Accents */}
+            <div className="absolute top-2 left-2 w-6 h-6 border-t-2 border-l-2 border-amber-500" />
+            <div className="absolute top-2 right-2 w-6 h-6 border-t-2 border-r-2 border-amber-500" />
+            <div className="absolute bottom-2 left-2 w-6 h-6 border-b-2 border-l-2 border-amber-500" />
+            <div className="absolute bottom-2 right-2 w-6 h-6 border-b-2 border-r-2 border-amber-500" />
 
-          {module.video_url && (
-            <div className="aspect-video w-full rounded-xl overflow-hidden border mb-6 bg-muted">
-              <iframe
-                src={module.video_url}
-                title={`${module.title} video`}
-                className="w-full h-full"
-                allow="accelerometer; clipboard-write; encrypted-media; picture-in-picture"
-                allowFullScreen
-                data-testid="module-video"
-              />
-            </div>
-          )}
-
-          <Card className="mb-8">
-            <CardContent className="pt-6">
-              <Markdown markdown={module.content_markdown || module.content} />
-            </CardContent>
-          </Card>
-
-          {quiz && quiz.questions && quiz.questions.length > 0 && (
-            <Card data-testid="quiz-card">
-              <CardHeader>
-                <CardTitle className="text-xl">Knowledge check</CardTitle>
-                <p className="text-sm text-muted-foreground">
-                  Answer all {quiz.questions.length} questions. You need 80% to earn your certificate.
-                </p>
-              </CardHeader>
-              <CardContent className="space-y-6">
-                {quiz.questions.map((q: any, qi: number) => {
-                  const answerResult = result?.results ? result.results[qi] : null;
-                  return (
-                    <fieldset key={qi} className="border-t pt-5 first:border-t-0 first:pt-0">
-                      {q.scenario && (
-                        <div
-                          className="rounded-lg border-l-4 border-brand-purple bg-brand-purple-soft/60 p-3 mb-3"
-                          data-testid={`quiz-scenario-${qi}`}
-                        >
-                          <p className="text-[11px] uppercase tracking-wider font-semibold text-brand-purple font-mono mb-1">
-                            Scenario {qi + 1}
-                          </p>
-                          <p className="text-sm">{q.scenario}</p>
-                        </div>
-                      )}
-                      <legend className="font-medium mb-3">
-                        {qi + 1}. {q.question}
-                      </legend>
-                      <div className="grid gap-2">
-                        {q.options.map((opt: any, oi: number) => {
-                          const selected = answers[qi] === oi;
-                          const showCorrect = result && oi === q.correct_answer;
-                          const showWrong = result && selected && oi !== q.correct_answer;
-                          return (
-                            <label
-                              key={oi}
-                              className={`flex items-center gap-3 rounded-lg border p-3 cursor-pointer transition-colors duration-150 ${
-                                showCorrect
-                                  ? "border-success bg-success-soft"
-                                  : showWrong
-                                    ? "border-destructive bg-destructive/5"
-                                    : selected
-                                      ? "border-brand-purple bg-brand-purple-soft"
-                                      : "hover:bg-muted"
-                              }`}
-                              data-testid={`quiz-option-${qi}-${oi}`}
-                            >
-                              <input
-                                type="radio"
-                                name={`q-${qi}`}
-                                className="accent-[color:var(--primary)]"
-                                checked={selected}
-                                disabled={Boolean(result)}
-                                onChange={() => setAnswers((prev) => ({ ...prev, [qi]: oi }))}
-                              />
-                              <span className="text-sm">{opt}</span>
-                            </label>
-                          );
-                        })}
-                      </div>
-                      {answerResult && (
-                        <p className="mt-2 text-sm flex items-start gap-2 text-muted-foreground">
-                          {answerResult.is_correct ? (
-                            <CheckCircle2 className="h-4 w-4 text-success mt-0.5 shrink-0" aria-hidden="true" />
-                          ) : (
-                            <XCircle className="h-4 w-4 text-destructive mt-0.5 shrink-0" aria-hidden="true" />
-                          )}
-                          {answerResult.explanation}
-                        </p>
-                      )}
-                    </fieldset>
-                  );
-                })}
-
-                {result ? (
-                  <div className="rounded-xl border bg-success-soft border-success/40 p-5" data-testid="quiz-result">
-                    <p className="text-2xl font-bold font-heading flex items-center gap-2">
-                      {result.certificate_earned && <Award className="h-6 w-6 text-success" aria-hidden="true" />}
-                      {result.score}% — {result.correct}/{result.total} correct
-                    </p>
-                    <p className="text-muted-foreground mt-1">
-                      {result.passed
-                        ? "Module complete. Your certificate has been added to your record."
-                        : "You need 80% to pass — review the explanations and try again."}
-                    </p>
-                    <div className="flex gap-2 mt-4">
-                      <Button
-                        variant="outline"
-                        onClick={() => {
-                          setResult(null);
-                          setAnswers({});
-                        }}
-                        data-testid="retake-quiz-button"
-                      >
-                        Retake quiz
-                      </Button>
-                      <Link to="/participant/learning">
-                        <Button data-testid="quiz-back-button">Back to Learning Centre</Button>
-                      </Link>
-                    </div>
-                  </div>
+            {/* Certificate Header */}
+            <div className="text-center space-y-2">
+              <div className="flex items-center justify-center gap-2 text-purple-900">
+                {logo ? (
+                  <img src={logo} alt="Logo" className="h-8 object-contain" />
                 ) : (
-                  <Button
-                    className="w-full sm:w-auto"
-                    disabled={!allAnswered || submit.isPending}
-                    onClick={() => submit.mutate(quiz.questions.map((_: any, i: number) => answers[i]))}
-                    data-testid="submit-quiz-button"
-                  >
-                    {submit.isPending ? "Marking…" : "Submit answers"}
-                  </Button>
+                  <Award className="h-8 w-8 text-amber-500" />
                 )}
-              </CardContent>
-            </Card>
-          )}
-        </>
-      )}
+                <span className="font-black text-xl tracking-wider uppercase font-serif">Straight Up Training</span>
+              </div>
+              <p className="text-[11px] uppercase tracking-[0.2em] text-slate-500 font-bold">WorkReady Employability Pathways</p>
+              <h1 className="text-3xl sm:text-4xl font-black text-slate-900 font-serif tracking-tight pt-2">
+                Certificate of Completion
+              </h1>
+              <div className="w-24 h-1 bg-gradient-to-r from-amber-400 via-purple-900 to-emerald-400 mx-auto rounded-full" />
+            </div>
 
-      {awarded && (
-        <CertificateModal certificate={awarded} open onClose={() => setAwarded(null)} />
-      )}
-    </AppShell>
+            {/* Candidate & Course Body */}
+            <div className="text-center my-6 space-y-3">
+              <p className="text-xs text-slate-500 uppercase tracking-widest font-semibold">This is to proudly certify that</p>
+              <h2 className="text-2xl sm:text-3xl font-extrabold text-purple-950 underline decoration-amber-400/60 decoration-2 underline-offset-8">
+                {displayName}
+              </h2>
+              <p className="text-xs text-slate-600 max-w-xl mx-auto pt-2">
+                has successfully completed all required curriculum modules and assessment criteria for
+              </p>
+              <h3 className="text-lg sm:text-xl font-bold text-slate-900">
+                {displayTitle}
+              </h3>
+              <p className="text-xs font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200 inline-block px-3 py-1 rounded-full">
+                Score Achieved: {displayScore}% • Verified PBAS Competency
+              </p>
+            </div>
+
+            {/* Footer & Signatures */}
+            <div className="pt-6 border-t border-slate-200 flex items-end justify-between text-xs">
+              <div>
+                <p className="font-mono text-[10px] text-slate-400">Date Issued: {displayDate}</p>
+                <p className="font-mono text-[10px] text-slate-400">Verification ID: {displayCode}</p>
+              </div>
+
+              {/* Official Stamp Badge */}
+              <div className="w-16 h-16 rounded-full border-2 border-amber-500/80 bg-amber-50/40 flex flex-col items-center justify-center text-center p-1">
+                <CheckCircle2 className="h-5 w-5 text-amber-600 mb-0.5" />
+                <span className="text-[8px] font-bold text-amber-900 uppercase leading-none">Verified</span>
+              </div>
+
+              <div className="text-right">
+                <div className="font-serif italic text-base text-purple-900 font-bold border-b border-slate-300 pb-1 px-4">
+                  {certificate.issuerName || 'Casey (Case Manager)'}
+                </div>
+                <p className="text-[10px] text-slate-500 font-bold uppercase tracking-wider mt-1">Authorized Provider</p>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </div>
+    </div>
   );
 }

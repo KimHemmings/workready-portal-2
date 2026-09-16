@@ -110,10 +110,10 @@ export default function Certificates() {
 
       {active && (
         <CertificateModal
-          certificate={active}
-          open
+          certificate={active as any}
+          open={true}
           onClose={() => setActive(null)}
-          logo={org.data?.branding_logo || undefined}
+          logo={org?.data?.branding_logo || undefined}
         />
       )}
     </AppShell>

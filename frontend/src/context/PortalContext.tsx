@@ -1,247 +1,199 @@
 import React, { createContext, useContext, useState } from 'react';
-import type { ReactNode } from 'react';
 import type { CandidateProfile, VerificationItem, Appointment, DocumentCredential } from '../lib/types';
 
-interface PortalContextType {
+export interface PortalContextType {
   candidates: CandidateProfile[];
   verificationItems: VerificationItem[];
   appointments: Appointment[];
-  credentials: DocumentCredential[];
-  approveVerification: (id: string) => void;
-  declineVerification: (id: string, reason?: string) => void;
-  addCandidate: (newCandidate: Omit<CandidateProfile, 'id' | 'pbasVerified' | 'pbasPending' | 'assessmentCompleted' | 'lastCheckIn' | 'fivePillars'>) => void;
-  updateCandidateRequirements: (candidateId: string, targetPoints: number, startDate: string, finishDate: string) => void;
-  logJobSearch: (candidateId: string, candidateName: string, jobTitle: string, employer: string, refId: string) => void;
-  submitMilestone: (candidateId: string, candidateName: string, type: 'Job Placement' | 'Interview', title: string, points: number) => void;
-  scheduleAppointment: (appointment: Omit<Appointment, 'id'>) => void;
-  submitSelfAssessment: (candidateId: string, pillars: CandidateProfile['fivePillars'], challenge: string) => void;
+  documentCredentials: DocumentCredential[];
+  addCandidate: (candidate: Omit<CandidateProfile, 'id' | 'pbasVerified' | 'pbasPending' | 'assessmentCompleted' | 'lastCheckIn' | 'fivePillars'> & Partial<CandidateProfile>) => void;
+  addVerificationItem: (item: Omit<VerificationItem, 'id' | 'dateSubmitted' | 'status'>) => void;
+  approveVerification: (id: string, note?: string) => void;
+  declineVerification: (id: string, note?: string) => void;
+  updateVerificationStatus: (id: string, status: 'Approved' | 'Declined', note?: string) => void;
+  updateCandidateRequirements: (
+    candidateId: string,
+    targetOrUpdates?: number | Partial<CandidateProfile>,
+    startDate?: string,
+    finishDate?: string
+  ) => void;
+  addAppointment: (appointment: Omit<Appointment, 'id'>) => void;
+  updateFivePillars: (candidateId: string, pillars: CandidateProfile['fivePillars']) => void;
 }
 
 const PortalContext = createContext<PortalContextType | undefined>(undefined);
 
-export const PortalProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
+export const PortalProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [candidates, setCandidates] = useState<CandidateProfile[]>([
     {
-      id: 'cand-1',
-      name: 'Alex Johnson',
-      email: 'alex.j@example.com',
+      id: 'CAN-101',
+      name: 'Alex Mercer',
+      email: 'alex@workready.com',
       phone: '0412 345 678',
-      status: 'On Track',
+      status: 'High Risk',
       pbasTarget: 100,
-      pbasVerified: 35,
-      pbasPending: 15,
-      startDate: '01/09/2026',
-      finishDate: '30/09/2026',
-      assessmentCompleted: false,
-      primaryChallenge: 'Resume / Applications',
-      lastCheckIn: '14/09/2026',
-      fivePillars: { jobSearch: 3, interviewReadiness: 3, technicalSkills: 3, logistics: 3, mindset: 3 },
-    },
-    {
-      id: 'cand-2',
-      name: 'Sarah Smith',
-      email: 'sarah.s@example.com',
-      phone: '0498 765 432',
-      status: 'Compliant',
-      pbasTarget: 100,
-      pbasVerified: 85,
-      pbasPending: 20,
-      startDate: '01/09/2026',
-      finishDate: '30/09/2026',
+      pbasVerified: 45,
+      pbasPending: 25,
+      startDate: '2026-01-15',
+      finishDate: '2026-07-15',
       assessmentCompleted: true,
-      primaryChallenge: 'No Major Blockers',
-      lastCheckIn: '12/09/2026',
-      fivePillars: { jobSearch: 4, interviewReadiness: 5, technicalSkills: 4, logistics: 4, mindset: 5 },
+      primaryChallenge: 'Transport & Interview Anxiety',
+      lastCheckIn: '2026-03-10',
+      fivePillars: {
+        jobSearch: 60,
+        interviewReadiness: 40,
+        technicalSkills: 75,
+        logistics: 35,
+        mindset: 50,
+      },
     },
   ]);
 
   const [verificationItems, setVerificationItems] = useState<VerificationItem[]>([
     {
-      id: 'ver-1',
-      candidateId: 'cand-1',
-      candidateName: 'Alex Johnson',
-      activityType: 'Job Search',
-      title: 'Warehouse Assistant — Logistics Co',
-      refId: 'JOB-98231',
-      points: 5,
+      id: 'VER-901',
+      candidateId: 'CAN-101',
+      candidateName: 'Alex Mercer',
+      activityType: 'Job Placement',
+      title: 'Full-Time Warehouse Assistant Claim',
+      refId: 'EMP-882190',
+      points: 50,
+      notes: 'Signed contract attached. Commencing next Monday.',
       status: 'Pending',
-      dateSubmitted: '14/09/2026',
-      evidenceFileName: 'Job_Application_Receipt_98231.pdf',
-    },
-    {
-      id: 'ver-2',
-      candidateId: 'cand-1',
-      candidateName: 'Alex Johnson',
-      activityType: 'Interview',
-      title: 'Barista / All-Rounder — Star Hospitality',
-      refId: 'INT-8821',
-      points: 25,
-      status: 'Pending',
-      dateSubmitted: '15/09/2026',
-      evidenceFileName: 'Interview_Confirmation_Email.pdf',
+      dateSubmitted: '2026-03-14',
+      isPriority: true,
+      evidenceFileName: 'Alex_Mercer_Offer_Letter.pdf',
     },
   ]);
 
   const [appointments, setAppointments] = useState<Appointment[]>([
     {
-      id: 'apt-1',
-      candidateId: 'cand-1',
-      candidateName: 'Alex Johnson',
-      title: 'Bi-Weekly Mutual Obligation Catch-Up',
-      type: 'Virtual / Online',
-      hostName: 'Casey Smith (Case Manager)',
-      date: '18/09/2026',
+      id: 'APP-301',
+      candidateId: 'CAN-101',
+      candidateName: 'Alex Mercer',
+      title: 'Fortnightly Mutual Obligation Review',
+      type: 'In-Person',
+      hostName: 'Casey (Case Manager)',
+      date: '2026-03-20',
       time: '10:30 AM',
       createdBy: 'case_manager',
     },
   ]);
 
-  const [credentials] = useState<DocumentCredential[]>([
+  const [documentCredentials, setDocumentCredentials] = useState<DocumentCredential[]>([
     {
-      id: 'doc-1',
-      candidateId: 'cand-1',
-      title: 'White Card (WHS)',
-      fileName: 'Construction_WhiteCard_AlexJ.pdf',
+      id: 'DOC-501',
+      candidateId: 'CAN-101',
+      title: 'Forklift Licence (TLILIC0003)',
+      fileName: 'Forklift_Licence_AlexMercer.pdf',
       fileSize: '1.2 MB',
-      uploadedDate: '12/08/2026',
+      uploadedDate: '2026-02-10',
       status: 'Verified',
-      downloadUrl: '#',
-    },
-    {
-      id: 'doc-2',
-      candidateId: 'cand-1',
-      title: 'National Police Check',
-      fileName: 'Police_Check_2026_Pending.pdf',
-      fileSize: '840 KB',
-      uploadedDate: '10/09/2026',
-      status: 'Pending Review',
       downloadUrl: '#',
     },
   ]);
 
-  const approveVerification = (id: string) => {
-    setVerificationItems((prev) =>
-      prev.map((item) => {
-        if (item.id === id) {
-          setCandidates((cPrev) =>
-            cPrev.map((c) =>
-              c.id === item.candidateId
-                ? {
-                    ...c,
-                    pbasVerified: c.pbasVerified + item.points,
-                    pbasPending: Math.max(0, c.pbasPending - item.points),
-                  }
-                : c
-            )
-          );
-          return { ...item, status: 'Approved' };
-        }
-        return item;
-      })
-    );
-  };
-
-  const declineVerification = (id: string, reason?: string) => {
-    setVerificationItems((prev) =>
-      prev.map((item) => {
-        if (item.id === id) {
-          setCandidates((cPrev) =>
-            cPrev.map((c) =>
-              c.id === item.candidateId
-                ? { ...c, pbasPending: Math.max(0, c.pbasPending - item.points) }
-                : c
-            )
-          );
-          return { ...item, status: 'Declined', notes: reason };
-        }
-        return item;
-      })
-    );
-  };
-
-  const addCandidate = (newCand: Omit<CandidateProfile, 'id' | 'pbasVerified' | 'pbasPending' | 'assessmentCompleted' | 'lastCheckIn' | 'fivePillars'>) => {
-    const created: CandidateProfile = {
-      ...newCand,
-      id: `cand-${Date.now()}`,
-      pbasVerified: 0,
-      pbasPending: 0,
-      assessmentCompleted: false,
-      lastCheckIn: new Date().toLocaleDateString('en-GB'),
-      fivePillars: { jobSearch: 3, interviewReadiness: 3, technicalSkills: 3, logistics: 3, mindset: 3 },
+  const addCandidate: PortalContextType['addCandidate'] = (candidateInput) => {
+    const newCandidate: CandidateProfile = {
+      id: candidateInput.id || `CAN-${Math.floor(100 + Math.random() * 900)}`,
+      name: candidateInput.name,
+      email: candidateInput.email,
+      phone: candidateInput.phone,
+      status: candidateInput.status,
+      pbasTarget: candidateInput.pbasTarget,
+      pbasVerified: candidateInput.pbasVerified ?? 0,
+      pbasPending: candidateInput.pbasPending ?? 0,
+      startDate: candidateInput.startDate,
+      finishDate: candidateInput.finishDate,
+      assessmentCompleted: candidateInput.assessmentCompleted ?? false,
+      primaryChallenge: candidateInput.primaryChallenge,
+      lastCheckIn: candidateInput.lastCheckIn ?? new Date().toISOString().split('T')[0],
+      fivePillars: candidateInput.fivePillars ?? {
+        jobSearch: 50,
+        interviewReadiness: 50,
+        technicalSkills: 50,
+        logistics: 50,
+        mindset: 50,
+      },
     };
-    setCandidates((prev) => [...prev, created]);
+    setCandidates((prev) => [...prev, newCandidate]);
   };
 
-  const updateCandidateRequirements = (candidateId: string, targetPoints: number, startDate: string, finishDate: string) => {
+  const addVerificationItem = (item: Omit<VerificationItem, 'id' | 'dateSubmitted' | 'status'>) => {
+    const newItem: VerificationItem = {
+      ...item,
+      id: `VER-${Math.floor(1000 + Math.random() * 9000)}`,
+      status: 'Pending',
+      dateSubmitted: new Date().toISOString().split('T')[0],
+    };
+    setVerificationItems((prev) => [newItem, ...prev]);
+
     setCandidates((prev) =>
       prev.map((c) =>
-        c.id === candidateId
-          ? {
-              ...c,
-              pbasTarget: targetPoints,
-              startDate,
-              finishDate,
-              assessmentCompleted: c.startDate !== startDate ? false : c.assessmentCompleted,
-            }
+        c.id === item.candidateId
+          ? { ...c, pbasPending: c.pbasPending + item.points }
           : c
       )
     );
   };
 
-  const logJobSearch = (candidateId: string, candidateName: string, jobTitle: string, employer: string, refId: string) => {
-    const newItem: VerificationItem = {
-      id: `ver-${Date.now()}`,
-      candidateId,
-      candidateName,
-      activityType: 'Job Search',
-      title: `${jobTitle} — ${employer}`,
-      refId,
-      points: 5,
-      status: 'Pending',
-      dateSubmitted: new Date().toLocaleDateString('en-GB'),
-    };
-    setVerificationItems((prev) => [newItem, ...prev]);
+  const updateVerificationStatus = (id: string, status: 'Approved' | 'Declined', note?: string) => {
+    setVerificationItems((prev) =>
+      prev.map((item) => (item.id === id ? { ...item, status, notes: note || item.notes } : item))
+    );
+
+    const targetItem = verificationItems.find((i) => i.id === id);
+    if (targetItem && status === 'Approved') {
+      setCandidates((prev) =>
+        prev.map((c) =>
+          c.id === targetItem.candidateId
+            ? {
+                ...c,
+                pbasVerified: c.pbasVerified + targetItem.points,
+                pbasPending: Math.max(0, c.pbasPending - targetItem.points),
+              }
+            : c
+        )
+      );
+    }
+  };
+
+  const approveVerification = (id: string, note?: string) => updateVerificationStatus(id, 'Approved', note);
+  const declineVerification = (id: string, note?: string) => updateVerificationStatus(id, 'Declined', note);
+
+  const updateCandidateRequirements = (
+    candidateId: string,
+    targetOrUpdates?: number | Partial<CandidateProfile>,
+    startDate?: string,
+    finishDate?: string
+  ) => {
     setCandidates((prev) =>
-      prev.map((c) => (c.id === candidateId ? { ...c, pbasPending: c.pbasPending + 5 } : c))
+      prev.map((c) => {
+        if (c.id !== candidateId) return c;
+        if (typeof targetOrUpdates === 'number') {
+          return {
+            ...c,
+            pbasTarget: targetOrUpdates,
+            startDate: startDate || c.startDate,
+            finishDate: finishDate || c.finishDate,
+          };
+        }
+        return { ...c, ...targetOrUpdates };
+      })
     );
   };
 
-  const submitMilestone = (candidateId: string, candidateName: string, type: 'Job Placement' | 'Interview', title: string, points: number) => {
-    const newItem: VerificationItem = {
-      id: `ver-${Date.now()}`,
-      candidateId,
-      candidateName,
-      activityType: type,
-      title,
-      refId: `${type === 'Job Placement' ? 'JOB' : 'INT'}-${Math.floor(1000 + Math.random() * 9000)}`,
-      points,
-      status: 'Pending',
-      dateSubmitted: new Date().toLocaleDateString('en-GB'),
-      isPriority: true,
+  const addAppointment = (appointment: Omit<Appointment, 'id'>) => {
+    const newApp: Appointment = {
+      ...appointment,
+      id: `APP-${Math.floor(1000 + Math.random() * 9000)}`,
     };
-    setVerificationItems((prev) => [newItem, ...prev]);
-    setCandidates((prev) =>
-      prev.map((c) => (c.id === candidateId ? { ...c, pbasPending: c.pbasPending + points } : c))
-    );
+    setAppointments((prev) => [...prev, newApp]);
   };
 
-  const scheduleAppointment = (apt: Omit<Appointment, 'id'>) => {
-    setAppointments((prev) => [{ ...apt, id: `apt-${Date.now()}` }, ...prev]);
-  };
-
-  const submitSelfAssessment = (candidateId: string, pillars: CandidateProfile['fivePillars'], challenge: string) => {
+  const updateFivePillars = (candidateId: string, pillars: CandidateProfile['fivePillars']) => {
     setCandidates((prev) =>
-      prev.map((c) =>
-        c.id === candidateId
-          ? {
-              ...c,
-              fivePillars: pillars,
-              primaryChallenge: challenge,
-              assessmentCompleted: true,
-              pbasVerified: c.pbasVerified + 10,
-            }
-          : c
-      )
+      prev.map((c) => (c.id === candidateId ? { ...c, fivePillars: pillars } : c))
     );
   };
 
@@ -251,15 +203,15 @@ export const PortalProvider: React.FC<{ children: ReactNode }> = ({ children }) 
         candidates,
         verificationItems,
         appointments,
-        credentials,
+        documentCredentials,
+        addCandidate,
+        addVerificationItem,
         approveVerification,
         declineVerification,
-        addCandidate,
+        updateVerificationStatus,
         updateCandidateRequirements,
-        logJobSearch,
-        submitMilestone,
-        scheduleAppointment,
-        submitSelfAssessment,
+        addAppointment,
+        updateFivePillars,
       }}
     >
       {children}
