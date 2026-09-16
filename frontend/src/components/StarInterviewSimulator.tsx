@@ -175,18 +175,30 @@ export const StarInterviewSimulator: React.FC = () => {
     const formattedTimestamp = `${now.toLocaleDateString('en-AU')} at ${now.toLocaleTimeString('en-AU', { hour: '2-digit', minute: '2-digit' })}`;
 
     const totalWords = answers.join(' ').split(/\s+/).filter(Boolean).length;
+    const combinedText = answers.join(' ').toLowerCase();
+
+    // Key Competency Analysis
+    const coreKeywords = ['safety', 'whs', 'team', 'customer', 'supervisor', 'check', 'ppe', 'communication', 'resolve', 'action'];
+    const matchedTerms = coreKeywords.filter((term) => combinedText.includes(term));
+
+    // Rubric Determination
     let rubricScore = 'Proficient STAR Execution';
-    
-    if (totalWords > 90) {
-      rubricScore = 'High Competency & Structure';
-    } else if (totalWords < 35) {
+    if (totalWords > 90 && matchedTerms.length >= 4) {
+      rubricScore = 'High Competency & Professional Structure';
+    } else if (totalWords < 35 || matchedTerms.length < 2) {
       rubricScore = 'Developing STAR Structure';
     }
 
+    // Structured Detailed Feedback Payload (Positives + Growth Areas + Actionable Coaching)
     const feedbackNotes = [
-      `Completed all 8 role-specific scenarios for ${selectedRole}.`,
-      `Demonstrated strong alignment with WHS procedures, teamwork, and proactive problem resolution.`,
-      `Detailed response length (${totalWords} words total across 8 questions).`
+      `🌟 Positive Highlights: Excellent initiative completing all 8 behavioral scenarios for ${selectedRole}. Showed strong self-awareness and active problem-solving tone across answers.`,
+      `🎯 Industry Alignment: Incorporated ${matchedTerms.length > 0 ? matchedTerms.slice(0, 4).join(', ') : 'core workplace'} terminology effectively. Total effort volume: ${totalWords} words.`,
+      `💡 Key Focus Area for Growth: ${
+        totalWords < 50
+          ? 'Expand on the "Result" step in STAR—quantify the positive outcome or supervisor feedback where possible.'
+          : 'Ensure WHS compliance and immediate hazard escalation steps are explicitly stated in every operational answer.'
+      }`,
+      `🚀 Actionable Coaching Point: Re-read the scenario coaching tips for ${selectedRole} to refine concise 60-second verbal delivery for employer panels.`
     ];
 
     setEvalReport({
@@ -251,7 +263,7 @@ export const StarInterviewSimulator: React.FC = () => {
   return (
     <div className="bg-white border border-slate-200 rounded-2xl p-6 space-y-6 shadow-sm font-sans my-6">
       
-      {/* Header (Cleaned up: No scenario pill) */}
+      {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-100 pb-4">
         <div>
           <h2 className="text-lg font-bold text-[#24083b]">Interview Practice Studio</h2>
@@ -371,11 +383,13 @@ export const StarInterviewSimulator: React.FC = () => {
                   <span>Rubric Rating: <strong className="text-emerald-700">{evalReport.scoreText}</strong></span>
                   <span className="text-[11px] text-slate-500">{evalReport.timestamp}</span>
                 </div>
-                <ul className="list-disc list-inside text-slate-600 space-y-1 pt-1">
+                <div className="space-y-1.5 pt-1">
                   {evalReport.feedback.map((note, idx) => (
-                    <li key={idx}>{note}</li>
+                    <div key={idx} className="p-2 bg-slate-50 rounded-lg border border-slate-200 text-slate-700 text-xs">
+                      {note}
+                    </div>
                   ))}
-                </ul>
+                </div>
               </div>
             )}
           </div>
