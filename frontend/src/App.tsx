@@ -5,6 +5,7 @@ import OwnerDashboard from './pages/OwnerDashboard';
 import { SalesDemoDashboard } from './pages/SalesDemoDashboard';
 import AdminDashboard from './pages/AdminDashboard';
 import Login from './pages/Login';
+import { PortalProvider } from './context/PortalContext';
 
 export type UserRole = 'candidate' | 'coach' | 'owner' | 'sales' | 'admin' | null;
 
@@ -41,13 +42,15 @@ export function App() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50">
-      {userRole === 'candidate' && <ParticipantHome />}
-      {userRole === 'coach' && <CoachDashboard />}
-      {userRole === 'owner' && <OwnerDashboard />}
-      {userRole === 'sales' && <SalesDemoDashboard />}
-      {userRole === 'admin' && <AdminDashboard />}
-    </div>
+    <PortalProvider>
+      <div className="min-h-screen bg-slate-50">
+        {userRole === 'candidate' && <ParticipantHome />}
+        {userRole === 'coach' && <CoachDashboard />}
+        {userRole === 'owner' && <OwnerDashboard />}
+        {userRole === 'sales' && <SalesDemoDashboard />}
+        {userRole === 'admin' && <AdminDashboard />}
+      </div>
+    </PortalProvider>
   );
 }
 
