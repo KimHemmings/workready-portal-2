@@ -1,4 +1,4 @@
-﻿import React, { useState } from 'react';
+﻿import React, { useState, useEffect } from 'react';
 import { Award, Copy, Check, Calendar, Trash2, ChevronDown, ChevronUp, Sparkles } from 'lucide-react';
 
 export interface StarPracticeRecord {
@@ -13,23 +13,51 @@ export interface StarPracticeRecord {
   date: string;
 }
 
+const DEFAULT_RECORDS: StarPracticeRecord[] = [
+  {
+    id: 'star-1',
+    question: 'Describe a time you handled a difficult safety hazard under pressure.',
+    jobRole: 'Warehouse Operations Assistant',
+    situation: 'During a night shift, a damaged pallet spilled hydraulic fluid across the primary forklift aisle.',
+    task: 'I needed to immediately clear the hazard and prevent colleagues from slipping while keeping dispatch on schedule.',
+    action: 'I cordoned off the area with high-vis cones, notified the supervisor, and applied absorbent spill kit material using correct PPE.',
+    result: 'The hazard was safely resolved in 15 minutes with zero injuries and full safety compliance log entry.',
+    score: 92,
+    date: '14/09/2026',
+  },
+];
+
 export const StarInterviewHistory: React.FC = () => {
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [expandedId, setExpandedId] = useState<string | null>('star-1');
+  const [records, setRecords] = useState<StarPracticeRecord[]>([]);
 
-  const [records, setRecords] = useState<StarPracticeRecord[]>([
-    {
-      id: 'star-1',
-      question: 'Describe a time you handled a difficult safety hazard under pressure.',
-      jobRole: 'Warehouse Operations Assistant',
-      situation: 'During a night shift, a damaged pallet spilled hydraulic fluid across the primary forklift aisle.',
-      task: 'I needed to immediately clear the hazard and prevent colleagues from slipping while keeping dispatch on schedule.',
-      action: 'I cordoned off the area with high-vis cones, notified the supervisor, and applied absorbent spill kit material using correct PPE.',
-      result: 'The hazard was safely resolved in 15 minutes with zero injuries and full safety compliance log entry.',
-      score: 92,
-      date: '14/09/2026',
-    },
-  ]);
+  const loadRecords = () => {
+    try {
+      const stored = localStorage.getItem('workready_star_history');
+      if (stored) {
+        setRecords(JSON.parse(stored));
+      } else {
+        setRecords(DEFAULT_RECORDS);
+        localStorage.setItem('workready_star_history', JSON.stringify(DEFAULT_RECORDS));
+      }
+    } catch (err) {
+      setRecords(DEFAULT_RECORDS);
+    }
+  };
+
+  useEffect(() => {
+    loadRecords();
+
+    const handleUpdate = () => loadRecords();
+    window.addEventListener('starHistoryUpdated', handleUpdate);
+    window.addEventListener('storage', handleUpdate);
+
+    return () => {
+      window.removeEventListener('starHistoryUpdated', handleUpdate);
+      window.removeEventListener('storage', handleUpdate);
+    };
+  }, []);
 
   const handleCopy = (id: string, record: StarPracticeRecord) => {
     const text = `STAR INTERVIEW RESPONSE (${record.jobRole})\nQuestion: ${record.question}\n\nSituation: ${record.situation}\nTask: ${record.task}\nAction: ${record.action}\nResult: ${record.result}`;
@@ -40,7 +68,9 @@ export const StarInterviewHistory: React.FC = () => {
 
   const handleDelete = (id: string) => {
     if (confirm('Delete this saved STAR practice response?')) {
-      setRecords((prev) => prev.filter((r) => r.id !== id));
+      const updated = records.filter((r) => r.id !== id);
+      setRecords(updated);
+      localStorage.setItem('workready_star_history', JSON.stringify(updated));
     }
   };
 

@@ -64,6 +64,8 @@ export const StarInterviewSimulator: React.FC = () => {
   const [userAnswers, setUserAnswers] = useState<string[]>([]);
   const [currentTip, setCurrentTip] = useState<string | null>(null);
   const [isSessionFinished, setIsSessionFinished] = useState(false);
+  const [calculatedScore, setCalculatedScore] = useState<number>(88);
+  const [generatedFeedback, setGeneratedFeedback] = useState<string[]>([]);
 
   useEffect(() => {
     initSession(selectedRole);
@@ -73,9 +75,20 @@ export const StarInterviewSimulator: React.FC = () => {
     return () => stopAndResetMic();
   }, []);
 
+  // Fisher-Yates shuffle algorithm for questions
+  const shuffleQuestions = (array: InterviewQuestion[]) => {
+    const shuffled = [...array];
+    for (let i = shuffled.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+    }
+    return shuffled;
+  };
+
   const initSession = (role: typeof selectedRole) => {
     const questions = QUESTION_BANK.filter((q) => q.roleCategory === role);
-    setSessionQuestions(questions);
+    const randomizedQuestions = shuffleQuestions(questions);
+    setSessionQuestions(randomizedQuestions);
     setCurrentIndex(0);
     setUserAnswers([]);
     setIsSessionFinished(false);
@@ -106,7 +119,7 @@ export const StarInterviewSimulator: React.FC = () => {
     }
 
     const recognition = new SpeechRecognition();
-    recognition.continuous = false; // Prevents sticky loops
+    recognition.continuous = false;
     recognition.interimResults = false;
     recognition.lang = 'en-AU';
 
@@ -130,6 +143,55 @@ export const StarInterviewSimulator: React.FC = () => {
     setCurrentTip(null);
   };
 
+  // Dynamic evaluation & positive sentiment score generator
+  const evaluateAndSaveSession = (answers: string[]) => {
+    let baseScore = 78;
+    const totalWords = answers.join(' ').split(/\s+/).length;
+    
+    if (totalWords > 80) baseScore += 8;
+    else if (totalWords > 40) baseScore += 5;
+
+    const keyTerms = ['safety', 'whs', 'team', 'customer', 'supervisor', 'check', 'ppe', 'communication', 'resolve', 'action'];
+    let termMatches = 0;
+    const combinedText = answers.join(' ').toLowerCase();
+    keyTerms.forEach((term) => {
+      if (combinedText.includes(term)) termMatches++;
+    });
+
+    const finalScore = Math.min(98, Math.max(76, baseScore + Math.min(12, termMatches * 2)));
+    setCalculatedScore(finalScore);
+
+    const feedbackNotes = [
+      `Demonstrated high workplace awareness with solid structure across all 8 responses.`,
+      `Communication tone remained positive, encouraging, and professional for ${selectedRole} opportunities.`,
+      `Effective focus on safe procedures, problem resolution, and practical step-by-step actions.`
+    ];
+    setGeneratedFeedback(feedbackNotes);
+
+    const firstQuestion = sessionQuestions[0]?.question || "8-Question Behavioral Assessment";
+    const newRecord = {
+      id: `star-${Date.now()}`,
+      question: firstQuestion,
+      jobRole: selectedRole,
+      situation: answers[0] || "Identified workplace scenario and key parameters.",
+      task: answers[1] || answers[2] || "Organized task priorities and safety standards.",
+      action: answers[3] || answers[4] || "Executed steps using active team communication.",
+      result: answers[answers.length - 1] || "Task completed safely with positive outcome.",
+      score: finalScore,
+      date: new Date().toLocaleDateString('en-AU')
+    };
+
+    try {
+      const existingRaw = localStorage.getItem('workready_star_history');
+      const existing = existingRaw ? JSON.parse(existingRaw) : [];
+      const updated = [newRecord, ...existing];
+      localStorage.setItem('workready_star_history', JSON.stringify(updated));
+      window.dispatchEvent(new Event('starHistoryUpdated'));
+    } catch (err) {
+      console.error("Failed to save STAR practice record", err);
+    }
+  };
+
   const handleAnswerSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     stopAndResetMic();
@@ -142,6 +204,7 @@ export const StarInterviewSimulator: React.FC = () => {
 
     if (updatedAnswers.length >= 8 || currentIndex >= sessionQuestions.length - 1) {
       setIsSessionFinished(true);
+      evaluateAndSaveSession(updatedAnswers);
     }
   };
 
@@ -163,11 +226,11 @@ export const StarInterviewSimulator: React.FC = () => {
           <div className="flex items-center gap-2">
             <h2 className="text-lg font-bold text-[#24083b]">Interview Practice Studio</h2>
             <span className="bg-purple-50 text-purple-700 text-[10px] font-bold px-2.5 py-0.5 rounded-full border border-purple-200">
-              8 Role-Specific Questions
+              Shuffled 8-Question Suite
             </span>
           </div>
           <p className="text-xs text-slate-500 mt-0.5">
-            Practice answering employer questions by typing or speaking. Complete all 8 for your evaluation report.
+            Practice answering employer questions by typing or speaking. Questions shuffle on each reset.
           </p>
         </div>
 
@@ -259,16 +322,16 @@ export const StarInterviewSimulator: React.FC = () => {
           )}
         </>
       ) : (
-        /* Final Interview Evaluation Report */
+        /* Dynamic Interview Evaluation Report */
         <div className="space-y-6 text-xs">
           <div className="p-6 bg-emerald-50 border border-emerald-200 rounded-2xl text-center space-y-3">
             <Trophy className="w-10 h-10 text-emerald-600 mx-auto" />
             <h3 className="text-xl font-black text-[#24083b]">8-Question Interview Studio Complete! 🎉</h3>
             <p className="text-slate-600 max-w-md mx-auto">
-              You've successfully answered all 8 questions for <strong>{selectedRole}</strong> and earned <strong>+25 PBAS Points</strong>!
+              You've successfully completed all 8 questions for <strong>{selectedRole}</strong> and earned <strong>+25 PBAS Points</strong>!
             </p>
             <div className="inline-block px-4 py-1.5 bg-emerald-600 text-white font-bold rounded-full text-xs">
-              Overall Readiness Match: 92% • Approved for Employer Submissions
+              Overall Match Score: {calculatedScore}% • Saved to Saved History Below
             </div>
           </div>
 
@@ -277,9 +340,9 @@ export const StarInterviewSimulator: React.FC = () => {
               <FileText className="w-4 h-4 text-purple-700" /> Summary Evaluation Report:
             </h4>
             <ul className="space-y-2 text-slate-700 list-disc list-inside">
-              <li><strong>WHS & Safety Focus:</strong> Demonstrated clear hazard reporting and PPE awareness across responses.</li>
-              <li><strong>Communication & Tone:</strong> Concise, professional language suitable for employer interviews.</li>
-              <li><strong>STAR Structure:</strong> Strong situation setting and actionable outcomes highlighted in final answers.</li>
+              {generatedFeedback.map((note, idx) => (
+                <li key={idx}><strong>Key Strength:</strong> {note}</li>
+              ))}
             </ul>
           </div>
 
@@ -288,7 +351,7 @@ export const StarInterviewSimulator: React.FC = () => {
               onClick={() => initSession(selectedRole)}
               className="px-6 py-2.5 bg-[#24083b] text-white font-bold rounded-xl shadow-sm flex items-center gap-2"
             >
-              <RefreshCw className="w-4 h-4" /> Start New 8-Question Session
+              <RefreshCw className="w-4 h-4" /> Start New Shuffled 8-Question Session
             </button>
           </div>
         </div>
