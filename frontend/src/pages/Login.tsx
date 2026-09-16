@@ -136,10 +136,10 @@ const Login: React.FC<LoginProps> = ({ onLoginSuccess }) => {
         style={{ backgroundColor: '#4a156b' }}
       />
 
-      {/* Top Spacer: Leaves upper screen completely open for classroom wall signage */}
+      {/* Top Spacer: Leaves upper screen open to display whiteboards and posters */}
       <div className="w-full flex-1" />
 
-      {/* 4. Taller Bottom Banner Container (~48% Screen Height) */}
+      {/* 4. Bottom Banner Container (~58% Screen Height - Aligned just below 'You've got this!') */}
       <div className="w-full z-10 relative">
         
         {/* Brand Multi-Color Gradient Top Border Line */}
@@ -151,7 +151,7 @@ const Login: React.FC<LoginProps> = ({ onLoginSuccess }) => {
         />
 
         <main 
-          className="w-full min-h-[48vh] backdrop-blur-xl border-t border-white/10 shadow-2xl p-6 sm:p-8 lg:p-10 flex flex-col justify-between"
+          className="w-full min-h-[58vh] backdrop-blur-xl border-t border-white/10 shadow-2xl p-6 sm:p-10 lg:p-14 flex flex-col justify-between"
           style={{ backgroundColor: 'rgba(20, 7, 32, 0.95)' }}
         >
           {/* Upper Banner Section: Logo, Blurb & Form Bar */}
