@@ -3,7 +3,7 @@ import StarInterviewHistory from '../components/StarInterviewHistory';
 import AppointmentsWidget from '../components/AppointmentsWidget';
 import PointProjectionWheel from '../components/PointProjectionWheel';
 import DocumentLocker from '../components/DocumentLocker';
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import LmsModuleHub from '../components/LmsModuleHub';
 import ResumeBuilder from '../components/ResumeBuilder';
 import StarInterviewSimulator from '../components/StarInterviewSimulator';
@@ -58,6 +58,47 @@ export const ParticipantHome: React.FC = () => {
       date: '14/09/2026',
     },
   ]);
+
+  // Sync STAR Interview Practice sessions into the central Activity Verification Log
+  useEffect(() => {
+    const syncStarActivityLog = () => {
+      try {
+        const storedHistory = localStorage.getItem('workready_star_history');
+        if (!storedHistory) return;
+
+        const parsedRecords = JSON.parse(storedHistory);
+        if (parsedRecords.length === 0) return;
+
+        const latestRecord = parsedRecords[0];
+
+        setActivities((prev) => {
+          const exists = prev.some((act) => act.id === latestRecord.id);
+          if (exists) return prev;
+
+          const newStarActivity: ActivityLog = {
+            id: latestRecord.id,
+            type: 'Interview',
+            title: `STAR Practice: ${latestRecord.jobRole} (${latestRecord.score}% Match)`,
+            reference: `STAR-${latestRecord.id.slice(-6).toUpperCase()}`,
+            points: 25,
+            status: 'Verified',
+            date: latestRecord.date || new Date().toLocaleDateString('en-AU'),
+          };
+
+          return [newStarActivity, ...prev];
+        });
+
+        setVerifiedPoints((prev) => Math.min(prev + 25, targetPoints));
+      } catch (err) {
+        console.error('Error syncing STAR history to main log', err);
+      }
+    };
+
+    syncStarActivityLog();
+
+    window.addEventListener('starHistoryUpdated', syncStarActivityLog);
+    return () => window.removeEventListener('starHistoryUpdated', syncStarActivityLog);
+  }, [targetPoints]);
 
   // Modal States
   const [showJobModal, setShowJobModal] = useState<boolean>(false);
