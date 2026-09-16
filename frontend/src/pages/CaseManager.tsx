@@ -16,7 +16,11 @@ import {
   Download,
   Award,
   Send,
-  FileSpreadsheet
+  FileSpreadsheet,
+  Briefcase,
+  BookOpen,
+  BarChart3,
+  FileText
 } from 'lucide-react';
 
 interface Candidate {
@@ -53,10 +57,10 @@ interface SupportMessage {
 }
 
 export const CaseManager: React.FC = () => {
-  // Navigation Tab State
-  const [activeTab, setActiveTab] = useState<'queue' | 'communication' | 'exports'>('queue');
+  const [activeTab, setActiveTab] = useState<'queue' | 'candidate_profile' | 'communication' | 'exports'>('queue');
+  const [profileSection, setProfileSection] = useState<'star' | 'job_search' | 'pillars' | 'lms'>('star');
 
-  // Candidate Roster State
+  // Candidate Roster
   const [candidates, setCandidates] = useState<Candidate[]>([
     { id: 'c1', name: 'Alex Participant', waId: 'WA-882194', pbasTarget: 100, verifiedPoints: 35, status: 'On Track' },
     { id: 'c2', name: 'Jordan Smith', waId: 'WA-904112', pbasTarget: 80, verifiedPoints: 60, status: 'On Track' },
@@ -65,21 +69,21 @@ export const CaseManager: React.FC = () => {
 
   const [selectedCandidateId, setSelectedCandidateId] = useState<string>('c1');
 
-  // Modal States
+  // Modals
   const [showAddModal, setShowAddModal] = useState(false);
   const [editingCandidate, setEditingCandidate] = useState<Candidate | null>(null);
   const [selectedReport, setSelectedReport] = useState<any | null>(null);
 
-  // Form Inputs for Adding Candidate
+  // Form Inputs
   const [newCandidateName, setNewCandidateName] = useState('');
   const [newCandidateWaId, setNewCandidateWaId] = useState('');
   const [newCandidateTarget, setNewCandidateTarget] = useState(100);
 
-  // Verification Queue State
+  // Queue & Data
   const [activities, setActivities] = useState<ActivityLog[]>([]);
   const [filterType, setFilterType] = useState<string>('All');
 
-  // Support Inbox State
+  // Support Messages
   const [supportMessages, setSupportMessages] = useState<SupportMessage[]>([
     {
       id: 'msg-1',
@@ -89,15 +93,6 @@ export const CaseManager: React.FC = () => {
       message: 'Hi Casey, I submitted my STAR interview practice for the Warehouse role. Can you let me know if the Action section needs more detail?',
       date: '15/09/2026',
       status: 'Unread'
-    },
-    {
-      id: 'msg-2',
-      candidateId: 'c3',
-      candidateName: 'Sam Taylor',
-      topic: 'PBAS Schedule Request',
-      message: 'I have medical appointments next week and need to adjust my monthly point target.',
-      date: '12/09/2026',
-      status: 'Unread'
     }
   ]);
   const [coachingInput, setCoachingInput] = useState<string>('');
@@ -105,7 +100,6 @@ export const CaseManager: React.FC = () => {
 
   const activeCandidate = candidates.find((c) => c.id === selectedCandidateId) || candidates[0];
 
-  // Load Submissions
   const loadSubmissions = () => {
     try {
       const storedHistory = localStorage.getItem('workready_star_history');
@@ -180,7 +174,6 @@ export const CaseManager: React.FC = () => {
     loadSubmissions();
   }, []);
 
-  // Candidate Actions
   const handleAddCandidate = (e: React.FormEvent) => {
     e.preventDefault();
     if (!newCandidateName || !newCandidateWaId) return;
@@ -244,7 +237,6 @@ export const CaseManager: React.FC = () => {
     setCoachingInput('');
   };
 
-  // CSV Export Functionality for DEWR Auditing
   const handleExportDewrCsv = () => {
     const headers = ['Candidate Name', 'Workforce Australia ID', 'Activity Type', 'Title', 'Reference ID', 'Points', 'Status', 'Date'];
     const rows = activities.map((act) => [
@@ -268,7 +260,6 @@ export const CaseManager: React.FC = () => {
     document.body.removeChild(link);
   };
 
-  // Filtered Lists
   const candidateActivities = activities.filter((a) => a.candidateId === activeCandidate.id);
   const pendingList = candidateActivities.filter((a) => a.status === 'Pending Verification');
   const pendingPointsTotal = pendingList.reduce((sum, a) => sum + a.points, 0);
@@ -322,7 +313,7 @@ export const CaseManager: React.FC = () => {
         </div>
       </header>
 
-      {/* Roster Bar */}
+      {/* Candidate Roster Selector */}
       <section className="bg-white border-b border-slate-200 shadow-xs py-3">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none">
@@ -385,6 +376,14 @@ export const CaseManager: React.FC = () => {
               Sign-Off Queue
             </button>
             <button
+              onClick={() => setActiveTab('candidate_profile')}
+              className={`px-3.5 py-1.5 rounded-lg transition-all flex items-center gap-1.5 ${
+                activeTab === 'candidate_profile' ? 'bg-white text-purple-900 shadow-xs' : 'text-slate-600 hover:text-slate-900'
+              }`}
+            >
+              <FileText className="w-3.5 h-3.5" /> Candidate Profile Data
+            </button>
+            <button
               onClick={() => setActiveTab('communication')}
               className={`px-3.5 py-1.5 rounded-lg transition-all flex items-center gap-1.5 ${
                 activeTab === 'communication' ? 'bg-white text-purple-900 shadow-xs' : 'text-slate-600 hover:text-slate-900'
@@ -398,19 +397,18 @@ export const CaseManager: React.FC = () => {
                 activeTab === 'exports' ? 'bg-white text-purple-900 shadow-xs' : 'text-slate-600 hover:text-slate-900'
               }`}
             >
-              <FileSpreadsheet className="w-3.5 h-3.5" /> DEWR Exports & LMS
+              <FileSpreadsheet className="w-3.5 h-3.5" /> DEWR Exports
             </button>
           </div>
         </div>
       </section>
 
-      {/* Main Workspace */}
+      {/* Main Content Area */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6 space-y-6">
         
         {/* TAB 1: VERIFICATION QUEUE */}
         {activeTab === 'queue' && (
           <>
-            {/* Metric Cards */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex items-center justify-between">
                 <div>
@@ -434,7 +432,7 @@ export const CaseManager: React.FC = () => {
 
               <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex items-center justify-between">
                 <div>
-                  <p className="text-xs font-bold text-slate-500 uppercase">Monthly PBAS Target</p>
+                  <p className="text-xs font-bold text-slate-500 uppercase">Monthly Target</p>
                   <p className="text-2xl font-black text-purple-900 mt-1">{activeCandidate.pbasTarget} Pts</p>
                 </div>
                 <div className="p-3 bg-purple-50 text-purple-800 rounded-xl border border-purple-100">
@@ -443,7 +441,6 @@ export const CaseManager: React.FC = () => {
               </div>
             </div>
 
-            {/* Verification Queue Table */}
             <div className="bg-white border border-slate-200 rounded-2xl p-6 space-y-4 shadow-sm">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-4">
                 <div>
@@ -541,7 +538,170 @@ export const CaseManager: React.FC = () => {
           </>
         )}
 
-        {/* TAB 2: SUPPORT INBOX & COACHING */}
+        {/* TAB 2: CANDIDATE PROFILE DATA FULL VIEW */}
+        {activeTab === 'candidate_profile' && (
+          <div className="space-y-6">
+            
+            {/* Inner Sub-Navigation Bar for Candidate Data */}
+            <div className="flex items-center gap-2 border-b border-slate-200 pb-3">
+              <button
+                onClick={() => setProfileSection('star')}
+                className={`px-3.5 py-1.5 rounded-xl text-xs font-bold flex items-center gap-1.5 border transition-all ${
+                  profileSection === 'star'
+                    ? 'bg-[#24083b] text-white border-[#24083b]'
+                    : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-50'
+                }`}
+              >
+                <Award className="w-4 h-4" /> STAR Practice Runs
+              </button>
+
+              <button
+                onClick={() => setProfileSection('job_search')}
+                className={`px-3.5 py-1.5 rounded-xl text-xs font-bold flex items-center gap-1.5 border transition-all ${
+                  profileSection === 'job_search'
+                    ? 'bg-[#24083b] text-white border-[#24083b]'
+                    : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-50'
+                }`}
+              >
+                <Briefcase className="w-4 h-4" /> Job Search Log
+              </button>
+
+              <button
+                onClick={() => setProfileSection('pillars')}
+                className={`px-3.5 py-1.5 rounded-xl text-xs font-bold flex items-center gap-1.5 border transition-all ${
+                  profileSection === 'pillars'
+                    ? 'bg-[#24083b] text-white border-[#24083b]'
+                    : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-50'
+                }`}
+              >
+                <BarChart3 className="w-4 h-4" /> 5-Pillar Readiness
+              </button>
+
+              <button
+                onClick={() => setProfileSection('lms')}
+                className={`px-3.5 py-1.5 rounded-xl text-xs font-bold flex items-center gap-1.5 border transition-all ${
+                  profileSection === 'lms'
+                    ? 'bg-[#24083b] text-white border-[#24083b]'
+                    : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-50'
+                }`}
+              >
+                <BookOpen className="w-4 h-4" /> LMS Modules & Certs
+              </button>
+            </div>
+
+            {/* SECTION 1: STAR INTERVIEW PRACTICE LOGS */}
+            {profileSection === 'star' && (
+              <div className="bg-white border border-slate-200 rounded-2xl p-6 space-y-4 shadow-sm">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h3 className="font-extrabold text-base text-[#24083b]">STAR Interview Submissions</h3>
+                    <p className="text-xs text-slate-500">Full history of recorded STAR responses and qualitative rubrics for {activeCandidate.name}.</p>
+                  </div>
+                  <span className="px-2.5 py-1 bg-purple-50 text-purple-900 border border-purple-200 rounded-lg text-xs font-bold">
+                    +25 Points / Session
+                  </span>
+                </div>
+
+                <div className="space-y-3 pt-2">
+                  {candidateActivities.filter((a) => a.type === 'Interview').map((item) => (
+                    <div key={item.id} className="p-4 border border-slate-200 rounded-xl bg-slate-50 flex items-center justify-between">
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <span className="font-bold text-xs text-slate-900">{item.title}</span>
+                          <span className="text-[10px] font-mono bg-slate-200 px-2 py-0.5 rounded text-slate-700">{item.reference}</span>
+                        </div>
+                        <p className="text-[11px] text-slate-500 mt-1">Submitted: {item.date} • Status: <strong className="text-amber-700">{item.status}</strong></p>
+                      </div>
+                      {item.reportData && (
+                        <button
+                          onClick={() => setSelectedReport(item.reportData)}
+                          className="px-3 py-1.5 bg-purple-900 text-white rounded-lg text-xs font-bold hover:bg-purple-950 transition-all"
+                        >
+                          View Full Evaluation
+                        </button>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* SECTION 2: JOB SEARCH LOG */}
+            {profileSection === 'job_search' && (
+              <div className="bg-white border border-slate-200 rounded-2xl p-6 space-y-4 shadow-sm">
+                <h3 className="font-extrabold text-base text-[#24083b]">Job Application History</h3>
+                <p className="text-xs text-slate-500">Verified applications logged by {activeCandidate.name} for PBAS compliance.</p>
+
+                <div className="space-y-3 pt-2">
+                  <div className="p-4 border border-slate-200 rounded-xl bg-slate-50 flex items-center justify-between">
+                    <div>
+                      <h4 className="font-bold text-xs text-slate-800">Warehouse Assistant — Logistics Co</h4>
+                      <p className="text-[11px] text-slate-500 mt-0.5">Applied: 14/09/2026 • Ref ID: <span className="font-mono text-slate-700">JOB-98231</span></p>
+                    </div>
+                    <span className="px-2.5 py-1 bg-emerald-50 text-emerald-700 border border-emerald-200 text-xs font-bold rounded-lg">+5 Points</span>
+                  </div>
+
+                  <div className="p-4 border border-slate-200 rounded-xl bg-slate-50 flex items-center justify-between">
+                    <div>
+                      <h4 className="font-bold text-xs text-slate-800">Customer Support Representative — Retail Hub</h4>
+                      <p className="text-[11px] text-slate-500 mt-0.5">Applied: 10/09/2026 • Ref ID: <span className="font-mono text-slate-700">JOB-97102</span></p>
+                    </div>
+                    <span className="px-2.5 py-1 bg-emerald-50 text-emerald-700 border border-emerald-200 text-xs font-bold rounded-lg">+5 Points</span>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* SECTION 3: 5-PILLAR READINESS */}
+            {profileSection === 'pillars' && (
+              <div className="bg-white border border-slate-200 rounded-2xl p-6 space-y-4 shadow-sm">
+                <h3 className="font-extrabold text-base text-[#24083b]">5-Pillar Work Readiness Assessment</h3>
+                <p className="text-xs text-slate-500">Candidate self-assessment ratings across key employment pillars.</p>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
+                  {[
+                    { title: 'Resume & Cover Letter', status: 'Strong', score: 'Level 4/5' },
+                    { title: 'Job Application Strategy', status: 'Proficient', score: 'Level 3/5' },
+                    { title: 'STAR Interview Readiness', status: 'In Development', score: 'Level 2/5' },
+                    { title: 'Workplace Health & Safety', status: 'Mastered', score: 'Level 5/5' }
+                  ].map((pillar, idx) => (
+                    <div key={idx} className="p-4 border border-slate-200 rounded-xl bg-slate-50 space-y-1">
+                      <div className="flex items-center justify-between">
+                        <span className="font-bold text-xs text-slate-800">{pillar.title}</span>
+                        <span className="text-[11px] font-bold text-purple-900 bg-purple-100 px-2 py-0.5 rounded-full">{pillar.score}</span>
+                      </div>
+                      <p className="text-[11px] text-slate-500">Evaluation Status: <strong>{pillar.status}</strong></p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* SECTION 4: LMS MODULES */}
+            {profileSection === 'lms' && (
+              <div className="bg-white border border-slate-200 rounded-2xl p-6 space-y-4 shadow-sm">
+                <h3 className="font-extrabold text-base text-[#24083b]">LMS Training & Certificates</h3>
+                <p className="text-xs text-slate-500">Completed training modules and earned accreditation certificates.</p>
+
+                <div className="space-y-3 pt-2">
+                  <div className="p-4 border border-slate-200 rounded-xl bg-slate-50 flex items-center justify-between">
+                    <div>
+                      <span className="px-2 py-0.5 bg-emerald-100 text-emerald-800 text-[10px] font-bold rounded-full uppercase">Verified Completion</span>
+                      <h4 className="font-bold text-xs text-slate-800 mt-1">WHS Fundamentals & Safe Work</h4>
+                      <p className="text-[11px] text-slate-500">Completed 10/09/2026 • Ref: MOD-WHS-01</p>
+                    </div>
+                    <button className="px-3 py-1.5 bg-purple-900 text-white rounded-lg text-xs font-bold hover:bg-purple-950 transition-all">
+                      Inspect Certificate
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
+
+          </div>
+        )}
+
+        {/* TAB 3: SUPPORT INBOX & COACHING */}
         {activeTab === 'communication' && (
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             <div className="bg-white border border-slate-200 rounded-2xl p-5 space-y-4 shadow-sm">
@@ -565,13 +725,6 @@ export const CaseManager: React.FC = () => {
                     </div>
                     <p className="text-xs font-semibold text-purple-900">{msg.topic}</p>
                     <p className="text-[11px] text-slate-600 line-clamp-2 mt-1">{msg.message}</p>
-                    <div className="mt-2">
-                      <span className={`px-2 py-0.5 text-[9px] font-bold rounded-full ${
-                        msg.status === 'Responded' ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'
-                      }`}>
-                        {msg.status}
-                      </span>
-                    </div>
                   </button>
                 ))}
               </div>
@@ -627,62 +780,25 @@ export const CaseManager: React.FC = () => {
           </div>
         )}
 
-        {/* TAB 3: DEWR AUDIT EXPORTS & LMS CERTIFICATES */}
+        {/* TAB 4: DEWR EXPORTS */}
         {activeTab === 'exports' && (
-          <div className="space-y-6">
-            {/* Export Action Card */}
-            <div className="bg-gradient-to-r from-purple-900 to-[#24083b] rounded-2xl p-6 text-white flex flex-col sm:flex-row items-center justify-between gap-4 shadow-md">
-              <div className="space-y-1">
-                <span className="bg-emerald-500/20 border border-emerald-400/30 text-emerald-300 text-[10px] font-bold px-2.5 py-0.5 rounded-full uppercase">
-                  DEWR Compliance Audit Hub
-                </span>
-                <h2 className="text-lg font-black tracking-tight">Export Participant Activity Records</h2>
-                <p className="text-xs text-purple-200">
-                  Generate auditor-ready CSV files containing verified PBAS point logs for Department audit verification.
-                </p>
-              </div>
-
-              <button
-                onClick={handleExportDewrCsv}
-                className="px-5 py-2.5 bg-emerald-500 hover:bg-emerald-600 text-white font-bold text-xs rounded-xl shadow-md transition-all flex items-center gap-2 whitespace-nowrap"
-              >
-                <Download className="w-4 h-4" /> Download DEWR CSV Report
-              </button>
+          <div className="bg-gradient-to-r from-purple-900 to-[#24083b] rounded-2xl p-6 text-white flex flex-col sm:flex-row items-center justify-between gap-4 shadow-md">
+            <div className="space-y-1">
+              <span className="bg-emerald-500/20 border border-emerald-400/30 text-emerald-300 text-[10px] font-bold px-2.5 py-0.5 rounded-full uppercase">
+                DEWR Compliance Audit Hub
+              </span>
+              <h2 className="text-lg font-black tracking-tight">Export Participant Activity Records</h2>
+              <p className="text-xs text-purple-200">
+                Generate auditor-ready CSV files containing verified PBAS point logs for Department audit verification.
+              </p>
             </div>
 
-            {/* Verified LMS Certificates Archive */}
-            <div className="bg-white border border-slate-200 rounded-2xl p-6 space-y-4 shadow-sm">
-              <h3 className="font-extrabold text-base text-[#24083b] flex items-center gap-2">
-                <Award className="w-5 h-5 text-purple-700" /> Verified LMS Certificate Archive
-              </h3>
-              <p className="text-xs text-slate-500">Official training certificates earned by candidates through the LMS module.</p>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
-                <div className="p-4 border border-slate-200 rounded-xl bg-slate-50 flex items-center justify-between">
-                  <div>
-                    <span className="text-[10px] font-bold text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded-full uppercase">
-                      Verified Completion
-                    </span>
-                    <h4 className="font-bold text-xs text-slate-800 mt-1">WHS Fundamentals & Safe Work</h4>
-                    <p className="text-[11px] text-slate-500">Issued to Alex Participant • Ref: MOD-WHS-01</p>
-                  </div>
-                  <button className="px-3 py-1.5 bg-purple-50 text-purple-800 border border-purple-200 text-xs font-bold rounded-lg hover:bg-purple-100 transition-all">
-                    Inspect PDF
-                  </button>
-                </div>
-
-                <div className="p-4 border border-slate-200 rounded-xl bg-slate-50 flex items-center justify-between opacity-60">
-                  <div>
-                    <span className="text-[10px] font-bold text-slate-600 bg-slate-200 px-2 py-0.5 rounded-full uppercase">
-                      In Progress
-                    </span>
-                    <h4 className="font-bold text-xs text-slate-800 mt-1">Customer Communication Basics</h4>
-                    <p className="text-[11px] text-slate-500">Assigned to Alex Participant</p>
-                  </div>
-                  <span className="text-xs font-bold text-slate-400">Pending</span>
-                </div>
-              </div>
-            </div>
+            <button
+              onClick={handleExportDewrCsv}
+              className="px-5 py-2.5 bg-emerald-500 hover:bg-emerald-600 text-white font-bold text-xs rounded-xl shadow-md transition-all flex items-center gap-2 whitespace-nowrap"
+            >
+              <Download className="w-4 h-4" /> Download DEWR CSV Report
+            </button>
           </div>
         )}
 
