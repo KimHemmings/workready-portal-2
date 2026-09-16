@@ -1,3 +1,133 @@
+// ==========================================
+// ORIGINAL WORKREADY APP TYPES
+// ==========================================
+
+export type Role = 'candidate' | 'coach' | 'owner' | 'sales' | 'admin';
+
+export interface User {
+  id: string;
+  email: string;
+  name: string;
+  role: Role;
+  organizationId?: string;
+  createdAt?: string;
+}
+
+export interface Certificate {
+  id: string;
+  title: string;
+  issueDate: string;
+  issuer: string;
+  credentialUrl?: string;
+  recipientName?: string;
+}
+
+export interface Organization {
+  id: string;
+  name: string;
+  slug: string;
+}
+
+export interface InviteResult {
+  success: boolean;
+  message?: string;
+}
+
+export interface ResetPasswordResult {
+  success: boolean;
+  message?: string;
+}
+
+export interface RoleSwitchTarget {
+  role: Role;
+  label: string;
+}
+
+export interface InviteEmailResult {
+  success: boolean;
+  message?: string;
+}
+
+export interface UsageMetric {
+  name: string;
+  value: number;
+  limit: number;
+}
+
+export interface EvidenceRow {
+  id: string;
+  type: string;
+  title: string;
+  date: string;
+  status: string;
+}
+
+export interface EvidenceSummary {
+  totalSubmitted: number;
+  approved: number;
+  pending: number;
+}
+
+export interface JobSearchLog {
+  id: string;
+  jobTitle: string;
+  company: string;
+  dateApplied: string;
+  status: string;
+}
+
+export type InterviewMode = 'practice' | 'mock' | 'assessment';
+
+export interface InterviewSession {
+  id: string;
+  title: string;
+  date: string;
+  score?: number;
+}
+
+export interface UsageSummary {
+  creditsUsed: number;
+  creditsRemaining: number;
+}
+
+export interface ParticipantProgress {
+  moduleId: string;
+  completed: boolean;
+  score?: number;
+}
+
+export interface TrainingModule {
+  id: string;
+  title: string;
+  description: string;
+}
+
+export interface ModuleDetail {
+  id: string;
+  title: string;
+  content: string;
+}
+
+export interface QuizResult {
+  score: number;
+  passed: boolean;
+}
+
+export interface InvitePreview {
+  email: string;
+  role: Role;
+}
+
+export interface Resume {
+  id: string;
+  title: string;
+  lastUpdated: string;
+}
+
+// ==========================================
+// NEW SHARED PORTAL DATA STORE TYPES
+// ==========================================
+
 export interface FivePillars {
   jobSearch: number;
   interviewReadiness: number;
