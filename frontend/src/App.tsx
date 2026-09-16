@@ -2,7 +2,7 @@
 import ParticipantHome from './pages/ParticipantHome';
 import CoachDashboard from './pages/CoachDashboard';
 import OwnerDashboard from './pages/OwnerDashboard';
-import SalesDemoDashboard from './pages/SalesDemoDashboard';
+import { SalesDemoDashboard } from './pages/SalesDemoDashboard';
 import AdminDashboard from './pages/AdminDashboard';
 import Login from './pages/Login';
 
