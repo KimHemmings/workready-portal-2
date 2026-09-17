@@ -3,7 +3,8 @@ import { usePortal } from '../context/PortalContext';
 import type { VerificationItem, CandidateProfile } from '../lib/types';
 import { 
   Users, CheckCircle2, Search, Filter, History, LogOut, Check, ChevronRight, Eye,
-  Award, Briefcase, Calendar, Sparkles, MessageSquare, AlertCircle, FileText, CheckSquare, X, Send, Clock
+  Award, Briefcase, Calendar, Sparkles, MessageSquare, AlertCircle, FileText, CheckSquare, X, Send, Clock,
+  ChevronDown, ChevronUp, UserCheck, UserX
 } from 'lucide-react';
 
 interface AuditLogEntry {
@@ -37,6 +38,14 @@ export default function CoachDashboard() {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedEvidence, setSelectedEvidence] = useState<VerificationItem | null>(null);
   const [inspectCandidate, setInspectCandidate] = useState<CandidateProfile | null>(null);
+
+  // Away Status Toggle State
+  const [isAway, setIsAway] = useState<boolean>(() => {
+    return localStorage.getItem('workready_cm_is_away') === 'true';
+  });
+
+  // Collapsible Roster State (stores candidate IDs that are expanded)
+  const [expandedCandidates, setExpandedCandidates] = useState<Record<string, boolean>>({});
 
   // Drawer Messaging State
   const [messagingCandidate, setMessagingCandidate] = useState<CandidateProfile | null>(null);
@@ -82,6 +91,26 @@ export default function CoachDashboard() {
   useEffect(() => {
     localStorage.setItem('workready_cm_audit_logs', JSON.stringify(auditLogs));
   }, [auditLogs]);
+
+  useEffect(() => {
+    localStorage.setItem('workready_cm_is_away', isAway ? 'true' : 'false');
+  }, [isAway]);
+
+  const toggleAwayStatus = () => {
+    const nextAway = !isAway;
+    setIsAway(nextAway);
+    addAuditEntry(
+      'Staff Status Update', 
+      nextAway ? 'Set status to AWAY (Coverage reassignment enabled)' : 'Set status to ACTIVE / PRESENT'
+    );
+  };
+
+  const toggleExpandCandidate = (id: string) => {
+    setExpandedCandidates(prev => ({
+      ...prev,
+      [id]: !prev[id]
+    }));
+  };
 
   const addAuditEntry = (candidateName: string, action: string) => {
     const isCoverage = selectedCaseload !== 'casey';
@@ -158,7 +187,6 @@ export default function CoachDashboard() {
       <header className="bg-gradient-to-r from-[#1e1b4b] via-[#24083b] to-[#1e1b4b] text-white px-6 py-4 border-b border-purple-900/50 shadow-md">
         <div className="max-w-7xl mx-auto flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div className="flex items-center space-x-4">
-            {/* BRAND LOGO CONTAINER WITH FALLBACK */}
             <div className="w-10 h-10 bg-white rounded-xl p-1 flex items-center justify-center shadow-sm overflow-hidden shrink-0">
               <img 
                 src="/logo.png" 
@@ -188,7 +216,29 @@ export default function CoachDashboard() {
             </div>
           </div>
 
-          <div className="flex items-center space-x-3">
+          <div className="flex flex-wrap items-center gap-3">
+            {/* TOGGLE SET AWAY FUNCTIONALITY */}
+            <button
+              onClick={toggleAwayStatus}
+              className={`px-3 py-1.5 rounded-xl border text-xs font-bold transition-all flex items-center space-x-1.5 shadow-sm ${
+                isAway 
+                  ? 'bg-amber-500/20 text-amber-300 border-amber-400/50 hover:bg-amber-500/30' 
+                  : 'bg-emerald-500/20 text-emerald-300 border-emerald-400/40 hover:bg-emerald-500/30'
+              }`}
+            >
+              {isAway ? (
+                <>
+                  <UserX className="w-3.5 h-3.5 text-amber-300" />
+                  <span>Status: AWAY (Coverage Active)</span>
+                </>
+              ) : (
+                <>
+                  <UserCheck className="w-3.5 h-3.5 text-emerald-300" />
+                  <span>Status: Present & Available</span>
+                </>
+              )}
+            </button>
+
             <div className="bg-white/10 backdrop-blur-md border border-purple-300/20 rounded-xl px-3 py-1.5 flex items-center space-x-2 text-xs">
               <Filter className="w-3.5 h-3.5 text-purple-300" />
               <span className="text-purple-200 font-medium">View Roster:</span>
@@ -218,9 +268,16 @@ export default function CoachDashboard() {
       <main className="max-w-7xl mx-auto p-6 space-y-6">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white p-4 rounded-2xl border border-slate-200 shadow-sm">
           <div>
-            <h2 className="text-xl font-extrabold text-purple-950">
-              Welcome back, {currentCoachName}!
-            </h2>
+            <div className="flex items-center space-x-2">
+              <h2 className="text-xl font-extrabold text-purple-950">
+                Welcome back, {currentCoachName}!
+              </h2>
+              {isAway && (
+                <span className="px-2 py-0.5 bg-amber-100 text-amber-800 border border-amber-300 text-[10px] font-extrabold rounded-full uppercase">
+                  Away Mode Active
+                </span>
+              )}
+            </div>
             <p className="text-xs text-slate-500 mt-0.5">
               {selectedCaseload === 'casey' 
                 ? "Managing your direct candidate caseload." 
@@ -354,6 +411,7 @@ export default function CoachDashboard() {
           </div>
         )}
 
+        {/* TAB 2: ROSTER WITH EXPAND / COLLAPSE DROPDOWN ARROWS */}
         {activeTab === 'roster' && (
           <div className="space-y-4">
             <div className="flex items-center justify-between bg-white p-4 rounded-xl border border-slate-200">
@@ -373,84 +431,106 @@ export default function CoachDashboard() {
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {filteredCandidates.map((candidate: CandidateProfile) => (
-                <div key={candidate.id} className="bg-white rounded-2xl p-5 border border-slate-200 shadow-sm space-y-4">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <h4 className="font-extrabold text-slate-900 text-base">{candidate.name}</h4>
-                      <p className="text-xs text-slate-500">{candidate.email} • WA ID: WA-882194</p>
-                    </div>
-                    <span className="px-2.5 py-1 bg-emerald-50 text-emerald-700 border border-emerald-200 font-bold text-xs rounded-full">
-                      {candidate.status}
-                    </span>
-                  </div>
+              {filteredCandidates.map((candidate: CandidateProfile) => {
+                const isExpanded = expandedCandidates[candidate.id] ?? true;
 
-                  <div className="space-y-1.5">
-                    <div className="flex justify-between text-xs font-bold">
-                      <span className="text-slate-600">PBAS Monthly Verified Points</span>
-                      <span className="text-purple-950">{candidate.pbasVerified} / {candidate.pbasTarget} Pts</span>
-                    </div>
-                    <div className="w-full bg-slate-100 h-2.5 rounded-full overflow-hidden">
-                      <div 
-                        className="bg-gradient-to-r from-purple-600 to-emerald-500 h-full transition-all duration-500"
-                        style={{ width: `${Math.min(100, (candidate.pbasVerified / candidate.pbasTarget) * 100)}%` }}
-                      />
-                    </div>
-                  </div>
-
-                  {candidate.fivePillars && (
-                    <div className="p-3 bg-slate-50 rounded-xl border border-slate-200 space-y-2 text-xs">
-                      <div className="font-bold text-slate-800 flex items-center justify-between">
-                        <span>5 Pillars Diagnostic Mirror</span>
-                        <Sparkles className="w-3.5 h-3.5 text-purple-600" />
+                return (
+                  <div key={candidate.id} className="bg-white rounded-2xl p-5 border border-slate-200 shadow-sm space-y-4 relative">
+                    <div className="flex items-start justify-between pr-8">
+                      <div>
+                        <h4 className="font-extrabold text-slate-900 text-base flex items-center space-x-2">
+                          <span>{candidate.name}</span>
+                        </h4>
+                        <p className="text-xs text-slate-500">{candidate.email} • WA ID: WA-882194</p>
                       </div>
-                      <div className="grid grid-cols-5 gap-1.5 text-center font-bold text-[10px]">
-                        <div className="bg-purple-100 text-purple-900 p-1.5 rounded">
-                          <div>Job Search</div>
-                          <div className="text-xs text-purple-950">{candidate.fivePillars.jobSearch}%</div>
-                        </div>
-                        <div className="bg-emerald-100 text-emerald-900 p-1.5 rounded">
-                          <div>Interview</div>
-                          <div className="text-xs text-emerald-950">{candidate.fivePillars.interviewReadiness}%</div>
-                        </div>
-                        <div className="bg-blue-100 text-blue-900 p-1.5 rounded">
-                          <div>Skills</div>
-                          <div className="text-xs text-blue-950">{candidate.fivePillars.technicalSkills}%</div>
-                        </div>
-                        <div className="bg-amber-100 text-amber-900 p-1.5 rounded">
-                          <div>Logistics</div>
-                          <div className="text-xs text-amber-950">{candidate.fivePillars.logistics}%</div>
-                        </div>
-                        <div className="bg-rose-100 text-rose-900 p-1.5 rounded">
-                          <div>Mindset</div>
-                          <div className="text-xs text-rose-950">{candidate.fivePillars.mindset}%</div>
-                        </div>
-                      </div>
+                      <span className="px-2.5 py-1 bg-emerald-50 text-emerald-700 border border-emerald-200 font-bold text-xs rounded-full">
+                        {candidate.status}
+                      </span>
                     </div>
-                  )}
 
-                  <div className="pt-2 border-t border-slate-100 flex justify-between items-center text-xs gap-2">
-                    <button 
-                      onClick={() => setMessagingCandidate(candidate)}
-                      className="px-3 py-1.5 bg-purple-50 text-purple-900 border border-purple-200 font-bold rounded-xl hover:bg-purple-100 flex items-center space-x-1 text-xs"
+                    <button
+                      onClick={() => toggleExpandCandidate(candidate.id)}
+                      className="absolute top-4 right-4 p-1.5 text-slate-400 hover:text-purple-950 hover:bg-slate-100 rounded-lg transition-all"
+                      title={isExpanded ? "Collapse View" : "Expand Roster Details"}
                     >
-                      <MessageSquare className="w-3.5 h-3.5" />
-                      <span>Message / Schedule</span>
+                      {isExpanded ? (
+                        <ChevronUp className="w-5 h-5 text-purple-950 font-bold" />
+                      ) : (
+                        <ChevronDown className="w-5 h-5 text-slate-500" />
+                      )}
                     </button>
 
-                    <button 
-                      onClick={() => {
-                        setInspectCandidate(candidate);
-                        addAuditEntry(candidate.name, 'Opened candidate readiness mirror & STAR history');
-                      }}
-                      className="text-purple-950 font-bold hover:underline flex items-center space-x-1 text-xs"
-                    >
-                      <span>Locker</span>
-                      <ChevronRight className="w-3.5 h-3.5" />
-                    </button>
+                    <div className="space-y-1.5">
+                      <div className="flex justify-between text-xs font-bold">
+                        <span className="text-slate-600">PBAS Monthly Verified Points</span>
+                        <span className="text-purple-950">{candidate.pbasVerified} / {candidate.pbasTarget} Pts</span>
+                      </div>
+                      <div className="w-full bg-slate-100 h-2.5 rounded-full overflow-hidden">
+                        <div 
+                          className="bg-gradient-to-r from-purple-600 to-emerald-500 h-full transition-all duration-500"
+                          style={{ width: `${Math.min(100, (candidate.pbasVerified / candidate.pbasTarget) * 100)}%` }}
+                        />
+                      </div>
+                    </div>
+
+                    {isExpanded && (
+                      <div className="space-y-3 pt-2 border-t border-slate-100 animate-fadeIn">
+                        {candidate.fivePillars && (
+                          <div className="p-3 bg-slate-50 rounded-xl border border-slate-200 space-y-2 text-xs">
+                            <div className="font-bold text-slate-800 flex items-center justify-between">
+                              <span>5 Pillars Diagnostic Mirror</span>
+                              <Sparkles className="w-3.5 h-3.5 text-purple-600" />
+                            </div>
+                            <div className="grid grid-cols-5 gap-1.5 text-center font-bold text-[10px]">
+                              <div className="bg-purple-100 text-purple-900 p-1.5 rounded">
+                                <div>Job Search</div>
+                                <div className="text-xs text-purple-950">{candidate.fivePillars.jobSearch}%</div>
+                              </div>
+                              <div className="bg-emerald-100 text-emerald-900 p-1.5 rounded">
+                                <div>Interview</div>
+                                <div className="text-xs text-emerald-950">{candidate.fivePillars.interviewReadiness}%</div>
+                              </div>
+                              <div className="bg-blue-100 text-blue-900 p-1.5 rounded">
+                                <div>Skills</div>
+                                <div className="text-xs text-blue-950">{candidate.fivePillars.technicalSkills}%</div>
+                              </div>
+                              <div className="bg-amber-100 text-amber-900 p-1.5 rounded">
+                                <div>Logistics</div>
+                                <div className="text-xs text-amber-950">{candidate.fivePillars.logistics}%</div>
+                              </div>
+                              <div className="bg-rose-100 text-rose-900 p-1.5 rounded">
+                                <div>Mindset</div>
+                                <div className="text-xs text-rose-950">{candidate.fivePillars.mindset}%</div>
+                              </div>
+                            </div>
+                          </div>
+                        )}
+
+                        <div className="pt-2 flex justify-between items-center text-xs gap-2">
+                          <button 
+                            onClick={() => setMessagingCandidate(candidate)}
+                            className="px-3 py-1.5 bg-purple-50 text-purple-900 border border-purple-200 font-bold rounded-xl hover:bg-purple-100 flex items-center space-x-1 text-xs"
+                          >
+                            <MessageSquare className="w-3.5 h-3.5" />
+                            <span>Message / Schedule</span>
+                          </button>
+
+                          <button 
+                            onClick={() => {
+                              setInspectCandidate(candidate);
+                              addAuditEntry(candidate.name, 'Opened candidate readiness mirror & STAR history');
+                            }}
+                            className="text-purple-950 font-bold hover:underline flex items-center space-x-1 text-xs"
+                          >
+                            <span>Locker</span>
+                            <ChevronRight className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
+                      </div>
+                    )}
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           </div>
         )}
