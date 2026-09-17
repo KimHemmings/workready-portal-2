@@ -1,13 +1,14 @@
-﻿import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import ParticipantHome from './pages/ParticipantHome';
 import CoachDashboard from './pages/CoachDashboard';
 import OwnerDashboard from './pages/OwnerDashboard';
 import { SalesDemoDashboard } from './pages/SalesDemoDashboard';
 import AdminDashboard from './pages/AdminDashboard';
+import SystemAdminDashboard from './pages/SystemAdminDashboard';
 import Login from './pages/Login';
 import { PortalProvider } from './context/PortalContext';
 
-export type UserRole = 'candidate' | 'coach' | 'owner' | 'sales' | 'admin' | null;
+export type UserRole = 'candidate' | 'coach' | 'casey' | 'owner' | 'sales' | 'admin' | 'system_admin' | null;
 
 export function App() {
   const [userRole, setUserRole] = useState<UserRole>(() => {
@@ -45,10 +46,11 @@ export function App() {
     <PortalProvider>
       <div className="min-h-screen bg-slate-50">
         {userRole === 'candidate' && <ParticipantHome />}
-        {userRole === 'coach' && <CoachDashboard />}
+        {(userRole === 'coach' || userRole === 'casey') && <CoachDashboard />}
         {userRole === 'owner' && <OwnerDashboard />}
         {userRole === 'sales' && <SalesDemoDashboard />}
         {userRole === 'admin' && <AdminDashboard />}
+        {userRole === 'system_admin' && <SystemAdminDashboard />}
       </div>
     </PortalProvider>
   );

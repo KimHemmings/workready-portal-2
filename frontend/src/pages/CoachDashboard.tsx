@@ -1,6 +1,27 @@
-import React, { useState } from 'react';
+﻿import React, { useState, useEffect } from 'react';
 import { usePortal } from '../context/PortalContext';
-import type { VerificationItem } from '../lib/types';
+import type { VerificationItem, CandidateProfile } from '../lib/types';
+import { 
+  Users, CheckCircle2, Search, Filter, History, LogOut, Check, ChevronRight, Eye,
+  Award, Briefcase, Calendar, Sparkles, MessageSquare, AlertCircle, FileText, CheckSquare, X, Send, Clock
+} from 'lucide-react';
+
+interface AuditLogEntry {
+  id: string;
+  timestamp: string;
+  epochMs: number;
+  caseManagerName: string;
+  candidateName: string;
+  action: string;
+  mode: 'Direct' | 'Coverage';
+}
+
+interface Message {
+  id: string;
+  sender: 'coach' | 'candidate';
+  text: string;
+  timestamp: string;
+}
 
 export default function CoachDashboard() {
   const {
@@ -8,592 +29,689 @@ export default function CoachDashboard() {
     verificationItems,
     approveVerification,
     declineVerification,
-    addCandidate,
-    updateCandidateRequirements,
   } = usePortal();
 
-  // Dynamic Coach Name (Ready to be populated via Auth/Session)
   const [currentCoachName] = useState('Casey Smith');
-
-  // Active View Tab: 'pending' | 'roster' | 'compliance' | 'risk'
-  const [activeTab, setActiveTab] = useState<'pending' | 'roster' | 'compliance' | 'risk'>('pending');
-
-  // Modal / Drawer States
+  const [selectedCaseload, setSelectedCaseload] = useState<string>('casey');
+  const [activeTab, setActiveTab] = useState<'pending' | 'roster' | 'audit'>('pending');
+  const [searchTerm, setSearchTerm] = useState('');
   const [selectedEvidence, setSelectedEvidence] = useState<VerificationItem | null>(null);
-  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
-  const [editingCandidateId, setEditingCandidateId] = useState<string | null>(null);
+  const [inspectCandidate, setInspectCandidate] = useState<CandidateProfile | null>(null);
 
-  // Form states for Add Candidate
-  const [newName, setNewName] = useState('');
-  const [newEmail, setNewEmail] = useState('');
-  const [newPhone, setNewPhone] = useState('');
-  const [newTarget, setNewTarget] = useState(100);
-  const [newStartDate, setNewStartDate] = useState('01/09/2026');
-  const [newFinishDate, setNewFinishDate] = useState('30/09/2026');
-  const [newChallenge, setNewChallenge] = useState('Resume / Applications');
+  // Drawer Messaging State
+  const [messagingCandidate, setMessagingCandidate] = useState<CandidateProfile | null>(null);
+  const [messageInput, setMessageInput] = useState('');
+  const [messages, setMessages] = useState<Message[]>([
+    { id: '1', sender: 'candidate', text: 'Hi Casey, I submitted my interview evidence for review!', timestamp: '10:15 AM' },
+    { id: '2', sender: 'coach', text: 'Awesome job Alex! Inspecting it now.', timestamp: '10:18 AM' }
+  ]);
 
-  // Form states for Adjust Requirements
-  const [editTarget, setEditTarget] = useState(100);
-  const [editStart, setEditStart] = useState('');
-  const [editFinish, setEditFinish] = useState('');
+  // Appointment State
+  const [appointments, setAppointments] = useState([
+    { id: '1', title: 'Monthly Provider Compliance Check-in', date: '2026-09-22', time: '10:00 AM', status: 'Scheduled' },
+    { id: '2', title: 'AI STAR Interview Practice Review', date: '2026-09-25', time: '02:00 PM', status: 'Scheduled' }
+  ]);
+  const [newApptTitle, setNewApptTitle] = useState('');
+  const [newApptDate, setNewApptDate] = useState('2026-09-28');
+  const [newApptTime, setNewApptTime] = useState('11:00 AM');
 
-  // Derived Stat Counters
-  const pendingItems = verificationItems.filter((i) => i.status === 'Pending');
-  const pendingCount = pendingItems.length;
-  const activeCaseload = candidates.length;
-  const highRiskCandidates = candidates.filter((c) => c.status === 'High Risk' || c.status === 'Blocked');
-  
-  const totalCompliance = candidates.reduce((acc, c) => {
-    const rate = Math.min(100, Math.round((c.pbasVerified / c.pbasTarget) * 100));
-    return acc + rate;
-  }, 0);
-  const avgComplianceRate = activeCaseload > 0 ? Math.round(totalCompliance / activeCaseload) : 0;
+  const [starHistory] = useState<any[]>(() => {
+    try {
+      const saved = localStorage.getItem('workready_star_history');
+      return saved ? JSON.parse(saved) : [];
+    } catch { return []; }
+  });
 
-  const handleCreateCandidate = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!newName || !newEmail) return;
+  const [auditLogs, setAuditLogs] = useState<AuditLogEntry[]>(() => {
+    const saved = localStorage.getItem('workready_cm_audit_logs');
+    const logs: AuditLogEntry[] = saved ? JSON.parse(saved) : [
+      {
+        id: '1',
+        timestamp: new Date().toLocaleString(),
+        epochMs: Date.now(),
+        caseManagerName: 'Casey Smith',
+        candidateName: 'Alex Participant',
+        action: 'Verified "I Got an Interview!" evidence (+25 Pts)',
+        mode: 'Direct'
+      }
+    ];
+    const ninetyDaysMs = 90 * 24 * 60 * 60 * 1000;
+    return logs.filter(log => (Date.now() - log.epochMs) <= ninetyDaysMs);
+  });
 
-    addCandidate({
-      name: newName,
-      email: newEmail,
-      phone: newPhone || '0400 000 000',
-      status: 'On Track',
-      pbasTarget: newTarget,
-      startDate: newStartDate,
-      finishDate: newFinishDate,
-      primaryChallenge: newChallenge,
-    });
+  useEffect(() => {
+    localStorage.setItem('workready_cm_audit_logs', JSON.stringify(auditLogs));
+  }, [auditLogs]);
 
-    setNewName('');
-    setNewEmail('');
-    setNewPhone('');
-    setIsAddModalOpen(false);
+  const addAuditEntry = (candidateName: string, action: string) => {
+    const isCoverage = selectedCaseload !== 'casey';
+    const newEntry: AuditLogEntry = {
+      id: Date.now().toString(),
+      timestamp: new Date().toLocaleString(),
+      epochMs: Date.now(),
+      caseManagerName: isCoverage ? `${currentCoachName} (Coverage)` : currentCoachName,
+      candidateName,
+      action,
+      mode: isCoverage ? 'Coverage' : 'Direct'
+    };
+    setAuditLogs(prev => [newEntry, ...prev]);
   };
 
-  const handleOpenEdit = (candId: string) => {
-    const cand = candidates.find((c) => c.id === candId);
-    if (!cand) return;
-    setEditingCandidateId(candId);
-    setEditTarget(cand.pbasTarget);
-    setEditStart(cand.startDate);
-    setEditFinish(cand.finishDate);
+  const handleSendMessage = () => {
+    if (!messageInput.trim() || !messagingCandidate) return;
+    const newMsg: Message = {
+      id: Date.now().toString(),
+      sender: 'coach',
+      text: messageInput.trim(),
+      timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+    };
+    setMessages(prev => [...prev, newMsg]);
+    addAuditEntry(messagingCandidate.name, `Sent support message: "${messageInput.trim()}"`);
+    setMessageInput('');
   };
 
-  const handleSaveRequirements = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (editingCandidateId) {
-      updateCandidateRequirements(editingCandidateId, editTarget, editStart, editFinish);
-      setEditingCandidateId(null);
-    }
+  const handleAddAppointment = () => {
+    if (!newApptTitle.trim() || !messagingCandidate) return;
+    const appt = {
+      id: Date.now().toString(),
+      title: newApptTitle.trim(),
+      date: newApptDate,
+      time: newApptTime,
+      status: 'Scheduled'
+    };
+    setAppointments(prev => [...prev, appt]);
+    addAuditEntry(messagingCandidate.name, `Scheduled appointment: ${newApptTitle} on ${newApptDate} at ${newApptTime}`);
+    setNewApptTitle('');
   };
+
+  const handleSignOut = () => {
+    const url = new URL(window.location.href);
+    url.searchParams.delete('role');
+    window.history.pushState({}, '', url.pathname);
+    window.dispatchEvent(new Event('popstate'));
+  };
+
+  const handleApprove = (item: VerificationItem) => {
+    approveVerification(item.id);
+    addAuditEntry(item.candidateName, `Approved ${item.title} (+${item.points} Pts)`);
+    setSelectedEvidence(null);
+  };
+
+  const handleDecline = (item: VerificationItem) => {
+    declineVerification(item.id);
+    addAuditEntry(item.candidateName, `Declined ${item.title}`);
+    setSelectedEvidence(null);
+  };
+
+  const filteredCandidates = candidates.filter((c: CandidateProfile) => {
+    const matchesSearch = c.name.toLowerCase().includes(searchTerm.toLowerCase());
+    if (selectedCaseload === 'casey') return matchesSearch && (c.id === 'alex' || c.name.includes('Alex'));
+    if (selectedCaseload === 'jordan') return matchesSearch && c.id !== 'alex';
+    return matchesSearch;
+  });
+
+  const pendingItems = verificationItems.filter((v: VerificationItem) => v.status === 'Pending');
+  const victoryItems = pendingItems.filter(v => v.activityType === 'Job Placement' || v.activityType === 'Interview');
 
   return (
-    <div className="min-h-screen bg-slate-100/70 font-sans pb-16">
-      {/* Dynamic Multi-Use Header Matching Candidate Style */}
-      <header className="bg-[#1e0c2e] text-white py-3.5 px-6 md:px-10 flex items-center justify-between shadow-md border-b border-[#3d185e]">
-        <div className="flex items-center gap-4">
-          {/* Rounded-Square Logo Frame */}
-          <div className="w-12 h-12 rounded-2xl bg-white/10 border border-[#3d185e] flex items-center justify-center p-1.5 shadow-sm">
-            <img
-              src="/logo.png"
-              alt="Straight Up Training Logo"
-              className="w-full h-full object-contain"
-              onError={(e) => {
-                e.currentTarget.style.display = 'none';
-                if (e.currentTarget.parentElement) {
-                  e.currentTarget.parentElement.innerHTML = `<span class="text-xs font-black text-emerald-400">SUT</span>`;
-                }
-              }}
-            />
-          </div>
-
-          <div>
-            <div className="flex items-center gap-2.5">
-              <h1 className="text-xl font-extrabold tracking-tight text-white">Straight Up Training</h1>
-              <span className="bg-emerald-500/20 text-emerald-300 text-[10px] font-bold px-2.5 py-0.5 rounded-full border border-emerald-400/40 tracking-wide uppercase">
-                WORKREADY PARTNER
-              </span>
+    <div className="min-h-screen bg-slate-50 text-slate-900 font-sans">
+      <header className="bg-gradient-to-r from-[#1e1b4b] via-[#24083b] to-[#1e1b4b] text-white px-6 py-4 border-b border-purple-900/50 shadow-md">
+        <div className="max-w-7xl mx-auto flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div className="flex items-center space-x-4">
+            {/* BRAND LOGO CONTAINER WITH FALLBACK */}
+            <div className="w-10 h-10 bg-white rounded-xl p-1 flex items-center justify-center shadow-sm overflow-hidden shrink-0">
+              <img 
+                src="/logo.png" 
+                alt="Straight Up Training Logo" 
+                className="w-full h-full object-contain"
+                onError={(e) => {
+                  const target = e.target as HTMLImageElement;
+                  if (target.src.includes('logo.png')) {
+                    target.src = '/White_Background_PNG.png';
+                  } else {
+                    target.onerror = null;
+                    target.parentElement!.innerHTML = '<span class="font-extrabold text-purple-950 text-sm">SU</span>';
+                  }
+                }}
+              />
             </div>
-            <p className="text-xs text-purple-200/80 mt-0.5">
-              Case Manager Portal • Activity & Evidence Verification Hub
-            </p>
+            <div>
+              <div className="flex items-center space-x-2">
+                <h1 className="font-extrabold text-xl tracking-tight text-white">Straight Up Training</h1>
+                <span className="bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider">
+                  WorkReady Partner
+                </span>
+              </div>
+              <p className="text-xs text-purple-200/80">
+                Case Manager Portal • Staff Overview & PBAS Compliance
+              </p>
+            </div>
           </div>
-        </div>
 
-        <div className="flex items-center gap-3">
-          {/* Dynamic Case Manager Pill */}
-          <span className="hidden sm:inline-block bg-purple-900/60 text-purple-200 text-xs font-semibold px-3 py-1 rounded-full border border-purple-400/30">
-            {currentCoachName.toUpperCase()} (PROVIDER VIEW)
-          </span>
-          <button
-            onClick={() => (window.location.href = '/')}
-            className="px-4 py-1.5 bg-white/10 hover:bg-white/20 text-white text-xs font-semibold rounded-full border border-white/20 transition-all"
-          >
-            Sign Out
-          </button>
+          <div className="flex items-center space-x-3">
+            <div className="bg-white/10 backdrop-blur-md border border-purple-300/20 rounded-xl px-3 py-1.5 flex items-center space-x-2 text-xs">
+              <Filter className="w-3.5 h-3.5 text-purple-300" />
+              <span className="text-purple-200 font-medium">View Roster:</span>
+              <select 
+                value={selectedCaseload}
+                onChange={(e) => setSelectedCaseload(e.target.value)}
+                className="bg-purple-950 text-white font-bold rounded px-2 py-0.5 outline-none border border-purple-700/50 text-xs"
+              >
+                <option value="casey">My Caseload (Casey)</option>
+                <option value="jordan">Coverage Mode (Jordan - Away)</option>
+                <option value="taylor">Coverage Mode (Taylor - Away)</option>
+                <option value="all">All Site Caseloads</option>
+              </select>
+            </div>
+
+            <button
+              onClick={handleSignOut}
+              className="px-3.5 py-1.5 bg-white/10 hover:bg-white/20 border border-white/20 text-white text-xs font-bold rounded-xl transition-all flex items-center space-x-1.5"
+            >
+              <LogOut className="w-3.5 h-3.5" />
+              <span>Sign Out</span>
+            </button>
+          </div>
         </div>
       </header>
 
-      {/* Main Container */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 space-y-6">
+      <main className="max-w-7xl mx-auto p-6 space-y-6">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white p-4 rounded-2xl border border-slate-200 shadow-sm">
+          <div>
+            <h2 className="text-xl font-extrabold text-purple-950">
+              Welcome back, {currentCoachName}!
+            </h2>
+            <p className="text-xs text-slate-500 mt-0.5">
+              {selectedCaseload === 'casey' 
+                ? "Managing your direct candidate caseload." 
+                : `Active Coverage Mode: Staff caseload view set to [${selectedCaseload.toUpperCase()}].`}
+            </p>
+          </div>
 
-        {/* Interactive Dashboard Tiles */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
-          {/* Tile 1: Pending Approvals */}
-          <button
-            onClick={() => setActiveTab('pending')}
-            className={`text-left p-5 rounded-2xl border transition-all shadow-sm ${
-              activeTab === 'pending'
-                ? 'bg-amber-500/10 border-amber-500 ring-2 ring-amber-500/20'
-                : 'bg-white border-slate-200/80 hover:border-amber-300'
-            }`}
-          >
-            <div className="flex items-center justify-between">
-              <p className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Pending Approvals</p>
-              <span className="w-9 h-9 rounded-xl bg-amber-50 border border-amber-200 flex items-center justify-center text-amber-600 font-bold">
-                🕒
-              </span>
-            </div>
-            <p className="text-3xl font-black text-amber-600 mt-2">{pendingCount} Items</p>
-            <p className="text-xs text-slate-500 mt-1">Click to view evidence & approve points</p>
-          </button>
+          <div className="flex bg-slate-100 p-1 rounded-xl border border-slate-200 text-xs font-bold space-x-1">
+            <button
+              onClick={() => setActiveTab('pending')}
+              className={`px-4 py-2 rounded-lg transition-all flex items-center space-x-2 ${
+                activeTab === 'pending'
+                  ? 'bg-purple-950 text-white shadow-sm'
+                  : 'text-slate-600 hover:text-slate-900'
+              }`}
+            >
+              <CheckCircle2 className="w-4 h-4 text-emerald-400" />
+              <span>Pending Approvals ({pendingItems.length})</span>
+            </button>
 
-          {/* Tile 2: Active Caseload */}
-          <button
-            onClick={() => setActiveTab('roster')}
-            className={`text-left p-5 rounded-2xl border transition-all shadow-sm ${
-              activeTab === 'roster'
-                ? 'bg-purple-500/10 border-purple-500 ring-2 ring-purple-500/20'
-                : 'bg-white border-slate-200/80 hover:border-purple-300'
-            }`}
-          >
-            <div className="flex items-center justify-between">
-              <p className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Active Caseload</p>
-              <span className="w-9 h-9 rounded-xl bg-purple-50 border border-purple-200 flex items-center justify-center text-purple-600 font-bold">
-                👥
-              </span>
-            </div>
-            <p className="text-3xl font-black text-slate-900 mt-2">{activeCaseload} Participants</p>
-            <p className="text-xs text-slate-500 mt-1">Click to manage roster & 5-pillars</p>
-          </button>
+            <button
+              onClick={() => setActiveTab('roster')}
+              className={`px-4 py-2 rounded-lg transition-all flex items-center space-x-2 ${
+                activeTab === 'roster'
+                  ? 'bg-purple-950 text-white shadow-sm'
+                  : 'text-slate-600 hover:text-slate-900'
+              }`}
+            >
+              <Users className="w-4 h-4 text-purple-400" />
+              <span>Candidate Roster</span>
+            </button>
 
-          {/* Tile 3: Compliance Rate */}
-          <button
-            onClick={() => setActiveTab('compliance')}
-            className={`text-left p-5 rounded-2xl border transition-all shadow-sm ${
-              activeTab === 'compliance'
-                ? 'bg-emerald-500/10 border-emerald-500 ring-2 ring-emerald-500/20'
-                : 'bg-white border-slate-200/80 hover:border-emerald-300'
-            }`}
-          >
-            <div className="flex items-center justify-between">
-              <p className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">PBAS Compliance Rate</p>
-              <span className="w-9 h-9 rounded-xl bg-emerald-50 border border-emerald-200 flex items-center justify-center text-emerald-600 font-bold">
-                ✓
-              </span>
-            </div>
-            <p className="text-3xl font-black text-emerald-600 mt-2">{avgComplianceRate}%</p>
-            <p className="text-xs text-slate-500 mt-1">Click to view target progress</p>
-          </button>
-
-          {/* Tile 4: High Risk / Blocked */}
-          <button
-            onClick={() => setActiveTab('risk')}
-            className={`text-left p-5 rounded-2xl border transition-all shadow-sm ${
-              activeTab === 'risk'
-                ? 'bg-rose-500/10 border-rose-500 ring-2 ring-rose-500/20'
-                : 'bg-white border-slate-200/80 hover:border-rose-300'
-            }`}
-          >
-            <div className="flex items-center justify-between">
-              <p className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">High Risk / Blocked</p>
-              <span className="w-9 h-9 rounded-xl bg-rose-50 border border-rose-200 flex items-center justify-center text-rose-600 font-bold">
-                ⚠️
-              </span>
-            </div>
-            <p className="text-3xl font-black text-rose-600 mt-2">{highRiskCandidates.length} Participants</p>
-            <p className="text-xs text-slate-500 mt-1">Click to inspect support blockers</p>
-          </button>
+            <button
+              onClick={() => setActiveTab('audit')}
+              className={`px-4 py-2 rounded-lg transition-all flex items-center space-x-2 ${
+                activeTab === 'audit'
+                  ? 'bg-purple-950 text-white shadow-sm'
+                  : 'text-slate-600 hover:text-slate-900'
+              }`}
+            >
+              <History className="w-4 h-4 text-amber-400" />
+              <span>90-Day Audit Log</span>
+            </button>
+          </div>
         </div>
 
-        {/* Dynamic Detail Container */}
-        <section className="bg-white border border-slate-200/80 rounded-2xl p-6 shadow-sm min-h-[400px]">
-          
-          {/* TAB 1: PENDING APPROVALS FEED */}
-          {activeTab === 'pending' && (
-            <div>
-              <div className="flex items-center justify-between mb-6 pb-4 border-b border-slate-100">
-                <div>
-                  <h2 className="text-lg font-bold text-slate-900">Activity Verification Feed</h2>
-                  <p className="text-xs text-slate-500 mt-0.5">Review candidate submissions and verify PBAS points.</p>
-                </div>
-                <span className="bg-amber-50 text-amber-700 border border-amber-200 text-xs font-semibold px-3 py-1 rounded-full">
-                  {pendingCount} Pending Review
-                </span>
-              </div>
-
-              {pendingCount === 0 ? (
-                <div className="py-16 text-center text-slate-500 border border-dashed border-slate-200 rounded-xl bg-slate-50/50">
-                  <p className="text-sm font-medium">All pending verification items have been processed! 🎉</p>
-                </div>
-              ) : (
-                <div className="overflow-x-auto">
-                  <table className="w-full text-left border-collapse">
-                    <thead>
-                      <tr className="border-b border-slate-200 text-xs font-semibold text-slate-500 uppercase tracking-wider bg-slate-50/60">
-                        <th className="py-3 px-4">Candidate</th>
-                        <th className="py-3 px-4">Activity Type</th>
-                        <th className="py-3 px-4">Title / Employer</th>
-                        <th className="py-3 px-4">Ref ID</th>
-                        <th className="py-3 px-4">Points</th>
-                        <th className="py-3 px-4">Evidence</th>
-                        <th className="py-3 px-4 text-right">Action</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-slate-100 text-sm">
-                      {pendingItems.map((item) => (
-                        <tr key={item.id} className="hover:bg-slate-50/80 transition-colors">
-                          <td className="py-4 px-4 font-semibold text-slate-900">{item.candidateName}</td>
-                          <td className="py-4 px-4">
-                            <span className="text-xs font-semibold px-2.5 py-1 rounded-full border bg-purple-50 text-purple-700 border-purple-200">
-                              {item.activityType}
-                            </span>
-                          </td>
-                          <td className="py-4 px-4 text-slate-700">{item.title}</td>
-                          <td className="py-4 px-4 font-mono text-xs text-slate-500">{item.refId}</td>
-                          <td className="py-4 px-4 font-bold text-emerald-600">+{item.points} Pts</td>
-                          <td className="py-4 px-4">
-                            <button
-                              onClick={() => setSelectedEvidence(item)}
-                              className="text-xs font-semibold text-purple-700 hover:underline inline-flex items-center gap-1"
-                            >
-                              📄 View File
-                            </button>
-                          </td>
-                          <td className="py-4 px-4 text-right space-x-2">
-                            <button
-                              onClick={() => approveVerification(item.id)}
-                              className="px-3.5 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold rounded-lg shadow-sm"
-                            >
-                              Approve (+{item.points} Pts)
-                            </button>
-                            <button
-                              onClick={() => declineVerification(item.id, 'Insufficient proof uploaded')}
-                              className="px-3.5 py-1.5 bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 text-xs font-semibold rounded-lg"
-                            >
-                              Decline
-                            </button>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              )}
+        {victoryItems.length > 0 && (
+          <div className="bg-gradient-to-r from-emerald-600 via-teal-600 to-emerald-700 text-white p-4 rounded-2xl shadow-lg space-y-2 border border-emerald-400/30">
+            <div className="flex items-center space-x-2">
+              <Award className="w-5 h-5 text-amber-300 animate-bounce" />
+              <h3 className="font-extrabold text-sm uppercase tracking-wide text-amber-200">
+                Priority Victory Submissions Pending Review ({victoryItems.length})
+              </h3>
             </div>
-          )}
-
-          {/* TAB 2 & 3: PARTICIPANT ROSTER & COMPLIANCE */}
-          {(activeTab === 'roster' || activeTab === 'compliance') && (
-            <div>
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 pb-4 border-b border-slate-100">
-                <div>
-                  <h2 className="text-lg font-bold text-slate-900">
-                    {activeTab === 'roster' ? 'Participant Roster & Requirements' : 'PBAS Compliance Tracking'}
-                  </h2>
-                  <p className="text-xs text-slate-500 mt-0.5">Manage targets, cycle dates, and primary challenges.</p>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              {victoryItems.map((item) => (
+                <div key={item.id} className="bg-white/10 backdrop-blur-md border border-white/20 p-3 rounded-xl flex items-center justify-between text-xs">
+                  <div>
+                    <span className="font-bold text-white">{item.candidateName}</span>
+                    <span className="text-emerald-200 ml-2">({item.title})</span>
+                    <p className="text-[11px] text-emerald-100">{item.notes}</p>
+                  </div>
+                  <button
+                    onClick={() => setSelectedEvidence(item)}
+                    className="px-3 py-1.5 bg-white text-emerald-950 font-bold rounded-lg hover:bg-emerald-50 text-xs shadow-sm"
+                  >
+                    Verify (+{item.points} Pts)
+                  </button>
                 </div>
-                <button
-                  onClick={() => setIsAddModalOpen(true)}
-                  className="px-4 py-2 bg-[#1e0c2e] hover:bg-purple-900 text-white font-bold text-xs rounded-xl shadow-md"
-                >
-                  + Add New Candidate
+              ))}
+            </div>
+          </div>
+        )}
+
+        {activeTab === 'pending' && (
+          <div className="space-y-4">
+            <h3 className="text-sm font-bold text-slate-700 uppercase tracking-wider">
+              Pending Evidence Sign-offs ({pendingItems.length})
+            </h3>
+
+            {pendingItems.length === 0 ? (
+              <div className="bg-white rounded-2xl p-12 text-center border border-slate-200">
+                <CheckCircle2 className="w-12 h-12 text-emerald-500 mx-auto mb-3 opacity-60" />
+                <h4 className="font-bold text-slate-800">All Verification Items Cleared</h4>
+                <p className="text-xs text-slate-500 mt-1">There are no pending submissions requiring Case Manager review.</p>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 gap-4">
+                {pendingItems.map((item: VerificationItem) => (
+                  <div key={item.id} className="bg-white rounded-2xl p-5 border border-slate-200 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4 hover:border-purple-300 transition-all">
+                    <div className="space-y-1">
+                      <div className="flex items-center space-x-2">
+                        <span className="px-2.5 py-0.5 bg-purple-100 text-purple-800 font-bold text-xs rounded-full">
+                          {item.candidateName}
+                        </span>
+                        <span className="px-2 py-0.5 bg-emerald-100 text-emerald-800 font-extrabold text-xs rounded-md">
+                          +{item.points} PBAS Pts
+                        </span>
+                        <span className="text-xs text-slate-400">{item.dateSubmitted}</span>
+                      </div>
+                      <h4 className="font-bold text-slate-900 text-base">{item.title}</h4>
+                      <p className="text-xs text-slate-600">{item.notes || 'Submitted for verification.'}</p>
+                    </div>
+
+                    <div className="flex items-center space-x-2">
+                      <button
+                        onClick={() => setSelectedEvidence(item)}
+                        className="px-3 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold rounded-xl transition-all flex items-center space-x-1"
+                      >
+                        <Eye className="w-3.5 h-3.5" />
+                        <span>Inspect Evidence</span>
+                      </button>
+                      <button
+                        onClick={() => handleApprove(item)}
+                        className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-xl shadow-sm transition-all flex items-center space-x-1"
+                      >
+                        <Check className="w-4 h-4" />
+                        <span>Approve (+{item.points} Pts)</span>
+                      </button>
+                      <button
+                        onClick={() => handleDecline(item)}
+                        className="px-3 py-2 bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 text-xs font-bold rounded-xl transition-all"
+                      >
+                        Decline
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+
+        {activeTab === 'roster' && (
+          <div className="space-y-4">
+            <div className="flex items-center justify-between bg-white p-4 rounded-xl border border-slate-200">
+              <div className="relative flex-1 max-w-md">
+                <Search className="w-4 h-4 absolute left-3 top-3 text-slate-400" />
+                <input
+                  type="text"
+                  placeholder="Search candidate roster by name..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="w-full pl-9 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium outline-none focus:border-purple-600"
+                />
+              </div>
+              <span className="text-xs text-slate-500 font-semibold">
+                Showing {filteredCandidates.length} Candidates
+              </span>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {filteredCandidates.map((candidate: CandidateProfile) => (
+                <div key={candidate.id} className="bg-white rounded-2xl p-5 border border-slate-200 shadow-sm space-y-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <h4 className="font-extrabold text-slate-900 text-base">{candidate.name}</h4>
+                      <p className="text-xs text-slate-500">{candidate.email} • WA ID: WA-882194</p>
+                    </div>
+                    <span className="px-2.5 py-1 bg-emerald-50 text-emerald-700 border border-emerald-200 font-bold text-xs rounded-full">
+                      {candidate.status}
+                    </span>
+                  </div>
+
+                  <div className="space-y-1.5">
+                    <div className="flex justify-between text-xs font-bold">
+                      <span className="text-slate-600">PBAS Monthly Verified Points</span>
+                      <span className="text-purple-950">{candidate.pbasVerified} / {candidate.pbasTarget} Pts</span>
+                    </div>
+                    <div className="w-full bg-slate-100 h-2.5 rounded-full overflow-hidden">
+                      <div 
+                        className="bg-gradient-to-r from-purple-600 to-emerald-500 h-full transition-all duration-500"
+                        style={{ width: `${Math.min(100, (candidate.pbasVerified / candidate.pbasTarget) * 100)}%` }}
+                      />
+                    </div>
+                  </div>
+
+                  {candidate.fivePillars && (
+                    <div className="p-3 bg-slate-50 rounded-xl border border-slate-200 space-y-2 text-xs">
+                      <div className="font-bold text-slate-800 flex items-center justify-between">
+                        <span>5 Pillars Diagnostic Mirror</span>
+                        <Sparkles className="w-3.5 h-3.5 text-purple-600" />
+                      </div>
+                      <div className="grid grid-cols-5 gap-1.5 text-center font-bold text-[10px]">
+                        <div className="bg-purple-100 text-purple-900 p-1.5 rounded">
+                          <div>Job Search</div>
+                          <div className="text-xs text-purple-950">{candidate.fivePillars.jobSearch}%</div>
+                        </div>
+                        <div className="bg-emerald-100 text-emerald-900 p-1.5 rounded">
+                          <div>Interview</div>
+                          <div className="text-xs text-emerald-950">{candidate.fivePillars.interviewReadiness}%</div>
+                        </div>
+                        <div className="bg-blue-100 text-blue-900 p-1.5 rounded">
+                          <div>Skills</div>
+                          <div className="text-xs text-blue-950">{candidate.fivePillars.technicalSkills}%</div>
+                        </div>
+                        <div className="bg-amber-100 text-amber-900 p-1.5 rounded">
+                          <div>Logistics</div>
+                          <div className="text-xs text-amber-950">{candidate.fivePillars.logistics}%</div>
+                        </div>
+                        <div className="bg-rose-100 text-rose-900 p-1.5 rounded">
+                          <div>Mindset</div>
+                          <div className="text-xs text-rose-950">{candidate.fivePillars.mindset}%</div>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  <div className="pt-2 border-t border-slate-100 flex justify-between items-center text-xs gap-2">
+                    <button 
+                      onClick={() => setMessagingCandidate(candidate)}
+                      className="px-3 py-1.5 bg-purple-50 text-purple-900 border border-purple-200 font-bold rounded-xl hover:bg-purple-100 flex items-center space-x-1 text-xs"
+                    >
+                      <MessageSquare className="w-3.5 h-3.5" />
+                      <span>Message / Schedule</span>
+                    </button>
+
+                    <button 
+                      onClick={() => {
+                        setInspectCandidate(candidate);
+                        addAuditEntry(candidate.name, 'Opened candidate readiness mirror & STAR history');
+                      }}
+                      className="text-purple-950 font-bold hover:underline flex items-center space-x-1 text-xs"
+                    >
+                      <span>Locker</span>
+                      <ChevronRight className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {activeTab === 'audit' && (
+          <div className="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm space-y-4">
+            <div className="flex items-center justify-between border-b border-slate-100 pb-4">
+              <div>
+                <h3 className="text-base font-extrabold text-slate-900 flex items-center space-x-2">
+                  <History className="w-5 h-5 text-purple-950" />
+                  <span>Case Manager Activity & Transparency Log</span>
+                </h3>
+                <p className="text-xs text-slate-500 mt-0.5">
+                  Automated 90-day retention window. Records staff interactions and coverage audits.
+                </p>
+              </div>
+              <span className="px-3 py-1 bg-purple-50 text-purple-900 font-bold text-xs rounded-full border border-purple-200">
+                {auditLogs.length} Active Records
+              </span>
+            </div>
+
+            <div className="space-y-3">
+              {auditLogs.map((log) => (
+                <div key={log.id} className="p-3 bg-slate-50 border border-slate-200/80 rounded-xl flex items-center justify-between text-xs">
+                  <div className="flex items-center space-x-3">
+                    <span className={`px-2 py-0.5 font-bold rounded-md text-[10px] uppercase ${
+                      log.mode === 'Coverage' 
+                        ? 'bg-amber-100 text-amber-800 border border-amber-300' 
+                        : 'bg-purple-100 text-purple-800'
+                    }`}>
+                      {log.mode}
+                    </span>
+                    <div>
+                      <span className="font-bold text-slate-900">{log.caseManagerName}</span>
+                      <span className="text-slate-400 mx-1.5">•</span>
+                      <span className="text-slate-700">{log.action}</span>
+                      <span className="text-slate-400 mx-1.5">for</span>
+                      <span className="font-semibold text-purple-950">{log.candidateName}</span>
+                    </div>
+                  </div>
+                  <span className="text-slate-400 font-mono text-[11px]">{log.timestamp}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+      </main>
+
+      {messagingCandidate && (
+        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex justify-end z-50">
+          <div className="bg-white max-w-md w-full h-full p-6 flex flex-col justify-between shadow-2xl space-y-4 overflow-y-auto">
+            <div className="space-y-4">
+              <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+                <div>
+                  <h3 className="font-extrabold text-slate-900 text-base">Direct Candidate Hub</h3>
+                  <p className="text-xs text-purple-900 font-semibold">Participant: {messagingCandidate.name}</p>
+                </div>
+                <button onClick={() => setMessagingCandidate(null)} className="text-slate-400 hover:text-slate-600 font-bold">
+                  <X className="w-5 h-5" />
                 </button>
               </div>
 
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                {candidates.map((candidate) => {
-                  const pct = Math.min(100, Math.round((candidate.pbasVerified / candidate.pbasTarget) * 100));
-                  return (
-                    <div key={candidate.id} className="bg-slate-50/60 border border-slate-200/80 rounded-xl p-5 hover:border-purple-300 transition-all">
-                      <div className="flex items-start justify-between gap-3 mb-3">
-                        <div>
-                          <div className="flex items-center gap-2">
-                            <h3 className="text-base font-bold text-slate-900">{candidate.name}</h3>
-                            <span className="text-[10px] font-extrabold uppercase px-2 py-0.5 rounded-full border bg-emerald-100 text-emerald-800 border-emerald-300">
-                              {candidate.status}
-                            </span>
-                          </div>
-                          <p className="text-xs text-slate-500 mt-0.5">{candidate.email} • {candidate.phone}</p>
-                        </div>
-                        <button
-                          onClick={() => handleOpenEdit(candidate.id)}
-                          className="px-3 py-1 bg-white text-purple-900 text-xs font-bold rounded-lg border border-slate-200 shadow-sm"
-                        >
-                          Adjust Target / Dates
-                        </button>
+              <div className="space-y-2">
+                <h4 className="font-bold text-xs text-slate-700 uppercase tracking-wider flex items-center space-x-1">
+                  <MessageSquare className="w-3.5 h-3.5 text-purple-600" />
+                  <span>Two-Way Support Chat</span>
+                </h4>
+                <div className="bg-slate-50 border border-slate-200 rounded-xl p-3 h-48 overflow-y-auto space-y-2 text-xs">
+                  {messages.map((m) => (
+                    <div key={m.id} className={`flex flex-col ${m.sender === 'coach' ? 'items-end' : 'items-start'}`}>
+                      <div className={`p-2.5 rounded-xl max-w-[80%] ${
+                        m.sender === 'coach' 
+                          ? 'bg-purple-950 text-white font-medium' 
+                          : 'bg-white border border-slate-200 text-slate-800'
+                      }`}>
+                        {m.text}
                       </div>
-
-                      <div className="mb-4">
-                        <div className="flex justify-between items-center text-xs font-semibold mb-1.5">
-                          <span className="text-slate-600">PBAS Target ({candidate.pbasTarget} Pts)</span>
-                          <span className="text-emerald-700 font-bold">{candidate.pbasVerified} Verified ({candidate.pbasPending} Pending)</span>
-                        </div>
-                        <div className="w-full h-2.5 bg-slate-200 rounded-full overflow-hidden">
-                          <div className="h-full bg-emerald-500 transition-all duration-500" style={{ width: `${pct}%` }} />
-                        </div>
-                      </div>
-
-                      <div className="pt-3 border-t border-slate-200/60 flex items-center justify-between text-xs text-slate-500">
-                        <div>Primary Challenge: <span className="text-purple-900 font-bold">{candidate.primaryChallenge}</span></div>
-                        <div>Cycle: <span className="font-mono text-slate-700">{candidate.startDate} – {candidate.finishDate}</span></div>
-                      </div>
+                      <span className="text-[9px] text-slate-400 mt-0.5">{m.timestamp}</span>
                     </div>
-                  );
-                })}
+                  ))}
+                </div>
+                <div className="flex space-x-2">
+                  <input 
+                    type="text"
+                    placeholder="Type message to candidate..."
+                    value={messageInput}
+                    onChange={(e) => setMessageInput(e.target.value)}
+                    className="flex-1 bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 text-xs outline-none focus:border-purple-600"
+                  />
+                  <button 
+                    onClick={handleSendMessage}
+                    className="px-3 py-1.5 bg-purple-950 text-white rounded-xl font-bold text-xs flex items-center space-x-1"
+                  >
+                    <Send className="w-3 h-3" />
+                    <span>Send</span>
+                  </button>
+                </div>
+              </div>
+
+              <div className="pt-4 border-t border-slate-100 space-y-3">
+                <h4 className="font-bold text-xs text-slate-700 uppercase tracking-wider flex items-center space-x-1">
+                  <Calendar className="w-3.5 h-3.5 text-emerald-600" />
+                  <span>Schedule Provider Contact</span>
+                </h4>
+
+                <div className="space-y-2 text-xs">
+                  <input 
+                    type="text" 
+                    placeholder="Appointment Title (e.g. STAR Coaching Session)"
+                    value={newApptTitle}
+                    onChange={(e) => setNewApptTitle(e.target.value)}
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 outline-none"
+                  />
+                  <div className="flex space-x-2">
+                    <input 
+                      type="date" 
+                      value={newApptDate}
+                      onChange={(e) => setNewApptDate(e.target.value)}
+                      className="flex-1 bg-slate-50 border border-slate-200 rounded-xl px-2 py-1.5 outline-none"
+                    />
+                    <input 
+                      type="text" 
+                      value={newApptTime}
+                      onChange={(e) => setNewApptTime(e.target.value)}
+                      className="w-24 bg-slate-50 border border-slate-200 rounded-xl px-2 py-1.5 outline-none"
+                    />
+                  </div>
+                  <button 
+                    onClick={handleAddAppointment}
+                    className="w-full py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl text-xs"
+                  >
+                    Set Mandatory Appointment
+                  </button>
+                </div>
+
+                <div className="space-y-2 pt-2">
+                  <span className="font-bold text-[11px] text-slate-500">Upcoming Scheduled Contacts:</span>
+                  {appointments.map((a) => (
+                    <div key={a.id} className="p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs flex justify-between items-center">
+                      <div>
+                        <div className="font-bold text-slate-900">{a.title}</div>
+                        <div className="text-slate-500 text-[10px]">{a.date} at {a.time}</div>
+                      </div>
+                      <span className="px-2 py-0.5 bg-emerald-100 text-emerald-800 text-[10px] font-bold rounded">
+                        {a.status}
+                      </span>
+                    </div>
+                  ))}
+                </div>
               </div>
             </div>
-          )}
 
-          {/* TAB 4: HIGH RISK / BLOCKED */}
-          {activeTab === 'risk' && (
-            <div>
-              <div className="mb-6 pb-4 border-b border-slate-100">
-                <h2 className="text-lg font-bold text-slate-900">High Risk & Support Attention Feed</h2>
-                <p className="text-xs text-slate-500 mt-0.5">Participants requiring immediate case manager intervention.</p>
+            <button 
+              onClick={() => setMessagingCandidate(null)}
+              className="w-full py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-xl text-xs"
+            >
+              Close Drawer
+            </button>
+          </div>
+        </div>
+      )}
+
+      {inspectCandidate && (
+        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-2xl max-w-2xl w-full p-6 space-y-4 shadow-xl border border-slate-200 max-h-[85vh] overflow-y-auto">
+            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+              <div>
+                <h3 className="font-extrabold text-slate-900 text-base">{inspectCandidate.name} — Candidate Evidence Locker</h3>
+                <p className="text-xs text-slate-500">WA ID: WA-882194 • {inspectCandidate.email}</p>
               </div>
+              <button onClick={() => setInspectCandidate(null)} className="text-slate-400 hover:text-slate-600 font-bold text-lg">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
 
-              {highRiskCandidates.length === 0 ? (
-                <div className="py-16 text-center text-slate-500 border border-dashed border-slate-200 rounded-xl bg-slate-50/50">
-                  <p className="text-sm font-medium">Great news! No high risk or blocked participants currently. 🎉</p>
+            <div className="space-y-3">
+              <h4 className="font-extrabold text-xs text-purple-950 uppercase tracking-wider flex items-center space-x-1.5">
+                <Sparkles className="w-4 h-4 text-purple-600" />
+                <span>AI STAR Practice Coaching Reports (+25 Pts Each)</span>
+              </h4>
+
+              {starHistory.length === 0 ? (
+                <div className="p-4 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-500 text-center">
+                  No AI STAR Mock practice sessions logged yet.
                 </div>
               ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {highRiskCandidates.map((c) => (
-                    <div key={c.id} className="p-4 bg-rose-50/60 border border-rose-200 rounded-xl flex justify-between items-center">
-                      <div>
-                        <h4 className="font-bold text-slate-900">{c.name}</h4>
-                        <p className="text-xs text-rose-700 font-semibold mt-0.5">Challenge: {c.primaryChallenge}</p>
+                <div className="space-y-2">
+                  {starHistory.map((star: any, idx: number) => (
+                    <div key={idx} className="p-3 bg-purple-50/50 border border-purple-200 rounded-xl space-y-1.5 text-xs">
+                      <div className="flex justify-between font-bold text-purple-950">
+                        <span>Role: {star.jobRole || 'General Job Practice'}</span>
+                        <span className="text-emerald-700">Score: {star.score || '85'}%</span>
                       </div>
-                      <button className="px-3 py-1.5 bg-rose-600 text-white text-xs font-bold rounded-lg shadow-sm">
-                        Contact Participant
-                      </button>
+                      <div className="grid grid-cols-2 gap-2 text-[11px] text-slate-700 bg-white p-2 rounded-lg border border-purple-100">
+                        <div><strong>Situation:</strong> {star.situation || 'N/A'}</div>
+                        <div><strong>Task:</strong> {star.task || 'N/A'}</div>
+                        <div><strong>Action:</strong> {star.action || 'N/A'}</div>
+                        <div><strong>Result:</strong> {star.result || 'N/A'}</div>
+                      </div>
                     </div>
                   ))}
                 </div>
               )}
             </div>
-          )}
 
-        </section>
-      </main>
-
-      {/* Modals */}
-      {selectedEvidence && (
-        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-white border border-slate-200 rounded-2xl max-w-lg w-full p-6 shadow-2xl">
-            <div className="flex items-center justify-between pb-4 border-b border-slate-100">
-              <h3 className="text-base font-bold text-slate-900">Inspect Uploaded Evidence</h3>
-              <button onClick={() => setSelectedEvidence(null)} className="text-slate-400 hover:text-slate-600 font-bold">✕</button>
-            </div>
-            <div className="py-4 space-y-3 text-sm">
-              <div>
-                <span className="text-slate-400 text-xs block">Candidate</span>
-                <p className="font-semibold text-slate-900">{selectedEvidence.candidateName}</p>
-              </div>
-              <div>
-                <span className="text-slate-400 text-xs block">Activity Title</span>
-                <p className="font-medium text-purple-900">{selectedEvidence.title}</p>
-              </div>
-              <div className="flex justify-between">
-                <div>
-                  <span className="text-slate-400 text-xs block">Ref ID</span>
-                  <p className="font-mono text-slate-600">{selectedEvidence.refId}</p>
-                </div>
-                <div>
-                  <span className="text-slate-400 text-xs block">PBAS Value</span>
-                  <p className="font-bold text-emerald-600">+{selectedEvidence.points} Points</p>
-                </div>
-              </div>
-              <div className="mt-4 p-4 bg-slate-50 border border-slate-200 rounded-xl flex items-center justify-between">
-                <div>
-                  <p className="text-xs font-semibold text-slate-800">{selectedEvidence.evidenceFileName || 'Verified_Evidence_Proof.pdf'}</p>
-                  <p className="text-[10px] text-slate-400">Uploaded on {selectedEvidence.dateSubmitted}</p>
-                </div>
-                <a
-                  href={`data:text/plain;charset=utf-8,WorkReady%20Evidence%20Proof%20-%20${selectedEvidence.refId}`}
-                  download={selectedEvidence.evidenceFileName || `Evidence_${selectedEvidence.refId}.pdf`}
-                  className="px-3 py-1.5 bg-purple-900 hover:bg-purple-800 text-white text-xs font-bold rounded-lg shadow-sm"
-                >
-                  Download
-                </a>
-              </div>
-            </div>
-            <div className="pt-4 border-t border-slate-100 flex justify-end gap-3">
+            <div className="flex justify-end pt-3 border-t border-slate-100">
               <button
-                onClick={() => {
-                  declineVerification(selectedEvidence.id, 'Declined after evidence inspection');
-                  setSelectedEvidence(null);
-                }}
-                className="px-4 py-2 bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 text-xs font-bold rounded-xl"
+                onClick={() => setInspectCandidate(null)}
+                className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold rounded-xl"
               >
-                Decline Item
-              </button>
-              <button
-                onClick={() => {
-                  approveVerification(selectedEvidence.id);
-                  setSelectedEvidence(null);
-                }}
-                className="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold rounded-xl"
-              >
-                Approve (+{selectedEvidence.points} Pts)
+                Close Locker
               </button>
             </div>
           </div>
         </div>
       )}
 
-      {isAddModalOpen && (
-        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
-          <form onSubmit={handleCreateCandidate} className="bg-white border border-slate-200 rounded-2xl max-w-md w-full p-6 shadow-2xl space-y-4">
-            <div className="flex items-center justify-between pb-3 border-b border-slate-100">
-              <h3 className="text-base font-bold text-slate-900">Add Candidate & Set Requirements</h3>
-              <button onClick={() => setIsAddModalOpen(false)} type="button" className="text-slate-400 hover:text-slate-600">✕</button>
-            </div>
-            <div>
-              <label className="text-xs text-slate-600 font-semibold block mb-1">Full Name</label>
-              <input
-                required
-                type="text"
-                value={newName}
-                onChange={(e) => setNewName(e.target.value)}
-                placeholder="e.g. Jordan Miller"
-                className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2 text-sm text-slate-900 focus:outline-none focus:border-purple-600"
-              />
-            </div>
-            <div>
-              <label className="text-xs text-slate-600 font-semibold block mb-1">Email Address</label>
-              <input
-                required
-                type="email"
-                value={newEmail}
-                onChange={(e) => setNewEmail(e.target.value)}
-                placeholder="jordan.m@example.com"
-                className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2 text-sm text-slate-900 focus:outline-none focus:border-purple-600"
-              />
-            </div>
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <label className="text-xs text-slate-600 font-semibold block mb-1">Target PBAS Points</label>
-                <input
-                  type="number"
-                  value={newTarget}
-                  onChange={(e) => setNewTarget(Number(e.target.value))}
-                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2 text-sm text-slate-900 focus:outline-none focus:border-purple-600"
-                />
-              </div>
-              <div>
-                <label className="text-xs text-slate-600 font-semibold block mb-1">Phone Number</label>
-                <input
-                  type="text"
-                  value={newPhone}
-                  onChange={(e) => setNewPhone(e.target.value)}
-                  placeholder="0412 000 000"
-                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2 text-sm text-slate-900 focus:outline-none focus:border-purple-600"
-                />
-              </div>
-            </div>
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <label className="text-xs text-slate-600 font-semibold block mb-1">Cycle Start Date</label>
-                <input
-                  type="text"
-                  value={newStartDate}
-                  onChange={(e) => setNewStartDate(e.target.value)}
-                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2 text-sm text-slate-900 focus:outline-none focus:border-purple-600"
-                />
-              </div>
-              <div>
-                <label className="text-xs text-slate-600 font-semibold block mb-1">Cycle Finish Date</label>
-                <input
-                  type="text"
-                  value={newFinishDate}
-                  onChange={(e) => setNewFinishDate(e.target.value)}
-                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2 text-sm text-slate-900 focus:outline-none focus:border-purple-600"
-                />
-              </div>
-            </div>
-            <div className="pt-3 border-t border-slate-100 flex justify-end gap-3">
-              <button
-                type="button"
-                onClick={() => setIsAddModalOpen(false)}
-                className="px-4 py-2 bg-slate-100 text-slate-700 text-xs font-semibold rounded-xl"
-              >
-                Cancel
-              </button>
-              <button
-                type="submit"
-                className="px-4 py-2 bg-purple-900 hover:bg-purple-800 text-white text-xs font-bold rounded-xl"
-              >
-                Add Candidate
+      {selectedEvidence && (
+        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-2xl max-w-lg w-full p-6 space-y-4 shadow-xl border border-slate-200">
+            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+              <h3 className="font-extrabold text-slate-900 text-base">Evidence Verification Details</h3>
+              <button onClick={() => setSelectedEvidence(null)} className="text-slate-400 hover:text-slate-600 font-bold text-lg">
+                ×
               </button>
             </div>
-          </form>
-        </div>
-      )}
 
-      {editingCandidateId && (
-        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
-          <form onSubmit={handleSaveRequirements} className="bg-white border border-slate-200 rounded-2xl max-w-md w-full p-6 shadow-2xl space-y-4">
-            <div className="flex items-center justify-between pb-3 border-b border-slate-100">
-              <h3 className="text-base font-bold text-slate-900">Adjust PBAS Target & Cycle Dates</h3>
-              <button onClick={() => setEditingCandidateId(null)} type="button" className="text-slate-400 hover:text-slate-600">✕</button>
-            </div>
-            <div>
-              <label className="text-xs text-slate-600 font-semibold block mb-1">Target PBAS Points</label>
-              <input
-                type="number"
-                value={editTarget}
-                onChange={(e) => setEditTarget(Number(e.target.value))}
-                className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2 text-sm text-slate-900 focus:outline-none focus:border-purple-600"
-              />
-            </div>
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <label className="text-xs text-slate-600 font-semibold block mb-1">Cycle Start Date</label>
-                <input
-                  type="text"
-                  value={editStart}
-                  onChange={(e) => setEditStart(e.target.value)}
-                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2 text-sm text-slate-900 focus:outline-none focus:border-purple-600"
-                />
+            <div className="space-y-3 text-xs">
+              <div className="flex justify-between">
+                <span className="text-slate-500">Candidate:</span>
+                <span className="font-bold text-slate-900">{selectedEvidence.candidateName}</span>
               </div>
-              <div>
-                <label className="text-xs text-slate-600 font-semibold block mb-1">Cycle Finish Date</label>
-                <input
-                  type="text"
-                  value={editFinish}
-                  onChange={(e) => setEditFinish(e.target.value)}
-                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2 text-sm text-slate-900 focus:outline-none focus:border-purple-600"
-                />
+              <div className="flex justify-between">
+                <span className="text-slate-500">Submission Title:</span>
+                <span className="font-bold text-purple-950">{selectedEvidence.title}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-slate-500">PBAS Value:</span>
+                <span className="font-bold text-emerald-600">+{selectedEvidence.points} Points</span>
+              </div>
+              <div className="p-3 bg-slate-50 rounded-xl border border-slate-200 text-slate-700">
+                <p className="font-semibold mb-1 text-slate-900">Submitted Notes / Details:</p>
+                {selectedEvidence.notes || 'No additional notes provided.'}
               </div>
             </div>
-            <div className="pt-3 border-t border-slate-100 flex justify-end gap-3">
+
+            <div className="flex justify-end space-x-2 pt-3 border-t border-slate-100">
               <button
-                type="button"
-                onClick={() => setEditingCandidateId(null)}
-                className="px-4 py-2 bg-slate-100 text-slate-700 text-xs font-semibold rounded-xl"
+                onClick={() => setSelectedEvidence(null)}
+                className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold rounded-xl"
               >
-                Cancel
+                Close
               </button>
               <button
-                type="submit"
-                className="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold rounded-xl"
+                onClick={() => handleApprove(selectedEvidence)}
+                className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-xl"
               >
-                Save Changes
+                Approve & Grant Points
               </button>
             </div>
-          </form>
+          </div>
         </div>
       )}
     </div>
