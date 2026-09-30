@@ -6,215 +6,65 @@ import {
   RotateCcw, 
   Award,
   Calendar,
-  Lock,
   Sparkles,
+  Volume2,
+  GitBranch,
+  ArrowRight,
+  ShieldAlert,
+  HelpCircle
 } from "lucide-react";
 import CertificateModal, { type CertificateData } from "@/components/CertificateModal";
-import { QUIZ_DATA, type QuizQuestion } from "@/data/quizQuestions";
+import { modulesData, type QuizQuestion } from "../data/modulesData";
 
 export interface LMSModule {
   id: string;
   title: string;
   category: string;
-  estimatedMinutes: number;
-  description: string;
-  studyGuide: string[];
+  estimatedMins: number;
+  pbasPoints: number;
+  videoScript: string;
+  lesson1Title: string;
+  lesson1Content: string[];
+  graphicCard1?: {
+    title: string;
+    bullets: string[];
+  };
+  branchingScenario?: {
+    id: string;
+    situation: string;
+    options: Array<{
+      id: string;
+      choice: string;
+      isCorrect: boolean;
+      feedback: string;
+    }>;
+  };
+  lesson2Title: string;
+  lesson2Content: string[];
+  practicalReflection: string;
+  actionStepTitle: string;
+  actionStepPrompt: string;
 }
 
-export const MODULES_LIST: LMSModule[] = [
-  {
-    id: "mod-1",
-    title: "WHS & Workplace Rights in Australia",
-    category: "Non-Vocational Compliance",
-    estimatedMinutes: 30,
-    description: "Understand Work Health & Safety fundamentals, hazard reporting, and NES worker entitlements.",
-    studyGuide: [
-      "1. Duty of Care: Employers must provide a safe environment; employees must follow safety procedures.",
-      "2. Hazard Reporting: Identify and report slip/trip/fall hazards immediately to safety officers.",
-      "3. National Employment Standards (NES): statutory entitlements protecting Australian employees.",
-      "4. Emergency Evacuation: Memorize emergency assembly points and exit routes in your workplace.",
-      "5. PPE Compliance: Correctly wear required Personal Protective Equipment (PPE) at all times on site.",
-      "6. Incident Logging: Report all injuries or near-misses immediately, no matter how minor.",
-      "7. Ergonomics: Set up workstations correctly to prevent repetitive strain injuries.",
-      "8. Manual Handling: Use proper lifting techniques (bend knees, keep loads close to body).",
-      "9. Anti-Bullying Laws: Understand Fair Work Ombudsman protections against workplace harassment.",
-      "10. Right to Refuse Unsafe Work: Employees can refuse tasks that pose imminent danger to health.",
-      "11. Workplace Fatigue: Manage rest breaks and report excessive fatigue affecting safety.",
-      "12. Chemical Safety (SDS): Consult Safety Data Sheets before handling hazardous workplace materials.",
-      "13. First Aid Access: Know the location of first aid kits and designated first aid officers.",
-      "14. Whistleblower Protections: Understand safety escalation rights without fear of reprisal.",
-      "15. Consultation Rights: Participate in workplace safety committees and toolbox talks."
-    ]
-  },
-  {
-    id: "mod-2",
-    title: "STAR Method Interview Technique",
-    category: "Non-Vocational Job Prep",
-    estimatedMinutes: 30,
-    description: "Structuring compelling behavioral interview answers using Situation, Task, Action, and Result.",
-    studyGuide: [
-      "1. Situation & Task: Briefly set the context (20% of your total response time).",
-      "2. Action Focus: Detail the specific steps YOU personally took to resolve the challenge (60% of response).",
-      "3. Measurable Results: End with quantifiable outcomes, metrics, or lessons learned (20% of response).",
-      "4. Arrival Etiquette: Arrive 10-15 minutes prior to your scheduled interview start time.",
-      "5. Technical Gaps: Be honest about technical unknowns while demonstrating enthusiasm to learn.",
-      "6. Body Language: Maintain positive eye contact, open posture, and professional greetings.",
-      "7. Materials: Bring hard copies of your tailored resume, reference contact lists, and notes.",
-      "8. Employer Research: Study the organization's core mission and values prior to your interview.",
-      "9. Closing Questions: Ask insightful questions about team culture and daily role expectations.",
-      "10. Professional Dressing: Align your attire with or slightly above the employer's workplace standard.",
-      "11. Positive Framing: Frame past employment transitions or challenges constructively.",
-      "12. Follow-Up Courtesy: Send a brief thank-you email to the interviewer within 24 hours.",
-      "13. Remote Interview Prep: Test webcams, audio, lighting, and quiet room setups beforehand.",
-      "14. Clarification Requests: Politely ask interviewers to clarify or repeat ambiguous questions.",
-      "15. Confidence Mindset: Reframe interview nerves into positive enthusiasm for the position."
-    ]
-  },
-  {
-    id: "mod-3",
-    title: "Effective Workplace Communication",
-    category: "Non-Vocational Core Skills",
-    estimatedMinutes: 25,
-    description: "Master professional verbal, non-verbal, and written communication in modern Australian workplaces.",
-    studyGuide: [
-      "1. Active Listening: Pay full attention, summarize key points back, and clarify instructions before acting.",
-      "2. Professional Email Etiquette: Keep subject lines concise, maintain respectful tone, and proofread.",
-      "3. Constructive Feedback: Accept constructive notes as growth opportunities without becoming defensive.",
-      "4. De-escalation: Respond calmly to customer complaints using neutral, empathetic language.",
-      "5. Teamwork Dynamics: Collaborate actively to ensure shift tasks are completed safely and efficiently.",
-      "6. Initiative: Identify quiet shift periods and ask team leaders how you can assist.",
-      "7. Punctuality Impact: Arrive on time to avoid placing unfair pressure on shift co-workers.",
-      "8. Customer Service Excellence: Strive to create positive, helpful experiences for every client.",
-      "9. Digital Messaging: Keep messaging chats concise, clear, and work-appropriate.",
-      "10. Phone Courtesy: Speak clearly, state your name, and capture accurate messages.",
-      "11. Handover Reports: Provide structured end-of-shift updates to oncoming team members.",
-      "12. Cultural Competency: Demonstrate inclusive behavior in multicultural work environments.",
-      "13. Incident Logging: Record workplace incidents objectively without emotional bias.",
-      "14. Conflict Resolution: Address minor peer friction directly and respectfully before escalating.",
-      "15. Manager Check-ins: Provide regular task status updates to supervisors."
-    ]
-  },
-  {
-    id: "mod-4",
-    title: "Resume Tailoring & Employment Gaps",
-    category: "Non-Vocational Employment",
-    estimatedMinutes: 25,
-    description: "Aligning your skills with Job Description Keywords and framing career gaps with confidence.",
-    studyGuide: [
-      "1. Honest Gap Framing: Frame employment gaps constructively by highlighting upskilling and personal growth.",
-      "2. Functional Layouts: Utilize skill-based resume structures when returning from extended career breaks.",
-      "3. Community & Training: List volunteer work and short courses under Professional Development.",
-      "4. Spoken Explanations: Keep spoken interview responses regarding work gaps brief (2-3 sentences).",
-      "5. Initiative & Growth: Demonstrate self-directed learning during periods between formal jobs.",
-      "6. Targeted Cover Letters: Introduce your value and connect your background to the employer's needs.",
-      "7. Privacy Safeguards: Exclude sensitive details like full street address, age, or marital status.",
-      "8. Transferable Skills: Emphasize core capabilities that transition across different industry sectors.",
-      "9. ATS Formatting: Use clean typography and bullet points for Applicant Tracking System readability.",
-      "10. Keyword Matching: Mirror key verb terms directly from job vacancy advertisements.",
-      "11. Resume Length: Maintain a 1 to 2 page resume length for standard Australian job applications.",
-      "12. Action Verbs: Begin bullet points with strong action verbs (e.g., Coordinated, Managed, Built).",
-      "13. Proofreading: Check for grammatical errors and typo-free formatting.",
-      "14. Reference Prep: Contact references prior to submitting their contact details to hiring teams.",
-      "15. Digital Storage: Keep updated PDF and Word versions accessible in your digital locker."
-    ]
-  },
-  {
-    id: "mod-5",
-    title: "SMART Goal Setting & Action Planning",
-    category: "Non-Vocational Life Skills",
-    estimatedMinutes: 20,
-    description: "Setting actionable career goals, overcoming barriers, and tracking mutual obligation progress.",
-    studyGuide: [
-      "1. Specific Goals: Define precise target outcomes (e.g., Obtain White Card certificate).",
-      "2. Measurable Targets: Establish concrete metrics to track your weekly progress.",
-      "3. Achievable Milestones: Set realistic goals aligned with your current skills and support resources.",
-      "4. Relevant Objectives: Ensure short-term tasks directly advance your long-term career path.",
-      "5. Time-Bound Deadlines: Set target dates to build momentum and avoid procrastination.",
-      "6. Barrier Identification: Address practical challenges early with your Provider.",
-      "7. Application Logging: Maintain systematic records of job applications for compliance proof.",
-      "8. Micro-Habits: Break large career objectives into manageable daily action steps.",
-      "9. Strategy Adjustments: Review application feedback with your Case Manager every 3-4 weeks.",
-      "10. Skill Refreshes: Take short modules during job search periods to maintain continuous learning.",
-      "11. Provider Resources: Access available funding support for uniforms, tools, and licenses.",
-      "12. Task Prioritization: Focus energy on high-impact job search activities first each day.",
-      "13. Persistence: Maintain consistent effort even when application callbacks are delayed.",
-      "14. Logbook Discipline: Record employer contacts and reference numbers promptly.",
-      "15. Milestone Rewards: Recognize personal achievements upon hitting monthly targets."
-    ]
-  },
-  {
-    id: "mod-6",
-    title: "Workplace Reliability & Professional Etiquette",
-    category: "Non-Vocational Life Skills",
-    estimatedMinutes: 20,
-    description: "Punctuality, shift attendance protocols, mobile phone policies, and workplace conduct.",
-    studyGuide: [
-      "1. Absence Protocol: Notify your supervisor via phone call prior to shift start if sick or delayed.",
-      "2. Phone Etiquette: Limit personal mobile phone use strictly to scheduled rest and meal breaks.",
-      "3. Quiet Period Initiative: Restock supplies or ask supervisors for tasks during downtime.",
-      "4. Feedback Receptivity: Listen attentively to manager guidance during probation periods.",
-      "5. Shared Spaces: Keep break rooms and communal areas clean and hygienic.",
-      "6. Shift Preparation: Arrive 5-10 minutes prior to shift start, ready in uniform.",
-      "7. Confidentiality: Protect customer and proprietary business information at all times.",
-      "8. Positive Workplace Culture: Avoid workplace gossip to maintain a supportive team environment.",
-      "9. Dress Code Adherence: Ensure work attire meets safety and employer presentation standards.",
-      "10. Break Timings: Adhere strictly to allocated break start and finish times.",
-      "11. Equipment Care: Treat workplace tools and machinery with respect and proper maintenance.",
-      "12. Team Communication: Inform co-workers when stepping away from active work areas.",
-      "13. Problem Escalation: Raise operational concerns with team leaders before problems grow.",
-      "14. Professional Boundaries: Maintain appropriate interactions with colleagues and clients.",
-      "15. Consistent Performance: Deliver steady, reliable work quality across every shift."
-    ]
-  },
-  {
-    id: "mod-7",
-    title: "Financial Literacy, Pay Slips & Tax",
-    category: "Non-Vocational Life Skills",
-    estimatedMinutes: 20,
-    description: "Understanding tax declarations, superannuation, gross vs net pay, and income reporting.",
-    studyGuide: [
-      "1. Gross vs Net Pay: Gross is total earnings before deductions; Net is take-home pay.",
-      "2. Payment Arrears: Plan for initial 2-4 week pay cycles when starting a new position.",
-      "3. Income Reporting: Report gross income earned during the specific reporting fortnight.",
-      "4. Tax-Free Threshold: Claim the tax-free threshold on your declaration for your primary job.",
-      "5. Budgeting Strategy: Base personal budget calculations on guaranteed base hours, not overtime.",
-      "6. Provider Assistance: Access clothing, boot, and ticket support through your Employment Provider.",
-      "7. Receipt Tracking: Keep digital copies of work-related expenses for tax deduction time.",
-      "8. Pay Slip Checks: Verify hourly rates, gross pay, tax withheld, and super contributions weekly.",
-      "9. Superannuation Guarantee: Ensure compulsory employer super payments enter your chosen fund.",
-      "10. Tax Declaration: Submit your declaration promptly to avoid top-rate withholding.",
-      "11. Award Conditions: Understand minimum pay rates set by Modern Awards.",
-      "12. Allowance Tracking: Check that meal, travel, or uniform allowances appear on pay slips.",
-      "13. Emergency Savings: Build a modest financial buffer for unexpected living expenses.",
-      "14. Super Fund Choice: Select a high-performing super fund to protect long-term retirement savings.",
-      "15. Payroll Inquiries: Address pay slip discrepancies politely with payroll managers."
-    ]
-  },
-  {
-    id: "mod-8",
-    title: "Mental Health, Resilience & Shift Wellness",
-    category: "Non-Vocational Well-Being",
-    estimatedMinutes: 20,
-    description: "Managing job search fatigue, de-escalating shift stress, and prioritizing mental health support.",
-    studyGuide: [
-      "1. Reframe Rejection: View application knockbacks as routine steps, not personal failure.",
-      "2. Employee Support (EAP): Access free, confidential employer counseling programs when available.",
-      "3. Sleep Hygiene: Prioritize 7-9 hours of restful sleep in dark, screen-free environments.",
-      "4. Anxiety De-escalation: Use box breathing (in 4s, hold 4s, out 4s) to calm acute stress.",
-      "5. Professional Support: Access bulk-billed mental health care options via your local GP.",
-      "6. Imposter Syndrome: Recognize early job self-doubt as temporary and normal.",
-      "7. Shift Decompression: Take dedicated time to unwind after demanding shifts to prevent burnout.",
-      "8. Hydration & Nutrition: Maintain proper hydration and balanced meals on physical shifts.",
-      "9. Routine & Structure: Keep a consistent daily schedule during job search periods.",
-      "10. Social Connection: Stay connected with supportive friends, family, and community groups.",
-      "11. Physical Activity: Incorporate daily outdoor movement or exercise to boost mood.",
-      "12. Boundary Setting: Separate job search effort hours from personal rest and relaxation time.",
-      "13. Early Warning Signs: Identify early signs of fatigue or low mood and seek prompt advice.",
-      "14. Mindfulness Practice: Spend 5 minutes daily on grounding exercises or mental pauses.",
-      "15. Provider Support: Discuss wellness or scheduling adjustments openly with your Case Manager."
-    ]
+export const MODULES_LIST = modulesData;
+
+// Build quiz lookup map keyed by module ID
+const QUIZ_DATA: Record<string, Array<{ q: string; options: string[]; correct: number; explanation?: string }>> = modulesData.reduce((acc, m) => {
+  const normalizedKey = m.id.toLowerCase();
+  const quizItems = m.quiz.map((item: QuizQuestion) => ({
+    q: item.question,
+    options: item.options,
+    correct: item.correctAnswerIndex,
+    explanation: item.explanation,
+  }));
+
+  acc[normalizedKey] = quizItems;
+  acc[m.id] = quizItems;
+  if (normalizedKey === "m01") {
+    acc["mod-1"] = quizItems;
   }
-];
+  return acc;
+}, {} as Record<string, Array<{ q: string; options: string[]; correct: number; explanation?: string }>>);
 
 interface ModuleCompletionMeta {
   lastCompletedTimestamp: number;
@@ -226,24 +76,23 @@ interface Props {
 
 export default function LmsModuleHub({ onModuleCompleted }: Props) {
   const [completionRecords, setCompletionRecords] = useState<Record<string, ModuleCompletionMeta>>({});
-  const [activeModule, setActiveModule] = useState<LMSModule | null>(null);
+  const [activeModule, setActiveModule] = useState<any | null>(null);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [selectedAnswers, setSelectedAnswers] = useState<Record<number, number>>({});
   const [quizScorePercent, setQuizScorePercent] = useState<number | null>(null);
+  const [scenarioAnswer, setScenarioAnswer] = useState<string | null>(null);
   
-  // Unified Landscape Certificate Modal State
+  // Certificate Modal State
   const [activeCertificate, setActiveCertificate] = useState<CertificateData | null>(null);
 
-  // Load completion timestamps from localStorage
   useEffect(() => {
     try {
       const stored = localStorage.getItem("workready_pbas_module_meta");
       if (stored) {
         setCompletionRecords(JSON.parse(stored));
       } else {
-        // Default seed: Module 1 completed 10 days ago
         const defaultMeta = {
-          "mod-1": { lastCompletedTimestamp: Date.now() - 10 * 24 * 60 * 60 * 1000 }
+          "M01": { lastCompletedTimestamp: Date.now() - 10 * 24 * 60 * 60 * 1000 }
         };
         setCompletionRecords(defaultMeta);
         localStorage.setItem("workready_pbas_module_meta", JSON.stringify(defaultMeta));
@@ -254,12 +103,11 @@ export default function LmsModuleHub({ onModuleCompleted }: Props) {
   }, []);
 
   const getQuarterlyStatus = (moduleId: string) => {
-    const meta = completionRecords[moduleId];
+    const meta = completionRecords[moduleId] || completionRecords[moduleId.toLowerCase()];
     if (!meta) return { isCompleted: false, daysRemaining: 0, canClaimPoints: true };
 
     const ninetyDaysMs = 90 * 24 * 60 * 60 * 1000;
     const elapsedMs = Date.now() - meta.lastCompletedTimestamp;
-    const isCompleted = true;
 
     if (elapsedMs >= ninetyDaysMs) {
       return { isCompleted: true, daysRemaining: 0, canClaimPoints: true };
@@ -270,11 +118,12 @@ export default function LmsModuleHub({ onModuleCompleted }: Props) {
     }
   };
 
-  const handleOpenModule = (module: LMSModule) => {
+  const handleOpenModule = (module: any) => {
     setActiveModule(module);
     setCurrentQuestionIndex(0);
     setSelectedAnswers({});
     setQuizScorePercent(null);
+    setScenarioAnswer(null);
   };
 
   const handleSelectOption = (questionId: number, optionIndex: number) => {
@@ -301,8 +150,7 @@ export default function LmsModuleHub({ onModuleCompleted }: Props) {
       const calculatedScore = Math.round((correctCount / questions.length) * 100);
       setQuizScorePercent(calculatedScore);
 
-      // Pass threshold: >= 75% (6 out of 8 correct)
-      if (calculatedScore >= 75) {
+      if (calculatedScore >= 80) {
         const status = getQuarterlyStatus(activeModule.id);
         const now = Date.now();
 
@@ -314,7 +162,7 @@ export default function LmsModuleHub({ onModuleCompleted }: Props) {
         localStorage.setItem("workready_pbas_module_meta", JSON.stringify(updatedMeta));
 
         if (status.canClaimPoints && onModuleCompleted) {
-          onModuleCompleted(activeModule.id, 15);
+          onModuleCompleted(activeModule.id, activeModule.pbasPoints || 15);
         }
       }
     }
@@ -326,9 +174,9 @@ export default function LmsModuleHub({ onModuleCompleted }: Props) {
       candidateName: "Alex Mercer",
       courseTitle: moduleTitle,
       completionDate: new Date().toLocaleDateString("en-AU"),
-      score: quizScorePercent ?? 88,
+      score: quizScorePercent ?? 100,
       verificationCode: `WR-MOD-${Math.floor(100000 + Math.random() * 900000)}`,
-      issuerName: "Casey (Case Manager)"
+      issuerName: "Straight Up Training"
     });
   };
 
@@ -337,7 +185,7 @@ export default function LmsModuleHub({ onModuleCompleted }: Props) {
   return (
     <div className="space-y-6">
       {/* HEADER BAR */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white p-5 rounded-xl border border-slate-200 shadow-sm">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
         <div>
           <div className="flex items-center gap-2">
             <h2 className="text-xl font-bold text-slate-900 font-heading">LMS Non-Vocational Modules</h2>
@@ -346,76 +194,83 @@ export default function LmsModuleHub({ onModuleCompleted }: Props) {
             </span>
           </div>
           <p className="text-xs sm:text-sm text-slate-500 mt-1">
-            Complete 15-point modules, pass 8-question quizzes, earn +15 PBAS points per unit, and claim rewards every 90 days.
+            Interactive modules with scenarios, policy breakdowns, and competency checks.
           </p>
         </div>
-        <div className="px-3.5 py-1.5 rounded-lg bg-slate-100 text-slate-700 text-xs font-bold border border-slate-200 w-fit">
+        <div className="px-3.5 py-1.5 rounded-xl bg-slate-100 text-slate-700 text-xs font-bold border border-slate-200 w-fit">
           {completedCount} of {MODULES_LIST.length} Units Completed
         </div>
       </div>
 
       {/* MODULE CARDS GRID */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
         {MODULES_LIST.map((mod) => {
           const { isCompleted, daysRemaining, canClaimPoints } = getQuarterlyStatus(mod.id);
           
           return (
             <div
               key={mod.id}
-              className="bg-white border border-slate-200 rounded-xl p-4 flex flex-col justify-between hover:border-slate-300 shadow-sm transition-all"
+              className="bg-white border border-slate-200 rounded-2xl p-5 flex flex-col justify-between hover:border-purple-300 hover:shadow-md transition-all duration-200 relative overflow-hidden"
             >
+              <div
+                className="absolute inset-x-0 top-0 h-1.5"
+                style={{ background: "linear-gradient(90deg,#24083b,#7C3AED,#16a34a)" }}
+              />
+
               <div>
-                <div className="flex items-center justify-between mb-2">
-                  <span className="text-[10px] font-bold text-slate-600 bg-slate-100 px-2 py-0.5 rounded">
+                <div className="flex items-center justify-between mb-3 pt-1">
+                  <span className="text-[10px] font-bold text-purple-800 bg-purple-50 px-2.5 py-1 rounded-md border border-purple-100">
                     {mod.category}
                   </span>
                   {isCompleted ? (
-                    <span className="text-xs font-bold text-emerald-700 flex items-center gap-1">
-                      <CheckCircle2 className="w-3.5 h-3.5" /> Completed
+                    <span className="text-xs font-bold text-emerald-700 flex items-center gap-1 bg-emerald-50 px-2.5 py-0.5 rounded-full border border-emerald-200">
+                      <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" /> Completed
                     </span>
                   ) : (
-                    <span className="text-xs text-slate-400 flex items-center gap-1">
-                      <Clock className="w-3.5 h-3.5" /> {mod.estimatedMinutes}m
+                    <span className="text-xs text-slate-500 flex items-center gap-1 font-medium">
+                      <Clock className="w-3.5 h-3.5 text-purple-600" /> {mod.estimatedMins} mins
                     </span>
                   )}
                 </div>
-                <h3 className="font-bold text-slate-900 text-sm leading-snug">{mod.title}</h3>
-                <p className="text-xs text-slate-500 mt-1 line-clamp-2">{mod.description}</p>
+                
+                <h3 className="font-bold text-slate-900 text-base leading-snug font-heading">{mod.title}</h3>
+                <p className="text-xs text-slate-600 mt-2 line-clamp-3 leading-relaxed">{mod.videoScript}</p>
               </div>
 
-              <div className="mt-4 space-y-2">
-                {/* PBAS Quarterly Lock Status Badge */}
+              <div className="mt-5 space-y-2 pt-2 border-t border-slate-100">
                 {isCompleted && !canClaimPoints && (
-                  <div className="bg-purple-50 border border-purple-200 rounded-lg p-2 text-[10px] text-purple-900 flex items-center gap-1.5 font-semibold">
-                    <Calendar className="w-3.5 h-3.5 text-purple-700 shrink-0" />
-                    <span>Next PBAS Point Claim in <strong>{daysRemaining} Days</strong></span>
+                  <div className="bg-purple-50 border border-purple-200 rounded-xl p-2.5 text-[11px] text-purple-900 flex items-center gap-2 font-semibold">
+                    <Calendar className="w-4 h-4 text-purple-700 shrink-0" />
+                    <span>Next PBAS Claim in <strong>{daysRemaining} Days</strong></span>
                   </div>
                 )}
 
                 {isCompleted && canClaimPoints && (
-                  <div className="bg-emerald-50 border border-emerald-200 rounded-lg p-2 text-[10px] text-emerald-800 flex items-center gap-1.5 font-bold">
-                    <Sparkles className="w-3.5 h-3.5 text-emerald-600 shrink-0" strokeWidth={3} />
-                    <span>Quarterly Point Claim Available (+15 Pts)</span>
+                  <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-2.5 text-[11px] text-emerald-900 flex items-center gap-2 font-bold">
+                    <Sparkles className="w-4 h-4 text-emerald-600 shrink-0" strokeWidth={3} />
+                    <span>Quarterly Claim Available (+{mod.pbasPoints || 15} Pts)</span>
                   </div>
                 )}
 
                 <button
                   onClick={() => handleOpenModule(mod)}
-                  className={`w-full py-2 px-3 rounded-lg text-xs font-bold transition-all ${
+                  className={`w-full py-2.5 px-4 rounded-xl text-xs font-bold transition-all shadow-sm flex items-center justify-center gap-2 ${
                     isCompleted
-                      ? "border border-slate-300 bg-white text-slate-700 hover:bg-slate-50"
-                      : "bg-emerald-600 text-white hover:bg-emerald-700 shadow-sm"
+                      ? "border border-slate-300 bg-white text-slate-800 hover:bg-slate-50"
+                      : "bg-[#24083b] text-white hover:bg-[#320b52]"
                   }`}
                 >
-                  {isCompleted ? "Revise Module" : "Start Unit (+15 Pts)"}
+                  <BookOpen className="w-4 h-4" />
+                  {isCompleted ? "Review Lesson Content" : `Start Module (+${mod.pbasPoints || 15} Pts)`}
                 </button>
 
+                {/* RESTORED LANDSCAPE CERTIFICATE BUTTON */}
                 {isCompleted && (
                   <button
                     onClick={() => handleOpenLandscapeCertificate(mod.title)}
-                    className="w-full py-1.5 px-2 rounded text-[11px] font-semibold text-slate-600 hover:text-emerald-700 hover:bg-emerald-50 flex items-center justify-center gap-1 transition-all"
+                    className="w-full py-2 px-3 rounded-xl text-xs font-bold text-purple-900 bg-purple-50 hover:bg-purple-100 border border-purple-200 flex items-center justify-center gap-1.5 transition-all"
                   >
-                    <Award className="w-3.5 h-3.5 text-emerald-600" /> View Landscape Certificate
+                    <Award className="w-4 h-4 text-purple-700" /> View & Print Certificate
                   </button>
                 )}
               </div>
@@ -424,88 +279,213 @@ export default function LmsModuleHub({ onModuleCompleted }: Props) {
         })}
       </div>
 
-      {/* MODULE & QUIZ MODAL */}
+      {/* RICH VISUAL MODULE MODAL */}
       {activeModule && (
-        <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl max-w-3xl w-full max-h-[90vh] overflow-y-auto p-6 shadow-xl space-y-6">
-            <div className="flex items-center justify-between border-b pb-4">
+        <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-3 sm:p-5">
+          <div className="bg-white rounded-3xl max-w-4xl w-full max-h-[92vh] overflow-y-auto p-6 sm:p-8 shadow-2xl space-y-8 border border-slate-100">
+            
+            {/* Modal Header */}
+            <div className="flex items-start justify-between border-b pb-4 gap-4">
               <div>
-                <span className="text-xs font-bold uppercase tracking-wider text-emerald-600">{activeModule.category}</span>
-                <h3 className="text-xl font-bold text-slate-900 mt-0.5">{activeModule.title}</h3>
+                <span className="text-xs font-bold uppercase tracking-wider text-purple-700 bg-purple-50 px-3 py-1 rounded-full border border-purple-200 font-mono">
+                  {activeModule.category}
+                </span>
+                <h3 className="text-2xl font-bold text-slate-900 mt-2 font-heading">{activeModule.title}</h3>
               </div>
               <button
                 onClick={() => setActiveModule(null)}
-                className="text-slate-400 hover:text-slate-600 font-bold text-lg px-2"
+                className="text-slate-400 hover:text-slate-600 font-bold text-xl p-2 rounded-full hover:bg-slate-100"
               >
                 ✕
               </button>
             </div>
 
             {quizScorePercent === null ? (
-              <div className="space-y-6">
-                {/* 15 CURRICULUM POINTS */}
-                <div className="bg-slate-50 border border-slate-200 p-4 rounded-xl">
-                  <h4 className="text-xs font-bold uppercase tracking-wider text-slate-700 flex items-center gap-2 mb-3">
-                    <BookOpen className="w-4 h-4 text-emerald-600" /> 15-Point Curriculum Study Guide
+              <div className="space-y-8">
+                
+                {/* Audio Overview Banner */}
+                {activeModule.videoScript && (
+                  <div className="bg-gradient-to-r from-purple-900 to-[#24083b] text-white p-5 rounded-2xl space-y-2 border border-purple-800 shadow-md">
+                    <div className="flex items-center gap-2 text-emerald-400 font-bold text-xs uppercase tracking-wider">
+                      <Volume2 className="w-4 h-4" /> Audio Introduction
+                    </div>
+                    <p className="text-xs sm:text-sm text-purple-100 leading-relaxed font-normal">
+                      "{activeModule.videoScript}"
+                    </p>
+                  </div>
+                )}
+
+                {/* Lesson 1 Section */}
+                <div className="space-y-4">
+                  <h4 className="text-lg font-bold text-[#24083b] font-heading flex items-center gap-2 border-b pb-2">
+                    <BookOpen className="w-5 h-5 text-purple-700" />
+                    {activeModule.lesson1Title}
                   </h4>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-2 max-h-56 overflow-y-auto pr-2">
-                    {activeModule.studyGuide.map((point, idx) => (
-                      <div key={idx} className="text-xs text-slate-700 bg-white p-2 rounded border border-slate-100 flex items-start gap-1.5">
-                        <span className="text-emerald-600 font-bold shrink-0">•</span>
-                        <span>{point}</span>
-                      </div>
+                  <div className="space-y-3 text-xs sm:text-sm text-slate-700 leading-relaxed">
+                    {activeModule.lesson1Content.map((p: string, idx: number) => (
+                      <p key={idx}>{p}</p>
                     ))}
                   </div>
                 </div>
 
-                {/* 8-QUESTION QUIZ SECTION */}
+                {/* VISUAL COMPONENT: WORKPLACE COMPARISON TABLE */}
+                {activeModule.graphicCard1 && (
+                  <div className="bg-slate-50 border border-slate-200 rounded-2xl p-5 space-y-4">
+                    <h5 className="font-bold text-slate-900 text-sm font-heading flex items-center gap-2">
+                      <ShieldAlert className="w-4 h-4 text-purple-700" />
+                      {activeModule.graphicCard1.title}
+                    </h5>
+                    
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                      {activeModule.graphicCard1.bullets.map((bullet: string, idx: number) => {
+                        const parts = bullet.split(':');
+                        const label = parts[0];
+                        const detail = parts.slice(1).join(':');
+
+                        return (
+                          <div key={idx} className="bg-white p-4 rounded-xl border border-slate-200 space-y-1 shadow-sm">
+                            <span className="text-xs font-bold text-purple-900 uppercase block font-mono">{label}</span>
+                            <p className="text-xs text-slate-600 leading-relaxed">{detail || label}</p>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
+
+                {/* VISUAL COMPONENT: INTERACTIVE BRANCHING SCENARIO */}
+                {activeModule.branchingScenario && (
+                  <div className="bg-purple-50/70 border border-purple-200 rounded-2xl p-6 space-y-4">
+                    <div className="flex items-center gap-2 text-purple-900 font-bold text-sm font-heading">
+                      <GitBranch className="w-5 h-5 text-purple-700" />
+                      Interactive Workplace Decision Scenario
+                    </div>
+
+                    <p className="text-xs sm:text-sm text-slate-800 bg-white p-4 rounded-xl border border-purple-100 shadow-sm leading-relaxed">
+                      {activeModule.branchingScenario.situation}
+                    </p>
+
+                    <div className="space-y-3">
+                      {activeModule.branchingScenario.options.map((opt: any) => {
+                        const isSelected = scenarioAnswer === opt.id;
+
+                        return (
+                          <div key={opt.id} className="space-y-2">
+                            <button
+                              onClick={() => setScenarioAnswer(opt.id)}
+                              className={`w-full text-left p-3.5 rounded-xl text-xs sm:text-sm font-medium border transition-all ${
+                                isSelected
+                                  ? opt.isCorrect
+                                    ? "bg-emerald-50 border-emerald-500 text-emerald-900 font-bold ring-1 ring-emerald-500"
+                                    : "bg-rose-50 border-rose-500 text-rose-900 font-bold ring-1 ring-rose-500"
+                                  : "bg-white hover:bg-slate-100 border-slate-200 text-slate-700"
+                              }`}
+                            >
+                              {opt.choice}
+                            </button>
+
+                            {isSelected && (
+                              <div
+                                className={`text-xs p-3 rounded-lg border font-medium ${
+                                  opt.isCorrect
+                                    ? "bg-emerald-100/70 border-emerald-300 text-emerald-900"
+                                    : "bg-rose-100/70 border-rose-300 text-rose-900"
+                                }`}
+                              >
+                                <strong>{opt.isCorrect ? "✅ Good Decision: " : "⚠️️ Operational Caution: "}</strong>
+                                {opt.feedback}
+                              </div>
+                            )}
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
+
+                {/* Lesson 2 Section */}
+                <div className="space-y-4 pt-2">
+                  <h4 className="text-lg font-bold text-[#24083b] font-heading flex items-center gap-2 border-b pb-2">
+                    <BookOpen className="w-5 h-5 text-purple-700" />
+                    {activeModule.lesson2Title}
+                  </h4>
+                  <div className="space-y-3 text-xs sm:text-sm text-slate-700 leading-relaxed">
+                    {activeModule.lesson2Content.map((p: string, idx: number) => (
+                      <p key={idx}>{p}</p>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Practical Reflection Cards */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="bg-slate-50 border border-slate-200 p-4 rounded-xl space-y-1">
+                    <span className="text-[10px] font-bold text-amber-700 uppercase font-mono">Practical Reflection</span>
+                    <p className="text-xs text-slate-600 leading-relaxed">{activeModule.practicalReflection}</p>
+                  </div>
+                  <div className="bg-slate-50 border border-slate-200 p-4 rounded-xl space-y-1">
+                    <span className="text-[10px] font-bold text-purple-700 uppercase font-mono">{activeModule.actionStepTitle}</span>
+                    <p className="text-xs text-slate-600 leading-relaxed">{activeModule.actionStepPrompt}</p>
+                  </div>
+                </div>
+
+                {/* QUIZ ASSESSMENT SECTION */}
                 {(() => {
                   const questions = QUIZ_DATA[activeModule.id] || [];
                   const currentQ = questions[currentQuestionIndex];
-                  if (!currentQ) return null;
+                  if (!currentQ) return <p className="text-xs text-slate-500 italic">No quiz questions loaded for this module.</p>;
 
                   return (
-                    <div className="border-t pt-4">
-                      <div className="flex items-center justify-between mb-3">
-                        <span className="text-xs font-bold text-slate-500 uppercase">
-                          Assessment Question {currentQuestionIndex + 1} of {questions.length}
-                        </span>
-                        <span className="text-xs font-semibold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
-                          Pass Requirement: 75% (6/8 Correct)
+                    <div className="border-t pt-6 space-y-4">
+                      <div className="flex items-center justify-between">
+                        <h4 className="text-base font-bold text-slate-900 font-heading flex items-center gap-2">
+                          <HelpCircle className="w-5 h-5 text-purple-700" /> Module Competency Assessment
+                        </h4>
+                        <span className="text-xs font-semibold text-purple-800 bg-purple-50 px-2.5 py-1 rounded-full border border-purple-200">
+                          Pass Mark: 80%+
                         </span>
                       </div>
 
-                      <p className="font-bold text-slate-900 text-sm sm:text-base mb-4">
-                        {currentQ.q}
-                      </p>
+                      <div className="bg-slate-50 p-5 rounded-2xl border border-slate-200 space-y-4">
+                        <div className="text-xs font-bold text-slate-500 uppercase font-mono">
+                          Question {currentQuestionIndex + 1} of {questions.length}
+                        </div>
 
-                      <div className="space-y-2">
-                        {currentQ.options.map((optionText, optIdx) => {
-                          const isSelected = selectedAnswers[currentQuestionIndex] === optIdx;
+                        <p className="font-bold text-slate-900 text-sm sm:text-base">
+                          {currentQ.q}
+                        </p>
 
-                          return (
-                            <button
-                              key={optIdx}
-                              onClick={() => handleSelectOption(currentQuestionIndex, optIdx)}
-                              className={`w-full text-left p-3 rounded-xl text-xs sm:text-sm font-medium border transition-all ${
-                                isSelected
-                                  ? "border-emerald-600 bg-emerald-50 text-slate-900 ring-1 ring-emerald-600 font-bold"
-                                  : "border-slate-200 bg-white hover:bg-slate-50 text-slate-700"
-                              }`}
-                            >
-                              {optionText}
-                            </button>
-                          );
-                        })}
+                        <div className="space-y-2">
+                          {currentQ.options.map((optionText: string, optIdx: number) => {
+                            const isSelected = selectedAnswers[currentQuestionIndex] === optIdx;
+
+                            return (
+                              <button
+                                key={optIdx}
+                                onClick={() => handleSelectOption(currentQuestionIndex, optIdx)}
+                                className={`w-full text-left p-3.5 rounded-xl text-xs sm:text-sm font-medium border transition-all ${
+                                  isSelected
+                                    ? "border-purple-700 bg-purple-50 text-purple-900 ring-1 ring-purple-700 font-bold"
+                                    : "border-slate-200 bg-white hover:bg-slate-100 text-slate-700"
+                                }`}
+                              >
+                                {optionText}
+                              </button>
+                            );
+                          })}
+                        </div>
                       </div>
 
-                      <div className="flex justify-end pt-4">
+                      <div className="flex justify-end pt-2">
                         <button
                           onClick={handleNextStep}
                           disabled={selectedAnswers[currentQuestionIndex] == null}
-                          className="bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 text-white px-5 py-2.5 rounded-xl font-bold text-sm shadow-sm transition-all"
+                          className="bg-[#24083b] hover:bg-[#320b52] disabled:opacity-50 text-white px-6 py-3 rounded-xl font-bold text-xs sm:text-sm shadow-md transition-all flex items-center gap-2"
                         >
-                          {currentQuestionIndex < questions.length - 1 ? "Next Question →" : "Submit Assessment"}
+                          {currentQuestionIndex < questions.length - 1 ? (
+                            <>Next Question <ArrowRight className="w-4 h-4" /></>
+                          ) : (
+                            "Submit Assessment"
+                          )}
                         </button>
                       </div>
                     </div>
@@ -513,14 +493,14 @@ export default function LmsModuleHub({ onModuleCompleted }: Props) {
                 })()}
               </div>
             ) : (
-              /* RESULTS DISPLAY */
-              <div className="text-center py-6 space-y-4">
-                {quizScorePercent >= 75 ? (
-                  <div className="space-y-3">
-                    <CheckCircle2 className="w-16 h-16 text-emerald-600 mx-auto" />
-                    <h4 className="text-2xl font-bold text-slate-900">Module Passed! 🎉</h4>
-                    <p className="text-sm text-slate-600 max-w-md mx-auto">
-                      You scored <span className="font-bold text-emerald-600 text-base">{quizScorePercent}%</span>. You have refreshed your study material and unlocked your printable landscape certificate.
+              /* RESULTS DISPLAY WITH CERTIFICATE TRIGGER */
+              <div className="text-center py-8 space-y-5">
+                {quizScorePercent >= 80 ? (
+                  <div className="space-y-4">
+                    <CheckCircle2 className="w-20 h-20 text-emerald-600 mx-auto" />
+                    <h4 className="text-2xl font-bold text-slate-900 font-heading">Competency Confirmed! 🎉</h4>
+                    <p className="text-sm text-slate-600 max-w-md mx-auto leading-relaxed">
+                      You scored <span className="font-bold text-emerald-600 text-base">{quizScorePercent}%</span>. Your official completion record has been verified and logged to your PBAS total.
                     </p>
                     <button
                       onClick={() => {
@@ -528,17 +508,17 @@ export default function LmsModuleHub({ onModuleCompleted }: Props) {
                         setActiveModule(null);
                         handleOpenLandscapeCertificate(title);
                       }}
-                      className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-5 py-2.5 rounded-xl text-sm flex items-center gap-2 mx-auto shadow-sm transition-all"
+                      className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-6 py-3 rounded-xl text-xs sm:text-sm inline-flex items-center gap-2 shadow-md transition-all"
                     >
-                      <Award className="w-4 h-4" /> View Landscape Certificate
+                      <Award className="w-4 h-4" /> View & Print Landscape Certificate
                     </button>
                   </div>
                 ) : (
-                  <div className="space-y-3">
+                  <div className="space-y-4">
                     <RotateCcw className="w-16 h-16 text-amber-500 mx-auto" />
-                    <h4 className="text-2xl font-bold text-slate-900">Review Required</h4>
-                    <p className="text-sm text-slate-600 max-w-md mx-auto">
-                      You scored <span className="font-bold text-amber-600 text-base">{quizScorePercent}%</span> (Required: 75%). Please review the 15 study guide points and retake the assessment.
+                    <h4 className="text-2xl font-bold text-slate-900 font-heading">Assessment Retry Required</h4>
+                    <p className="text-sm text-slate-600 max-w-md mx-auto leading-relaxed">
+                      You scored <span className="font-bold text-amber-600 text-base">{quizScorePercent}%</span> (Pass requirement: 80%+). Please review the lesson content and attempt the assessment again.
                     </p>
                     <button
                       onClick={() => {
@@ -546,7 +526,7 @@ export default function LmsModuleHub({ onModuleCompleted }: Props) {
                         setCurrentQuestionIndex(0);
                         setSelectedAnswers({});
                       }}
-                      className="bg-slate-900 text-white font-bold px-5 py-2.5 rounded-xl text-sm transition-all"
+                      className="bg-[#24083b] hover:bg-[#320b52] text-white font-bold px-6 py-2.5 rounded-xl text-xs sm:text-sm transition-all"
                     >
                       Retake Assessment
                     </button>
@@ -558,7 +538,7 @@ export default function LmsModuleHub({ onModuleCompleted }: Props) {
         </div>
       )}
 
-      {/* UNIFIED LANDSCAPE CERTIFICATE MODAL */}
+      {/* LANDSCAPE CERTIFICATE MODAL */}
       {activeCertificate && (
         <CertificateModal
           certificate={activeCertificate}

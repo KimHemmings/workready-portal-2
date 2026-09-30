@@ -1,13 +1,53 @@
-﻿export interface ModuleData {
-  title: string;
-  videoUrl: string;
-  studyText: string;
+﻿export interface QuizQuestion {
+  id: string;
+  question: string;
+  options: string[];
+  correctAnswerIndex: number;
+  explanation: string;
 }
 
-export const LMS_DATA: Record<string, ModuleData> = {
-  "mod-1": {
-    title: "Workplace Rights & Safety (WHS & NES Compliance)",
-    videoUrl: "https://www.youtube-nocookie.com/embed/dNIIduV9uZU",
-    studyText: `<div class="space-y-4 text-xs text-slate-700 leading-relaxed"><div class="p-3 bg-blue-50 border-l-4 border-blue-600 rounded"><h5 class="font-bold text-blue-900 text-sm mb-1">Module Overview</h5><p>Legal entitlements under the Fair Work Act 2009 and WHS laws across Australia.</p></div></div>`
-  }
-};
+export interface ScenarioOption {
+  id: string;
+  choice: string;
+  isCorrect: boolean;
+  feedback: string;
+}
+
+export interface BranchingScenario {
+  id: string;
+  situation: string;
+  options: ScenarioOption[];
+}
+
+export interface GraphicCard {
+  title: string;
+  bullets: string[];
+}
+
+export interface ModuleData {
+  id: string;
+  moduleNumber: number;
+  title: string;
+  category: string;
+  estimatedMins: number;
+  pbasPoints: number;
+  videoScript: string;
+  lesson1Title: string;
+  lesson1Content: string[];
+  graphicCard1?: GraphicCard;
+  branchingScenario?: BranchingScenario;
+  lesson2Title: string;
+  lesson2Content: string[];
+  practicalReflection: string;
+  actionStepTitle: string;
+  actionStepPrompt: string;
+  quiz: QuizQuestion[];
+}
+
+import { module1 } from './modules/module1';
+import { module2 } from './modules/module2';
+
+export const modulesData: ModuleData[] = [
+  module1,
+  module2
+];

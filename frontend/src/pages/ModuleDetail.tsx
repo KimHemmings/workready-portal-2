@@ -1,147 +1,353 @@
-import React from 'react';
-import { Award, CheckCircle2, Printer, X } from 'lucide-react';
+import React, { useState } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
+import { 
+  ArrowLeft, CheckCircle2, PlayCircle, BookOpen, 
+  HelpCircle, Award, ShieldCheck, AlertCircle, RotateCcw 
+} from 'lucide-react';
 
-export interface CertificateData {
-  id: string;
-  candidateName?: string;
-  courseTitle?: string;
-  completionDate?: string;
-  score?: number;
-  verificationCode?: string;
-  issuerName?: string;
-  // Property aliases to support existing candidate module & certificate objects
-  title?: string;
-  recipient_name?: string;
-  issue_date?: string;
-  issued_at?: string;
-  verification_code?: string;
-}
+import AppShell from "@/components/AppShell";
+import CertificateModal from "@/components/CertificateModal";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { modulesData } from "@/data/modulesData";
 
-export interface CertificateModalProps {
-  certificate: CertificateData | null;
-  onClose: () => void;
-  open?: boolean;
-  logo?: string;
-}
+export default function ModuleDetail() {
+  const { id } = useParams<{ id: string }>();
+  const navigate = useNavigate();
 
-/** Utility helper exported specifically for Certificates.tsx */
-export function formatIssued(dateString?: string): string {
-  if (!dateString) return new Date().toLocaleDateString('en-AU');
-  const d = new Date(dateString);
-  return isNaN(d.getTime()) ? dateString : d.toLocaleDateString('en-AU');
-}
+  // Find module by ID or fallback to Module 1
+  const currentModule = modulesData.find(
+    (m) => m.id === id || m.id === `M0${id}` || String(m.moduleNumber) === id
+  ) || modulesData[0];
 
-export default function CertificateModal({ certificate, onClose, open, logo }: CertificateModalProps) {
-  // If open is explicitly passed as false, or if certificate is null, do not render
-  if (open === false || !certificate) return null;
+  // Quiz state
+  const [selectedAnswers, setSelectedAnswers] = useState<Record<string, number>>({});
+  const [quizSubmitted, setQuizSubmitted] = useState(false);
+  const [passed, setPassed] = useState(false);
 
-  // Resolve property aliases safely for flexible data compatibility
-  const displayName = certificate.candidateName || certificate.recipient_name || 'Alex Mercer';
-  const displayTitle = certificate.courseTitle || certificate.title || 'WorkReady Employability Module';
-  const displayDate = formatIssued(certificate.completionDate || certificate.issue_date || certificate.issued_at);
-  const displayCode = certificate.verificationCode || certificate.verification_code || `WR-${certificate.id.slice(0, 8).toUpperCase()}`;
-  const displayScore = certificate.score ?? 85;
+  // Scenario state
+  const [selectedOption, setSelectedOption] = useState<string | null>(null);
 
-  const handlePrint = () => {
-    window.print();
+  // Certificate Modal state
+  const [showCert, setShowCert] = useState(false);
+
+  const handleAnswerSelect = (questionId: string, optionIndex: number) => {
+    if (quizSubmitted) return;
+    setSelectedAnswers((prev) => ({ ...prev, [questionId]: optionIndex }));
+  };
+
+  const handleSubmitQuiz = () => {
+    let allCorrect = true;
+    currentModule.quiz.forEach((q) => {
+      if (selectedAnswers[q.id] !== q.correctAnswerIndex) {
+        allCorrect = false;
+      }
+    });
+
+    setQuizSubmitted(true);
+    setPassed(allCorrect);
+
+    if (allCorrect) {
+      setShowCert(true);
+    }
+  };
+
+  const handleResetQuiz = () => {
+    setSelectedAnswers({});
+    setQuizSubmitted(false);
+    setPassed(false);
   };
 
   return (
-    <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto">
-      {/* Container - Styled for Landscape A4 Preview */}
-      <div className="bg-white rounded-2xl shadow-2xl max-w-4xl w-full border border-slate-200 overflow-hidden relative my-auto">
-        
-        {/* Top Control Bar (Hidden on Print) */}
-        <div className="print:hidden bg-slate-900 text-white px-6 py-4 flex items-center justify-between border-b border-slate-800">
-          <div className="flex items-center gap-2">
-            <Award className="h-5 w-5 text-emerald-400" />
-            <h3 className="font-bold text-sm">Official Achievement Certificate</h3>
-          </div>
-          <div className="flex items-center gap-3">
-            <button
-              onClick={handlePrint}
-              className="px-3.5 py-1.5 bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold text-xs rounded-lg transition-all flex items-center gap-1.5"
-            >
-              <Printer className="h-4 w-4" />
-              <span>Print / Save PDF (Landscape)</span>
-            </button>
-            <button
-              onClick={onClose}
-              className="p-1.5 text-slate-400 hover:text-white rounded-lg transition-colors"
-            >
-              <X className="h-5 w-5" />
-            </button>
-          </div>
-        </div>
-
-        {/* Printable Landscape Certificate Canvas */}
-        <div className="p-8 md:p-12 print:p-8 bg-slate-50 min-h-[500px] flex items-center justify-center">
-          <div className="w-full aspect-[1.414/1] bg-white border-[12px] border-double border-purple-900 p-8 md:p-10 relative flex flex-col justify-between shadow-lg print:shadow-none print:border-purple-900">
-            
-            {/* Corner Decorative Accents */}
-            <div className="absolute top-2 left-2 w-6 h-6 border-t-2 border-l-2 border-amber-500" />
-            <div className="absolute top-2 right-2 w-6 h-6 border-t-2 border-r-2 border-amber-500" />
-            <div className="absolute bottom-2 left-2 w-6 h-6 border-b-2 border-l-2 border-amber-500" />
-            <div className="absolute bottom-2 right-2 w-6 h-6 border-b-2 border-r-2 border-amber-500" />
-
-            {/* Certificate Header */}
-            <div className="text-center space-y-2">
-              <div className="flex items-center justify-center gap-2 text-purple-900">
-                {logo ? (
-                  <img src={logo} alt="Logo" className="h-8 object-contain" />
-                ) : (
-                  <Award className="h-8 w-8 text-amber-500" />
-                )}
-                <span className="font-black text-xl tracking-wider uppercase font-serif">Straight Up Training</span>
-              </div>
-              <p className="text-[11px] uppercase tracking-[0.2em] text-slate-500 font-bold">WorkReady Employability Pathways</p>
-              <h1 className="text-3xl sm:text-4xl font-black text-slate-900 font-serif tracking-tight pt-2">
-                Certificate of Completion
-              </h1>
-              <div className="w-24 h-1 bg-gradient-to-r from-amber-400 via-purple-900 to-emerald-400 mx-auto rounded-full" />
-            </div>
-
-            {/* Candidate & Course Body */}
-            <div className="text-center my-6 space-y-3">
-              <p className="text-xs text-slate-500 uppercase tracking-widest font-semibold">This is to proudly certify that</p>
-              <h2 className="text-2xl sm:text-3xl font-extrabold text-purple-950 underline decoration-amber-400/60 decoration-2 underline-offset-8">
-                {displayName}
-              </h2>
-              <p className="text-xs text-slate-600 max-w-xl mx-auto pt-2">
-                has successfully completed all required curriculum modules and assessment criteria for
-              </p>
-              <h3 className="text-lg sm:text-xl font-bold text-slate-900">
-                {displayTitle}
-              </h3>
-              <p className="text-xs font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200 inline-block px-3 py-1 rounded-full">
-                Score Achieved: {displayScore}% • Verified PBAS Competency
-              </p>
-            </div>
-
-            {/* Footer & Signatures */}
-            <div className="pt-6 border-t border-slate-200 flex items-end justify-between text-xs">
-              <div>
-                <p className="font-mono text-[10px] text-slate-400">Date Issued: {displayDate}</p>
-                <p className="font-mono text-[10px] text-slate-400">Verification ID: {displayCode}</p>
-              </div>
-
-              {/* Official Stamp Badge */}
-              <div className="w-16 h-16 rounded-full border-2 border-amber-500/80 bg-amber-50/40 flex flex-col items-center justify-center text-center p-1">
-                <CheckCircle2 className="h-5 w-5 text-amber-600 mb-0.5" />
-                <span className="text-[8px] font-bold text-amber-900 uppercase leading-none">Verified</span>
-              </div>
-
-              <div className="text-right">
-                <div className="font-serif italic text-base text-purple-900 font-bold border-b border-slate-300 pb-1 px-4">
-                  {certificate.issuerName || 'Casey (Case Manager)'}
-                </div>
-                <p className="text-[10px] text-slate-500 font-bold uppercase tracking-wider mt-1">Authorized Provider</p>
-              </div>
-            </div>
-
-          </div>
-        </div>
+    <AppShell>
+      {/* Top Header Navigation */}
+      <div className="flex items-center justify-between mb-6">
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={() => navigate(-1)}
+          className="text-muted-foreground hover:text-foreground flex items-center gap-2"
+        >
+          <ArrowLeft className="h-4 w-4" />
+          Back to Learning Hub
+        </Button>
+        <Badge variant="outline" className="bg-brand-purple-soft/50 text-brand-purple border-brand-purple/30 gap-1.5 py-1 px-3">
+          <ShieldCheck className="h-4 w-4 text-brand-purple" />
+          +{currentModule.pbasPoints} PBAS Points
+        </Badge>
       </div>
-    </div>
+
+      <div className="space-y-8 max-w-4xl mx-auto">
+        {/* Module Banner */}
+        <Card className="relative overflow-hidden border-2">
+          <div 
+            className="absolute inset-x-0 top-0 h-1.5" 
+            style={{ background: "linear-gradient(90deg,#1E3A8A,#7C3AED,#F97316)" }}
+          />
+          <CardHeader className="pt-6">
+            <p className="text-xs uppercase tracking-wider font-semibold text-brand-purple font-mono">
+              {currentModule.category}
+            </p>
+            <CardTitle className="font-heading text-2xl sm:text-3xl font-bold tracking-tight">
+              {currentModule.title}
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            {currentModule.videoScript && (
+              <div className="text-muted-foreground text-sm leading-relaxed bg-muted/60 p-4 rounded-xl border">
+                <span className="font-bold text-brand-purple">Audio Intro: </span>
+                "{currentModule.videoScript}"
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Lesson 1 & Key Highlight Rules */}
+        <Card>
+          <CardHeader>
+            <div className="flex items-center gap-2 text-brand-purple font-heading font-bold text-lg">
+              <BookOpen className="h-5 w-5" />
+              <h2>{currentModule.lesson1Title}</h2>
+            </div>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            <div className="space-y-3 text-muted-foreground text-sm leading-relaxed">
+              {currentModule.lesson1Content.map((paragraph, idx) => (
+                <p key={idx}>{paragraph}</p>
+              ))}
+            </div>
+
+            {currentModule.graphicCard1 && (
+              <div className="bg-brand-purple-soft/30 border border-brand-purple/20 rounded-xl p-5">
+                <h3 className="font-bold text-brand-purple text-sm mb-3 font-heading">
+                  {currentModule.graphicCard1.title}
+                </h3>
+                <ul className="space-y-2">
+                  {currentModule.graphicCard1.bullets.map((bullet, idx) => (
+                    <li key={idx} className="flex items-start gap-2 text-xs text-foreground">
+                      <CheckCircle2 className="h-4 w-4 text-success shrink-0 mt-0.5" />
+                      <span>{bullet}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Branching Scenario */}
+        {currentModule.branchingScenario && (
+          <Card>
+            <CardHeader>
+              <div className="flex items-center gap-2 font-heading font-bold text-lg">
+                <PlayCircle className="h-5 w-5 text-brand-purple" />
+                <h2>Workplace Interactive Scenario</h2>
+              </div>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <p className="text-sm text-muted-foreground bg-muted/60 p-4 rounded-xl border">
+                {currentModule.branchingScenario.situation}
+              </p>
+
+              <div className="space-y-3 pt-2">
+                {currentModule.branchingScenario.options.map((opt) => {
+                  const isSelected = selectedOption === opt.id;
+                  return (
+                    <div key={opt.id} className="space-y-2">
+                      <button
+                        onClick={() => setSelectedOption(opt.id)}
+                        className={`w-full text-left p-4 rounded-xl text-sm transition-all border font-medium ${
+                          isSelected
+                            ? opt.isCorrect
+                              ? 'bg-success/10 border-success text-success-foreground'
+                              : 'bg-destructive/10 border-destructive text-destructive'
+                            : 'bg-background hover:bg-muted/50 border-input text-foreground'
+                        }`}
+                      >
+                        {opt.choice}
+                      </button>
+                      {isSelected && (
+                        <div
+                          className={`text-xs p-3 rounded-lg border ${
+                            opt.isCorrect
+                              ? 'bg-success/10 border-success/30 text-emerald-700 dark:text-emerald-300'
+                              : 'bg-destructive/10 border-destructive/30 text-rose-700 dark:text-rose-300'
+                          }`}
+                        >
+                          {opt.feedback}
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Lesson 2 & Reflection */}
+        <Card>
+          <CardHeader>
+            <div className="flex items-center gap-2 text-brand-purple font-heading font-bold text-lg">
+              <BookOpen className="h-5 w-5" />
+              <h2>{currentModule.lesson2Title}</h2>
+            </div>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            <div className="space-y-3 text-muted-foreground text-sm leading-relaxed">
+              {currentModule.lesson2Content.map((p, idx) => (
+                <p key={idx}>{p}</p>
+              ))}
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
+              <div className="bg-muted/50 border p-4 rounded-xl space-y-1.5">
+                <h4 className="font-bold text-xs text-brand-purple uppercase tracking-wider font-mono">Practical Reflection</h4>
+                <p className="text-xs text-muted-foreground">{currentModule.practicalReflection}</p>
+              </div>
+              <div className="bg-muted/50 border p-4 rounded-xl space-y-1.5">
+                <h4 className="font-bold text-xs text-brand-purple uppercase tracking-wider font-mono">{currentModule.actionStepTitle}</h4>
+                <p className="text-xs text-muted-foreground">{currentModule.actionStepPrompt}</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* 5-Question Quiz Assessment */}
+        <Card>
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2 font-heading font-bold text-xl">
+                <HelpCircle className="h-5 w-5 text-brand-purple" />
+                <h2>Module Competency Assessment</h2>
+              </div>
+              <Badge variant="destructive" className="text-[11px] font-semibold">
+                100% Pass Mark Required
+              </Badge>
+            </div>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            <div className="space-y-6">
+              {currentModule.quiz.map((q, idx) => {
+                const selectedOpt = selectedAnswers[q.id];
+                const isCorrect = selectedOpt === q.correctAnswerIndex;
+
+                return (
+                  <div key={q.id} className="bg-muted/40 border p-5 rounded-xl space-y-3">
+                    <p className="font-semibold text-sm text-foreground">
+                      {idx + 1}. {q.question}
+                    </p>
+
+                    <div className="space-y-2">
+                      {q.options.map((opt, optIdx) => {
+                        const isOptionSelected = selectedOpt === optIdx;
+                        return (
+                          <button
+                            key={optIdx}
+                            disabled={quizSubmitted}
+                            onClick={() => handleAnswerSelect(q.id, optIdx)}
+                            className={`w-full text-left px-4 py-2.5 rounded-lg text-xs transition-all border font-medium ${
+                              isOptionSelected
+                                ? quizSubmitted
+                                  ? isCorrect
+                                    ? 'bg-success/20 border-success text-emerald-800 dark:text-emerald-200'
+                                    : 'bg-destructive/20 border-destructive text-rose-800 dark:text-rose-200'
+                                  : 'bg-brand-purple-soft text-brand-purple border-brand-purple'
+                                : 'bg-background hover:bg-muted border-input text-muted-foreground'
+                            }`}
+                          >
+                            {opt}
+                          </button>
+                        );
+                      })}
+                    </div>
+
+                    {quizSubmitted && (
+                      <div
+                        className={`text-xs p-3 rounded-lg border ${
+                          isCorrect
+                            ? 'bg-success/10 border-success/30 text-emerald-700 dark:text-emerald-300'
+                            : 'bg-destructive/10 border-destructive/30 text-rose-700 dark:text-rose-300'
+                        }`}
+                      >
+                        <span className="font-bold">{isCorrect ? 'Correct! ' : 'Incorrect. '}</span>
+                        {q.explanation}
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+
+            {!quizSubmitted ? (
+              <Button
+                onClick={handleSubmitQuiz}
+                disabled={Object.keys(selectedAnswers).length < currentModule.quiz.length}
+                className="w-full mt-4 bg-cta text-cta-foreground hover:bg-cta/90 font-bold"
+              >
+                Submit Assessment
+              </Button>
+            ) : (
+              <div className="space-y-4 pt-2">
+                {passed ? (
+                  <div className="bg-success/10 border border-success/30 p-6 rounded-xl text-center space-y-3">
+                    <div className="flex items-center justify-center gap-2 text-emerald-700 dark:text-emerald-400 font-bold text-lg font-heading">
+                      <CheckCircle2 className="h-6 w-6" />
+                      <span>Module Competency Achieved! (100%)</span>
+                    </div>
+                    <p className="text-xs text-muted-foreground">
+                      +5 PBAS Points awarded and cryptographically verified.
+                    </p>
+                    <Button
+                      onClick={() => setShowCert(true)}
+                      className="bg-cta text-cta-foreground hover:bg-cta/90 font-bold text-xs gap-2"
+                    >
+                      <Award className="h-4 w-4" />
+                      View & Print Official Certificate
+                    </Button>
+                  </div>
+                ) : (
+                  <div className="bg-destructive/10 border border-destructive/30 p-6 rounded-xl text-center space-y-3">
+                    <div className="flex items-center justify-center gap-2 text-destructive font-bold text-base font-heading">
+                      <AlertCircle className="h-5 w-5" />
+                      <span>100% Pass Mark Required for PBAS Credit</span>
+                    </div>
+                    <p className="text-xs text-muted-foreground">
+                      Review the feedback above and attempt the quiz again.
+                    </p>
+                    <Button
+                      variant="outline"
+                      onClick={handleResetQuiz}
+                      className="text-xs font-bold gap-2"
+                    >
+                      <RotateCcw className="h-4 w-4" />
+                      Retry Assessment
+                    </Button>
+                  </div>
+                )}
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Certificate Modal */}
+      {showCert && (
+        <CertificateModal
+          open={showCert}
+          onClose={() => setShowCert(false)}
+          certificate={{
+            id: currentModule.id,
+            candidateName: 'Alex Mercer',
+            courseTitle: currentModule.title,
+            completionDate: new Date().toISOString(),
+            score: 100,
+            verificationCode: `WR-M01-${Date.now().toString(36).toUpperCase()}`,
+            issuerName: 'Straight Up Training'
+          }}
+        />
+      )}
+    </AppShell>
   );
 }
