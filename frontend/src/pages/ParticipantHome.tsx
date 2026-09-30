@@ -18,7 +18,11 @@ import {
   Smile, 
   Send,
   FileText,
-  UserCheck
+  UserCheck,
+  PartyPopper,
+  Sparkles,
+  Zap,
+  Star
 } from 'lucide-react';
 
 interface ActivityLog {
@@ -29,7 +33,7 @@ interface ActivityLog {
   points: number;
   status: 'Pending Verification' | 'Verified';
   date: string;
-  reportData?: any; // Stores full STAR interview report details
+  reportData?: any;
 }
 
 export const ParticipantHome: React.FC = () => {
@@ -37,7 +41,6 @@ export const ParticipantHome: React.FC = () => {
   const [verifiedPoints, setVerifiedPoints] = useState<number>(35);
   const targetPoints = 100;
 
-  // Monthly 5-Pillar Employability Review Banner State
   const [showConfidenceBanner, setShowConfidenceBanner] = useState<boolean>(true);
   const [pillarScores, setPillarScores] = useState<Record<string, number>>({
     'Job Search & Applications': 3,
@@ -50,10 +53,8 @@ export const ParticipantHome: React.FC = () => {
   const [reviewNote, setReviewNote] = useState<string>('');
   const [reviewSubmitted, setReviewSubmitted] = useState<boolean>(false);
 
-  // Active Report Modal State
   const [selectedReport, setSelectedReport] = useState<any | null>(null);
 
-  // Verification Activity Log State
   const [activities, setActivities] = useState<ActivityLog[]>([
     {
       id: 'act-1',
@@ -75,7 +76,6 @@ export const ParticipantHome: React.FC = () => {
     },
   ]);
 
-  // Sync STAR Interview Practice sessions directly into the Activity Verification Log
   useEffect(() => {
     const syncStarActivityLog = (e?: any) => {
       try {
@@ -117,13 +117,11 @@ export const ParticipantHome: React.FC = () => {
     return () => window.removeEventListener('starHistoryUpdated', syncStarActivityLog);
   }, []);
 
-  // Modal States
   const [showJobModal, setShowJobModal] = useState<boolean>(false);
   const [showInterviewModal, setShowInterviewModal] = useState<boolean>(false);
   const [showJobSearchModal, setShowJobSearchModal] = useState<boolean>(false);
   const [showHelpModal, setShowHelpModal] = useState<boolean>(false);
 
-  // Form Input States
   const [jsEmployer, setJsEmployer] = useState('');
   const [jsRole, setJsRole] = useState('');
   const [jsRef, setJsRef] = useState('');
@@ -237,46 +235,77 @@ export const ParticipantHome: React.FC = () => {
   return (
     <div className="min-h-screen bg-slate-50 text-slate-900 pb-16 font-sans">
       
-      {/* Header Banner */}
-      <header className="bg-gradient-to-r from-[#24083b] via-[#320b52] to-[#24083b] text-white shadow-md border-b border-purple-900/40">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+      {/* HEADER BANNER */}
+      <header className="bg-gradient-to-r from-[#1c0630] via-[#2a0945] to-[#1c0630] text-white shadow-xl border-b border-purple-900/60 sticky top-0 z-40">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3.5">
           <div className="flex flex-col md:flex-row items-center justify-between gap-4">
             
-            {/* Logo and Brand Title */}
-            <div className="flex items-center gap-3 shrink-0">
-              <img
-                src="/logo.png"
-                alt="Straight Up Training Logo"
-                className="h-10 w-auto object-contain bg-white/10 p-1.5 rounded-xl border border-white/20"
-                onError={(e) => { (e.target as HTMLElement).style.display = 'none'; }}
-              />
+            {/* SQUARE BOX LOGO BRANDING CONTAINER */}
+            <div className="flex items-center gap-4 shrink-0">
+              <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl bg-white p-0.5 border-2 border-purple-200/80 shadow-md flex items-center justify-center shrink-0 overflow-hidden">
+                <img
+                  src="/logo.png"
+                  alt="Straight Up Training Logo"
+                  className="w-full h-full object-contain scale-115"
+                  onError={(e) => { 
+                    (e.target as HTMLElement).style.display = 'none';
+                    const fallback = (e.target as HTMLElement).nextElementSibling;
+                    if (fallback) fallback.classList.remove('hidden');
+                  }}
+                />
+                <Award className="w-10 h-10 text-[#24083b] hidden" />
+              </div>
+
               <div>
                 <div className="flex items-center gap-2">
-                  <span className="font-black text-xl tracking-tight text-white font-heading">
+                  <span className="font-black text-2xl sm:text-3xl tracking-tight text-white font-heading leading-none drop-shadow-sm">
                     Straight Up Training
                   </span>
-                  <span className="bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 text-[10px] font-bold px-2 py-0.5 rounded-full uppercase">
+                  <span className="bg-gradient-to-r from-emerald-500 to-teal-400 text-slate-950 font-black text-[10px] px-2.5 py-0.5 rounded-full uppercase tracking-wider shadow-sm">
                     WorkReady Partner
                   </span>
                 </div>
-                <p className="text-xs text-purple-200">Candidate Portal • Powered by Workforce Australia PBAS</p>
+                <p className="text-xs sm:text-sm font-bold text-purple-200 mt-1 flex items-center gap-1.5">
+                  <Zap className="w-3.5 h-3.5 text-amber-300 fill-amber-300" />
+                  Candidate Career & Skills Portal
+                </p>
               </div>
             </div>
 
-            {/* Top Action Buttons: Job & Interview Reporting */}
-            <div className="flex flex-wrap items-center gap-2">
-              <button
-                onClick={() => setShowJobModal(true)}
-                className="px-3.5 py-1.5 bg-emerald-500 hover:bg-emerald-600 text-white font-black text-xs rounded-xl shadow-sm transition-all flex items-center gap-1.5"
-              >
-                🎉 I Got the Job! (+50 Pts)
-              </button>
+            {/* HIGH-ENERGY CELEBRATION ACTION BUTTONS */}
+            <div className="flex flex-wrap items-center gap-3 w-full md:w-auto">
+              
+              {/* I Got an Interview! Button */}
               <button
                 onClick={() => setShowInterviewModal(true)}
-                className="px-3.5 py-1.5 bg-purple-600 hover:bg-purple-700 text-white font-bold text-xs rounded-xl shadow-sm transition-all flex items-center gap-1.5"
+                className="group relative flex-1 md:flex-none px-5 py-3 bg-gradient-to-r from-amber-400 via-amber-500 to-orange-500 hover:from-amber-300 hover:to-orange-400 text-slate-950 font-black text-xs sm:text-sm rounded-2xl shadow-xl shadow-amber-500/30 hover:shadow-amber-500/50 hover:-translate-y-1 hover:scale-105 transition-all duration-300 flex items-center justify-center gap-2.5 border-2 border-amber-300 overflow-hidden"
               >
-                📅 I Got an Interview! (+25 Pts)
+                <div className="p-1.5 bg-slate-950/10 rounded-xl group-hover:rotate-12 transition-transform">
+                  <Briefcase className="w-4 h-4 text-slate-950" />
+                </div>
+                <div className="text-left leading-tight">
+                  <span className="block text-slate-950 font-black tracking-wide text-xs sm:text-sm">I Got an Interview!</span>
+                  <span className="text-[10px] text-slate-900 font-extrabold uppercase opacity-90">+25 PBAS Points</span>
+                </div>
               </button>
+
+              {/* I Got the Job! Button */}
+              <button
+                onClick={() => setShowJobModal(true)}
+                className="group relative flex-1 md:flex-none px-6 py-3 bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-600 hover:from-emerald-400 hover:to-teal-400 text-white font-black text-xs sm:text-sm rounded-2xl shadow-xl shadow-emerald-500/30 hover:shadow-emerald-500/50 hover:-translate-y-1 hover:scale-105 transition-all duration-300 flex items-center justify-center gap-2.5 border-2 border-emerald-300/80 overflow-hidden"
+              >
+                <div className="p-1.5 bg-white/20 rounded-xl group-hover:scale-110 transition-transform">
+                  <PartyPopper className="w-4 h-4 text-amber-300" />
+                </div>
+                <div className="text-left leading-tight">
+                  <span className="block text-white font-black tracking-wide text-xs sm:text-sm flex items-center gap-1">
+                    I Got the Job! <Sparkles className="w-3.5 h-3.5 text-amber-300 animate-pulse" />
+                  </span>
+                  <span className="text-[10px] text-emerald-100 font-extrabold uppercase">+50 PBAS Points</span>
+                </div>
+              </button>
+
+              {/* Sign Out Button */}
               <button
                 onClick={() => {
                   const url = new URL(window.location.href);
@@ -284,10 +313,11 @@ export const ParticipantHome: React.FC = () => {
                   window.history.pushState({}, '', url.pathname);
                   window.dispatchEvent(new Event('popstate'));
                 }}
-                className="px-3 py-1.5 bg-white/10 hover:bg-white/20 border border-white/20 text-white text-xs font-bold rounded-xl transition-all"
+                className="px-3.5 py-3 bg-white/10 hover:bg-white/20 border border-white/20 text-white text-xs font-bold rounded-2xl transition-all"
               >
                 Sign Out
               </button>
+
             </div>
 
           </div>
@@ -340,7 +370,6 @@ export const ParticipantHome: React.FC = () => {
                   </span>
                 </div>
 
-                {/* 5-Pillar Rating Grid */}
                 <div className="space-y-2 pt-1">
                   <label className="block text-xs font-bold text-purple-200">1. Rate your 5 Key Employability Pillars:</label>
                   <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-3">
@@ -371,7 +400,6 @@ export const ParticipantHome: React.FC = () => {
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-1">
-                  {/* Primary Blocker */}
                   <div className="space-y-2">
                     <label className="block text-xs font-bold text-purple-200">2. Current Primary Challenge:</label>
                     <select
@@ -388,7 +416,6 @@ export const ParticipantHome: React.FC = () => {
                     </select>
                   </div>
 
-                  {/* Quick Note for Case Manager */}
                   <div className="space-y-2">
                     <label className="block text-xs font-bold text-purple-200">3. Quick Note for Casey (Optional):</label>
                     <input
@@ -424,69 +451,132 @@ export const ParticipantHome: React.FC = () => {
           </section>
         )}
 
-        {/* 3 Main Action Navigation Cards */}
+        {/* 3 MAIN ACTION NAVIGATION CARDS */}
         <section aria-label="Main Navigation" className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          
+          {/* CARD 1: LMS MODULES */}
           <button
             onClick={() => setActiveTab(1)}
-            className={`p-5 rounded-2xl text-left border transition-all shadow-sm hover:shadow-md ${
+            className={`group relative p-5 rounded-2xl text-left transition-all duration-200 shadow-sm hover:shadow-md ${
               activeTab === 1
-                ? 'bg-gradient-to-br from-white to-purple-50/40 border-[#24083b] ring-2 ring-[#24083b]/20'
-                : 'bg-white border-slate-200 hover:border-purple-200 text-slate-600'
+                ? 'bg-gradient-to-br from-purple-50/90 via-white to-purple-100/50 border-2 border-[#24083b] ring-2 ring-[#24083b]/20 ring-offset-2'
+                : 'bg-white border-2 border-slate-200 hover:border-purple-300 hover:-translate-y-0.5 text-slate-600'
             }`}
           >
-            <div className="flex items-center justify-between mb-2">
-              <span className={`p-2.5 rounded-xl ${activeTab === 1 ? 'bg-[#24083b] text-white' : 'bg-slate-100 text-slate-600'}`}>
-                <BookOpen className="w-5 h-5" />
+            {/* Top Bar: Icon + Active Badge */}
+            <div className="flex items-center justify-between mb-3">
+              <span className={`p-3 rounded-xl transition-colors ${
+                activeTab === 1 
+                  ? 'bg-[#24083b] text-amber-300 shadow-md shadow-purple-900/20' 
+                  : 'bg-purple-100 text-[#24083b] group-hover:bg-[#24083b] group-hover:text-white'
+              }`}>
+                <BookOpen className="w-6 h-6" />
               </span>
-              <span className="text-[10px] font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-100">
-                LMS Modules
-              </span>
+
+              {activeTab === 1 ? (
+                <span className="text-[11px] font-black text-[#24083b] bg-amber-300 px-2.5 py-1 rounded-full border border-amber-400 shadow-sm flex items-center gap-1">
+                  <Sparkles className="w-3 h-3 text-[#24083b]" /> Active Section
+                </span>
+              ) : (
+                <span className="text-[10px] font-bold text-purple-700 bg-purple-50 px-2.5 py-0.5 rounded-full border border-purple-200">
+                  24 Modules Available
+                </span>
+              )}
             </div>
-            <div className="text-sm font-bold text-slate-900">Core Skills & Orientation</div>
-            <div className="text-xs text-slate-500 mt-1">Interactive modules, WHS safety, & practical skill building.</div>
+
+            {/* Content */}
+            <div>
+              <div className="text-base font-black text-slate-900 group-hover:text-[#24083b] transition-colors">
+                Core Skills & Learning Hub
+              </div>
+              <p className="text-xs font-semibold text-slate-600 mt-1 leading-relaxed">
+                Interactive learning, WHS workplace safety, and downloadable certificates designed to build your job skills step-by-step.
+              </p>
+            </div>
           </button>
 
+          {/* CARD 2: JOB READINESS TOOLKIT */}
           <button
             onClick={() => setActiveTab(2)}
-            className={`p-5 rounded-2xl text-left border transition-all shadow-sm hover:shadow-md ${
+            className={`group relative p-5 rounded-2xl text-left transition-all duration-200 shadow-sm hover:shadow-md ${
               activeTab === 2
-                ? 'bg-gradient-to-br from-white to-purple-50/40 border-[#24083b] ring-2 ring-[#24083b]/20'
-                : 'bg-white border-slate-200 hover:border-purple-200 text-slate-600'
+                ? 'bg-gradient-to-br from-indigo-50/90 via-white to-indigo-100/50 border-2 border-indigo-700 ring-2 ring-indigo-700/20 ring-offset-2'
+                : 'bg-white border-2 border-slate-200 hover:border-indigo-300 hover:-translate-y-0.5 text-slate-600'
             }`}
           >
-            <div className="flex items-center justify-between mb-2">
-              <span className={`p-2.5 rounded-xl ${activeTab === 2 ? 'bg-[#24083b] text-white' : 'bg-slate-100 text-slate-600'}`}>
-                <Award className="w-5 h-5" />
+            {/* Top Bar: Icon + Active Badge */}
+            <div className="flex items-center justify-between mb-3">
+              <span className={`p-3 rounded-xl transition-colors ${
+                activeTab === 2 
+                  ? 'bg-indigo-700 text-amber-300 shadow-md shadow-indigo-900/20' 
+                  : 'bg-indigo-100 text-indigo-700 group-hover:bg-indigo-700 group-hover:text-white'
+              }`}>
+                <Award className="w-6 h-6" />
               </span>
-              <span className="text-[10px] font-bold text-purple-600 bg-purple-50 px-2 py-0.5 rounded-full border border-purple-100">
-                AI Coach Included
-              </span>
+
+              {activeTab === 2 ? (
+                <span className="text-[11px] font-black text-indigo-950 bg-amber-300 px-2.5 py-1 rounded-full border border-amber-400 shadow-sm flex items-center gap-1">
+                  <Sparkles className="w-3 h-3 text-indigo-950" /> Active Section
+                </span>
+              ) : (
+                <span className="text-[10px] font-bold text-indigo-700 bg-indigo-50 px-2.5 py-0.5 rounded-full border border-indigo-200">
+                  Smart AI Coach
+                </span>
+              )}
             </div>
-            <div className="text-sm font-bold text-slate-900">Job Readiness Toolkit</div>
-            <div className="text-xs text-slate-500 mt-1">AI STAR Interview Simulator & ATS Resume / Cover Letter Builder.</div>
+
+            {/* Content */}
+            <div>
+              <div className="text-base font-black text-slate-900 group-hover:text-indigo-800 transition-colors">
+                Job Readiness Toolkit
+              </div>
+              <p className="text-xs font-semibold text-slate-600 mt-1 leading-relaxed">
+                Practice interview questions with your personal AI simulator and create professional, employer-ready resumes in minutes.
+              </p>
+            </div>
           </button>
 
+          {/* CARD 3: PLACEMENT & PBAS PROGRESS */}
           <button
             onClick={() => setActiveTab(3)}
-            className={`p-5 rounded-2xl text-left border transition-all shadow-sm hover:shadow-md ${
+            className={`group relative p-5 rounded-2xl text-left transition-all duration-200 shadow-sm hover:shadow-md ${
               activeTab === 3
-                ? 'bg-gradient-to-br from-white to-emerald-50/40 border-[#16a34a] ring-2 ring-[#16a34a]/20'
-                : 'bg-white border-slate-200 hover:border-emerald-200 text-slate-600'
+                ? 'bg-gradient-to-br from-emerald-50/90 via-white to-emerald-100/50 border-2 border-[#16a34a] ring-2 ring-[#16a34a]/20 ring-offset-2'
+                : 'bg-white border-2 border-slate-200 hover:border-emerald-300 hover:-translate-y-0.5 text-slate-600'
             }`}
           >
-            <div className="flex items-center justify-between mb-2">
-              <span className={`p-2.5 rounded-xl ${activeTab === 3 ? 'bg-[#16a34a] text-white' : 'bg-slate-100 text-slate-600'}`}>
-                <Trophy className="w-5 h-5" />
+            {/* Top Bar: Icon + Active Badge */}
+            <div className="flex items-center justify-between mb-3">
+              <span className={`p-3 rounded-xl transition-colors ${
+                activeTab === 3 
+                  ? 'bg-[#16a34a] text-white shadow-md shadow-emerald-900/20' 
+                  : 'bg-emerald-100 text-[#16a34a] group-hover:bg-[#16a34a] group-hover:text-white'
+              }`}>
+                <Trophy className="w-6 h-6" />
               </span>
-              <span className="text-[10px] font-bold text-slate-700 bg-slate-100 px-2 py-0.5 rounded-full border border-slate-200">
-                Verification Hub
-              </span>
+
+              {activeTab === 3 ? (
+                <span className="text-[11px] font-black text-slate-950 bg-amber-300 px-2.5 py-1 rounded-full border border-amber-400 shadow-sm flex items-center gap-1">
+                  <Sparkles className="w-3 h-3 text-slate-950" /> Active Section
+                </span>
+              ) : (
+                <span className="text-[10px] font-bold text-emerald-800 bg-emerald-50 px-2.5 py-0.5 rounded-full border border-emerald-200">
+                  {verifiedPoints} Pts Earned
+                </span>
+              )}
             </div>
-            <div className="text-sm font-bold text-slate-900">Placement & PBAS Progress</div>
-            <div className="text-xs font-semibold text-[#16a34a] mt-1">
-              {verifiedPoints} Verified Pts {pendingPoints > 0 && <span className="text-amber-600">({pendingPoints} Pending)</span>}
+
+            {/* Content */}
+            <div>
+              <div className="text-base font-black text-slate-900 group-hover:text-[#16a34a] transition-colors">
+                Verification & PBAS Hub
+              </div>
+              <p className="text-xs font-semibold text-slate-600 mt-1 leading-relaxed">
+                Track your verified mutual obligation points, log job application efforts, access your document locker, and view upcoming appointments.
+              </p>
             </div>
           </button>
+
         </section>
 
         {/* Dynamic Tab Body Views */}
@@ -512,7 +602,6 @@ export const ParticipantHome: React.FC = () => {
               <PointProjectionWheel verifiedPoints={verifiedPoints} pendingPoints={pendingPoints} targetPoints={targetPoints} />
               <DocumentLocker />
               
-              {/* Compliance & Verification Card */}
               <div className="bg-white border border-slate-200 rounded-2xl p-6 space-y-6 shadow-sm">
                 <div className="border-b border-slate-100 pb-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                   <div>
@@ -531,7 +620,6 @@ export const ParticipantHome: React.FC = () => {
                   </div>
                 </div>
 
-                {/* Progress Bar */}
                 <div className="space-y-2">
                   <div className="flex justify-between text-xs font-bold text-slate-700">
                     <span>Target Goal: {targetPoints} PBAS Points</span>
@@ -546,7 +634,6 @@ export const ParticipantHome: React.FC = () => {
                 </div>
               </div>
 
-              {/* Job Search & Verification Panel */}
               <div className="bg-white border border-slate-200 rounded-2xl p-6 space-y-4 shadow-sm">
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-3">
                   <div>
@@ -619,7 +706,7 @@ export const ParticipantHome: React.FC = () => {
         </div>
       </main>
 
-      {/* MODAL: STAR MOCK INTERVIEW SESSION REPORT */}
+      {/* MODALS */}
       {selectedReport && (
         <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 z-50">
           <div className="bg-white rounded-2xl p-6 max-w-2xl w-full space-y-5 shadow-2xl border border-slate-200 max-h-[90vh] overflow-y-auto">
@@ -705,7 +792,6 @@ export const ParticipantHome: React.FC = () => {
         </div>
       )}
 
-      {/* MODAL 1: JOB SEARCH REPORTING */}
       {showJobSearchModal && (
         <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm flex items-center justify-center p-4 z-50">
           <form onSubmit={handleSubmitJobSearch} className="bg-white rounded-2xl p-6 max-w-md w-full space-y-4 shadow-xl border border-slate-200">
@@ -736,7 +822,6 @@ export const ParticipantHome: React.FC = () => {
         </div>
       )}
 
-      {/* MODAL 2: GOT A JOB */}
       {showJobModal && (
         <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm flex items-center justify-center p-4 z-50">
           <form onSubmit={handleReportJob} className="bg-white rounded-2xl p-6 max-w-md w-full space-y-4 shadow-xl border border-slate-200">
@@ -766,7 +851,6 @@ export const ParticipantHome: React.FC = () => {
         </div>
       )}
 
-      {/* MODAL 3: GOT AN INTERVIEW */}
       {showInterviewModal && (
         <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm flex items-center justify-center p-4 z-50">
           <form onSubmit={handleReportInterview} className="bg-white rounded-2xl p-6 max-w-md w-full space-y-4 shadow-xl border border-slate-200">
@@ -796,7 +880,6 @@ export const ParticipantHome: React.FC = () => {
         </div>
       )}
 
-      {/* MODAL 4: REQUEST HELP */}
       {showHelpModal && (
         <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm flex items-center justify-center p-4 z-50">
           <form onSubmit={handleRequestHelp} className="bg-white rounded-2xl p-6 max-w-md w-full space-y-4 shadow-xl border border-slate-200">

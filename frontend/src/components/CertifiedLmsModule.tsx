@@ -4,6 +4,7 @@ import { Volume2, VolumeX, Download, Award, ShieldCheck, Sparkles, CheckCircle2 
 export interface CertifiedLmsModuleProps {
   candidateName?: string;
   moduleTitle?: string;
+  onComplete?: (points: number) => void;
 }
 
 export const CertifiedLmsModule: React.FC<CertifiedLmsModuleProps> = ({
