@@ -3,118 +3,120 @@ import type { ModuleData } from '../modulesData';
 export const module2: ModuleData = {
   id: 'M02',
   moduleNumber: 2,
-  title: 'Professional Communication at Work',
+  title: 'Professional Communication Across Industries',
   category: 'Workplace Expectations',
   estimatedMins: 20,
   pbasPoints: 5,
-  videoScript: "Welcome to Module 2: Professional Communication at Work. Effective workplace communication relies on clarity, active listening, and selecting the appropriate channel for your message. In this module, we examine how to navigate professional conversations, written messaging, and supervisor interactions within Australian workplaces.",
+  videoScript: "Welcome to Module 2: Professional Communication Across Industries. Professional communication is the cornerstone of every successful Australian workplace—whether on a civil construction site, in an aged care facility, behind a retail counter, or in a corporate office. In this module, we examine how to master verbal protocols, written standards, active listening, and conflict resolution across multiple sectors.",
 
-  lesson1Title: 'Verbal & Written Communication Norms in Australia',
+  lesson1Title: 'Communication Channels, Workplace Etiquette & Industry Protocols',
   lesson1Content: [
-    'Communication across Australian workplaces is generally approachable and egalitarian, yet grounded in mutual respect and professionalism. Whether communicating in person, via phone, text message, or email, setting an appropriate tone is critical. Written communications—such as emailing a team leader or texting a supervisor regarding shift availability—should always be clear, concise, and structured with a proper greeting, direct context, and a polite closing.',
-    'Selecting the correct channel for communication prevents operational misunderstandings. Urgent operational updates, safety hazards, or sudden shift absences require immediate direct contact (a phone call or direct message), whereas routine schedule updates, document submissions, or general inquiries are best handled via email or dedicated workplace management software. Understanding these distinctions ensures your communication remains efficient and professional.'
+    'Effective communication in Australian workplaces requires choosing the right channel for your specific situation. Every sector operates under distinct communication frameworks: **Retail & Hospitality** rely on roster applications (e.g., Deputy, Tanda) and quick face-to-face handovers; **Health, Aged Care & Disability Support** strictly mandate detailed clinical handover logs and incident reports under legislative compliance; **Trades & Construction** use morning Toolbox Talks, SWMS (Safe Work Method Statements) sign-offs, and UHF radio channels; while **Office & Corporate** environments utilize email, Microsoft Teams, and formal project briefs.',
+    'Regardless of the industry, a universal rule governs professional messaging: **urgent operational issues, safety hazards, and sudden shift absences demand real-time direct contact** (a direct phone call or SMS to your immediate supervisor). Routine inquiries, shift swap requests weeks in advance, and general updates belong in formal written channels. When messaging supervisors, maintain a professional structure: use an appropriate greeting, provide concise context, state your requested action or ETA clearly, and close politely without using informal text slang.'
   ],
 
   graphicCard1: {
-    title: 'Professional Communication Channels & Rules',
+    title: 'Industry Communication Matrix & Matching Self-Check',
     bullets: [
-      'Urgent Absences & Safety Alerts: Contact supervisor directly via phone call or SMS at least 30 minutes prior.',
-      'Routine Inquiries & Scheduling: Use official company email or employee portal with clear subject lines.',
-      'Active Listening Standard: Focus fully without interrupting, and repeat key operational details to confirm accuracy.',
-      'Professional Tone: Avoid casual slang, excessive exclamation marks, or text-speak in all workplace messaging.'
+      'MATCHING CHALLENGE: Urgent Shift Absence (All Sectors) ➔ Call or text supervisor directly at least 30 mins prior.',
+      'MATCHING CHALLENGE: Clinical / Care Updates (Aged Care/Health) ➔ Complete mandatory shift handover logs & inform RN on duty.',
+      'MATCHING CHALLENGE: Site Hazards / Equipment Failure (Trades/Civil) ➔ Use UHF radio immediately & report at Toolbox Talk.',
+      'MATCHING CHALLENGE: Leave / Shift Swaps (Retail/Hospitality) ➔ Submit formal request via roster app (Deputy/Tanda) 2 weeks out.',
+      '❌ ROOKIE MISTAKE: Sending a vague text like "can\'t come in" 5 minutes after your shift started.',
+      '✅ PRO MOVE: "Hi Sarah, my train is delayed due to a signal fault. My revised ETA is 8:20 AM. I will clock in immediately upon arrival."'
     ]
   },
 
   branchingScenario: {
     id: 'BS-02',
-    situation: 'Your team leader sends a group message asking if anyone can cover an extra afternoon shift tomorrow due to an unexpected stock delivery. You are unable to work the shift due to a pre-scheduled appointment.',
+    situation: 'You work across multiple workplace environments (a busy retail floor, an aged care center, and a residential construction site). During a busy afternoon shift, an unexpected operational issue occurs that disrupts workflow and creates a potential safety hazard. What is the correct professional communication protocol?',
     options: [
       {
         id: 'opt1',
-        choice: 'Ignore the message completely since you are unavailable and the request was sent to a group.',
+        choice: 'Option A: Write a brief note on the staff tearoom whiteboard and return to your regular tasks without speaking to anyone.',
         isCorrect: false,
-        feedback: 'Incorrect. Ignoring team communications leaves your supervisor uncertain of shift coverage and reflects poorly on your team engagement.'
+        feedback: 'Clear explanation of why this causes issues: Passive whiteboard notes do not ensure immediate supervisor awareness, leaving active safety hazards and operational bottlenecks unmanaged.'
       },
       {
         id: 'opt2',
-        choice: 'Reply promptly to the supervisor stating clearly and politely that you are unavailable due to a prior commitment.',
+        choice: 'Option B: Verbally notify your direct supervisor immediately, follow up with required written safety or incident logs, and confirm corrective actions before continuing work.',
         isCorrect: true,
-        feedback: 'Positive reinforcement detailing why this is the correct approach: Prompt, polite communication allows management to adjust staffing plans quickly and demonstrates reliability.'
+        feedback: 'Positive reinforcement detailing why this is the correct approach: Immediate direct verbal notification paired with formal written logging is the compliance standard across healthcare, construction, retail, and administration.'
       },
       {
         id: 'opt3',
-        choice: 'Reply to the group chat complaining that management should organize shift rosters further in advance.',
+        choice: 'Option C: Send a casual text message to a team member on social media asking them to mention it to management tomorrow.',
         isCorrect: false,
-        feedback: 'Clear explanation of why this violates standards: Publicly complaining in operational messaging channels damages team morale and breaches professional conduct expectations.'
+        feedback: 'Clear explanation of why this violates standards: Using social media for work issues violates workplace privacy policies, fails to notify the shift supervisor on duty, and breaches safety standards.'
       }
     ]
   },
 
-  lesson2Title: 'Active Listening, Instruction Following & Constructive Dialogue',
+  lesson2Title: 'Active Listening, Closed-Loop Communication & De-escalating Workplace Misunderstandings',
   lesson2Content: [
-    'Active listening is a foundational workplace competency that reduces operational errors and safety incidents. When receiving instructions from a team leader or trainer, give your undivided attention, maintain appropriate eye contact, and take notes if multi-step procedures are involved. Repeating key instructions back in your own words (closed-loop communication) verifies that your understanding matches the supervisor\'s intent before work commences.',
-    'Navigating workplace feedback and resolving minor miscommunications requires emotional maturity and constructive dialogue. If an instruction is unclear, or if you receive feedback regarding a performance gap, ask clarifying questions rather than making assumptions. Addressing issues directly, calmly, and respectfully with your supervisor ensures problems are resolved at the lowest possible level before impacting site safety or productivity.'
+    'Miscommunication is one of the leading causes of workplace errors, rework, and safety incidents across Australian industries. Active listening requires full concentration on the speaker, avoiding interruptions, observing non-verbal cues, and validating understanding. In high-risk or fast-paced sectors—such as administering medication in care settings, operating machinery in trades, or processing high-volume customer orders in retail—using **Closed-Loop Communication** (repeating instructions back) is an essential error-prevention tool.',
+    'When workplace misunderstandings or performance feedback occur, handling them professionally requires emotional maturity and structured dialogue. Under **Fair Work guidelines** and standard dispute resolution policies, grievances or instructions should be addressed directly, calmly, and privately at the lowest possible organizational level. If an instruction is unclear, ask targeted clarifying questions (e.g., *"To confirm, do you want me to complete the safety check before or after unloading?"*). Accepting constructive feedback positively demonstrates adaptability and a commitment to professional growth.'
   ],
 
-  practicalReflection: 'Recall a time when an instruction was unclear or miscommunicated. What specific clarifying question could you have asked to ensure complete understanding?',
-  actionStepTitle: 'Practical Communication Audit Task',
-  actionStepPrompt: 'Draft a template text message and a template email to a supervisor requesting a temporary schedule adjustment. Ensure both drafts contain a formal greeting, concise context, an actionable request, and a polite sign-off.',
+  practicalReflection: 'Consider a job sector you are aiming to work in (care work, retail, trades, or administration). What is one communication channel or reporting method unique to that industry, and how will you ensure you use it effectively?',
+  actionStepTitle: 'Multi-Industry Professional Communication Practice',
+  actionStepPrompt: 'Draft two professional communications in your notes: 1) A 3-sentence SMS to a supervisor requesting a 20-minute shift delay due to an emergency, and 2) A short, formal email requesting a shift swap for next week with a colleague.',
 
   quiz: [
     {
       id: 'Q1',
-      question: 'Which communication channel is most appropriate for notifying your supervisor of an sudden transport delay prior to your shift?',
+      question: 'In health, aged care, and disability support, what is the mandatory communication method for transferring client care information between shifts?',
       options: [
-        'A direct phone call or immediate SMS to your direct supervisor',
-        'A general email sent to the main company reception address',
-        'A social media message to a colleague on duty'
+        'Formal clinical shift handovers and detailed written client progress logs',
+        'Informal verbal chats in the staff parking lot after clocking off',
+        'A casual post in an unverified group chat on social media'
       ],
       correctAnswerIndex: 0,
-      explanation: 'Detailed feedback explaining why option 1 is correct: Urgent shift delays require real-time direct notification so management can adjust site operations without delay.'
+      explanation: 'Detailed feedback explaining why option 1 is correct: Care sectors legally mandate structured handover logs and clinical documentation to guarantee client safety, regulatory compliance, and continuity of care.'
     },
     {
       id: 'Q2',
-      question: 'What is the primary benefit of practicing closed-loop communication (repeating instructions back to a supervisor)?',
+      question: 'What is the standard rule when deciding between calling your supervisor versus sending an email?',
       options: [
-        'It speeds up shift end times',
-        'It confirms mutual understanding and prevents operational and safety errors',
-        'It eliminates the need for written workplace policies'
+        'Always send emails to avoid phone conversations',
+        'Use direct phone calls or SMS for urgent operational issues and delays; use email for routine inquiries and formal documentation',
+        'Use social media messaging for all work communication'
       ],
       correctAnswerIndex: 1,
-      explanation: 'Detailed feedback explaining the core principle: Paraphrasing instructions back ensures both parties agree on expectations before work begins.'
+      explanation: 'Detailed feedback explaining the core principle: Matching urgency to the channel ensures immediate operational issues are handled instantly while maintaining accurate written records for routine matters.'
     },
     {
       id: 'Q3',
-      question: 'How should written electronic messaging to supervisors and team members be structured?',
+      question: 'What is the primary operational objective of Closed-Loop Communication (repeating instructions back to the speaker)?',
       options: [
-        'Using informal text-speak, abbreviations, and missing punctuation',
-        'In all capital letters to emphasize urgency',
-        'With a professional greeting, concise and clear context, and a polite sign-off'
+        'To fill time during slow workplace periods',
+        'To verify instructions instantly, eliminate assumptions, and prevent costly or unsafe operational mistakes',
+        'To pass responsibility for the task back to your supervisor'
       ],
-      correctAnswerIndex: 2,
-      explanation: 'Detailed feedback explaining why this protocol matters: Structured, professional messaging reflects accountability and maintains workplace standards.'
+      correctAnswerIndex: 1,
+      explanation: 'Detailed feedback explaining why this protocol matters: Paraphrasing key details back ensures both parties share the exact same understanding before physical or administrative action is taken.'
     },
     {
       id: 'Q4',
-      question: 'Under Fair Work guidelines and standard Australian workplace policies, how should employee grievances or communication disputes be handled initially?',
+      question: 'Under Fair Work guidelines and Australian workplace dispute policies, how should minor communication grievances or feedback be handled?',
       options: [
-        'By discussing the issue directly and professionally with the supervisor or HR representative involved',
-        'By posting details of the dispute on personal social media accounts',
-        'By immediately ceasing work without notifying management'
+        'Through direct, calm, and private conversation with the direct supervisor or team leader involved',
+        'By venting publicly in customer areas or posting on personal social media channels',
+        'By immediately resigning from your position without discussing the matter'
       ],
       correctAnswerIndex: 0,
-      explanation: 'Detailed explanation referencing relevant standards: Dispute resolution policies mandate attempting direct, respectful resolution at the local level before escalating.'
+      explanation: 'Detailed explanation referencing relevant standards: Fair Work frameworks and organizational policies require attempting respectful, direct resolution at the supervisor level before escalating.'
     },
     {
       id: 'Q5',
-      question: 'When receiving complex, multi-step instructions from a supervisor on a busy work site, what is the most effective execution method?',
+      question: 'When receiving multi-step instructions in a fast-paced environment (such as a busy retail store or construction site), what is the correct execution method?',
       options: [
-        'Nod quickly and guess any steps you forget later',
-        'Listen actively, take brief written notes, and confirm key details before starting',
-        'Interrupt the supervisor halfway through to state that you already know what to do'
+        'Nod quickly without listening and guess the steps as you go',
+        'Listen actively, repeat key details back to confirm understanding, and take brief written notes if required',
+        'Interrupt the supervisor to state that you already know how to perform the work'
       ],
       correctAnswerIndex: 1,
-      explanation: 'Detailed summary of the correct execution method: Active listening combined with note-taking and confirmation eliminates guesswork and ensures safety and compliance.'
+      explanation: 'Detailed summary of the correct execution method: Combining active listening with immediate closed-loop confirmation and note-taking eliminates guesswork and ensures safety and accuracy.'
     }
   ]
 };
