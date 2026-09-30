@@ -215,15 +215,24 @@ export interface FivePillars {
   mindset: number;
 }
 
+// Add ProgramType union
+export type ProgramType = 'workforce_australia' | 'ttw' | 'rto_graduate' | 'custom';
+
 export interface CandidateProfile {
   id: string;
   name: string;
   email: string;
   phone: string;
   status: 'On Track' | 'Compliant' | 'High Risk' | 'Blocked' | 'Needs Support';
+  
+  // Program Adaptability
+  programType?: ProgramType; // Defaults to 'workforce_australia' if omitted
+  
+  // Compliance / Points tracking (Set to 0 for RTO Graduates)
   pbasTarget: number;
   pbasVerified: number;
   pbasPending: number;
+  
   startDate: string;
   finishDate: string;
   assessmentCompleted: boolean;
@@ -231,6 +240,7 @@ export interface CandidateProfile {
   lastCheckIn: string;
   fivePillars: FivePillars;
 }
+
 
 export interface VerificationItem {
   id: string;

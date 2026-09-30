@@ -1,164 +1,513 @@
 ﻿import React, { useState } from 'react';
-import { Volume2, VolumeX, Download, Award, ShieldCheck, Sparkles, CheckCircle2 } from 'lucide-react';
+import type { ModuleData } from '../data/modulesData';
+import { 
+  Volume2, 
+  VolumeX, 
+  Download, 
+  Award, 
+  Sparkles, 
+  BookOpen,
+  HelpCircle,
+  Video,
+  Lightbulb,
+  ShieldAlert,
+  ShieldCheck,
+  CheckCircle2,
+  Trophy,
+  Building2,
+  Ribbon
+} from 'lucide-react';
 
 export interface CertifiedLmsModuleProps {
   candidateName?: string;
+  providerName?: string;
+  providerLogoUrl?: string;
   moduleTitle?: string;
+  moduleData?: ModuleData | any;
+  activeModule?: ModuleData | any;
+  module?: ModuleData | any;
   onComplete?: (points: number) => void;
 }
 
 export const CertifiedLmsModule: React.FC<CertifiedLmsModuleProps> = ({
   candidateName = "Alex Johnson",
-  moduleTitle = "Warehouse WHS & Operational Safety",
+  providerName = "Employment Partner",
+  providerLogoUrl,
+  moduleTitle,
+  moduleData: rawModuleData,
+  activeModule,
+  module: propModule,
+  onComplete,
 }) => {
-  const [activeTab, setActiveTab] = useState<'content' | 'quiz' | 'certificate'>('certificate');
+  const mod: any = rawModuleData || activeModule || propModule || {};
+  const displayTitle = mod?.title || moduleTitle || "Job Readiness Skill Module";
+  const pointsToEarn = mod?.pbasPoints || 5;
+
+  const isAlreadyCompleted = (() => {
+    try {
+      const stored = localStorage.getItem('workready_completed_timestamps');
+      if (stored) {
+        const timestamps: Record<string, number> = JSON.parse(stored);
+        return Boolean(timestamps[mod?.id]);
+      }
+    } catch (e) {
+      console.error(e);
+    }
+    return false;
+  })();
+
+  const [activeTab, setActiveTab] = useState<'content' | 'quiz' | 'certificate'>(
+    isAlreadyCompleted ? 'certificate' : 'content'
+  );
   const [isAudioReading, setIsAudioReading] = useState(false);
-  const [answers, setAnswers] = useState<number[]>(Array(8).fill(1));
+  const [selectedScenarioOpt, setSelectedScenarioOpt] = useState<string | null>(null);
 
-  const detailedModules = [
-    { title: "1. 360° Site Hazard & Risk Assessments", body: "Before operating in any active warehouse or industrial environment, conduct a mandatory 360-degree visual risk assessment. Inspect floor surfaces for hydraulic fluid leaks, unstacked timber pallets, and overhead obstruction hazards." },
-    { title: "2. Personal Protective Equipment (PPE) Compliance", body: "Steel-cap boots (AS/NZS 2210.3 certified), high-visibility reflective vests (Class D/N), and protective eye gear must be worn before crossing active red-line facility entry points." },
-    { title: "3. Forklift & Heavy Machinery Exclusion Zones", body: "Maintain a strict 3-meter safety buffer zone around active materials handling machinery. Never step behind reversing machinery without establishing direct eye contact with the licensed operator." },
-    { title: "4. Ergonomic Manual Handling & Spinal Posture", body: "When manually lifting loads over 15kg, keep feet shoulder-width apart, bend at the knees, keep the parcel close to your chest, and pivot with your feet rather than twisting your torso." },
-    { title: "5. Chemical Spill Containment & Emergency Protocols", body: "Immediately cordon off fluid spills using yellow high-vis safety cones. Apply chemical absorbent granules from the nearest spill kit and notify the WHS supervisor within 15 minutes." },
-    { title: "6. Pedestrian Walkway Markings & Line Adherence", body: "Walk exclusively within designated yellow painted pedestrian lines inside distribution facilities. Do not take shortcuts across active forklift staging lanes under any circumstances." },
-    { title: "7. Emergency Power Cut-off & Conveyor Safety", body: "Locate red emergency stop pull-cords and buttons positioned along automated conveyor belts. Never attempt to clear jammed parcels while the conveyor power loop is energized." },
-    { title: "8. High-Risk Work License (HRW) Operating Rules", body: "Never operate high-reach stackers, order pickers, or counter-balance forklifts without an active, verified High-Risk Work license registered in the company compliance database." },
-    { title: "9. Pallet Racking Structural Integrity Checks", body: "Inspect upright racking columns daily for collision dents or missing safety locking pins. Never exceed maximum rated beam load capacities listed on safe working load plates." },
-    { title: "10. PASS Fire Extinguisher Operational Steps", body: "In the event of a minor Class A or B fire, remember PASS: Pull the pin, Aim low at the base of the fire, Squeeze the operating handle, and Sweep slowly from side to side." },
-    { title: "11. Incident & Near-Miss Documentation", body: "Document every workplace near-miss or hazard within 2 hours of occurrence using official WHS hazard log sheets to prevent future team injuries." },
-    { title: "12. Designated First Aid Officers & Medical Stations", body: "Identify the primary First Aid officer assigned to your shift and verify the exact location of automated external defibrillators (AED) and emergency eyewash stations." },
-    { title: "13. Safe Stacking Ratios & Pallet Stability", body: "Ensure palletized stock is interlocking, shrink-wrapped with a minimum of 3 bottom wraps, and does not exceed maximum height-to-base stability ratios." },
-    { title: "14. Facility Housekeeping & Debris Control", body: "Keep main access aisles clean and clear of plastic wrap offcuts, broken timber pallets, and strapping tape that present immediate trip hazards." },
-    { title: "15. Shift Fatigue Management & Hydration", body: "Take scheduled rest breaks to maintain operational focus. In hot climate facilities, consume a minimum of 250ml of water every 20 minutes during physical activity." }
-  ];
+  // Quiz State
+  const quizQuestions: any[] = mod?.quiz || [];
+  const [userAnswers, setUserAnswers] = useState<number[]>(Array(quizQuestions.length).fill(-1));
+  const [quizSubmitted, setQuizSubmitted] = useState(false);
+  const [quizPassed, setQuizPassed] = useState(isAlreadyCompleted);
 
-  const handleToggleAudio = () => {
-    if (isAudioReading) {
-      window.speechSynthesis.cancel();
-      setIsAudioReading(false);
-    } else {
-      const fullText = detailedModules.map(m => `${m.title}. ${m.body}`).join(' ');
-      const msg = new SpeechSynthesisUtterance(fullText);
-      msg.lang = 'en-AU';
-      msg.onend = () => setIsAudioReading(false);
-      window.speechSynthesis.speak(msg);
-      setIsAudioReading(true);
+  const handleSelectAnswer = (qIdx: number, oIdx: number) => {
+    const updated = [...userAnswers];
+    updated[qIdx] = oIdx;
+    setUserAnswers(updated);
+  };
+
+  const handleSubmitQuiz = (e: React.FormEvent) => {
+    e.preventDefault();
+    setQuizSubmitted(true);
+    
+    const correctCount = userAnswers.reduce((acc, ans, idx) => {
+      const targetCorrect = quizQuestions[idx]?.correctAnswerIndex ?? quizQuestions[idx]?.correctAnswer ?? 0;
+      return ans === targetCorrect ? acc + 1 : acc;
+    }, 0);
+
+    const passThreshold = Math.max(1, Math.ceil(quizQuestions.length * 0.7));
+    const isPass = correctCount >= passThreshold;
+    setQuizPassed(isPass);
+
+    if (isPass) {
+      setActiveTab('certificate');
+      if (onComplete) {
+        onComplete(pointsToEarn);
+      }
     }
   };
 
+  const formattedDate = new Date().toLocaleDateString('en-AU', {
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric'
+  });
+
+  const formattedTime = new Date().toLocaleTimeString('en-AU', {
+    hour: '2-digit',
+    minute: '2-digit'
+  });
+
   return (
-    <div className="bg-white border border-slate-200 rounded-2xl p-6 space-y-6 shadow-sm font-sans my-6">
+    <div className="bg-white rounded-2xl border border-slate-200 shadow-md overflow-hidden">
       
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-100 pb-4">
+      {/* STRICT LANDSCAPE SINGLE-PAGE PRINT ENGINE */}
+      <style>{`
+        @media print {
+          @page {
+            size: landscape;
+            margin: 0;
+          }
+          html, body {
+            height: 100vh !important;
+            overflow: hidden !important;
+            background: #ffffff !important;
+          }
+          body * {
+            visibility: hidden !important;
+          }
+          #printable-certificate, #printable-certificate * {
+            visibility: visible !important;
+          }
+          #printable-certificate {
+            position: fixed !important;
+            left: 2% !important;
+            top: 2% !important;
+            width: 96% !important;
+            height: 96vh !important;
+            margin: 0 !important;
+            padding: 3rem !important;
+            box-sizing: border-box !important;
+            border: 8px solid #24083b !important;
+            background: #ffffff !important;
+            page-break-inside: avoid !important;
+            page-break-after: avoid !important;
+            display: flex !important;
+            flex-direction: column !important;
+            justify-content: space-between !important;
+            box-shadow: none !important;
+          }
+          .no-print {
+            display: none !important;
+          }
+        }
+      `}</style>
+
+      {/* HEADER BAR */}
+      <div className="bg-gradient-to-r from-[#24083b] via-[#320b52] to-[#1c0630] text-white p-6 flex flex-col md:flex-row md:items-center justify-between gap-4 no-print">
         <div>
-          <h2 className="text-lg font-bold text-[#24083b]">Certified Training Module: {moduleTitle}</h2>
-          <p className="text-xs text-slate-500 mt-0.5">Straight Up Training Accredited • Participant: {candidateName}</p>
+          <div className="flex items-center gap-2">
+            <span className="text-[10px] font-black uppercase tracking-wider bg-amber-400 text-slate-950 px-2.5 py-1 rounded-md">
+              Module #{mod?.moduleNumber || '1'} • {mod?.category || 'Core Skill'}
+            </span>
+            <span className="text-[10px] font-black text-emerald-300 bg-emerald-950/60 border border-emerald-500/40 px-2 py-0.5 rounded-md">
+              +{pointsToEarn} Verified PBAS Pts
+            </span>
+          </div>
+          <h2 className="text-xl font-black mt-2 font-heading tracking-tight">{displayTitle}</h2>
+          <p className="text-xs text-purple-200 mt-1">Candidate: {candidateName}</p>
         </div>
 
-        <div className="flex items-center gap-2">
+        {/* TAB BUTTONS */}
+        <div className="flex items-center gap-1.5 bg-white/10 p-1.5 rounded-xl border border-white/15 shrink-0">
           <button
-            onClick={() => setActiveTab(activeTab === 'certificate' ? 'content' : 'certificate')}
-            className="px-3.5 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs rounded-xl border border-slate-200 transition-all"
+            onClick={() => setActiveTab('content')}
+            className={`px-3.5 py-2 rounded-lg text-xs font-extrabold flex items-center gap-1.5 transition-all ${
+              activeTab === 'content' ? 'bg-amber-300 text-slate-950 shadow' : 'text-purple-100 hover:bg-white/10'
+            }`}
           >
-            {activeTab === 'certificate' ? '← Back to Course Content' : 'View Certificate Preview 🏆'}
+            <BookOpen className="w-4 h-4" /> 1. Knowledge Base
+          </button>
+
+          <button
+            onClick={() => setActiveTab('quiz')}
+            className={`px-3.5 py-2 rounded-lg text-xs font-extrabold flex items-center gap-1.5 transition-all ${
+              activeTab === 'quiz' ? 'bg-amber-300 text-slate-950 shadow' : 'text-purple-100 hover:bg-white/10'
+            }`}
+          >
+            <HelpCircle className="w-4 h-4" /> 2. Assessment Quiz
+          </button>
+
+          <button
+            onClick={() => {
+              if (quizPassed || isAlreadyCompleted || activeTab === 'certificate') {
+                setActiveTab('certificate');
+              } else {
+                alert("Please complete and pass the Knowledge Assessment quiz first to unlock your Certificate!");
+              }
+            }}
+            className={`px-3.5 py-2 rounded-lg text-xs font-extrabold flex items-center gap-1.5 transition-all ${
+              activeTab === 'certificate' ? 'bg-emerald-400 text-slate-950 shadow' : 'text-purple-200 hover:bg-white/10'
+            }`}
+          >
+            <Award className="w-4 h-4" /> 3. Official Certificate
           </button>
         </div>
       </div>
 
-      {/* PROFILE-ALIGNED HIGH-IMPACT LANDSCAPE CERTIFICATE */}
+      {/* TAB 1: KNOWLEDGE BASE */}
+      {activeTab === 'content' && (
+        <div className="p-6 space-y-6">
+          <div className="flex items-center justify-between border-b border-slate-100 pb-4">
+            <h3 className="font-extrabold text-base text-slate-900 flex items-center gap-2">
+              <Sparkles className="w-5 h-5 text-purple-700" /> Module Knowledge & Training Content
+            </h3>
+            <button
+              onClick={() => setIsAudioReading(!isAudioReading)}
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-purple-50 hover:bg-purple-100 text-purple-800 text-xs font-bold rounded-xl border border-purple-200 transition-all"
+            >
+              {isAudioReading ? <VolumeX className="w-4 h-4 text-purple-700" /> : <Volume2 className="w-4 h-4 text-purple-700" />}
+              {isAudioReading ? 'Stop Audio' : 'AI Voice Reader'}
+            </button>
+          </div>
+
+          {mod?.videoScript && (
+            <div className="p-4 bg-purple-50/80 border border-purple-200 rounded-2xl space-y-1">
+              <div className="flex items-center gap-2 text-xs font-black text-purple-900">
+                <Video className="w-4 h-4 text-purple-700" /> Module Intro & Overview:
+              </div>
+              <p className="text-xs text-slate-700 leading-relaxed font-medium">{mod.videoScript}</p>
+            </div>
+          )}
+
+          {mod?.lesson1Title && (
+            <div className="p-5 bg-slate-50 rounded-2xl border border-slate-200 space-y-3">
+              <h4 className="text-sm font-black text-slate-900 flex items-center gap-2">
+                <span className="p-1.5 bg-[#24083b] text-white rounded-lg text-xs font-black">1</span>
+                {mod.lesson1Title}
+              </h4>
+              <div className="space-y-2 text-xs text-slate-700 leading-relaxed">
+                {Array.isArray(mod.lesson1Content) ? (
+                  mod.lesson1Content.map((p: string, i: number) => <p key={i}>{p}</p>)
+                ) : (
+                  <p>{mod.lesson1Content}</p>
+                )}
+              </div>
+            </div>
+          )}
+
+          {mod?.graphicCard1 && (
+            <div className="p-5 bg-gradient-to-br from-amber-50 to-orange-50 border border-amber-200 rounded-2xl space-y-3">
+              <h4 className="text-xs font-black text-amber-950 uppercase tracking-wider flex items-center gap-2">
+                <Lightbulb className="w-4 h-4 text-amber-600" /> {mod.graphicCard1.title}
+              </h4>
+              <ul className="space-y-2 text-xs font-semibold">
+                {mod.graphicCard1.bullets?.map((bullet: string, i: number) => (
+                  <li key={i} className={`p-2.5 rounded-xl border ${
+                    bullet.includes('❌') 
+                      ? 'bg-rose-50/80 text-rose-900 border-rose-200' 
+                      : 'bg-emerald-50/80 text-emerald-900 border-emerald-200'
+                  }`}>
+                    {bullet}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+
+          {mod?.branchingScenario && (
+            <div className="p-5 bg-indigo-50/70 border border-indigo-200 rounded-2xl space-y-3">
+              <div className="flex items-center gap-2 text-xs font-black text-indigo-900">
+                <ShieldAlert className="w-4 h-4 text-indigo-700" /> Practical Scenario Decision Challenge:
+              </div>
+              <p className="text-xs text-slate-800 font-medium leading-relaxed">
+                {mod.branchingScenario.situation}
+              </p>
+
+              <div className="space-y-2 pt-1">
+                {mod.branchingScenario.options?.map((opt: any) => (
+                  <button
+                    key={opt.id}
+                    onClick={() => setSelectedScenarioOpt(opt.id)}
+                    className={`w-full text-left p-3 rounded-xl text-xs font-semibold border transition-all ${
+                      selectedScenarioOpt === opt.id
+                        ? 'bg-[#24083b] text-white border-[#24083b]'
+                        : 'bg-white text-slate-800 border-indigo-100 hover:border-indigo-300'
+                    }`}
+                  >
+                    {opt.choice}
+                  </button>
+                ))}
+              </div>
+
+              {selectedScenarioOpt && (
+                <div className="p-3.5 bg-white border border-indigo-200 rounded-xl text-xs font-bold text-slate-800 space-y-1">
+                  {mod.branchingScenario.options?.find((o: any) => o.id === selectedScenarioOpt)?.isCorrect ? (
+                    <p className="text-emerald-700">
+                      {mod.branchingScenario.options?.find((o: any) => o.id === selectedScenarioOpt)?.feedback}
+                    </p>
+                  ) : (
+                    <p className="text-rose-700">
+                      {mod.branchingScenario.options?.find((o: any) => o.id === selectedScenarioOpt)?.feedback}
+                    </p>
+                  )}
+                </div>
+              )}
+            </div>
+          )}
+
+          {mod?.lesson2Title && (
+            <div className="p-5 bg-slate-50 rounded-2xl border border-slate-200 space-y-3">
+              <h4 className="text-sm font-black text-slate-900 flex items-center gap-2">
+                <span className="p-1.5 bg-[#24083b] text-white rounded-lg text-xs font-black">2</span>
+                {mod.lesson2Title}
+              </h4>
+              <div className="space-y-2 text-xs text-slate-700 leading-relaxed">
+                {Array.isArray(mod.lesson2Content) ? (
+                  mod.lesson2Content.map((p: string, i: number) => <p key={i}>{p}</p>)
+                ) : (
+                  <p>{mod.lesson2Content}</p>
+                )}
+              </div>
+            </div>
+          )}
+
+          <div className="flex justify-end pt-4 border-t border-slate-100">
+            <button
+              onClick={() => setActiveTab('quiz')}
+              className="px-6 py-2.5 bg-[#24083b] hover:bg-[#320b52] text-white font-extrabold text-xs rounded-xl shadow-md transition-all flex items-center gap-2"
+            >
+              Take Assessment Quiz →
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* TAB 2: ASSESSMENT QUIZ */}
+      {activeTab === 'quiz' && (
+        <form onSubmit={handleSubmitQuiz} className="p-6 space-y-6">
+          <div className="border-b border-slate-100 pb-4">
+            <h3 className="font-extrabold text-base text-slate-900 flex items-center gap-2">
+              <HelpCircle className="w-5 h-5 text-amber-600" /> Module Knowledge Assessment
+            </h3>
+            <p className="text-xs text-slate-500 mt-0.5">Answer the questions below to verify your understanding and unlock your PBAS points.</p>
+          </div>
+
+          <div className="space-y-5">
+            {quizQuestions.map((q, qIdx) => (
+              <div key={q.id || qIdx} className="p-4 bg-slate-50 rounded-2xl border border-slate-200 space-y-3">
+                <label className="block text-xs font-extrabold text-slate-900">
+                  Question {qIdx + 1}: {q.question}
+                </label>
+                <div className="space-y-2">
+                  {q.options?.map((opt: string, oIdx: number) => (
+                    <button
+                      key={oIdx}
+                      type="button"
+                      onClick={() => handleSelectAnswer(qIdx, oIdx)}
+                      className={`w-full text-left p-3 rounded-xl text-xs font-semibold border transition-all ${
+                        userAnswers[qIdx] === oIdx
+                          ? 'bg-[#24083b] text-white border-[#24083b] shadow-sm'
+                          : 'bg-white text-slate-700 border-slate-200 hover:border-purple-300'
+                      }`}
+                    >
+                      {opt}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+
+          <div className="flex justify-end pt-4 border-t border-slate-100">
+            <button
+              type="submit"
+              className="px-6 py-2.5 bg-amber-400 hover:bg-amber-300 text-slate-950 font-black text-xs rounded-xl shadow-md transition-all flex items-center gap-2"
+            >
+              Submit Quiz & Earn +{pointsToEarn} Points
+            </button>
+          </div>
+        </form>
+      )}
+
+      {/* TAB 3: HIGH-IMPACT CELEBRATION DIPLOMA CERTIFICATE */}
       {activeTab === 'certificate' && (
-        <div className="space-y-6">
-          <div className="p-2 bg-slate-100 rounded-3xl border border-slate-200 shadow-xl">
-            <div className="w-full bg-white text-slate-900 rounded-[20px] border-2 border-slate-200 relative overflow-hidden shadow-2xl font-sans aspect-[1.414/1] flex flex-col justify-between">
+        <div className="p-6 space-y-6">
+          <div 
+            id="printable-certificate"
+            className="bg-white p-10 sm:p-14 rounded-3xl border-[12px] border-[#24083b] shadow-2xl text-center relative overflow-hidden flex flex-col justify-between min-h-[600px]"
+          >
+            {/* Metallic Gold Double Outer Pinstriping */}
+            <div className="absolute inset-2 border-2 border-amber-400/80 rounded-2xl pointer-events-none" />
+            <div className="absolute inset-3 border border-amber-300/40 rounded-xl pointer-events-none" />
+
+            {/* Top & Bottom Gold Accent Bar */}
+            <div className="h-3 bg-gradient-to-r from-amber-600 via-amber-300 to-amber-600 w-full absolute top-0 left-0" />
+            <div className="h-3 bg-gradient-to-r from-amber-600 via-amber-300 to-amber-600 w-full absolute bottom-0 left-0" />
+
+            {/* Background Crest Watermark */}
+            <div className="absolute inset-0 flex items-center justify-center opacity-[0.03] pointer-events-none">
+              <Trophy className="w-[600px] h-[600px] text-[#24083b]" />
+            </div>
+
+            {/* DUAL BRANDING HEADER WITH LARGE LOGOS */}
+            <div className="flex justify-between items-center border-b-2 border-amber-400/30 pb-6 relative z-10">
               
-              {/* Profile Theme Top Header Banner */}
-              <div className="bg-gradient-to-r from-[#24083b] via-[#320b52] to-[#24083b] text-white p-6 sm:p-8 flex justify-between items-center border-b-4 border-emerald-500 relative">
-                
-                {/* Logo & Brand Title */}
-                <div className="flex items-center gap-4">
-                  <img
-                    src="/logo.png"
-                    alt="Straight Up Training"
-                    className="h-10 sm:h-12 w-auto object-contain bg-white/10 p-1.5 rounded-xl border border-white/20"
-                    onError={(e) => { (e.target as HTMLElement).style.display = 'none'; }}
+              {/* Left Logo: Straight Up Training */}
+              <div className="flex items-center gap-4">
+                <div className="w-24 h-24 bg-white rounded-2xl p-2 shadow-lg border-2 border-amber-300 flex items-center justify-center shrink-0">
+                  <img 
+                    src="/logo.png" 
+                    alt="Straight Up Training" 
+                    className="max-h-full max-w-full object-contain" 
+                    onError={(e) => (e.currentTarget.style.display = 'none')} 
                   />
-                  <div>
-                    <div className="flex items-center gap-2">
-                      <h1 className="text-xl sm:text-2xl font-black tracking-tight text-white font-heading">
-                        Straight Up Training
-                      </h1>
-                      <span className="bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 text-[10px] font-bold px-2 py-0.5 rounded-full uppercase">
-                        WorkReady Partner
-                      </span>
-                    </div>
-                    <p className="text-xs text-purple-200">Official Vocational Competency Certificate</p>
-                  </div>
                 </div>
-
-                {/* Verification Badge */}
-                <div className="text-right hidden sm:block">
-                  <span className="bg-emerald-500 text-white text-[10px] font-black px-3 py-1 rounded-full uppercase tracking-wider shadow-sm flex items-center gap-1">
-                    <CheckCircle2 className="w-3.5 h-3.5" /> Verified Completion
+                <div className="text-left">
+                  <span className="block font-black text-2xl text-[#24083b] uppercase tracking-wider font-heading">
+                    Straight Up Training
                   </span>
-                  <p className="text-[10px] text-purple-200 font-mono mt-1">ID: SUT-2026-WHS-9982</p>
                 </div>
               </div>
 
-              {/* Certificate Core Content */}
-              <div className="p-8 sm:p-12 text-center my-auto space-y-5">
-                
-                <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-purple-50 border border-purple-200 text-[#24083b] text-xs font-bold uppercase tracking-widest">
-                  <Award className="w-4 h-4 text-purple-700" /> Certificate of Operational Competency
+              {/* Center Partnership Ribbon */}
+              <div className="flex flex-col items-center justify-center px-4">
+                <div className="flex items-center gap-1 text-amber-600 bg-amber-50 border-2 border-amber-300 px-4 py-1.5 rounded-full shadow-sm">
+                  <Ribbon className="w-4 h-4 text-amber-600" />
+                  <span className="text-xs font-black uppercase tracking-widest">In Partnership With</span>
                 </div>
-
-                <div className="space-y-1">
-                  <p className="text-xs font-bold text-slate-500 uppercase tracking-widest">This Certificate Is Awarded To</p>
-                  <h2 className="text-3xl sm:text-5xl font-black text-[#24083b] font-heading tracking-tight underline underline-offset-8 decoration-emerald-500 py-1">
-                    {candidateName}
-                  </h2>
-                </div>
-
-                <p className="text-xs sm:text-sm text-slate-600 max-w-2xl mx-auto leading-relaxed font-medium">
-                  For successfully demonstrating operational competency and passing the vocational knowledge assessment for <strong>{moduleTitle}</strong>.
-                </p>
-
               </div>
 
-              {/* Profile Style Footer Bar */}
-              <div className="bg-slate-50 border-t border-slate-200 p-6 grid grid-cols-2 gap-4 items-center text-xs">
-                
-                {/* Left: Verification Seal */}
-                <div className="flex items-center gap-3">
-                  <div className="p-2 bg-purple-50 text-[#24083b] rounded-xl border border-purple-200">
-                    <ShieldCheck className="w-6 h-6 text-purple-700" />
-                  </div>
-                  <div>
-                    <span className="block font-bold text-[#24083b] text-xs">Accredited Industry Standard</span>
-                    <span className="text-[10px] text-slate-500 font-semibold">Workforce Australia Verified Evidence</span>
-                  </div>
-                </div>
-
-                {/* Right: Signature */}
+              {/* Right Logo: Partner Provider / RTO */}
+              <div className="flex items-center gap-4 text-right">
                 <div className="text-right">
-                  <span className="block text-slate-400 font-bold text-[10px] uppercase tracking-wider">Authorized Assessor</span>
-                  <strong className="text-[#24083b] text-base italic font-serif block">Casey Smith</strong>
-                  <span className="text-[10px] text-slate-500 font-bold">Straight Up Training Representative</span>
+                  <span className="block font-black text-xl text-slate-900 uppercase tracking-tight font-heading">
+                    {providerName}
+                  </span>
                 </div>
-
+                {providerLogoUrl ? (
+                  <div className="w-24 h-24 bg-white rounded-2xl p-2 shadow-lg border-2 border-amber-300 flex items-center justify-center shrink-0">
+                    <img src={providerLogoUrl} alt={providerName} className="max-h-full max-w-full object-contain" />
+                  </div>
+                ) : (
+                  <div className="w-24 h-24 bg-slate-50 rounded-2xl border-2 border-amber-300 flex items-center justify-center text-slate-400 shrink-0 shadow-lg">
+                    <Building2 className="w-10 h-10 text-slate-400" />
+                  </div>
+                )}
               </div>
 
             </div>
-          </div>
 
-          <div className="flex justify-end gap-3 pt-2">
-            <button
-              onClick={() => window.print()}
-              className="px-6 py-2.5 bg-[#24083b] hover:bg-[#320b52] text-white font-bold text-xs rounded-xl shadow-md flex items-center gap-2"
-            >
-              <Download className="w-4 h-4 text-emerald-300" /> Export Profile-Branded Certificate (PDF)
-            </button>
+            {/* CELEBRATION HERO SECTION */}
+            <div className="space-y-4 py-6 relative z-10">
+              <div className="inline-flex items-center gap-2 px-6 py-2 bg-[#24083b] text-amber-300 font-black text-xs uppercase tracking-widest rounded-full shadow-xl">
+                <Trophy className="w-5 h-5 text-amber-400" /> Official Certificate of Achievement
+              </div>
+
+              <p className="text-xs font-black text-slate-400 uppercase tracking-widest pt-2">
+                This official training record proudly certifies that
+              </p>
+              
+              <h3 className="text-5xl sm:text-6xl font-black text-[#24083b] font-heading border-b-4 border-amber-400 inline-block px-14 pb-2">
+                {candidateName}
+              </h3>
+              
+              <p className="text-xs text-slate-600 mt-2 font-bold max-w-xl mx-auto">
+                has successfully completed all learning content, branching scenarios, and practical assessments for:
+              </p>
+              
+              <h4 className="text-2xl sm:text-3xl font-black text-slate-900 max-w-3xl mx-auto font-heading uppercase tracking-tight pt-1">
+                {displayTitle}
+              </h4>
+            </div>
+
+            {/* COMPLIANCE AUDIT PANEL */}
+            <div className="bg-slate-50/90 p-5 rounded-2xl border-2 border-amber-200 grid grid-cols-2 sm:grid-cols-4 gap-4 text-left text-xs font-bold relative z-10 max-w-3xl mx-auto w-full shadow-inner">
+              
+              <div>
+                <span className="block text-[10px] text-slate-400 font-extrabold uppercase">Document Ref</span>
+                <span className="text-slate-900 font-mono font-black text-xs">SUT-{mod?.id || 'M01'}-2026</span>
+              </div>
+
+              <div>
+                <span className="block text-[10px] text-slate-400 font-extrabold uppercase">Completion Date & Time</span>
+                <span className="text-slate-900 font-black text-xs">{formattedDate} • {formattedTime}</span>
+              </div>
+
+              <div>
+                <span className="block text-[10px] text-slate-400 font-extrabold uppercase">PBAS Activity Credit</span>
+                <span className="text-emerald-700 font-black text-xs flex items-center gap-1">
+                  <CheckCircle2 className="w-4 h-4 text-emerald-600" /> +{pointsToEarn} PBAS Points
+                </span>
+              </div>
+
+              <div>
+                <span className="block text-[10px] text-slate-400 font-extrabold uppercase">Verification Status</span>
+                <span className="text-purple-900 font-extrabold bg-purple-100 px-2.5 py-0.5 rounded border border-purple-200 inline-block mt-0.5">
+                  Verified Record
+                </span>
+              </div>
+
+            </div>
+
+            {/* ACTION BUTTON (Hidden during printing) */}
+            <div className="pt-6 flex justify-center gap-3 no-print border-t border-slate-100 relative z-10">
+              <button
+                onClick={() => window.print()}
+                className="px-8 py-3.5 bg-[#24083b] hover:bg-[#320b52] text-white font-black text-sm rounded-2xl shadow-xl transition-all inline-flex items-center gap-2.5"
+              >
+                <Download className="w-5 h-5 text-amber-300" /> Download / Print Official Certificate
+              </button>
+            </div>
+
           </div>
         </div>
       )}

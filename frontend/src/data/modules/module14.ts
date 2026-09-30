@@ -4,7 +4,7 @@ export const module14: ModuleData = {
   id: 'M14',
   moduleNumber: 14,
   title: 'Workplace Onboarding & Day 1 Success',
-  category: 'Workplace Expectations',
+  category: 'Interviews & Selection',
   estimatedMins: 20,
   pbasPoints: 5,
   videoScript: "Welcome to Module 14: Workplace Onboarding & Day 1 Success. Securing a job offer is a major milestone, but your first week sets the trajectory for your long-term employment. In this module, we examine onboarding documentation, site inductions, establishing professional rapport, and making a powerful first impression on Day 1.",

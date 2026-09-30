@@ -6,6 +6,7 @@ import React, { useState, useEffect } from 'react';
 import LmsModuleHub from '../components/LmsModuleHub';
 import ResumeBuilder from '../components/ResumeBuilder';
 import StarInterviewSimulator from '../components/StarInterviewSimulator';
+import { usePortal } from '../context/PortalContext';
 import { 
   Briefcase, 
   Award, 
@@ -37,9 +38,16 @@ interface ActivityLog {
 }
 
 export const ParticipantHome: React.FC = () => {
+  const { candidates } = usePortal();
+  const activeCandidate = candidates[0]; // Active candidate profile from PortalContext
+
+  const programType = activeCandidate?.programType || 'workforce_australia';
+  const isRtoGraduate = programType === 'rto_graduate';
+  const isTtW = programType === 'ttw';
+
   const [activeTab, setActiveTab] = useState<number>(1);
-  const [verifiedPoints, setVerifiedPoints] = useState<number>(35);
-  const targetPoints = 100;
+  const [verifiedPoints, setVerifiedPoints] = useState<number>(activeCandidate?.pbasVerified ?? 35);
+  const targetPoints = activeCandidate?.pbasTarget ?? 100;
 
   const [showConfidenceBanner, setShowConfidenceBanner] = useState<boolean>(true);
   const [pillarScores, setPillarScores] = useState<Record<string, number>>({
@@ -61,7 +69,7 @@ export const ParticipantHome: React.FC = () => {
       type: 'LMS Module',
       title: 'WHS Fundamentals & Safe Work',
       reference: 'MOD-WHS-01',
-      points: 10,
+      points: isRtoGraduate ? 0 : 10,
       status: 'Verified',
       date: '10/09/2026',
     },
@@ -70,7 +78,7 @@ export const ParticipantHome: React.FC = () => {
       type: 'Job Search',
       title: 'Warehouse Assistant — Logistics Co',
       reference: 'JOB-98231',
-      points: 5,
+      points: isRtoGraduate ? 0 : 5,
       status: 'Pending Verification',
       date: '14/09/2026',
     },
@@ -98,7 +106,7 @@ export const ParticipantHome: React.FC = () => {
             type: 'Interview',
             title: `STAR Practice: ${recordToSync.jobRole} (${recordToSync.rubricScore || 'Completed Session'})`,
             reference: `STAR-${recordToSync.id.slice(-6).toUpperCase()}`,
-            points: 25,
+            points: isRtoGraduate ? 0 : 25,
             status: 'Pending Verification',
             date: recordToSync.date || new Date().toLocaleDateString('en-AU'),
             reportData: recordToSync
@@ -115,7 +123,7 @@ export const ParticipantHome: React.FC = () => {
 
     window.addEventListener('starHistoryUpdated', syncStarActivityLog);
     return () => window.removeEventListener('starHistoryUpdated', syncStarActivityLog);
-  }, []);
+  }, [isRtoGraduate]);
 
   const [showJobModal, setShowJobModal] = useState<boolean>(false);
   const [showInterviewModal, setShowInterviewModal] = useState<boolean>(false);
@@ -140,12 +148,14 @@ export const ParticipantHome: React.FC = () => {
       type: 'LMS Module',
       title: `Completed Module #${moduleId}`,
       reference: `AUTO-${moduleId}`,
-      points,
+      points: isRtoGraduate ? 0 : points,
       status: 'Verified',
       date: new Date().toLocaleDateString('en-AU'),
     };
     setActivities((prev) => [newAct, ...prev]);
-    setVerifiedPoints((prev) => Math.min(prev + points, targetPoints));
+    if (!isRtoGraduate) {
+      setVerifiedPoints((prev) => Math.min(prev + points, targetPoints));
+    }
   };
 
   const handleConfidenceSubmit = (e: React.FormEvent) => {
@@ -159,7 +169,7 @@ export const ParticipantHome: React.FC = () => {
       type: 'Confidence Review',
       title: `5-Pillar Assessment (${primaryBlocker}) — [${scoresSummary}]`,
       reference: `REV-${new Date().getMonth() + 1}-2026`,
-      points: 10,
+      points: isRtoGraduate ? 0 : 10,
       status: 'Pending Verification',
       date: new Date().toLocaleDateString('en-AU'),
     };
@@ -177,14 +187,16 @@ export const ParticipantHome: React.FC = () => {
       type: 'Job Search',
       title: `${jsRole} — ${jsEmployer}`,
       reference: jsRef || 'Ref Pending',
-      points: 5,
+      points: isRtoGraduate ? 0 : 5,
       status: 'Pending Verification',
       date: new Date().toLocaleDateString('en-AU'),
     };
     setActivities((prev) => [newAct, ...prev]);
     setShowJobSearchModal(false);
     setJsEmployer(''); setJsRole(''); setJsRef('');
-    alert("✨ Job search logged! Status: Pending Verification. Casey (Case Manager) will verify your points soon.");
+    alert(isRtoGraduate 
+      ? "✨ Job search logged in your portfolio!" 
+      : "✨ Job search logged! Status: Pending Verification by your Case Manager.");
   };
 
   const handleReportJob = (e: React.FormEvent) => {
@@ -194,14 +206,14 @@ export const ParticipantHome: React.FC = () => {
       type: 'Job Placement',
       title: `${jobRole} — ${jobEmployer}`,
       reference: jobRef || 'Placement Ref',
-      points: 50,
+      points: isRtoGraduate ? 0 : 50,
       status: 'Pending Verification',
       date: new Date().toLocaleDateString('en-AU'),
     };
     setActivities((prev) => [newAct, ...prev]);
     setShowJobModal(false);
     setJobEmployer(''); setJobRole(''); setJobRef('');
-    alert("🎉 Job placement reported! Status: Pending Verification by Casey.");
+    alert("🎉 Job placement reported! Congratulations!");
   };
 
   const handleReportInterview = (e: React.FormEvent) => {
@@ -211,23 +223,23 @@ export const ParticipantHome: React.FC = () => {
       type: 'Interview',
       title: `${intRole} — ${intEmployer}`,
       reference: intRef || 'Interview Ref',
-      points: 25,
+      points: isRtoGraduate ? 0 : 25,
       status: 'Pending Verification',
       date: new Date().toLocaleDateString('en-AU'),
     };
     setActivities((prev) => [newAct, ...prev]);
     setShowInterviewModal(false);
     setIntEmployer(''); setIntRole(''); setIntRef('');
-    alert("💼 Interview reported! Status: Pending Verification by Casey.");
+    alert("💼 Interview reported! Good luck!");
   };
 
   const handleRequestHelp = (e: React.FormEvent) => {
     e.preventDefault();
     setShowHelpModal(false);
-    alert("💬 High-priority support request sent directly to Casey.");
+    alert("💬 High-priority support request sent.");
   };
 
-  const pbasPercentage = Math.min(Math.round((verifiedPoints / targetPoints) * 100), 100);
+  const pbasPercentage = Math.min(Math.round((verifiedPoints / (targetPoints || 1)) * 100), 100);
   const pendingPoints = activities
     .filter((a) => a.status === 'Pending Verification')
     .reduce((sum, a) => sum + a.points, 0);
@@ -262,12 +274,12 @@ export const ParticipantHome: React.FC = () => {
                     Straight Up Training
                   </span>
                   <span className="bg-gradient-to-r from-emerald-500 to-teal-400 text-slate-950 font-black text-[10px] px-2.5 py-0.5 rounded-full uppercase tracking-wider shadow-sm">
-                    WorkReady Partner
+                    {isRtoGraduate ? "Graduate Portal" : isTtW ? "TtW Partner" : "WorkReady Partner"}
                   </span>
                 </div>
                 <p className="text-xs sm:text-sm font-bold text-purple-200 mt-1 flex items-center gap-1.5">
                   <Zap className="w-3.5 h-3.5 text-amber-300 fill-amber-300" />
-                  Candidate Career & Skills Portal
+                  {isRtoGraduate ? "Graduate Career & Employability Hub" : "Candidate Career & Skills Portal"}
                 </p>
               </div>
             </div>
@@ -285,7 +297,9 @@ export const ParticipantHome: React.FC = () => {
                 </div>
                 <div className="text-left leading-tight">
                   <span className="block text-slate-950 font-black tracking-wide text-xs sm:text-sm">I Got an Interview!</span>
-                  <span className="text-[10px] text-slate-900 font-extrabold uppercase opacity-90">+25 PBAS Points</span>
+                  <span className="text-[10px] text-slate-900 font-extrabold uppercase opacity-90">
+                    {isRtoGraduate ? "Log Opportunity" : isTtW ? "+20m Activity" : "+25 PBAS Points"}
+                  </span>
                 </div>
               </button>
 
@@ -301,7 +315,9 @@ export const ParticipantHome: React.FC = () => {
                   <span className="block text-white font-black tracking-wide text-xs sm:text-sm flex items-center gap-1">
                     I Got the Job! <Sparkles className="w-3.5 h-3.5 text-amber-300 animate-pulse" />
                   </span>
-                  <span className="text-[10px] text-emerald-100 font-extrabold uppercase">+50 PBAS Points</span>
+                  <span className="text-[10px] text-emerald-100 font-extrabold uppercase">
+                    {isRtoGraduate ? "Career Milestone" : isTtW ? "Verified Outcome" : "+50 PBAS Points"}
+                  </span>
                 </div>
               </button>
 
@@ -324,15 +340,15 @@ export const ParticipantHome: React.FC = () => {
         </div>
       </header>
 
-      {/* Inviting Sub-Header */}
+      {/* Sub-Header */}
       <section className="bg-white border-b border-slate-200 shadow-sm py-4">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
             <h1 className="text-xl font-extrabold text-[#24083b] tracking-tight">
-              Your Career Journey Dashboard
+              {isRtoGraduate ? "Graduate Career & Employment Dashboard" : "Your Career Journey Dashboard"}
             </h1>
             <p className="text-xs text-slate-500 mt-0.5">
-              Welcome back, Alex! Explore training, build your job kit, and track your progress.
+              Welcome back, {activeCandidate?.name || "Alex"}! Explore training, build your job kit, and track your progress.
             </p>
           </div>
 
@@ -340,7 +356,7 @@ export const ParticipantHome: React.FC = () => {
             onClick={() => setShowHelpModal(true)}
             className="self-start sm:self-auto inline-flex items-center gap-1.5 px-3.5 py-2 bg-amber-50 hover:bg-amber-100 text-amber-800 font-bold text-xs rounded-xl border border-amber-200 transition-all"
           >
-            <LifeBuoy className="w-4 h-4 text-amber-600" /> Need Support? Message Casey 💬
+            <LifeBuoy className="w-4 h-4 text-amber-600" /> Need Support? Send Message 💬
           </button>
         </div>
       </section>
@@ -348,7 +364,7 @@ export const ParticipantHome: React.FC = () => {
       {/* Main Container */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6 space-y-6">
         
-        {/* MONTHLY 5-PILLAR EMPLOYABILITY REVIEW BANNER */}
+        {/* EMPLOYABILITY REVIEW BANNER */}
         {showConfidenceBanner && (
           <section className="bg-gradient-to-r from-purple-900 via-[#24083b] to-purple-950 text-white rounded-2xl p-6 shadow-lg border border-purple-800 relative overflow-hidden">
             <div className="absolute top-0 right-0 w-64 h-64 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none" />
@@ -362,12 +378,14 @@ export const ParticipantHome: React.FC = () => {
                     </div>
                     <div>
                       <h2 className="text-sm font-bold text-white uppercase tracking-wider">Employability Self-Assessment</h2>
-                      <p className="text-xs text-purple-200">Rate your confidence across key pillars (1 = Low, 5 = High) so Casey can tailor your support.</p>
+                      <p className="text-xs text-purple-200">Rate your confidence across key pillars (1 = Low, 5 = High) to tailor your ongoing support.</p>
                     </div>
                   </div>
-                  <span className="text-[11px] font-bold bg-purple-800/80 text-purple-200 px-3 py-1 rounded-full border border-purple-700">
-                    Earns +10 PBAS Points
-                  </span>
+                  {!isRtoGraduate && (
+                    <span className="text-[11px] font-bold bg-purple-800/80 text-purple-200 px-3 py-1 rounded-full border border-purple-700">
+                      Earns +10 Points
+                    </span>
+                  )}
                 </div>
 
                 <div className="space-y-2 pt-1">
@@ -417,12 +435,12 @@ export const ParticipantHome: React.FC = () => {
                   </div>
 
                   <div className="space-y-2">
-                    <label className="block text-xs font-bold text-purple-200">3. Quick Note for Casey (Optional):</label>
+                    <label className="block text-xs font-bold text-purple-200">3. Quick Note (Optional):</label>
                     <input
                       type="text"
                       value={reviewNote}
                       onChange={(e) => setReviewNote(e.target.value)}
-                      placeholder="e.g. Need help updating my forklift experience..."
+                      placeholder="e.g. Want advice on tailoring my resume for entry-level roles..."
                       className="w-full p-2.5 bg-purple-950/80 border border-purple-700 text-purple-100 rounded-xl text-xs outline-none focus:ring-2 focus:ring-emerald-400"
                     />
                   </div>
@@ -433,7 +451,7 @@ export const ParticipantHome: React.FC = () => {
                     type="submit"
                     className="inline-flex items-center gap-2 px-5 py-2.5 bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-extrabold text-xs rounded-xl shadow-md transition-all"
                   >
-                    <Send className="w-4 h-4" /> Submit Assessment to Casey (+10 Pts)
+                    <Send className="w-4 h-4" /> Submit Assessment
                   </button>
                 </div>
               </form>
@@ -442,9 +460,9 @@ export const ParticipantHome: React.FC = () => {
                 <div className="inline-flex p-3 bg-emerald-500/20 text-emerald-400 rounded-full border border-emerald-500/40 mb-1">
                   <CheckCircle2 className="w-8 h-8" />
                 </div>
-                <h3 className="text-base font-extrabold text-white">Employability Assessment Submitted! 🎉</h3>
+                <h3 className="text-base font-extrabold text-white">Assessment Submitted! 🎉</h3>
                 <p className="text-xs text-purple-200 max-w-lg mx-auto">
-                  Thank you, Alex! Your score breakdown across all 5 pillars and note regarding <strong>"{primaryBlocker}"</strong> have been sent to Casey for review.
+                  Thank you! Your breakdown across all 5 pillars and note regarding <strong>"{primaryBlocker}"</strong> have been recorded.
                 </p>
               </div>
             )}
@@ -463,7 +481,6 @@ export const ParticipantHome: React.FC = () => {
                 : 'bg-white border-2 border-slate-200 hover:border-purple-300 hover:-translate-y-0.5 text-slate-600'
             }`}
           >
-            {/* Top Bar: Icon + Active Badge */}
             <div className="flex items-center justify-between mb-3">
               <span className={`p-3 rounded-xl transition-colors ${
                 activeTab === 1 
@@ -484,10 +501,9 @@ export const ParticipantHome: React.FC = () => {
               )}
             </div>
 
-            {/* Content */}
             <div>
               <div className="text-base font-black text-slate-900 group-hover:text-[#24083b] transition-colors">
-                Core Skills & Learning Hub
+                {isRtoGraduate ? "Graduate Skills & Learning Hub" : "Core Skills & Learning Hub"}
               </div>
               <p className="text-xs font-semibold text-slate-600 mt-1 leading-relaxed">
                 Interactive learning, WHS workplace safety, and downloadable certificates designed to build your job skills step-by-step.
@@ -504,7 +520,6 @@ export const ParticipantHome: React.FC = () => {
                 : 'bg-white border-2 border-slate-200 hover:border-indigo-300 hover:-translate-y-0.5 text-slate-600'
             }`}
           >
-            {/* Top Bar: Icon + Active Badge */}
             <div className="flex items-center justify-between mb-3">
               <span className={`p-3 rounded-xl transition-colors ${
                 activeTab === 2 
@@ -525,7 +540,6 @@ export const ParticipantHome: React.FC = () => {
               )}
             </div>
 
-            {/* Content */}
             <div>
               <div className="text-base font-black text-slate-900 group-hover:text-indigo-800 transition-colors">
                 Job Readiness Toolkit
@@ -536,7 +550,7 @@ export const ParticipantHome: React.FC = () => {
             </div>
           </button>
 
-          {/* CARD 3: PLACEMENT & PBAS PROGRESS */}
+          {/* CARD 3: PLACEMENT & PROGRESS */}
           <button
             onClick={() => setActiveTab(3)}
             className={`group relative p-5 rounded-2xl text-left transition-all duration-200 shadow-sm hover:shadow-md ${
@@ -545,7 +559,6 @@ export const ParticipantHome: React.FC = () => {
                 : 'bg-white border-2 border-slate-200 hover:border-emerald-300 hover:-translate-y-0.5 text-slate-600'
             }`}
           >
-            {/* Top Bar: Icon + Active Badge */}
             <div className="flex items-center justify-between mb-3">
               <span className={`p-3 rounded-xl transition-colors ${
                 activeTab === 3 
@@ -561,18 +574,19 @@ export const ParticipantHome: React.FC = () => {
                 </span>
               ) : (
                 <span className="text-[10px] font-bold text-emerald-800 bg-emerald-50 px-2.5 py-0.5 rounded-full border border-emerald-200">
-                  {verifiedPoints} Pts Earned
+                  {isRtoGraduate ? "Career Portfolio" : `${verifiedPoints} Pts Earned`}
                 </span>
               )}
             </div>
 
-            {/* Content */}
             <div>
               <div className="text-base font-black text-slate-900 group-hover:text-[#16a34a] transition-colors">
-                Verification & PBAS Hub
+                {isRtoGraduate ? "Career Portfolio & Activity Log" : "Verification & Progress Hub"}
               </div>
               <p className="text-xs font-semibold text-slate-600 mt-1 leading-relaxed">
-                Track your verified mutual obligation points, log job application efforts, access your document locker, and view upcoming appointments.
+                {isRtoGraduate
+                  ? "Track your job application history, store key career documents, and view upcoming appointments."
+                  : "Track your verified mutual obligation points, log job application efforts, access document locker, and view appointments."}
               </p>
             </div>
           </button>
@@ -583,7 +597,7 @@ export const ParticipantHome: React.FC = () => {
         <div className="mt-4">
           {activeTab === 1 && (
             <div className="space-y-4">
-              <LmsModuleHub onModuleCompleted={handleModuleCompleted} />
+              <LmsModuleHub onModuleCompleted={handleModuleCompleted} candidateId={activeCandidate?.id} />
             </div>
           )}
 
@@ -599,40 +613,48 @@ export const ParticipantHome: React.FC = () => {
           {activeTab === 3 && (
             <div className="space-y-6">
               <AppointmentsWidget />
-              <PointProjectionWheel verifiedPoints={verifiedPoints} pendingPoints={pendingPoints} targetPoints={targetPoints} />
+              
+              {!isRtoGraduate && (
+                <PointProjectionWheel verifiedPoints={verifiedPoints} pendingPoints={pendingPoints} targetPoints={targetPoints} />
+              )}
+
               <DocumentLocker />
               
-              <div className="bg-white border border-slate-200 rounded-2xl p-6 space-y-6 shadow-sm">
-                <div className="border-b border-slate-100 pb-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                  <div>
-                    <h2 className="text-lg font-bold text-[#24083b]">Workforce Australia Mutual Obligation Summary</h2>
-                    <p className="text-xs text-slate-500">Points commit to your official total once verified by Casey (Case Manager).</p>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <span className="px-3 py-1 bg-emerald-50 text-[#16a34a] border border-emerald-200 font-bold text-xs rounded-full">
-                      {verifiedPoints} Verified Points
-                    </span>
-                    {pendingPoints > 0 && (
-                      <span className="px-3 py-1 bg-amber-50 text-amber-700 border border-amber-200 font-bold text-xs rounded-full flex items-center gap-1">
-                        <Clock className="w-3.5 h-3.5" /> {pendingPoints} Pending Approval
+              {!isRtoGraduate && (
+                <div className="bg-white border border-slate-200 rounded-2xl p-6 space-y-6 shadow-sm">
+                  <div className="border-b border-slate-100 pb-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                    <div>
+                      <h2 className="text-lg font-bold text-[#24083b]">
+                        {isTtW ? "Transition to Work Activity Summary" : "Workforce Australia Mutual Obligation Summary"}
+                      </h2>
+                      <p className="text-xs text-slate-500">Points commit to your official total once verified.</p>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="px-3 py-1 bg-emerald-50 text-[#16a34a] border border-emerald-200 font-bold text-xs rounded-full">
+                        {verifiedPoints} Verified Points
                       </span>
-                    )}
+                      {pendingPoints > 0 && (
+                        <span className="px-3 py-1 bg-amber-50 text-amber-700 border border-amber-200 font-bold text-xs rounded-full flex items-center gap-1">
+                          <Clock className="w-3.5 h-3.5" /> {pendingPoints} Pending Approval
+                        </span>
+                      )}
+                    </div>
                   </div>
-                </div>
 
-                <div className="space-y-2">
-                  <div className="flex justify-between text-xs font-bold text-slate-700">
-                    <span>Target Goal: {targetPoints} PBAS Points</span>
-                    <span>{pbasPercentage}% Achieved</span>
-                  </div>
-                  <div className="w-full bg-slate-100 h-4 rounded-full overflow-hidden p-0.5 border border-slate-200">
-                    <div
-                      className="bg-gradient-to-r from-[#16a34a] to-emerald-400 h-full rounded-full transition-all duration-500"
-                      style={{ width: `${pbasPercentage}%` }}
-                    />
+                  <div className="space-y-2">
+                    <div className="flex justify-between text-xs font-bold text-slate-700">
+                      <span>Target Goal: {targetPoints} PBAS Points</span>
+                      <span>{pbasPercentage}% Achieved</span>
+                    </div>
+                    <div className="w-full bg-slate-100 h-4 rounded-full overflow-hidden p-0.5 border border-slate-200">
+                      <div
+                        className="bg-gradient-to-r from-[#16a34a] to-emerald-400 h-full rounded-full transition-all duration-500"
+                        style={{ width: `${pbasPercentage}%` }}
+                      />
+                    </div>
                   </div>
                 </div>
-              </div>
+              )}
 
               <div className="bg-white border border-slate-200 rounded-2xl p-6 space-y-4 shadow-sm">
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-3">
@@ -640,7 +662,11 @@ export const ParticipantHome: React.FC = () => {
                     <h3 className="font-bold text-base text-[#24083b] flex items-center gap-2">
                       <Search className="w-5 h-5 text-[#16a34a]" /> Activity Verification Log
                     </h3>
-                    <p className="text-xs text-slate-500">Track submitted job searches, interviews, and placements awaiting Case Manager sign-off.</p>
+                    <p className="text-xs text-slate-500">
+                      {isRtoGraduate 
+                        ? "Track submitted job applications, interviews, and placement milestones." 
+                        : "Track submitted job searches, interviews, and placements awaiting sign-off."}
+                    </p>
                   </div>
                   <button
                     onClick={() => setShowJobSearchModal(true)}
@@ -658,7 +684,7 @@ export const ParticipantHome: React.FC = () => {
                         <th className="p-3">Activity Type</th>
                         <th className="p-3">Title / Employer</th>
                         <th className="p-3">Verification ID</th>
-                        <th className="p-3">Points</th>
+                        {!isRtoGraduate && <th className="p-3">Points</th>}
                         <th className="p-3">Status</th>
                         <th className="p-3 text-right">Report</th>
                       </tr>
@@ -670,7 +696,7 @@ export const ParticipantHome: React.FC = () => {
                           <td className="p-3 font-bold text-slate-800">{act.type}</td>
                           <td className="p-3 text-slate-700">{act.title}</td>
                           <td className="p-3 font-mono text-slate-500 bg-slate-100/60 px-2 py-1 rounded w-max text-[11px]">{act.reference}</td>
-                          <td className="p-3 font-bold text-emerald-600">+{act.points} Pts</td>
+                          {!isRtoGraduate && <td className="p-3 font-bold text-emerald-600">+{act.points} Pts</td>}
                           <td className="p-3">
                             {act.status === 'Verified' ? (
                               <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
@@ -678,7 +704,7 @@ export const ParticipantHome: React.FC = () => {
                               </span>
                             ) : (
                               <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-amber-50 text-amber-700 border border-amber-200">
-                                <Clock className="w-3.5 h-3.5" /> Submitted (Pending)
+                                <Clock className="w-3.5 h-3.5" /> Submitted
                               </span>
                             )}
                           </td>
@@ -733,14 +759,16 @@ export const ParticipantHome: React.FC = () => {
             <div className="p-4 bg-purple-50/70 border border-purple-200 rounded-xl space-y-2">
               <div className="flex items-center justify-between text-xs font-bold text-purple-900">
                 <span>Rubric Rating: <strong className="text-emerald-700 text-sm">{selectedReport.rubricScore || 'Proficient STAR Execution'}</strong></span>
-                <span className="text-amber-700 bg-amber-100 px-2.5 py-0.5 rounded-full border border-amber-200 flex items-center gap-1">
-                  <Clock className="w-3 h-3" /> Pending Case Manager Approval (+25 Pts)
-                </span>
+                {!isRtoGraduate && (
+                  <span className="text-amber-700 bg-amber-100 px-2.5 py-0.5 rounded-full border border-amber-200 flex items-center gap-1">
+                    <Clock className="w-3 h-3" /> Pending Approval (+25 Pts)
+                  </span>
+                )}
               </div>
               <ul className="list-disc list-inside text-xs text-slate-700 space-y-1 pt-1">
                 {selectedReport.feedbackNotes?.map((note: string, idx: number) => (
                   <li key={idx}>{note}</li>
-                )) || <li>Completed 8 scenario questions across key industry competencies.</li>}
+                )) || <li>Completed scenario questions across key industry competencies.</li>}
               </ul>
             </div>
 
@@ -779,7 +807,7 @@ export const ParticipantHome: React.FC = () => {
 
             <div className="flex items-center justify-between pt-3 border-t border-slate-100">
               <div className="flex items-center gap-1.5 text-xs text-slate-500 font-medium">
-                <UserCheck className="w-4 h-4 text-purple-700" /> Prepared for Casey (Case Manager) Review
+                <UserCheck className="w-4 h-4 text-purple-700" /> Prepared for Consultant Review
               </div>
               <button
                 onClick={() => setSelectedReport(null)}
@@ -799,7 +827,7 @@ export const ParticipantHome: React.FC = () => {
               <h3 className="font-bold text-base text-[#24083b]">Log Job Search Effort 🔎</h3>
               <button type="button" onClick={() => setShowJobSearchModal(false)} className="text-slate-400 hover:text-slate-600 font-bold">✕</button>
             </div>
-            <p className="text-xs text-slate-500">Provide proof details (Job ID, reference, or portal link). Points convert after Casey verifies.</p>
+            <p className="text-xs text-slate-500">Provide proof details (Job ID, reference, or portal link).</p>
             <div className="space-y-3 text-xs">
               <div>
                 <label className="block font-bold text-slate-700 mb-1">Employer / Business Name *</label>
@@ -816,7 +844,9 @@ export const ParticipantHome: React.FC = () => {
             </div>
             <div className="flex justify-end gap-2 pt-2 border-t border-slate-100">
               <button type="button" onClick={() => setShowJobSearchModal(false)} className="px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100 rounded-xl">Cancel</button>
-              <button type="submit" className="px-4 py-2 text-xs bg-[#24083b] text-white font-bold rounded-xl shadow-sm">Submit Effort (+5 Pts Pending)</button>
+              <button type="submit" className="px-4 py-2 text-xs bg-[#24083b] text-white font-bold rounded-xl shadow-sm">
+                {isRtoGraduate ? "Save to Log" : "Submit Effort (+5 Pts Pending)"}
+              </button>
             </div>
           </form>
         </div>
@@ -845,7 +875,9 @@ export const ParticipantHome: React.FC = () => {
             </div>
             <div className="flex justify-end gap-2 pt-2 border-t border-slate-100">
               <button type="button" onClick={() => setShowJobModal(false)} className="px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100 rounded-xl">Cancel</button>
-              <button type="submit" className="px-4 py-2 text-xs bg-[#16a34a] text-white font-bold rounded-xl shadow-sm">Submit Placement (+50 Pts Pending)</button>
+              <button type="submit" className="px-4 py-2 text-xs bg-[#16a34a] text-white font-bold rounded-xl shadow-sm">
+                {isRtoGraduate ? "Submit Placement" : "Submit Placement (+50 Pts Pending)"}
+              </button>
             </div>
           </form>
         </div>
@@ -874,7 +906,9 @@ export const ParticipantHome: React.FC = () => {
             </div>
             <div className="flex justify-end gap-2 pt-2 border-t border-slate-100">
               <button type="button" onClick={() => setShowInterviewModal(false)} className="px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100 rounded-xl">Cancel</button>
-              <button type="submit" className="px-4 py-2 text-xs bg-purple-600 text-white font-bold rounded-xl shadow-sm">Submit Interview (+25 Pts Pending)</button>
+              <button type="submit" className="px-4 py-2 text-xs bg-purple-600 text-white font-bold rounded-xl shadow-sm">
+                {isRtoGraduate ? "Submit Interview" : "Submit Interview (+25 Pts Pending)"}
+              </button>
             </div>
           </form>
         </div>
@@ -884,11 +918,11 @@ export const ParticipantHome: React.FC = () => {
         <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm flex items-center justify-center p-4 z-50">
           <form onSubmit={handleRequestHelp} className="bg-white rounded-2xl p-6 max-w-md w-full space-y-4 shadow-xl border border-slate-200">
             <div className="border-b border-slate-100 pb-3 flex justify-between items-center">
-              <h3 className="font-bold text-base text-[#24083b]">Request Support from Casey 💬</h3>
+              <h3 className="font-bold text-base text-[#24083b]">Request Support 💬</h3>
               <button type="button" onClick={() => setShowHelpModal(false)} className="text-slate-400 hover:text-slate-600 font-bold">✕</button>
             </div>
             <div className="space-y-3 text-xs">
-              <textarea required rows={4} placeholder="Let Casey know what assistance or resources you need..." className="w-full p-2.5 border rounded-xl" />
+              <textarea required rows={4} placeholder="Let us know what assistance or resources you need..." className="w-full p-2.5 border rounded-xl" />
             </div>
             <div className="flex justify-end gap-2 pt-2 border-t border-slate-100">
               <button type="button" onClick={() => setShowHelpModal(false)} className="px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100 rounded-xl">Cancel</button>

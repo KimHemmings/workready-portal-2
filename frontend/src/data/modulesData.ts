@@ -1,50 +1,4 @@
-﻿export interface QuizQuestion {
-  id: string;
-  question: string;
-  options: string[];
-  correctAnswerIndex: number;
-  explanation: string;
-}
-
-export interface ScenarioOption {
-  id: string;
-  choice: string;
-  isCorrect: boolean;
-  feedback: string;
-}
-
-export interface BranchingScenario {
-  id: string;
-  situation: string;
-  options: ScenarioOption[];
-}
-
-export interface GraphicCard {
-  title: string;
-  bullets: string[];
-}
-
-export interface ModuleData {
-  id: string;
-  moduleNumber: number;
-  title: string;
-  category: string;
-  estimatedMins: number;
-  pbasPoints: number;
-  videoScript: string;
-  lesson1Title: string;
-  lesson1Content: string[];
-  graphicCard1?: GraphicCard;
-  branchingScenario?: BranchingScenario;
-  lesson2Title: string;
-  lesson2Content: string[];
-  practicalReflection: string;
-  actionStepTitle: string;
-  actionStepPrompt: string;
-  quiz: QuizQuestion[];
-}
-
-import { module1 } from './modules/module1';
+﻿import { module1 } from './modules/module1';
 import { module2 } from './modules/module2';
 import { module3 } from './modules/module3';
 import { module4 } from './modules/module4';
@@ -69,29 +23,23 @@ import { module22 } from './modules/module22';
 import { module23 } from './modules/module23';
 import { module24 } from './modules/module24';
 
-export const modulesData: ModuleData[] = [
-  module1,
-  module2,
-  module3,
-  module4,
-  module5,
-  module6,
-  module7,
-  module8,
-  module9,
-  module10,
-  module11,
-  module12,
-  module13,
-  module14,
-  module15,
-  module16,
-  module17,
-  module18,
-  module19,
-  module20,
-  module21,
-  module22,
-  module23,
-  module24
+export type ModuleData = any;
+
+const rawModules = [
+  module1, module2, module3, module4, module5, module6,
+  module7, module8, module9, module10, module11, module12,
+  module13, module14, module15, module16, module17, module18,
+  module19, module20, module21, module22, module23, module24
 ];
+
+export const modulesData = rawModules.map((mod, index) => {
+  const num = mod.moduleNumber || index + 1;
+  return {
+    ...mod,
+    id: `M${String(num).padStart(2, '0')}`,
+    moduleNumber: num,
+    category: mod.category || 'Workplace Expectations',
+    estimatedMins: 20,
+    pbasPoints: 5,
+  };
+});

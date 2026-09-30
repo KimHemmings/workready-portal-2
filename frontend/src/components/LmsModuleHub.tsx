@@ -2,89 +2,68 @@
 import { modulesData } from '../data/modulesData';
 import type { ModuleData } from '../data/modulesData';
 import CertifiedLmsModule from './CertifiedLmsModule';
+import { usePortal } from '../context/PortalContext';
 import { 
   BookOpen, 
   CheckCircle2, 
   Clock, 
   Award, 
   Sparkles, 
-  ShieldCheck, 
   Briefcase, 
   Target, 
   Zap,
   ArrowRight,
   Filter,
   Trophy,
-  AlertCircle,
   Lock,
   RefreshCw
 } from 'lucide-react';
 
 interface LmsModuleHubProps {
   onModuleCompleted?: (moduleId: string, points: number) => void;
+  candidateId?: string;
 }
 
 // PBAS MONTHLY LMS RULES
 const MONTHLY_LMS_POINTS_CAP = 30; // Max PBAS points allowed from LMS per month
 const NINETY_DAYS_MS = 90 * 24 * 60 * 60 * 1000; // 90 Days in milliseconds
 
-// Category styling map matching your exact 8 original categories (3 modules per category)
+// CATEGORY STYLING MAP (Aligned 1:1 with the 5 Master LMS Filter Categories)
 const CATEGORY_STYLES: Record<string, { bg: string; text: string; border: string; badgeBg: string; icon: any }> = {
-  '1. Foundation & Onboarding': { 
+  'Workplace Expectations': { 
     bg: 'from-purple-500/10 to-indigo-500/5', 
     text: 'text-purple-700', 
     border: 'hover:border-purple-300', 
     badgeBg: 'bg-purple-100 text-purple-800 border-purple-200', 
     icon: BookOpen 
   },
-  '2. Workplace Safety & WHS': { 
-    bg: 'from-emerald-500/10 to-teal-500/5', 
-    text: 'text-emerald-700', 
-    border: 'hover:border-emerald-300', 
-    badgeBg: 'bg-emerald-100 text-emerald-800 border-emerald-200', 
-    icon: ShieldCheck 
-  },
-  '3. Job Search & Application Skills': { 
-    bg: 'from-amber-500/10 to-orange-500/5', 
-    text: 'text-amber-700', 
-    border: 'hover:border-amber-300', 
-    badgeBg: 'bg-amber-100 text-amber-800 border-amber-200', 
+  'Resumes & Applications': { 
+    bg: 'from-blue-500/10 to-cyan-500/5', 
+    text: 'text-blue-700', 
+    border: 'hover:border-blue-300', 
+    badgeBg: 'bg-blue-100 text-blue-800 border-blue-200', 
     icon: Target 
   },
-  '4. Interview Excellence & Pitching': { 
-    bg: 'from-indigo-500/10 to-blue-500/5', 
+  'Interviews & Selection': { 
+    bg: 'from-indigo-500/10 to-purple-500/5', 
     text: 'text-indigo-700', 
     border: 'hover:border-indigo-300', 
     badgeBg: 'bg-indigo-100 text-indigo-800 border-indigo-200', 
     icon: Trophy 
   },
-  '5. Digital Literacy & Workplace Tech': { 
-    bg: 'from-cyan-500/10 to-blue-500/5', 
-    text: 'text-cyan-700', 
-    border: 'hover:border-cyan-300', 
-    badgeBg: 'bg-cyan-100 text-cyan-800 border-cyan-200', 
+  'Job Searching': { 
+    bg: 'from-amber-500/10 to-orange-500/5', 
+    text: 'text-amber-700', 
+    border: 'hover:border-amber-300', 
+    badgeBg: 'bg-amber-100 text-amber-800 border-amber-200', 
     icon: Zap 
   },
-  '6. Professional Communication & Fit': { 
-    bg: 'from-blue-500/10 to-teal-500/5', 
-    text: 'text-blue-700', 
-    border: 'hover:border-blue-300', 
-    badgeBg: 'bg-blue-100 text-blue-800 border-blue-200', 
-    icon: Sparkles 
-  },
-  '7. Financial & Personal Management': { 
-    bg: 'from-teal-500/10 to-emerald-500/5', 
-    text: 'text-teal-700', 
-    border: 'hover:border-teal-300', 
-    badgeBg: 'bg-teal-100 text-teal-800 border-teal-200', 
+  'Financial Literacy': { 
+    bg: 'from-emerald-500/10 to-teal-500/5', 
+    text: 'text-emerald-700', 
+    border: 'hover:border-emerald-300', 
+    badgeBg: 'bg-emerald-100 text-emerald-800 border-emerald-200', 
     icon: Award 
-  },
-  '8. Career Planning & Advancement': { 
-    bg: 'from-purple-500/10 to-pink-500/5', 
-    text: 'text-purple-700', 
-    border: 'hover:border-purple-300', 
-    badgeBg: 'bg-purple-100 text-purple-800 border-purple-200', 
-    icon: Briefcase 
   },
   'Default': { 
     bg: 'from-[#24083b]/5 to-purple-500/5', 
@@ -95,12 +74,29 @@ const CATEGORY_STYLES: Record<string, { bg: string; text: string; border: string
   }
 };
 
-export const LmsModuleHub: React.FC<LmsModuleHubProps> = ({ onModuleCompleted }) => {
+// FIXED 5 MASTER LMS FILTER CATEGORIES
+const CATEGORIES = [
+  'All',
+  'Workplace Expectations',
+  'Resumes & Applications',
+  'Interviews & Selection',
+  'Job Searching',
+  'Financial Literacy'
+];
+
+export const LmsModuleHub: React.FC<LmsModuleHubProps> = ({ onModuleCompleted, candidateId = 'CAN-101' }) => {
+  const { candidates } = usePortal();
+  const activeCandidate = candidates.find((c) => c.id === candidateId) || candidates[0];
+
+  const programType = activeCandidate?.programType || 'workforce_australia';
+  const isRtoGraduate = programType === 'rto_graduate';
+  const isTtW = programType === 'ttw';
+
   const [selectedModule, setSelectedModule] = useState<ModuleData | null>(null);
   const [completedModuleIds, setCompletedModuleIds] = useState<string[]>([]);
   const [selectedCategory, setSelectedCategory] = useState<string>('All');
 
-  // 1. LOAD COMPLETION STATES & EXPIRE MODULES OLDER THAN 90 DAYS
+  // 1. LOAD COMPLETION STATES & EXPIRE MODULES OLDER THAN 90 DAYS (IF COMPLIANCE ENFORCED)
   useEffect(() => {
     const loadCompletedModules = () => {
       try {
@@ -110,29 +106,35 @@ export const LmsModuleHub: React.FC<LmsModuleHubProps> = ({ onModuleCompleted })
         const timestamps: Record<string, number> = JSON.parse(stored);
         const now = Date.now();
 
-        // Filter out any modules completed more than 90 days ago
+        // RTO graduates don't expire completion history; compliance programs expire after 90 days
         const validCompletedIds = Object.keys(timestamps).filter((id) => {
+          if (isRtoGraduate) return true;
           return now - timestamps[id] < NINETY_DAYS_MS;
         });
 
         setCompletedModuleIds(validCompletedIds);
       } catch (err) {
-        console.error('Error loading 90-day module history:', err);
+        console.error('Error loading module history:', err);
       }
     };
 
     loadCompletedModules();
     window.addEventListener('moduleCompleted', loadCompletedModules);
     return () => window.removeEventListener('moduleCompleted', loadCompletedModules);
-  }, []);
+  }, [isRtoGraduate]);
 
-  // Points calculation & Cap check
+  // Points & Cap Calculation (Bypassed for RTO Graduates)
   const totalEarnedPoints = modulesData
     .filter((m) => completedModuleIds.includes(m.id))
     .reduce((sum, m) => sum + (m.pbasPoints || 0), 0);
 
   const monthlyCappedPoints = Math.min(totalEarnedPoints, MONTHLY_LMS_POINTS_CAP);
-  const isMonthlyCapReached = monthlyCappedPoints >= MONTHLY_LMS_POINTS_CAP;
+  const isMonthlyCapReached = isRtoGraduate ? false : monthlyCappedPoints >= MONTHLY_LMS_POINTS_CAP;
+
+  // Total Hours Logged for TtW
+  const totalMinutesLogged = modulesData
+    .filter((m) => completedModuleIds.includes(m.id))
+    .reduce((sum, m) => sum + (m.estimatedMins || 20), 0);
 
   // 2. SAVE COMPLETION TIMESTAMP ON FINISH
   const handleComplete = (moduleId: string, points: number) => {
@@ -140,17 +142,16 @@ export const LmsModuleHub: React.FC<LmsModuleHubProps> = ({ onModuleCompleted })
       const stored = localStorage.getItem('workready_completed_timestamps') || '{}';
       const timestamps: Record<string, number> = JSON.parse(stored);
 
-      // Save current timestamp for the 90-day timer
       timestamps[moduleId] = Date.now();
       localStorage.setItem('workready_completed_timestamps', JSON.stringify(timestamps));
 
       const updatedIds = Object.keys(timestamps).filter(
-        (id) => Date.now() - timestamps[id] < NINETY_DAYS_MS
+        (id) => isRtoGraduate || Date.now() - timestamps[id] < NINETY_DAYS_MS
       );
       setCompletedModuleIds(updatedIds);
 
       const remainingCap = Math.max(0, MONTHLY_LMS_POINTS_CAP - totalEarnedPoints);
-      const awardedPoints = Math.min(points, remainingCap);
+      const awardedPoints = isRtoGraduate ? 0 : Math.min(points, remainingCap);
 
       if (onModuleCompleted) {
         onModuleCompleted(moduleId, awardedPoints);
@@ -161,7 +162,7 @@ export const LmsModuleHub: React.FC<LmsModuleHubProps> = ({ onModuleCompleted })
   };
 
   const handleModuleClick = (mod: ModuleData, isCompleted: boolean) => {
-    // Prevent opening new modules if monthly cap is reached
+    // Prevent opening new modules if monthly cap is reached for compliance candidates
     if (!isCompleted && isMonthlyCapReached) {
       alert("🔒 Monthly LMS points cap reached (30/30 Pts). New modules and certificates are locked until your next reporting period. You can still review your completed modules!");
       return;
@@ -173,7 +174,6 @@ export const LmsModuleHub: React.FC<LmsModuleHubProps> = ({ onModuleCompleted })
   const completedCount = completedModuleIds.length;
   const progressPercent = Math.min(Math.round((completedCount / (totalModules || 1)) * 100), 100);
 
-  const categories = ['All', ...Array.from(new Set(modulesData.map((m) => m.category)))];
   const filteredModules = selectedCategory === 'All' 
     ? modulesData 
     : modulesData.filter((m) => m.category === selectedCategory);
@@ -188,8 +188,9 @@ export const LmsModuleHub: React.FC<LmsModuleHubProps> = ({ onModuleCompleted })
           ← Back to All Modules
         </button>
         <CertifiedLmsModule 
-          candidateName="Alex Johnson"
-          moduleTitle={selectedModule.title} 
+          candidateName={activeCandidate?.name || "Alex Johnson"}
+          moduleData={selectedModule}
+          onComplete={(points: number) => handleComplete(selectedModule.id, points)} 
         />
       </div>
     );
@@ -198,7 +199,7 @@ export const LmsModuleHub: React.FC<LmsModuleHubProps> = ({ onModuleCompleted })
   return (
     <div className="space-y-6">
       
-      {/* REAL-TIME PROGRESS TRACKER BANNER WITH CAP ALERT */}
+      {/* REAL-TIME PROGRESS TRACKER BANNER */}
       <div className="bg-gradient-to-r from-[#24083b] via-[#320b52] to-[#1c0630] text-white rounded-2xl p-6 shadow-xl border border-purple-900/60 relative overflow-hidden">
         <div className="absolute -right-10 -bottom-10 w-48 h-48 bg-emerald-500/10 rounded-full blur-2xl pointer-events-none" />
 
@@ -209,11 +210,15 @@ export const LmsModuleHub: React.FC<LmsModuleHubProps> = ({ onModuleCompleted })
                 <Trophy className="w-5 h-5" />
               </span>
               <h2 className="text-xl font-black tracking-tight text-white font-heading">
-                LMS Course Completion Tracker
+                {isRtoGraduate && "Graduate Employability & Career Hub"}
+                {isTtW && "Transition to Work (TtW) Activity Hub"}
+                {!isRtoGraduate && !isTtW && "LMS Course Completion Tracker"}
               </h2>
             </div>
             <p className="text-xs text-purple-200 mt-1.5 max-w-xl leading-relaxed">
-              Complete interactive modules to earn verified PBAS points. Modules automatically reset every 90 days for quarterly refresher credit.
+              {isRtoGraduate && "Self-paced career preparation tools, resume builders, and interview modules tailored for course graduates to transition into work."}
+              {isTtW && "Complete interactive modules to log verified activity hours toward your monthly program milestones."}
+              {!isRtoGraduate && !isTtW && "Complete interactive modules to earn verified PBAS points. Modules automatically reset every 90 days for quarterly refresher credit."}
             </p>
           </div>
 
@@ -222,17 +227,30 @@ export const LmsModuleHub: React.FC<LmsModuleHubProps> = ({ onModuleCompleted })
               <span className="block text-xl font-black text-amber-300">{completedCount} / {totalModules}</span>
               <span className="text-[10px] font-bold uppercase text-purple-200 tracking-wider">Modules Done</span>
             </div>
+            
             <div className="text-center px-3">
-              <span className="block text-xl font-black text-emerald-300">
-                +{monthlyCappedPoints} / {MONTHLY_LMS_POINTS_CAP} Pts
-              </span>
-              <span className="text-[10px] font-bold uppercase text-purple-200 tracking-wider">Monthly Cap</span>
+              {isRtoGraduate ? (
+                <>
+                  <span className="block text-xl font-black text-emerald-300">Self-Paced</span>
+                  <span className="text-[10px] font-bold uppercase text-purple-200 tracking-wider">No Requirements</span>
+                </>
+              ) : isTtW ? (
+                <>
+                  <span className="block text-xl font-black text-emerald-300">{Math.round(totalMinutesLogged / 60 * 10) / 10} hrs</span>
+                  <span className="text-[10px] font-bold uppercase text-purple-200 tracking-wider">Logged Hours</span>
+                </>
+              ) : (
+                <>
+                  <span className="block text-xl font-black text-emerald-300">+{monthlyCappedPoints} / {MONTHLY_LMS_POINTS_CAP} Pts</span>
+                  <span className="text-[10px] font-bold uppercase text-purple-200 tracking-wider">Monthly Cap</span>
+                </>
+              )}
             </div>
           </div>
         </div>
 
-        {/* Lockout Notification Banner */}
-        {isMonthlyCapReached && (
+        {/* Lockout Notification Banner (Compliance Only) */}
+        {!isRtoGraduate && isMonthlyCapReached && (
           <div className="mt-4 p-3.5 bg-amber-500/20 border border-amber-400/50 rounded-xl text-amber-100 text-xs font-bold flex items-center gap-2.5 relative z-10 shadow-inner">
             <Lock className="w-5 h-5 text-amber-300 shrink-0" />
             <span>
@@ -245,9 +263,11 @@ export const LmsModuleHub: React.FC<LmsModuleHubProps> = ({ onModuleCompleted })
           <div className="flex justify-between text-xs font-extrabold text-purple-200">
             <span className="flex items-center gap-1.5">
               Overall Course Progress 
-              <span className="text-[10px] text-purple-300 font-normal flex items-center gap-0.5">
-                (<RefreshCw className="w-3 h-3 text-emerald-400" /> 90-Day Cycle Active)
-              </span>
+              {!isRtoGraduate && (
+                <span className="text-[10px] text-purple-300 font-normal flex items-center gap-0.5">
+                  (<RefreshCw className="w-3 h-3 text-emerald-400" /> 90-Day Cycle Active)
+                </span>
+              )}
             </span>
             <span className="text-amber-300">{progressPercent}% Completed</span>
           </div>
@@ -265,7 +285,7 @@ export const LmsModuleHub: React.FC<LmsModuleHubProps> = ({ onModuleCompleted })
         <span className="text-xs font-bold text-slate-500 flex items-center gap-1 shrink-0 mr-1">
           <Filter className="w-3.5 h-3.5" /> Filter:
         </span>
-        {categories.map((cat) => (
+        {CATEGORIES.map((cat) => (
           <button
             key={cat}
             onClick={() => setSelectedCategory(cat)}
@@ -345,11 +365,14 @@ export const LmsModuleHub: React.FC<LmsModuleHubProps> = ({ onModuleCompleted })
                       <Clock className="w-3.5 h-3.5 text-slate-400" /> {mod.estimatedMins}m
                     </span>
                     
-                    <span className={`flex items-center gap-1 font-extrabold ${
-                      isLocked ? 'text-slate-400 line-through' : 'text-emerald-700'
-                    }`}>
-                      <Zap className="w-3.5 h-3.5 fill-current" /> +{mod.pbasPoints} Pts
-                    </span>
+                    {!isRtoGraduate && (
+                      <span className={`flex items-center gap-1 font-extrabold ${
+                        isLocked ? 'text-slate-400 line-through' : 'text-emerald-700'
+                      }`}>
+                        <Zap className="w-3.5 h-3.5 fill-current" /> 
+                        {isTtW ? `20m Credit` : `+${mod.pbasPoints} Pts`}
+                      </span>
+                    )}
                   </div>
 
                   {isCompleted ? (

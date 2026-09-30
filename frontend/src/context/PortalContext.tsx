@@ -24,31 +24,32 @@ export interface PortalContextType {
 const PortalContext = createContext<PortalContextType | undefined>(undefined);
 
 export const PortalProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [candidates, setCandidates] = useState<CandidateProfile[]>([
-    {
-      id: 'CAN-101',
-      name: 'Alex Mercer',
-      email: 'alex@workready.com',
-      phone: '0412 345 678',
-      status: 'High Risk',
-      pbasTarget: 100,
-      pbasVerified: 45,
-      pbasPending: 25,
-      startDate: '2026-01-15',
-      finishDate: '2026-07-15',
-      assessmentCompleted: true,
-      primaryChallenge: 'Transport & Interview Anxiety',
-      lastCheckIn: '2026-03-10',
-      fivePillars: {
-        jobSearch: 60,
-        interviewReadiness: 40,
-        technicalSkills: 75,
-        logistics: 35,
-        mindset: 50,
-      },
+ // Inside PortalContext.tsx:
+const [candidates, setCandidates] = useState<CandidateProfile[]>([
+  {
+    id: 'CAN-101',
+    name: 'Alex Mercer',
+    email: 'alex@workready.com',
+    phone: '0412 345 678',
+    status: 'High Risk',
+    programType: 'workforce_australia',
+    pbasTarget: 100,
+    pbasVerified: 45,
+    pbasPending: 25,
+    startDate: '2026-01-15',
+    finishDate: '2026-07-15',
+    assessmentCompleted: true,
+    primaryChallenge: 'Transport & Interview Anxiety',
+    lastCheckIn: '2026-03-10',
+    fivePillars: {
+      jobSearch: 60,
+      interviewReadiness: 40,
+      technicalSkills: 75,
+      logistics: 35,
+      mindset: 50,
     },
-  ]);
-
+  },
+]);
   const [verificationItems, setVerificationItems] = useState<VerificationItem[]>([
     {
       id: 'VER-901',
