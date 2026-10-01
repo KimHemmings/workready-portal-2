@@ -1,144 +1,109 @@
 ﻿import React from 'react';
-import { Target, TrendingUp, AlertCircle, CheckCircle2, Clock, Calendar } from 'lucide-react';
+import { Award, Clock, AlertCircle, Calendar } from 'lucide-react';
 
-interface PointProjectionProps {
-  verifiedPoints: number;
-  pendingPoints: number;
+interface PointProjectionWheelProps {
+  verifiedPoints?: number;
+  pendingPoints?: number;
   targetPoints?: number;
-  daysRemainingInPeriod?: number;
 }
 
-export const PointProjectionWheel: React.FC<PointProjectionProps> = ({
-  verifiedPoints,
-  pendingPoints,
-  targetPoints = 100,
-  daysRemainingInPeriod = 12,
+export const PointProjectionWheel: React.FC<PointProjectionWheelProps> = ({
+  verifiedPoints = 45,
+  pendingPoints = 5,
+  targetPoints = 100
 }) => {
   const totalProjected = verifiedPoints + pendingPoints;
-  const verifiedPct = Math.min(Math.round((verifiedPoints / targetPoints) * 100), 100);
-  const pendingPct = Math.min(Math.round((pendingPoints / targetPoints) * 100), 100 - verifiedPct);
-  const totalPct = Math.min(verifiedPct + pendingPct, 100);
-
-  const isTargetMet = totalProjected >= targetPoints;
-  const pointsShort = Math.max(targetPoints - totalProjected, 0);
+  const pointsNeeded = Math.max(0, targetPoints - totalProjected);
+  const percentage = Math.min(100, Math.round((totalProjected / targetPoints) * 100));
 
   return (
-    <div className="bg-white border border-slate-200 rounded-2xl p-6 space-y-6 shadow-sm font-sans my-6">
+    <div className="bg-white border-2 border-slate-200 rounded-2xl p-6 space-y-5 shadow-sm font-sans">
       
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-100 pb-4">
+      {/* Header Banner */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-4">
         <div>
           <div className="flex items-center gap-2">
-            <h2 className="text-lg font-bold text-[#24083b]">PBAS Point Projection & Target Wheel</h2>
-            <span className="bg-purple-50 text-purple-700 text-[10px] font-bold px-2.5 py-0.5 rounded-full border border-purple-200 flex items-center gap-1">
-              <Calendar className="w-3 h-3" /> {daysRemainingInPeriod} Days Left in Reporting Period
+            <h3 className="font-extrabold text-base text-[#24083b]">PBAS Point Projection & Target Gauge</h3>
+            <span className="px-3 py-1 bg-purple-100 text-purple-900 border border-purple-200 text-xs font-black rounded-full flex items-center gap-1">
+              <Calendar className="w-3.5 h-3.5 text-purple-700" /> 12 Days Left in Reporting Period
             </span>
           </div>
-          <p className="text-xs text-slate-500 mt-0.5">
-            Real-time projection of your monthly Workforce Australia mutual obligation points.
-          </p>
+          <p className="text-xs text-slate-500 mt-0.5">Real-time projection of your monthly Workforce Australia mutual obligation points.</p>
         </div>
 
-        {isTargetMet ? (
-          <div className="flex items-center gap-1.5 px-3 py-1.5 bg-emerald-50 text-emerald-800 font-bold text-xs rounded-xl border border-emerald-200">
-            <CheckCircle2 className="w-4 h-4 text-emerald-600" /> Target On Track! 🎉
+        {pointsNeeded > 0 ? (
+          <div className="bg-amber-50 border border-amber-300 text-amber-900 px-4 py-2 rounded-xl text-xs font-black flex items-center gap-1.5 shrink-0 shadow-sm">
+            <AlertCircle className="w-4 h-4 text-amber-600" /> {pointsNeeded} Points Needed
           </div>
         ) : (
-          <div className="flex items-center gap-1.5 px-3 py-1.5 bg-amber-50 text-amber-800 font-bold text-xs rounded-xl border border-amber-200">
-            <AlertCircle className="w-4 h-4 text-amber-600" /> {pointsShort} Points Needed
+          <div className="bg-emerald-50 border border-emerald-300 text-emerald-900 px-4 py-2 rounded-xl text-xs font-black shrink-0 shadow-sm">
+            🎉 Target Goal Achieved!
           </div>
         )}
       </div>
 
-      {/* Projection Graphic & Key Metrics */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-center">
         
-        {/* Visual Progress Wheel Representation */}
-        <div className="flex flex-col items-center justify-center p-4 bg-slate-50 rounded-2xl border border-slate-100 relative">
-          <div className="relative w-36 h-36 flex items-center justify-center">
-            {/* SVG Ring Meter */}
-            <svg className="w-full h-full transform -rotate-90" viewBox="0 0 36 36">
-              {/* Background Ring */}
-              <path
-                className="text-slate-200"
-                strokeWidth="3.8"
-                stroke="currentColor"
-                fill="none"
-                d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
-              />
-              {/* Pending Points Arc */}
-              <path
-                className="text-amber-400 stroke-current transition-all duration-700"
-                strokeWidth="3.8"
-                strokeDasharray={`${totalPct}, 100`}
-                strokeLinecap="round"
-                fill="none"
-                d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
-              />
-              {/* Verified Points Arc */}
-              <path
-                className="text-[#16a34a] stroke-current transition-all duration-700"
-                strokeWidth="3.8"
-                strokeDasharray={`${verifiedPct}, 100`}
-                strokeLinecap="round"
-                fill="none"
-                d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
-              />
-            </svg>
-
-            <div className="absolute text-center">
-              <span className="text-2xl font-black text-[#24083b]">{totalProjected}</span>
-              <span className="text-[10px] font-bold text-slate-400 block uppercase">/ {targetPoints} Pts</span>
+        {/* Fixed Top-Arch Gauge */}
+        <div className="bg-slate-50 p-6 rounded-2xl border border-slate-200 flex flex-col items-center justify-center text-center space-y-3">
+          <div className="relative w-44 h-24 overflow-hidden flex items-end justify-center">
+            {/* Background Arc */}
+            <div className="w-44 h-44 border-[16px] border-slate-200 rounded-full absolute top-0" />
+            
+            {/* Dynamic Progress Arc */}
+            <div 
+              className="w-44 h-44 border-[16px] border-transparent border-t-emerald-500 border-r-emerald-500 border-l-emerald-500 rounded-full absolute top-0 transition-transform duration-700"
+              style={{
+                transform: `rotate(${Math.min(180, (percentage / 100) * 180 - 135)}deg)`
+              }}
+            />
+            
+            <div className="z-10 pb-1">
+              <span className="text-3xl font-black text-slate-900 block leading-none tracking-tight">{totalProjected}</span>
+              <span className="text-[11px] font-extrabold text-slate-500 uppercase tracking-wider">/ {targetPoints} Pts</span>
             </div>
           </div>
+
+          <span className="text-xs font-black text-slate-800 bg-white px-3 py-1 rounded-full border border-slate-200 shadow-sm">
+            {percentage}% Projected End-of-Month Status
+          </span>
         </div>
 
-        {/* Breakdown Breakdown Stat Cards */}
-        <div className="md:col-span-2 space-y-3">
-          
-          <div className="p-3.5 bg-emerald-50/60 border border-emerald-200/80 rounded-xl flex items-center justify-between text-xs">
-            <div className="flex items-center gap-2.5">
-              <div className="p-2 bg-emerald-500 text-white rounded-lg">
-                <CheckCircle2 className="w-4 h-4" />
+        {/* Status Breakdown Cards */}
+        <div className="md:col-span-2 space-y-3 text-xs">
+          <div className="p-4 bg-emerald-50/90 border border-emerald-200 rounded-xl flex items-center justify-between shadow-sm">
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-emerald-600 text-white rounded-lg shadow-sm">
+                <Award className="w-4 h-4" />
               </div>
               <div>
-                <div className="font-bold text-slate-800">Verified Points</div>
-                <div className="text-[11px] text-slate-500">Confirmed by Case Manager</div>
+                <span className="font-black text-slate-900 block text-xs">Verified Points</span>
+                <span className="text-slate-600 font-medium text-[11px]">Confirmed & signed off by Case Manager</span>
               </div>
             </div>
-            <span className="font-black text-[#16a34a] text-sm">{verifiedPoints} Pts</span>
+            <span className="font-black text-emerald-700 text-base">{verifiedPoints} Pts</span>
           </div>
 
-          <div className="p-3.5 bg-amber-50/60 border border-amber-200/80 rounded-xl flex items-center justify-between text-xs">
-            <div className="flex items-center gap-2.5">
-              <div className="p-2 bg-amber-500 text-white rounded-lg">
+          <div className="p-4 bg-amber-50/90 border border-amber-200 rounded-xl flex items-center justify-between shadow-sm">
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-amber-500 text-white rounded-lg shadow-sm">
                 <Clock className="w-4 h-4" />
               </div>
               <div>
-                <div className="font-bold text-slate-800">Pending Verification</div>
-                <div className="text-[11px] text-slate-500">Job searches & interviews awaiting sign-off</div>
+                <span className="font-black text-slate-900 block text-xs">Pending Verification</span>
+                <span className="text-slate-600 font-medium text-[11px]">Job searches & interview practice awaiting sign-off</span>
               </div>
             </div>
-            <span className="font-black text-amber-600 text-sm">+{pendingPoints} Pts</span>
+            <span className="font-black text-amber-700 text-base">+{pendingPoints} Pts</span>
           </div>
 
-          <div className="p-3.5 bg-purple-50/60 border border-purple-200/80 rounded-xl flex items-center justify-between text-xs">
-            <div className="flex items-center gap-2.5">
-              <div className="p-2 bg-[#24083b] text-white rounded-lg">
-                <TrendingUp className="w-4 h-4" />
-              </div>
-              <div>
-                <div className="font-bold text-slate-800">Total Projected End-of-Month Status</div>
-                <div className="text-[11px] text-slate-500">Combined Verified + Submitted activities</div>
-              </div>
-            </div>
-            <span className="font-black text-[#24083b] text-sm">{totalProjected} / {targetPoints} Pts</span>
+          <div className="p-4 bg-[#24083b] text-white rounded-xl flex items-center justify-between shadow-md">
+            <span className="font-black text-xs">Combined Total Projected Claim</span>
+            <span className="font-black text-amber-300 text-base">{totalProjected} / {targetPoints} Pts</span>
           </div>
-
         </div>
 
       </div>
-
     </div>
   );
 };
