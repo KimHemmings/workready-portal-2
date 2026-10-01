@@ -23,7 +23,8 @@ import {
   PartyPopper,
   Sparkles,
   Zap,
-  Star
+  Star,
+  Download
 } from 'lucide-react';
 
 interface ActivityLog {
@@ -39,7 +40,7 @@ interface ActivityLog {
 
 export const ParticipantHome: React.FC = () => {
   const { candidates } = usePortal();
-  const activeCandidate = candidates[0]; // Active candidate profile from PortalContext
+  const activeCandidate = candidates[0];
 
   const programType = activeCandidate?.programType || 'workforce_australia';
   const isRtoGraduate = programType === 'rto_graduate';
@@ -101,12 +102,14 @@ export const ParticipantHome: React.FC = () => {
           const exists = prev.some((act) => act.id === recordToSync.id);
           if (exists) return prev;
 
+          const pointsAwarded = recordToSync.points || 0;
+
           const newStarActivity: ActivityLog = {
             id: recordToSync.id,
             type: 'Interview',
             title: `STAR Practice: ${recordToSync.jobRole} (${recordToSync.rubricScore || 'Completed Session'})`,
             reference: `STAR-${recordToSync.id.slice(-6).toUpperCase()}`,
-            points: isRtoGraduate ? 0 : 25,
+            points: isRtoGraduate ? 0 : pointsAwarded,
             status: 'Pending Verification',
             date: recordToSync.date || new Date().toLocaleDateString('en-AU'),
             reportData: recordToSync
@@ -252,7 +255,7 @@ export const ParticipantHome: React.FC = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3.5">
           <div className="flex flex-col md:flex-row items-center justify-between gap-4">
             
-            {/* SQUARE BOX LOGO BRANDING CONTAINER */}
+            {/* BRANDING CONTAINER */}
             <div className="flex items-center gap-4 shrink-0">
               <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl bg-white p-0.5 border-2 border-purple-200/80 shadow-md flex items-center justify-center shrink-0 overflow-hidden">
                 <img
@@ -284,10 +287,8 @@ export const ParticipantHome: React.FC = () => {
               </div>
             </div>
 
-            {/* HIGH-ENERGY CELEBRATION ACTION BUTTONS */}
+            {/* ACTION BUTTONS */}
             <div className="flex flex-wrap items-center gap-3 w-full md:w-auto">
-              
-              {/* I Got an Interview! Button */}
               <button
                 onClick={() => setShowInterviewModal(true)}
                 className="group relative flex-1 md:flex-none px-5 py-3 bg-gradient-to-r from-amber-400 via-amber-500 to-orange-500 hover:from-amber-300 hover:to-orange-400 text-slate-950 font-black text-xs sm:text-sm rounded-2xl shadow-xl shadow-amber-500/30 hover:shadow-amber-500/50 hover:-translate-y-1 hover:scale-105 transition-all duration-300 flex items-center justify-center gap-2.5 border-2 border-amber-300 overflow-hidden"
@@ -303,7 +304,6 @@ export const ParticipantHome: React.FC = () => {
                 </div>
               </button>
 
-              {/* I Got the Job! Button */}
               <button
                 onClick={() => setShowJobModal(true)}
                 className="group relative flex-1 md:flex-none px-6 py-3 bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-600 hover:from-emerald-400 hover:to-teal-400 text-white font-black text-xs sm:text-sm rounded-2xl shadow-xl shadow-emerald-500/30 hover:shadow-emerald-500/50 hover:-translate-y-1 hover:scale-105 transition-all duration-300 flex items-center justify-center gap-2.5 border-2 border-emerald-300/80 overflow-hidden"
@@ -321,7 +321,6 @@ export const ParticipantHome: React.FC = () => {
                 </div>
               </button>
 
-              {/* Sign Out Button */}
               <button
                 onClick={() => {
                   const url = new URL(window.location.href);
@@ -333,7 +332,6 @@ export const ParticipantHome: React.FC = () => {
               >
                 Sign Out
               </button>
-
             </div>
 
           </div>
@@ -471,8 +469,6 @@ export const ParticipantHome: React.FC = () => {
 
         {/* 3 MAIN ACTION NAVIGATION CARDS */}
         <section aria-label="Main Navigation" className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          
-          {/* CARD 1: LMS MODULES */}
           <button
             onClick={() => setActiveTab(1)}
             className={`group relative p-5 rounded-2xl text-left transition-all duration-200 shadow-sm hover:shadow-md ${
@@ -511,7 +507,6 @@ export const ParticipantHome: React.FC = () => {
             </div>
           </button>
 
-          {/* CARD 2: JOB READINESS TOOLKIT */}
           <button
             onClick={() => setActiveTab(2)}
             className={`group relative p-5 rounded-2xl text-left transition-all duration-200 shadow-sm hover:shadow-md ${
@@ -550,7 +545,6 @@ export const ParticipantHome: React.FC = () => {
             </div>
           </button>
 
-          {/* CARD 3: PLACEMENT & PROGRESS */}
           <button
             onClick={() => setActiveTab(3)}
             className={`group relative p-5 rounded-2xl text-left transition-all duration-200 shadow-sm hover:shadow-md ${
@@ -590,7 +584,6 @@ export const ParticipantHome: React.FC = () => {
               </p>
             </div>
           </button>
-
         </section>
 
         {/* Dynamic Tab Body Views */}
@@ -656,6 +649,7 @@ export const ParticipantHome: React.FC = () => {
                 </div>
               )}
 
+              {/* Activity Verification Log Table */}
               <div className="bg-white border border-slate-200 rounded-2xl p-6 space-y-4 shadow-sm">
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-3">
                   <div>
@@ -696,7 +690,15 @@ export const ParticipantHome: React.FC = () => {
                           <td className="p-3 font-bold text-slate-800">{act.type}</td>
                           <td className="p-3 text-slate-700">{act.title}</td>
                           <td className="p-3 font-mono text-slate-500 bg-slate-100/60 px-2 py-1 rounded w-max text-[11px]">{act.reference}</td>
-                          {!isRtoGraduate && <td className="p-3 font-bold text-emerald-600">+{act.points} Pts</td>}
+                          {!isRtoGraduate && (
+                            <td className="p-3 font-bold">
+                              {act.points > 0 ? (
+                                <span className="text-emerald-600">+{act.points} Pts</span>
+                              ) : (
+                                <span className="text-slate-400">0 Pts</span>
+                              )}
+                            </td>
+                          )}
                           <td className="p-3">
                             {act.status === 'Verified' ? (
                               <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
@@ -732,17 +734,19 @@ export const ParticipantHome: React.FC = () => {
         </div>
       </main>
 
-      {/* MODALS */}
+      {/* MODAL VIEW REPORT */}
       {selectedReport && (
-        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 z-50 font-sans">
           <div className="bg-white rounded-2xl p-6 max-w-2xl w-full space-y-5 shadow-2xl border border-slate-200 max-h-[90vh] overflow-y-auto">
+            
+            {/* Modal Header */}
             <div className="border-b border-slate-100 pb-4 flex justify-between items-start">
               <div>
                 <div className="flex items-center gap-2">
-                  <span className="px-2.5 py-0.5 bg-purple-100 text-purple-800 text-[10px] font-bold rounded-full uppercase">
-                    Official Session Log
+                  <span className="px-2.5 py-0.5 bg-purple-100 text-purple-800 text-[10px] font-bold rounded-full uppercase tracking-wider">
+                    Official Verification Log
                   </span>
-                  <span className="text-xs text-slate-400">{selectedReport.timestamp}</span>
+                  <span className="text-xs text-slate-400 font-medium">{selectedReport.timestamp || selectedReport.date}</span>
                 </div>
                 <h3 className="font-extrabold text-lg text-[#24083b] mt-1">
                   STAR Interview Evaluation • {selectedReport.jobRole}
@@ -756,22 +760,30 @@ export const ParticipantHome: React.FC = () => {
               </button>
             </div>
 
+            {/* Rubric Rating & Point Status */}
             <div className="p-4 bg-purple-50/70 border border-purple-200 rounded-xl space-y-2">
-              <div className="flex items-center justify-between text-xs font-bold text-purple-900">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1 text-xs font-bold text-purple-900">
                 <span>Rubric Rating: <strong className="text-emerald-700 text-sm">{selectedReport.rubricScore || 'Proficient STAR Execution'}</strong></span>
                 {!isRtoGraduate && (
-                  <span className="text-amber-700 bg-amber-100 px-2.5 py-0.5 rounded-full border border-amber-200 flex items-center gap-1">
-                    <Clock className="w-3 h-3" /> Pending Approval (+25 Pts)
-                  </span>
+                  selectedReport.points && selectedReport.points > 0 ? (
+                    <span className="text-emerald-800 bg-emerald-100 px-2.5 py-0.5 rounded-full border border-emerald-300 font-black text-[11px]">
+                      +25 PBAS Points Submitted (Pending CM Sign-off)
+                    </span>
+                  ) : (
+                    <span className="text-purple-800 bg-purple-100 px-2.5 py-0.5 rounded-full border border-purple-200 font-bold text-[11px]">
+                      Session {selectedReport.sessionNumber || 1}/3 Logged (0 Pts)
+                    </span>
+                  )
                 )}
               </div>
-              <ul className="list-disc list-inside text-xs text-slate-700 space-y-1 pt-1">
+              <ul className="list-disc list-inside text-xs text-slate-700 space-y-1 pt-1 font-medium">
                 {selectedReport.feedbackNotes?.map((note: string, idx: number) => (
                   <li key={idx}>{note}</li>
                 )) || <li>Completed scenario questions across key industry competencies.</li>}
               </ul>
             </div>
 
+            {/* STAR Scenario Breakdown */}
             <div className="space-y-3 text-xs">
               <h4 className="font-bold text-slate-800 uppercase tracking-wider text-[11px]">STAR Scenario Response Breakdown:</h4>
               
@@ -784,42 +796,344 @@ export const ParticipantHome: React.FC = () => {
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
                   <div className="bg-white p-3 rounded-lg border border-slate-200">
                     <span className="font-bold text-emerald-700 block mb-0.5">Situation & Context:</span>
-                    <p className="text-slate-600">{selectedReport.situation}</p>
+                    <p className="text-slate-600 font-medium">
+                      {selectedReport.situation || selectedReport.summaryReport?.detailedBreakdown?.[0]?.answer || "Context provided in response."}
+                    </p>
                   </div>
 
                   <div className="bg-white p-3 rounded-lg border border-slate-200">
                     <span className="font-bold text-emerald-700 block mb-0.5">Task Responsibility:</span>
-                    <p className="text-slate-600">{selectedReport.task}</p>
+                    <p className="text-slate-600 font-medium">
+                      {selectedReport.task || selectedReport.summaryReport?.detailedBreakdown?.[1]?.answer || "Role responsibility detailed."}
+                    </p>
                   </div>
 
                   <div className="bg-white p-3 rounded-lg border border-slate-200">
                     <span className="font-bold text-emerald-700 block mb-0.5">Personal Action Taken:</span>
-                    <p className="text-slate-600">{selectedReport.action}</p>
+                    <p className="text-slate-600 font-medium">
+                      {selectedReport.action || selectedReport.summaryReport?.detailedBreakdown?.[2]?.answer || "Proactive actions taken."}
+                    </p>
                   </div>
 
                   <div className="bg-white p-3 rounded-lg border border-slate-200">
                     <span className="font-bold text-emerald-700 block mb-0.5">Measurable Outcome / Result:</span>
-                    <p className="text-slate-600">{selectedReport.result}</p>
+                    <p className="text-slate-600 font-medium">
+                      {selectedReport.result || selectedReport.summaryReport?.detailedBreakdown?.[3]?.answer || "Positive outcome achieved."}
+                    </p>
                   </div>
                 </div>
               </div>
             </div>
 
-            <div className="flex items-center justify-between pt-3 border-t border-slate-100">
+            {/* Modal Actions Footer */}
+            <div className="flex flex-col sm:flex-row items-center justify-between gap-3 pt-3 border-t border-slate-100">
               <div className="flex items-center gap-1.5 text-xs text-slate-500 font-medium">
-                <UserCheck className="w-4 h-4 text-purple-700" /> Prepared for Consultant Review
+                <UserCheck className="w-4 h-4 text-purple-700" /> Prepared for Case Manager Verification
               </div>
-              <button
-                onClick={() => setSelectedReport(null)}
-                className="px-5 py-2 bg-[#24083b] text-white font-bold text-xs rounded-xl shadow-sm hover:bg-[#320b52] transition-all"
-              >
-                Close Report
-              </button>
+
+              <div className="flex items-center gap-2 w-full sm:w-auto justify-end">
+                <button
+                  type="button"
+                  onClick={() => {
+                    const printWindow = window.open('', '_blank');
+                    if (!printWindow) {
+                      alert("Please allow pop-ups to generate your PDF Evidence Report.");
+                      return;
+                    }
+
+                    const situationText = selectedReport.situation || selectedReport.summaryReport?.detailedBreakdown?.[0]?.answer || "Candidate described workplace context and environment.";
+                    const taskText = selectedReport.task || selectedReport.summaryReport?.detailedBreakdown?.[1]?.answer || "Candidate outlined role responsibilities and safety standards.";
+                    const actionText = selectedReport.action || selectedReport.summaryReport?.detailedBreakdown?.[2]?.answer || "Candidate executed proactive steps using team communication.";
+                    const resultText = selectedReport.result || selectedReport.summaryReport?.detailedBreakdown?.[3]?.answer || "Candidate achieved positive outcome with zero WHS incidents.";
+
+                    const candidateName = activeCandidate?.name || 'Alex Mercer';
+                    const timeStamp = selectedReport.timestamp || selectedReport.date || new Date().toLocaleString('en-AU');
+                    const jobRole = selectedReport.jobRole || 'Administration & Support';
+                    const rubricScore = selectedReport.rubricScore || selectedReport.summaryReport?.scoreText || 'Confident Communicator • High Professional Alignment';
+                    const pointsText = selectedReport.points > 0 ? '+25 PBAS Points Submitted' : `Session ${selectedReport.sessionNumber || 1}/3 Completed (0 Pts)`;
+
+                    const feedbackList = selectedReport.feedbackNotes || selectedReport.summaryReport?.keyTakeaways || [
+                      "Completed 8 scenario questions across key industry competencies.",
+                      "Used clear first-person ('I') statements to demonstrate personal accountability.",
+                      "Maintained strong alignment with Australian workplace WHS safety standards."
+                    ];
+
+                    const logoUrl = window.location.origin + '/logo.png';
+
+                    const htmlContent = `
+                      <!DOCTYPE html>
+                      <html>
+                      <head>
+                        <title>STAR Interview Practice Evidence - ${jobRole}</title>
+                        <style>
+                          @page {
+                            size: A4;
+                            margin: 12mm 15mm 12mm 15mm;
+                          }
+                          body { 
+                            font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, Arial, sans-serif; 
+                            color: #0f172a; 
+                            background: #ffffff;
+                            margin: 0; 
+                            padding: 0;
+                            -webkit-print-color-adjust: exact;
+                            print-color-adjust: exact;
+                          }
+                          .header-container { 
+                            display: flex; 
+                            justify-content: space-between; 
+                            align-items: center; 
+                            border-bottom: 3px solid #24083b; 
+                            padding-bottom: 16px; 
+                            margin-bottom: 20px; 
+                          }
+                          .logo-box {
+                            display: flex;
+                            align-items: center;
+                            gap: 12px;
+                          }
+                          .logo-img {
+                            width: 52px;
+                            height: 52px;
+                            object-fit: contain;
+                            border-radius: 8px;
+                            border: 1.5px solid #24083b;
+                            padding: 2px;
+                            background: #ffffff;
+                          }
+                          .brand-title { 
+                            font-size: 20px; 
+                            font-weight: 900; 
+                            color: #24083b; 
+                            letter-spacing: -0.5px;
+                            line-height: 1;
+                          }
+                          .brand-sub { 
+                            font-size: 11px; 
+                            font-weight: 800; 
+                            color: #16a34a; 
+                            text-transform: uppercase; 
+                            letter-spacing: 0.8px;
+                            margin-top: 4px;
+                          }
+                          .badge-pbas { 
+                            background: #dcfce7; 
+                            color: #15803d; 
+                            border: 1px solid #86efac;
+                            padding: 6px 14px; 
+                            border-radius: 20px; 
+                            font-weight: 900; 
+                            font-size: 11px; 
+                            display: inline-block;
+                          }
+                          .meta-card { 
+                            background: #f8fafc; 
+                            padding: 14px 18px; 
+                            border-radius: 12px; 
+                            border: 1px solid #e2e8f0; 
+                            margin-bottom: 22px; 
+                          }
+                          .meta-grid {
+                            display: grid; 
+                            grid-template-columns: repeat(2, 1fr); 
+                            gap: 12px 20px;
+                            font-size: 12px;
+                          }
+                          .meta-label { 
+                            font-weight: 800; 
+                            color: #64748b; 
+                            text-transform: uppercase; 
+                            font-size: 9.5px; 
+                            letter-spacing: 0.5px;
+                          }
+                          .meta-value { 
+                            font-weight: 800; 
+                            color: #0f172a; 
+                            margin-top: 2px;
+                            font-size: 12px;
+                          }
+                          .section-heading { 
+                            font-size: 12px; 
+                            font-weight: 900; 
+                            color: #24083b; 
+                            text-transform: uppercase; 
+                            letter-spacing: 0.6px;
+                            border-bottom: 2px solid #cbd5e1; 
+                            padding-bottom: 4px; 
+                            margin-top: 20px; 
+                            margin-bottom: 10px; 
+                          }
+                          .box-strength { 
+                            background: #f0fdf4; 
+                            border-left: 4px solid #16a34a; 
+                            padding: 12px 15px; 
+                            border-radius: 0 10px 10px 0; 
+                            margin-bottom: 14px; 
+                            font-size: 11.5px; 
+                            line-height: 1.55; 
+                          }
+                          .box-support { 
+                            background: #fffbeb; 
+                            border-left: 4px solid #f59e0b; 
+                            padding: 12px 15px; 
+                            border-radius: 0 10px 10px 0; 
+                            margin-bottom: 14px; 
+                            font-size: 11.5px; 
+                            line-height: 1.55; 
+                          }
+                          .box-title {
+                            font-weight: 800;
+                            margin-bottom: 4px;
+                            display: block;
+                          }
+                          .star-grid {
+                            display: grid;
+                            grid-template-columns: 1fr 1fr;
+                            gap: 10px;
+                            margin-top: 8px;
+                          }
+                          .star-card {
+                            background: #f8fafc;
+                            border: 1px solid #e2e8f0;
+                            padding: 10px 12px;
+                            border-radius: 8px;
+                            font-size: 11px;
+                            line-height: 1.45;
+                          }
+                          .star-card-title {
+                            font-weight: 800;
+                            color: #16a34a;
+                            display: block;
+                            margin-bottom: 3px;
+                            font-size: 10.5px;
+                            text-transform: uppercase;
+                          }
+                          .footer-note { 
+                            margin-top: 30px; 
+                            border-top: 1px solid #e2e8f0; 
+                            padding-top: 12px; 
+                            font-size: 9.5px; 
+                            text-align: center; 
+                            color: #64748b; 
+                            font-weight: 600;
+                          }
+                        </style>
+                      </head>
+                      <body>
+                        <div class="header-container">
+                          <div class="logo-box">
+                            <img src="${logoUrl}" class="logo-img" alt="Logo" onerror="this.style.display='none'" />
+                            <div>
+                              <div class="brand-title">STRAIGHT UP TRAINING</div>
+                              <div class="brand-sub">WorkReady Career & Employability Hub</div>
+                            </div>
+                          </div>
+                          <div>
+                            <span class="badge-pbas">${pointsText}</span>
+                          </div>
+                        </div>
+
+                        <div class="meta-card">
+                          <div class="meta-grid">
+                            <div>
+                              <div class="meta-label">Candidate Name</div>
+                              <div class="meta-value">${candidateName}</div>
+                            </div>
+                            <div>
+                              <div class="meta-label">Date & Time Stamp</div>
+                              <div class="meta-value">${timeStamp}</div>
+                            </div>
+                            <div>
+                              <div class="meta-label">Target Industry</div>
+                              <div class="meta-value">${jobRole}</div>
+                            </div>
+                            <div>
+                              <div class="meta-label">Performance Rubric Rating</div>
+                              <div class="meta-value" style="color: #15803d;">${rubricScore}</div>
+                            </div>
+                          </div>
+                        </div>
+
+                        <div class="section-heading">1. Identified Strengths (What Candidate Did Well)</div>
+                        <div class="box-strength">
+                          <span class="box-title" style="color: #14532d;">Key Demonstrated Strengths:</span>
+                          <ul style="margin: 0; padding-left: 18px;">
+                            ${feedbackList.map((f: string) => `<li style="margin-bottom: 3px;">${f}</li>`).join('')}
+                          </ul>
+                        </div>
+
+                        <div class="section-heading">2. Targeted Support & Growth Plan (With Reasoning)</div>
+                        <div class="box-support">
+                          <span class="box-title" style="color: #78350f;">Actionable Support Plan for Consultant Review:</span>
+                          <ul style="margin: 0; padding-left: 18px;">
+                            <li style="margin-bottom: 3px;"><strong>Quantifiable Outcome Data:</strong> Work with consultant to explicitly add measurable numbers/results (e.g. zero WHS hazards, shift time saved) to the 'Result' step.</li>
+                            <li style="margin-bottom: 3px;"><strong>Spontaneous Speech Practice:</strong> Utilize voice dictation in future studio sessions to build natural 60-second verbal responses for live employer panels.</li>
+                          </ul>
+                        </div>
+
+                        <div class="section-heading">3. STAR Scenario Response Breakdown</div>
+                        <div style="background: #ffffff; border: 1px solid #cbd5e1; padding: 12px; border-radius: 10px; margin-top: 8px;">
+                          <div style="font-weight: 800; font-size: 11.5px; color: #24083b;">
+                            Scenario: "${selectedReport.question || 'Behavioral Interview Practice Scenario'}"
+                          </div>
+
+                          <div class="star-grid">
+                            <div class="star-card">
+                              <span class="star-card-title">Situation & Context</span>
+                              ${situationText}
+                            </div>
+                            <div class="star-card">
+                              <span class="star-card-title">Task Responsibility</span>
+                              ${taskText}
+                            </div>
+                            <div class="star-card">
+                              <span class="star-card-title">Personal Action Taken</span>
+                              ${actionText}
+                            </div>
+                            <div class="star-card">
+                              <span class="star-card-title">Measurable Result</span>
+                              ${resultText}
+                            </div>
+                          </div>
+                        </div>
+
+                        <div class="footer-note">
+                          Official Verification Record • Straight Up Training WorkReady Portal • Time Stamp: ${timeStamp}
+                        </div>
+
+                        <script>
+                          window.onload = function() {
+                            setTimeout(function() {
+                              window.print();
+                            }, 300);
+                          };
+                        </script>
+                      </body>
+                      </html>
+                    `;
+
+                    printWindow.document.write(htmlContent);
+                    printWindow.document.close();
+                  }}
+                  className="px-4 py-2 bg-[#24083b] hover:bg-[#320b52] text-white font-black text-xs rounded-xl shadow-sm flex items-center gap-1.5 transition-all"
+                >
+                  <Download className="w-4 h-4 text-emerald-400" /> Download PDF Evidence
+                </button>
+
+                <button
+                  onClick={() => setSelectedReport(null)}
+                  className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs rounded-xl transition-all"
+                >
+                  Close
+                </button>
+              </div>
             </div>
+
           </div>
         </div>
       )}
 
+      {/* JOB SEARCH MODAL */}
       {showJobSearchModal && (
         <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm flex items-center justify-center p-4 z-50">
           <form onSubmit={handleSubmitJobSearch} className="bg-white rounded-2xl p-6 max-w-md w-full space-y-4 shadow-xl border border-slate-200">
@@ -852,6 +1166,7 @@ export const ParticipantHome: React.FC = () => {
         </div>
       )}
 
+      {/* JOB PLACEMENT MODAL */}
       {showJobModal && (
         <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm flex items-center justify-center p-4 z-50">
           <form onSubmit={handleReportJob} className="bg-white rounded-2xl p-6 max-w-md w-full space-y-4 shadow-xl border border-slate-200">
@@ -883,6 +1198,7 @@ export const ParticipantHome: React.FC = () => {
         </div>
       )}
 
+      {/* INTERVIEW MODAL */}
       {showInterviewModal && (
         <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm flex items-center justify-center p-4 z-50">
           <form onSubmit={handleReportInterview} className="bg-white rounded-2xl p-6 max-w-md w-full space-y-4 shadow-xl border border-slate-200">
@@ -914,6 +1230,7 @@ export const ParticipantHome: React.FC = () => {
         </div>
       )}
 
+      {/* SUPPORT HELP MODAL */}
       {showHelpModal && (
         <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm flex items-center justify-center p-4 z-50">
           <form onSubmit={handleRequestHelp} className="bg-white rounded-2xl p-6 max-w-md w-full space-y-4 shadow-xl border border-slate-200">
