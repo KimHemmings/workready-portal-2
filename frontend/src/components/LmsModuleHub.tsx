@@ -85,7 +85,8 @@ const CATEGORIES = [
 ];
 
 export const LmsModuleHub: React.FC<LmsModuleHubProps> = ({ onModuleCompleted, candidateId = 'CAN-101' }) => {
-  const { candidates } = usePortal();
+  const { candidates, activeContract } = usePortal();
+  const isWfa = activeContract === 'Workforce Australia';
   const activeCandidate = candidates.find((c) => c.id === candidateId) || candidates[0];
 
   const programType = activeCandidate?.programType || 'workforce_australia';
@@ -239,12 +240,17 @@ export const LmsModuleHub: React.FC<LmsModuleHubProps> = ({ onModuleCompleted, c
                   <span className="block text-xl font-black text-emerald-300">{Math.round(totalMinutesLogged / 60 * 10) / 10} hrs</span>
                   <span className="text-[10px] font-bold uppercase text-purple-200 tracking-wider">Logged Hours</span>
                 </>
-              ) : (
-                <>
-                  <span className="block text-xl font-black text-emerald-300">+{monthlyCappedPoints} / {MONTHLY_LMS_POINTS_CAP} Pts</span>
-                  <span className="text-[10px] font-bold uppercase text-purple-200 tracking-wider">Monthly Cap</span>
-                </>
-              )}
+              ) : isWfa ? (
+  <>
+    <span className="block text-xl font-black text-emerald-300">+{monthlyCappedPoints} / {MONTHLY_LMS_POINTS_CAP} Pts</span>
+    <span className="text-[10px] font-bold uppercase text-purple-200 tracking-wider">Monthly Cap</span>
+  </>
+) : (
+  <>
+    <span className="block text-xl font-black text-emerald-300">{Math.round((totalMinutesLogged / 60) * 10) / 10} hrs</span>
+    <span className="text-[10px] font-bold uppercase text-purple-200 tracking-wider">Logged Hours</span>
+  </>
+)}
             </div>
           </div>
         </div>
@@ -366,13 +372,13 @@ export const LmsModuleHub: React.FC<LmsModuleHubProps> = ({ onModuleCompleted, c
                     </span>
                     
                     {!isRtoGraduate && (
-                      <span className={`flex items-center gap-1 font-extrabold ${
-                        isLocked ? 'text-slate-400 line-through' : 'text-emerald-700'
-                      }`}>
-                        <Zap className="w-3.5 h-3.5 fill-current" /> 
-                        {isTtW ? `20m Credit` : `+${mod.pbasPoints} Pts`}
-                      </span>
-                    )}
+  <span className={`flex items-center gap-1 font-extrabold ${
+    isLocked ? 'text-slate-400 line-through' : 'text-emerald-700'
+  }`}>
+    <Zap className="w-3.5 h-3.5 fill-current" /> 
+    {isWfa ? `+${mod.pbasPoints} Pts` : `${mod.estimatedMins || 20}m Credit`}
+  </span>
+)}
                   </div>
 
                   {isCompleted ? (

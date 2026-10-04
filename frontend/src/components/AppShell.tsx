@@ -1,6 +1,7 @@
 ﻿import React from 'react';
 import { Link, useLocation, useNavigate, Outlet } from 'react-router-dom';
 import { useQueryClient } from '@tanstack/react-query';
+import { usePortal } from '../context/PortalContext';
 import {
   LogOut,
   User as UserIcon,
@@ -46,6 +47,7 @@ export default function AppShell({ children }: AppShellProps) {
   const location = useLocation();
   const navigate = useNavigate();
   const qc = useQueryClient();
+  const { resetSandboxState } = usePortal();
 
   const user = getSessionUser();
   const impersonator = getImpersonator();
@@ -54,6 +56,7 @@ export default function AppShell({ children }: AppShellProps) {
   const navList = NAV_ITEMS[userRole] || NAV_ITEMS.participant;
 
   const handleLogout = () => {
+    resetSandboxState(); // Clears all demo state back to baseline on full sign-out!
     endSession(qc);
     navigate('/login');
   };
@@ -125,8 +128,3 @@ export default function AppShell({ children }: AppShellProps) {
     </div>
   );
 }
-
-
-
-
-

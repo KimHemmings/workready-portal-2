@@ -222,17 +222,16 @@ export default function Interview() {
 
         // Inject completion evidence directly into Casey's verification feed
         if (addVerificationItem && user) {
-          addVerificationItem({
-            candidateId: user.id || 'CAN-101',
-            candidateName: user.name || 'Alex Mercer',
-            activityType: 'Interview',
-            title: `AI Mock Interview Assessment — ${data.job_target || 'Entry Level Role'}`,
-            refId: `INT-${Math.floor(100000 + Math.random() * 900000)}`,
-            points: 25,
-            notes: `Completed 8-question mock interview for ${data.job_target || 'target role'}. Score: ${calibratedScore}/100. Core skills & STAR framework evaluated.`,
-            evidenceFileName: `Interview_Scorecard_${(data.job_target || 'Role').replace(/\W+/g, '_')}.pdf`,
-          });
-        }
+  addVerificationItem({
+    candidateId: user.id || 'CAN-101',
+    candidateName: user.name || 'Alex Mercer',
+    type: 'STAR Interview', // Updated to exact union literal expected by VerificationItem
+    title: `AI Mock Interview Assessment – ${data.job_target || 'Entry Level Role'}`,
+    points: 25,
+    status: 'Pending',
+    details: `Completed 8-question mock interview for ${data.job_target || 'target role'}.`,
+  });
+}
 
         qc.invalidateQueries({ queryKey: ["interview-history"] });
         qc.invalidateQueries({ queryKey: ["participant-dashboard"] });

@@ -1,9 +1,9 @@
 ﻿import React, { useState, useEffect } from 'react';
 import { usePortal } from '../context/PortalContext';
-import type { VerificationItem, CandidateProfile } from '../lib/types';
+import type { Candidate, VerificationItem } from '../context/PortalContext';
 import { 
   Users, CheckCircle2, Search, Filter, History, LogOut, Check, ChevronRight, Eye,
-  Award, Briefcase, Calendar, Sparkles, MessageSquare, AlertCircle, FileText, CheckSquare, X, Send, Clock,
+  Award, Calendar, Sparkles, MessageSquare, X, Send,
   ChevronDown, ChevronUp, UserCheck, UserX
 } from 'lucide-react';
 
@@ -28,8 +28,7 @@ export default function CoachDashboard() {
   const {
     candidates,
     verificationItems,
-    approveVerification,
-    declineVerification,
+    updateVerificationStatus,
   } = usePortal();
 
   const [currentCoachName] = useState('Casey Smith');
@@ -37,7 +36,7 @@ export default function CoachDashboard() {
   const [activeTab, setActiveTab] = useState<'pending' | 'roster' | 'audit'>('pending');
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedEvidence, setSelectedEvidence] = useState<VerificationItem | null>(null);
-  const [inspectCandidate, setInspectCandidate] = useState<CandidateProfile | null>(null);
+  const [inspectCandidate, setInspectCandidate] = useState<Candidate | null>(null);
 
   // Away Status Toggle State
   const [isAway, setIsAway] = useState<boolean>(() => {
@@ -48,7 +47,7 @@ export default function CoachDashboard() {
   const [expandedCandidates, setExpandedCandidates] = useState<Record<string, boolean>>({});
 
   // Drawer Messaging State
-  const [messagingCandidate, setMessagingCandidate] = useState<CandidateProfile | null>(null);
+  const [messagingCandidate, setMessagingCandidate] = useState<Candidate | null>(null);
   const [messageInput, setMessageInput] = useState('');
   const [messages, setMessages] = useState<Message[]>([
     { id: '1', sender: 'candidate', text: 'Hi Casey, I submitted my interview evidence for review!', timestamp: '10:15 AM' },
@@ -161,26 +160,26 @@ export default function CoachDashboard() {
   };
 
   const handleApprove = (item: VerificationItem) => {
-    approveVerification(item.id);
+    updateVerificationStatus(item.id, 'Verified');
     addAuditEntry(item.candidateName, `Approved ${item.title} (+${item.points} Pts)`);
     setSelectedEvidence(null);
   };
 
   const handleDecline = (item: VerificationItem) => {
-    declineVerification(item.id);
+    updateVerificationStatus(item.id, 'Rejected');
     addAuditEntry(item.candidateName, `Declined ${item.title}`);
     setSelectedEvidence(null);
   };
 
-  const filteredCandidates = candidates.filter((c: CandidateProfile) => {
+  const filteredCandidates = candidates.filter((c) => {
     const matchesSearch = c.name.toLowerCase().includes(searchTerm.toLowerCase());
-    if (selectedCaseload === 'casey') return matchesSearch && (c.id === 'alex' || c.name.includes('Alex'));
-    if (selectedCaseload === 'jordan') return matchesSearch && c.id !== 'alex';
+    if (selectedCaseload === 'casey') return matchesSearch && (c.id === 'c1' || c.name.includes('Alex'));
+    if (selectedCaseload === 'jordan') return matchesSearch && c.id !== 'c1';
     return matchesSearch;
   });
 
-  const pendingItems = verificationItems.filter((v: VerificationItem) => v.status === 'Pending');
-  const victoryItems = pendingItems.filter(v => v.activityType === 'Job Placement' || v.activityType === 'Interview');
+  const pendingItems = verificationItems.filter((v) => v.status === 'Pending');
+  const victoryItems = pendingItems.filter(v => v.type === 'Job Placement' || v.type === 'Interview Claim' || v.type === 'STAR Interview');
 
   return (
     <div className="min-h-screen bg-slate-50 text-slate-900 font-sans">
@@ -338,7 +337,7 @@ export default function CoachDashboard() {
                   <div>
                     <span className="font-bold text-white">{item.candidateName}</span>
                     <span className="text-emerald-200 ml-2">({item.title})</span>
-                    <p className="text-[11px] text-emerald-100">{item.notes}</p>
+                    <p className="text-[11px] text-emerald-100">{item.details || 'Submitted for verification.'}</p>
                   </div>
                   <button
                     onClick={() => setSelectedEvidence(item)}
@@ -366,7 +365,7 @@ export default function CoachDashboard() {
               </div>
             ) : (
               <div className="grid grid-cols-1 gap-4">
-                {pendingItems.map((item: VerificationItem) => (
+                {pendingItems.map((item) => (
                   <div key={item.id} className="bg-white rounded-2xl p-5 border border-slate-200 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4 hover:border-purple-300 transition-all">
                     <div className="space-y-1">
                       <div className="flex items-center space-x-2">
@@ -376,10 +375,10 @@ export default function CoachDashboard() {
                         <span className="px-2 py-0.5 bg-emerald-100 text-emerald-800 font-extrabold text-xs rounded-md">
                           +{item.points} PBAS Pts
                         </span>
-                        <span className="text-xs text-slate-400">{item.dateSubmitted}</span>
+                        <span className="text-xs text-slate-400">{item.submittedDate}</span>
                       </div>
                       <h4 className="font-bold text-slate-900 text-base">{item.title}</h4>
-                      <p className="text-xs text-slate-600">{item.notes || 'Submitted for verification.'}</p>
+                      <p className="text-xs text-slate-600">{item.details || 'Submitted for verification.'}</p>
                     </div>
 
                     <div className="flex items-center space-x-2">
@@ -431,7 +430,7 @@ export default function CoachDashboard() {
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {filteredCandidates.map((candidate: CandidateProfile) => {
+              {filteredCandidates.map((candidate) => {
                 const isExpanded = expandedCandidates[candidate.id] ?? true;
 
                 return (
@@ -441,7 +440,7 @@ export default function CoachDashboard() {
                         <h4 className="font-extrabold text-slate-900 text-base flex items-center space-x-2">
                           <span>{candidate.name}</span>
                         </h4>
-                        <p className="text-xs text-slate-500">{candidate.email} • WA ID: WA-882194</p>
+                        <p className="text-xs text-slate-500">{candidate.email} • WA ID: {candidate.waId || 'WA-882194'}</p>
                       </div>
                       <span className="px-2.5 py-1 bg-emerald-50 text-emerald-700 border border-emerald-200 font-bold text-xs rounded-full">
                         {candidate.status}
@@ -484,23 +483,23 @@ export default function CoachDashboard() {
                             <div className="grid grid-cols-5 gap-1.5 text-center font-bold text-[10px]">
                               <div className="bg-purple-100 text-purple-900 p-1.5 rounded">
                                 <div>Job Search</div>
-                                <div className="text-xs text-purple-950">{candidate.fivePillars.jobSearch}%</div>
+                                <div className="text-xs text-purple-950">{candidate.fivePillars.jobSearch || candidate.fivePillars.resume}%</div>
                               </div>
                               <div className="bg-emerald-100 text-emerald-900 p-1.5 rounded">
                                 <div>Interview</div>
-                                <div className="text-xs text-emerald-950">{candidate.fivePillars.interviewReadiness}%</div>
+                                <div className="text-xs text-emerald-950">{candidate.fivePillars.interview}%</div>
                               </div>
                               <div className="bg-blue-100 text-blue-900 p-1.5 rounded">
                                 <div>Skills</div>
-                                <div className="text-xs text-blue-950">{candidate.fivePillars.technicalSkills}%</div>
+                                <div className="text-xs text-blue-950">{candidate.fivePillars.skills || candidate.fivePillars.digital}%</div>
                               </div>
                               <div className="bg-amber-100 text-amber-900 p-1.5 rounded">
                                 <div>Logistics</div>
-                                <div className="text-xs text-amber-950">{candidate.fivePillars.logistics}%</div>
+                                <div className="text-xs text-amber-950">{candidate.fivePillars.logistics || candidate.fivePillars.whs}%</div>
                               </div>
                               <div className="bg-rose-100 text-rose-900 p-1.5 rounded">
                                 <div>Mindset</div>
-                                <div className="text-xs text-rose-950">{candidate.fivePillars.mindset}%</div>
+                                <div className="text-xs text-rose-950">{candidate.fivePillars.mindset || candidate.fivePillars.careerPlan}%</div>
                               </div>
                             </div>
                           </div>
@@ -699,7 +698,7 @@ export default function CoachDashboard() {
             <div className="flex items-center justify-between border-b border-slate-100 pb-3">
               <div>
                 <h3 className="font-extrabold text-slate-900 text-base">{inspectCandidate.name} — Candidate Evidence Locker</h3>
-                <p className="text-xs text-slate-500">WA ID: WA-882194 • {inspectCandidate.email}</p>
+                <p className="text-xs text-slate-500">WA ID: {inspectCandidate.waId || 'WA-882194'} • {inspectCandidate.email}</p>
               </div>
               <button onClick={() => setInspectCandidate(null)} className="text-slate-400 hover:text-slate-600 font-bold text-lg">
                 <X className="w-5 h-5" />
@@ -773,7 +772,7 @@ export default function CoachDashboard() {
               </div>
               <div className="p-3 bg-slate-50 rounded-xl border border-slate-200 text-slate-700">
                 <p className="font-semibold mb-1 text-slate-900">Submitted Notes / Details:</p>
-                {selectedEvidence.notes || 'No additional notes provided.'}
+                {selectedEvidence.details || 'No additional notes provided.'}
               </div>
             </div>
 

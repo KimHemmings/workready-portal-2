@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { usePortal } from '../context/PortalContext';
-import type { CandidateProfile, VerificationItem } from '../lib/types';
+import type { Candidate, VerificationItem } from '../context/PortalContext';
 import { 
   BarChart3, Users, ShieldCheck, Download, LogOut, 
   Sparkles, TrendingUp, UserPlus, X, PlusCircle
@@ -97,25 +97,26 @@ export default function OwnerDashboard() {
 
   // Executive KPI Calculations
   const totalCandidates = candidates.length;
-  const compliantCandidates = candidates.filter((c: CandidateProfile) => c.status === 'Compliant' || c.status === 'On Track').length;
+  const compliantCandidates = candidates.filter((c: Candidate) => c.status === 'On Track' || c.status === 'Exempt').length;
   const overallComplianceRate = totalCandidates > 0 ? Math.round((compliantCandidates / totalCandidates) * 100) : 100;
 
-  const totalVerifiedPoints = candidates.reduce((acc: number, c: CandidateProfile) => acc + (c.pbasVerified || 0), 0);
-  const totalTargetPoints = candidates.reduce((acc: number, c: CandidateProfile) => acc + (c.pbasTarget || 100), 0);
+  const totalVerifiedPoints = candidates.reduce((acc: number, c: Candidate) => acc + (c.pbasVerified || c.verifiedPoints || 0), 0);
+  const totalTargetPoints = candidates.reduce((acc: number, c: Candidate) => acc + (c.pbasTarget || 100), 0);
 
-  const verifiedPlacements = verificationItems.filter((v: VerificationItem) => v.activityType === 'Job Placement' && v.status === 'Approved').length;
-  const verifiedInterviews = verificationItems.filter((v: VerificationItem) => v.activityType === 'Interview' && v.status === 'Approved').length;
+  const verifiedPlacements = verificationItems.filter((v: VerificationItem) => v.type === 'Job Placement' && v.status === 'Verified').length;
+  const verifiedInterviews = verificationItems.filter((v: VerificationItem) => (v.type === 'Interview Claim' || v.type === 'STAR Interview') && v.status === 'Verified').length;
 
   // Aggregate 5 Pillars Diagnostic Averages
   const aggregatePillars = candidates.reduce(
-    (acc, c: CandidateProfile) => {
-      if (!c.fivePillars) return acc;
+    (acc, c: Candidate) => {
+      const pillars = c.fivePillars;
+      if (!pillars) return acc;
       return {
-        jobSearch: acc.jobSearch + c.fivePillars.jobSearch,
-        interview: acc.interview + c.fivePillars.interviewReadiness,
-        skills: acc.skills + c.fivePillars.technicalSkills,
-        logistics: acc.logistics + c.fivePillars.logistics,
-        mindset: acc.mindset + c.fivePillars.mindset,
+        jobSearch: acc.jobSearch + (pillars.jobSearch ?? pillars.resume ?? 0),
+        interview: acc.interview + (pillars.interview ?? 0),
+        skills: acc.skills + (pillars.skills ?? pillars.whs ?? 0),
+        logistics: acc.logistics + (pillars.logistics ?? pillars.digital ?? 0),
+        mindset: acc.mindset + (pillars.mindset ?? pillars.careerPlan ?? 0),
       };
     },
     { jobSearch: 0, interview: 0, skills: 0, logistics: 0, mindset: 0 }
@@ -131,7 +132,7 @@ export default function OwnerDashboard() {
 
   const handleExportDEWRReport = () => {
     const headers = ['Candidate Name', 'Email', 'Status', 'PBAS Verified Points', 'PBAS Target', 'Compliance %'];
-    const rows = candidates.map((c: CandidateProfile) => [
+    const rows = candidates.map((c: Candidate) => [
       `"${c.name}"`,
       `"${c.email}"`,
       `"${c.status}"`,

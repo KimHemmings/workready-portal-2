@@ -331,9 +331,6 @@ export const ResumeBuilder: React.FC<{ maxAttempts?: number }> = () => {
         <div>
           <div className="flex items-center gap-2">
             <h2 className="text-xl font-black text-white">ATS Resume & Cover Letter Studio</h2>
-            <span className="px-3 py-0.5 bg-amber-300 text-slate-950 text-xs font-black rounded-full shadow-sm">
-              LLND Guided
-            </span>
           </div>
           <p className="text-xs text-purple-200 mt-1 font-medium">
             Step-by-step guidance to build clear, employer-ready resumes and personalized cover letters.

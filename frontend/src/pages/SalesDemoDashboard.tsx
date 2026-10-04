@@ -2,10 +2,11 @@ import React, { useState } from 'react';
 import ParticipantHome from './ParticipantHome';
 import CaseManager from './CaseManager';
 import OwnerDashboard from './OwnerDashboard';
+import { usePortal } from '../context/PortalContext';
 import { 
   Sparkles, Calculator, Presentation, ShieldCheck, 
   Users, LogOut, Briefcase, X, Maximize2, Lightbulb,
-  ChevronRight, CheckCircle2, XCircle
+  ChevronRight, CheckCircle2, XCircle, RotateCcw
 } from 'lucide-react';
 
 type MarketSegment = 'workforce_au' | 'des' | 'parentsnext_ttw' | 'rto_tafe';
@@ -35,15 +36,15 @@ const MARKET_PRESETS: Record<MarketSegment, MarketConfig> = {
     objectionTip: 'WFA outcome fees average $2,800–$3,500. Focus on how 1-click approvals free up Case Managers to focus on job placement.',
   },
   des: {
-    name: 'Disability Employment Services (DES)',
-    badge: 'DES / Ongoing Support',
+    name: 'Inclusive Employment Australia (IEA)',
+    badge: 'IEA / Ongoing Support',
     avgOutcomeFee: 4500,
     adminHoursSavedPerStaff: 8.0,
     metricLabel: 'Participant Benchmark Hours Logged',
     feeLabel: 'Avg. Sustained Outcome Fee',
     complianceLabel: 'Ongoing Support Retention Rate',
-    repHook: 'DES providers lose up to 18% of outcome claims due to incomplete hours tracking. Our mobile log solves that instantly.',
-    objectionTip: 'DES outcome claims average $4,000–$6,000. Highlight how easy it is for participants to submit flexible work hours logs from their phones.',
+    repHook: 'IEA providers lose up to 18% of outcome claims due to incomplete hours tracking. Our mobile log solves that instantly.',
+    objectionTip: 'IEA outcome claims average $4,000–$6,000. Highlight how easy it is for participants to submit flexible work hours logs from their phones.',
   },
   parentsnext_ttw: {
     name: 'Transition to Work / ParentsNext',
@@ -70,6 +71,8 @@ const MARKET_PRESETS: Record<MarketSegment, MarketConfig> = {
 };
 
 export function SalesDemoDashboard() {
+  const { setActiveContract, resetSandboxState } = usePortal();
+
   const [selectedMarket, setSelectedMarket] = useState<MarketSegment>('workforce_au');
   const activePreset = MARKET_PRESETS[selectedMarket];
 
@@ -86,12 +89,17 @@ export function SalesDemoDashboard() {
   // State for rendering full, live interactive profile pages inside full-screen demo viewports
   const [activeFullDemoRole, setActiveFullDemoRole] = useState<'participant' | 'coach' | 'owner' | null>(null);
 
-  // Sync custom fee default whenever market selection changes
+  // Sync custom fee default & global contract framework whenever market selection changes
   const handleMarketChange = (market: MarketSegment) => {
     setSelectedMarket(market);
     setCustomOutcomeFee(MARKET_PRESETS[market].avgOutcomeFee);
-  };
 
+    // Update global contract framework in PortalContext
+    if (market === 'workforce_au') setActiveContract('Workforce Australia');
+    else if (market === 'des') setActiveContract('Inclusive Employment Australia (IEA)' as any);
+    else if (market === 'parentsnext_ttw') setActiveContract('TtW');
+    else if (market === 'rto_tafe') setActiveContract('RTO');
+  };
   // Dynamic Calculations
   const projectedPlacementRate = Math.min(85, currentPlacementRate + 25);
   const additionalPlacements = Math.round((caseloadSize * (projectedPlacementRate - currentPlacementRate)) / 100);
@@ -99,6 +107,7 @@ export function SalesDemoDashboard() {
   const totalWeeklyHoursSaved = Math.round(activePreset.adminHoursSavedPerStaff * avgStaffCount);
 
   const handleSignOut = () => {
+    resetSandboxState();
     const url = new URL(window.location.href);
     url.searchParams.delete('role');
     window.history.pushState({}, '', url.pathname);
@@ -187,7 +196,20 @@ export function SalesDemoDashboard() {
             </div>
           </div>
 
-          <div className="flex items-center space-x-3">
+          <div className="flex items-center space-x-3 flex-wrap">
+            {/* RESET DEMO STATE BUTTON (EXCLUSIVELY FOR SALES PAGE) */}
+            <button
+              onClick={() => {
+                resetSandboxState();
+                alert('↺ Demo state reset! Baseline points and mock interview runs restored for new presentation.');
+              }}
+              className="px-3.5 py-1.5 bg-purple-800/80 hover:bg-purple-700 border border-purple-400/40 text-white text-xs font-extrabold rounded-xl transition-all flex items-center space-x-1.5 shadow-sm"
+              title="Reset sandbox state back to pristine defaults for a new provider demonstration"
+            >
+              <RotateCcw className="w-3.5 h-3.5 text-amber-300" />
+              <span>↺ Reset Demo State</span>
+            </button>
+
             <button
               onClick={() => setShowDemoDrawer(true)}
               className="px-3.5 py-1.5 bg-amber-500 hover:bg-amber-600 border border-amber-400/40 text-purple-950 text-xs font-extrabold rounded-xl transition-all flex items-center space-x-1.5 shadow-sm"

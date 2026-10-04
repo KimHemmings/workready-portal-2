@@ -42,23 +42,26 @@ interface ActivityLog {
   title: string;
   reference: string;
   points: number;
+  hours: number; // Universal Activity Hours Logged
   status: 'Pending Verification' | 'Verified';
   date: string;
   reportData?: any;
 }
 
 export const ParticipantHome: React.FC = () => {
-  const { candidates } = usePortal();
+  const { candidates, activeContract, addOutcomeClaim } = usePortal();
   const activeCandidate = candidates[0];
 
-  const programType = activeCandidate?.programType || 'workforce_australia';
-  const isRtoGraduate = programType === 'rto_graduate';
-  const isTtW = programType === 'ttw';
+  // Contract Framework Alignment Helpers
+  const isWfa = activeContract === 'Workforce Australia';
+  const isTtW = activeContract === 'TtW';
+  const isDes = (activeContract as string) === 'Inclusive Employment Australia (IEA)' || activeContract === 'DES';
+const isIea = isDes;
+  const isRto = activeContract === 'RTO';
 
-  // Licensee Co-Branding Partner Name
+  // Dynamic Provider / Co-Branding Title
   const licenseeName = (activeCandidate as any)?.licenseePartnerName || 
-    (isRtoGraduate ? 'Graduate Pathways Network' : isTtW ? 'Youth Transition Partner' : 'Workforce Australia Provider');
-
+  (isRto ? 'Graduate Pathways Network' : isTtW ? 'Youth Transition Partner' : isIea ? 'Inclusive Employment Partner' : 'Workforce Australia Provider');
   const [activeTab, setActiveTab] = useState<number>(3);
   const [verifiedPoints, setVerifiedPoints] = useState<number>(activeCandidate?.pbasVerified ?? 45);
   const targetPoints = activeCandidate?.pbasTarget ?? 100;
@@ -91,7 +94,8 @@ export const ParticipantHome: React.FC = () => {
       type: 'LMS Module',
       title: 'WHS Fundamentals & Safe Work Practices',
       reference: 'MOD-WHS-01',
-      points: isRtoGraduate ? 0 : 10,
+      points: 10,
+      hours: 2.0,
       status: 'Verified',
       date: '10/09/2026',
       reportData: {
@@ -112,7 +116,8 @@ export const ParticipantHome: React.FC = () => {
       type: 'Job Search',
       title: 'Warehouse Assistant — Logistics Co',
       reference: 'JOB-98231',
-      points: isRtoGraduate ? 0 : 5,
+      points: 5,
+      hours: 1.0,
       status: 'Pending Verification',
       date: '14/09/2026',
       reportData: {
@@ -143,14 +148,15 @@ export const ParticipantHome: React.FC = () => {
           const exists = prev.some((act) => act.id === recordToSync.id);
           if (exists) return prev;
 
-          const pointsAwarded = recordToSync.points || 0;
+          const pointsAwarded = recordToSync.points || 25;
 
           const newStarActivity: ActivityLog = {
             id: recordToSync.id,
             type: recordToSync.type || (recordToSync.question?.includes('Resume') ? 'Resume Tailoring' : 'Interview'),
             title: recordToSync.question || recordToSync.title || `STAR Practice: ${recordToSync.jobRole}`,
             reference: `EVID-${recordToSync.id.slice(-6).toUpperCase()}`,
-            points: isRtoGraduate ? 0 : pointsAwarded,
+            points: pointsAwarded,
+            hours: 2.5, // Standard 2.5 Hours for 3-run STAR Interview simulator
             status: recordToSync.status?.includes('Pending') ? 'Pending Verification' : 'Verified',
             date: recordToSync.date || new Date().toLocaleDateString('en-AU'),
             reportData: recordToSync
@@ -167,7 +173,7 @@ export const ParticipantHome: React.FC = () => {
 
     window.addEventListener('starHistoryUpdated', syncStarActivityLog);
     return () => window.removeEventListener('starHistoryUpdated', syncStarActivityLog);
-  }, [isRtoGraduate]);
+  }, []);
 
   const [showJobModal, setShowJobModal] = useState<boolean>(false);
   const [showInterviewModal, setShowInterviewModal] = useState<boolean>(false);
@@ -192,7 +198,8 @@ export const ParticipantHome: React.FC = () => {
       type: 'LMS Module',
       title: `Completed Module #${moduleId}`,
       reference: `AUTO-${moduleId}`,
-      points: isRtoGraduate ? 0 : points,
+      points: points,
+      hours: 2.0,
       status: 'Verified',
       date: new Date().toLocaleDateString('en-AU'),
       reportData: {
@@ -204,7 +211,7 @@ export const ParticipantHome: React.FC = () => {
       }
     };
     setActivities((prev) => [newAct, ...prev]);
-    if (!isRtoGraduate) {
+    if (isWfa) {
       setVerifiedPoints((prev) => Math.min(prev + points, targetPoints));
     }
   };
@@ -220,7 +227,8 @@ export const ParticipantHome: React.FC = () => {
       type: 'Employability Assessment',
       title: `Goal & Motivation Studio — [${finalWhy}]`,
       reference: `GOAL-${new Date().getMonth() + 1}-2026`,
-      points: isRtoGraduate ? 0 : 10,
+      points: 10,
+      hours: 1.0,
       status: 'Pending Verification',
       date: new Date().toLocaleDateString('en-AU'),
       reportData: {
@@ -249,7 +257,8 @@ export const ParticipantHome: React.FC = () => {
       type: 'Job Search',
       title: `${jsRole} — ${jsEmployer}`,
       reference: jsRef || 'Ref Pending',
-      points: isRtoGraduate ? 0 : 5,
+      points: 5,
+      hours: 1.0,
       status: 'Pending Verification',
       date: new Date().toLocaleDateString('en-AU'),
       reportData: {
@@ -264,19 +273,28 @@ export const ParticipantHome: React.FC = () => {
     setActivities((prev) => [newAct, ...prev]);
     setShowJobSearchModal(false);
     setJsEmployer(''); setJsRole(''); setJsRef('');
-    alert(isRtoGraduate 
-      ? "✨ Job search logged in your portfolio!" 
-      : "✨ Job search logged! Status: Pending Verification by your Case Manager.");
+    alert("✨ Job search effort logged in your activity trail!");
   };
 
   const handleReportJob = (e: React.FormEvent) => {
-    e.preventDefault();
+  e.preventDefault();
+  addOutcomeClaim({
+    candidateId: activeCandidate?.id || 'c1',
+    candidateName: activeCandidate?.name || 'Alex Mercer',
+    type: 'Job Placement',
+    employer: jobEmployer,
+    role: jobRole,
+    hourlyRate: '28.50',
+    points: 50,
+  });
+
     const newAct: ActivityLog = {
       id: Date.now().toString(),
       type: 'Job Placement',
       title: `${jobRole} — ${jobEmployer}`,
       reference: jobRef || 'Placement Ref',
-      points: isRtoGraduate ? 0 : 50,
+      points: 50,
+      hours: 38.0, // Full-Time / Part-Time Placement
       status: 'Pending Verification',
       date: new Date().toLocaleDateString('en-AU'),
       reportData: {
@@ -295,13 +313,23 @@ export const ParticipantHome: React.FC = () => {
   };
 
   const handleReportInterview = (e: React.FormEvent) => {
-    e.preventDefault();
+  e.preventDefault();
+  addOutcomeClaim({
+    candidateId: activeCandidate?.id || 'c1',
+    candidateName: activeCandidate?.name || 'Alex Mercer',
+    type: 'Interview',
+    employer: intEmployer,
+    role: intRole,
+    points: 25,
+  });
+
     const newAct: ActivityLog = {
       id: Date.now().toString(),
       type: 'Interview',
       title: `Real Employer Interview: ${intRole} — ${intEmployer}`,
       reference: intRef || 'Interview Ref',
-      points: isRtoGraduate ? 0 : 25,
+      points: 25,
+      hours: 2.5,
       status: 'Pending Verification',
       date: new Date().toLocaleDateString('en-AU'),
       reportData: {
@@ -316,77 +344,76 @@ export const ParticipantHome: React.FC = () => {
     setActivities((prev) => [newAct, ...prev]);
     setShowInterviewModal(false);
     setIntEmployer(''); setIntRole(''); setIntRef('');
-    alert("💼 Real employer interview reported (+25 PBAS Points Submitted for Case Manager Verification)!");
+    alert("💼 Real employer interview reported and submitted for Case Manager verification!");
   };
 
   const handleRequestHelp = (e: React.FormEvent) => {
     e.preventDefault();
     setShowHelpModal(false);
-    alert("💬 High-priority support request sent.");
+    alert("💬 High-priority support request sent to your Case Manager.");
   };
 
   const pendingPoints = activities
     .filter((a) => a.status === 'Pending Verification')
     .reduce((sum, a) => sum + a.points, 0);
 
+  const totalLoggedHours = activities.reduce((sum, a) => sum + (a.hours || 0), 0);
+
   return (
     <div className="min-h-screen bg-slate-100/80 text-slate-900 pb-16 font-sans">
       
-      {/* HEADER BANNER */}
+     {/* HEADER BANNER */}
       <header className="bg-gradient-to-r from-[#1c0630] via-[#2a0945] to-[#1c0630] text-white shadow-xl border-b border-purple-900/60 sticky top-0 z-40">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3.5">
           <div className="flex flex-col md:flex-row items-center justify-between gap-4">
             
-            {/* BRANDING CONTAINER WITH CO-BRANDING */}
+            {/* BRANDING */}
             <div className="flex items-center gap-4 shrink-0">
               <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl bg-white p-1 border-2 border-purple-200/80 shadow-md flex items-center justify-center shrink-0 overflow-hidden">
-                <img
-                  src="/logo.png"
-                  alt="Straight Up Training Logo"
-                  className="w-full h-full object-contain"
-                  onError={(e) => { 
-                    (e.target as HTMLElement).style.display = 'none';
-                    const fallback = (e.target as HTMLElement).nextElementSibling;
-                    if (fallback) fallback.classList.remove('hidden');
-                  }}
-                />
-                <Award className="w-8 h-8 text-[#24083b] hidden" />
+                <img src="/logo.png" alt="Logo" className="w-full h-full object-contain" onError={(e) => { (e.target as HTMLElement).style.display = 'none'; }} />
               </div>
 
               <div>
                 <div className="flex items-center gap-2">
-                  <span className="font-black text-2xl tracking-tight text-white font-heading leading-none drop-shadow-sm">
-                    Straight Up Training
-                  </span>
-                  <span className="bg-emerald-400 text-slate-950 font-black text-[10px] px-2.5 py-0.5 rounded-full uppercase tracking-wider shadow-sm">
+                  <span className="font-black text-2xl tracking-tight text-white font-heading leading-none">Straight Up Training</span>
+                  <span className="bg-emerald-400 text-slate-950 font-black text-[10px] px-2.5 py-0.5 rounded-full uppercase">
                     {licenseeName}
                   </span>
                 </div>
                 <p className="text-xs font-bold text-purple-200 mt-1 flex items-center gap-1.5">
                   <Zap className="w-3.5 h-3.5 text-amber-300 fill-amber-300" />
-                  {isRtoGraduate ? "Graduate Career & Employability Hub" : "Candidate Career & Skills Portal"}
+                  {isRto 
+                    ? "Graduate Career & Employability Hub" 
+                    : isTtW 
+                    ? "Youth Activation & Readiness Hub" 
+                    : isIea 
+                    ? "Inclusive Employment Australia Hub" 
+                    : "Candidate Career & Skills Portal"}
                 </p>
               </div>
             </div>
 
             {/* ACTION BUTTONS */}
             <div className="flex flex-wrap items-center gap-3 w-full md:w-auto">
-              <button
-                onClick={() => setShowInterviewModal(true)}
-                className="group relative flex-1 md:flex-none px-5 py-2.5 bg-gradient-to-r from-amber-400 via-amber-500 to-orange-500 hover:from-amber-300 hover:to-orange-400 text-slate-950 font-black text-xs rounded-2xl shadow-lg shadow-amber-500/20 hover:shadow-amber-500/40 hover:-translate-y-0.5 transition-all duration-300 flex items-center justify-center gap-2 border-2 border-amber-300"
-              >
-                <Briefcase className="w-4 h-4 text-slate-950" />
-                <span className="font-black">I Got an Interview! (+25 Pts)</span>
-              </button>
+              {!isRto && (
+              <div className="flex items-center gap-3">
+                <button
+                  onClick={() => setShowInterviewModal(true)}
+                  className="flex-1 md:flex-none px-5 py-2.5 bg-gradient-to-r from-amber-400 to-orange-500 text-slate-950 font-black text-xs rounded-2xl shadow-lg flex items-center justify-center gap-2 border-2 border-amber-300"
+                >
+                  <Briefcase className="w-4 h-4" />
+                  <span>I Got an Interview! {isWfa ? '(+25 Pts)' : ''}</span>
+                </button>
 
-              <button
-                onClick={() => setShowJobModal(true)}
-                className="group relative flex-1 md:flex-none px-5 py-2.5 bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-600 hover:from-emerald-400 hover:to-teal-400 text-white font-black text-xs rounded-2xl shadow-lg shadow-emerald-500/20 hover:shadow-emerald-500/40 hover:-translate-y-0.5 transition-all duration-300 flex items-center justify-center gap-2 border-2 border-emerald-300/80"
-              >
-                <PartyPopper className="w-4 h-4 text-amber-300" />
-                <span className="font-black">I Got the Job! (+50 Pts)</span>
-              </button>
-
+                <button
+                  onClick={() => setShowJobModal(true)}
+                  className="flex-1 md:flex-none px-5 py-2.5 bg-gradient-to-r from-emerald-500 to-cyan-600 text-white font-black text-xs rounded-2xl shadow-lg flex items-center justify-center gap-2 border-2 border-emerald-300/80"
+                >
+                  <PartyPopper className="w-4 h-4 text-amber-300" />
+                  <span>I Got the Job! {isWfa ? '(+50 Pts)' : ''}</span>
+                </button>
+              </div>
+            )}
               <button
                 onClick={() => {
                   const url = new URL(window.location.href);
@@ -394,7 +421,7 @@ export const ParticipantHome: React.FC = () => {
                   window.history.pushState({}, '', url.pathname);
                   window.dispatchEvent(new Event('popstate'));
                 }}
-                className="px-3.5 py-2 bg-white/10 hover:bg-white/20 border border-white/20 text-white text-xs font-bold rounded-2xl transition-all"
+                className="px-3.5 py-2 bg-white/10 border border-white/20 text-white text-xs font-bold rounded-2xl"
               >
                 Sign Out
               </button>
@@ -409,7 +436,7 @@ export const ParticipantHome: React.FC = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div>
             <h1 className="text-lg font-extrabold text-[#24083b] tracking-tight">
-              {isRtoGraduate ? "Graduate Career & Employment Dashboard" : "Your Career Journey Dashboard"}
+              {isRto ? "Graduate Career & Employment Dashboard" : isTtW ? "Youth Transition & Milestone Journey" : isDes ? "Capacity & Employment Support Hub" : "Your Career Journey Dashboard"}
             </h1>
             <p className="text-xs text-slate-500 mt-0.5">
               Welcome back, {activeCandidate?.name || "Alex"}! Explore training, build your job kit, and track your progress.
@@ -447,11 +474,9 @@ export const ParticipantHome: React.FC = () => {
                   </div>
                 </div>
 
-                {!isRtoGraduate && (
-                  <span className="text-[11px] font-black bg-amber-300 text-slate-950 px-3 py-1 rounded-full shadow-sm shrink-0">
-                    Earns +10 PBAS Points
-                  </span>
-                )}
+                <span className="text-[11px] font-black bg-amber-300 text-slate-950 px-3 py-1 rounded-full shadow-sm shrink-0">
+  {isWfa ? 'Earns +10 PBAS Points' : isRto ? 'Voluntary Portfolio Activity' : 'Logs 1.0 Hour Credit'}
+</span>
               </div>
 
               {/* Wizard Step Stepper Badges */}
@@ -670,7 +695,7 @@ export const ParticipantHome: React.FC = () => {
                       onClick={handleAssessmentGoalSubmit}
                       className="px-6 py-2.5 bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black rounded-xl shadow-lg flex items-center gap-1.5"
                     >
-                      <Check className="w-4 h-4" /> Save Plan & Claim +10 Points
+                      <Check className="w-4 h-4" /> Save Plan & Log Activity
                     </button>
                   </div>
                 </div>
@@ -736,7 +761,7 @@ export const ParticipantHome: React.FC = () => {
             </div>
 
             <div className="text-base font-black text-slate-900">
-              {isRtoGraduate ? "Graduate Skills & Learning Hub" : "Core Skills & Learning Hub"}
+              {isRto ? "Graduate Skills & Learning Hub" : "Core Skills & Learning Hub"}
             </div>
             <p className="text-xs font-medium text-slate-500 mt-1 leading-relaxed">
               Interactive learning, WHS workplace safety, and downloadable certificates designed to build your job skills step-by-step.
@@ -794,15 +819,15 @@ export const ParticipantHome: React.FC = () => {
             </div>
 
             <div className="text-base font-black text-slate-900">
-              {isRtoGraduate ? "Career Portfolio & Activity Log" : "My Progress & Verification Hub"}
+              {isRto ? "Career Portfolio & Activity Log" : isTtW ? "Youth Engagement & Milestone Hub" : isDes ? "Capacity & Benchmark Log" : "My Progress & Verification Hub"}
             </div>
             <p className="text-xs font-medium text-slate-500 mt-1 leading-relaxed">
-              Track your verified mutual obligation points, log job application efforts, access document locker, and view appointments.
+              Track your verified activities, logged hours, job application efforts, document locker, and appointments.
             </p>
           </button>
         </section>
 
-        {/* TAB 3: MY PROGRESS & VERIFICATION HUB */}
+        {/* TAB CONTENT AREA */}
         <div className="mt-6 space-y-6">
           {activeTab === 1 && (
             <LmsModuleHub onModuleCompleted={handleModuleCompleted} candidateId={activeCandidate?.id} />
@@ -838,25 +863,76 @@ export const ParticipantHome: React.FC = () => {
                 <AppointmentsWidget />
               </div>
 
-              {/* SECTION 2: PBAS GAUGES & MOMENTUM CONTAINER */}
-              {!isRtoGraduate && (
-                <div className="bg-[#f8fafc] border border-slate-200/90 rounded-2xl p-6 shadow-sm space-y-4">
-                  <div className="flex items-center justify-between border-b border-emerald-200/80 pb-3">
-                    <div className="flex items-center gap-2">
-                      <span className="p-2 bg-[#16a34a] text-white rounded-xl">
-                        <Trophy className="w-4 h-4" />
+              {/* SECTION 2: FRAMEWORK-SPECIFIC ENGAGEMENT / PBAS GAUGES */}
+              <div className="bg-[#f8fafc] border border-slate-200/90 rounded-2xl p-6 shadow-sm space-y-4">
+                <div className="flex items-center justify-between border-b border-emerald-200/80 pb-3">
+                  <div className="flex items-center gap-2">
+                    <span className="p-2 bg-[#16a34a] text-white rounded-xl">
+                      <Trophy className="w-4 h-4" />
+                    </span>
+                    <div>
+                      <h2 className="text-sm font-black uppercase text-[#16a34a] tracking-wider">
+                        {isWfa && "My Monthly PBAS Momentum & Goals"}
+                        {isTtW && "Weekly Youth Engagement Hours Target (25 Hrs/Wk)"}
+                        {isDes && "Benchmark Capacity Tracker (15 Hours/Wk)"}
+                        {isRto && "Voluntary Career & Portfolio Log"}
+                      </h2>
+                      <p className="text-xs text-slate-500 font-medium">
+                        {isWfa
+                          ? "Top-arch progress gauge tracking monthly targets and continuous habit streaks."
+                          : isRto
+                          ? "Voluntary course upgrade with zero compliance or mutual obligation tracking."
+                          : "Logs weekly activity hours across LMS training, resume tailoring, and interview practice."}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                {isWfa ? (
+                  <PointProjectionWheel verifiedPoints={verifiedPoints} pendingPoints={pendingPoints} targetPoints={targetPoints} />
+                ) : isRto ? (
+                  <div className="bg-white p-5 rounded-xl border border-slate-200 flex flex-col md:flex-row items-center justify-between gap-4">
+                    <div className="space-y-1">
+                      <span className="text-[10px] font-bold uppercase text-purple-900 bg-purple-100 px-2.5 py-0.5 rounded-full">
+                        RTO License Upgrade — Voluntary Mode
                       </span>
-                      <div>
-                        <h2 className="text-sm font-black uppercase text-[#16a34a] tracking-wider">
-                          My Monthly Momentum & Goals
-                        </h2>
-                        <p className="text-xs text-slate-500 font-medium">Top-arch progress gauge tracking monthly targets and continuous habit streaks.</p>
+                      <h3 className="text-xl font-black text-slate-900">
+                        Graduation Portfolio: <span className="text-emerald-600 font-extrabold">{totalLoggedHours.toFixed(1)} Hours Logged</span>
+                      </h3>
+                      <p className="text-xs text-slate-500">
+                        Self-paced vocational training. No points, compliance audits, or mutual obligation tracking required.
+                      </p>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="bg-white p-5 rounded-xl border border-slate-200 flex flex-col md:flex-row items-center justify-between gap-4">
+                    <div className="space-y-1">
+                      <span className="text-[10px] font-bold uppercase text-purple-900 bg-purple-100 px-2.5 py-0.5 rounded-full">
+                        {isTtW ? 'TtW 25-Hour Engagement Rule' : 'IEA Benchmark Capacity Log'}
+                      </span>
+                      <h3 className="text-xl font-black text-slate-900">
+                        Total Activity Hours Logged: <span className="text-emerald-600 font-extrabold">{totalLoggedHours.toFixed(1)} Hours</span>
+                      </h3>
+                      <p className="text-xs text-slate-500">
+                        {isTtW ? 'Target: 25.0 Engagement Hours / Week' : 'Target: 15.0 Benchmark Hours / Week'}
+                      </p>
+                    </div>
+
+                    <div className="w-full md:w-64 bg-slate-100 p-3 rounded-xl border border-slate-200">
+                      <div className="flex justify-between text-xs font-bold mb-1">
+                        <span>Weekly Target Progress</span>
+                        <span className="text-emerald-700 font-black">{Math.min(100, Math.round((totalLoggedHours / (isTtW ? 25 : 15)) * 100))}%</span>
+                      </div>
+                      <div className="w-full h-3 bg-slate-200 rounded-full overflow-hidden">
+                        <div 
+                          className="h-full bg-emerald-500 rounded-full transition-all duration-500" 
+                          style={{ width: `${Math.min(100, (totalLoggedHours / (isTtW ? 25 : 15)) * 100)}%` }} 
+                        />
                       </div>
                     </div>
                   </div>
-                  <PointProjectionWheel verifiedPoints={verifiedPoints} pendingPoints={pendingPoints} targetPoints={targetPoints} />
-                </div>
-              )}
+                )}
+              </div>
 
               {/* SECTION 3: CREDENTIAL LOCKER CONTAINER */}
               <div className="bg-[#f8fafc] border border-slate-200/90 rounded-2xl p-6 shadow-sm space-y-4">
@@ -899,19 +975,30 @@ export const ParticipantHome: React.FC = () => {
                         <Search className="w-5 h-5 text-[#16a34a]" /> Activity Verification Log
                       </h3>
                       <p className="text-xs text-slate-500">
-                        {isRtoGraduate 
-                          ? "Track submitted job applications, interviews, and placement milestones." 
-                          : "Track submitted job searches, interviews, and placements awaiting sign-off."}
+                        Track submitted job applications, interviews, and learning milestones awaiting Case Manager sign-off.
                       </p>
                     </div>
-                    <button
-                      type="button"
-                      onClick={() => setShowJobSearchModal(true)}
-                      className="inline-flex items-center gap-1.5 px-3.5 py-2 bg-[#24083b] hover:bg-[#320b52] text-white font-bold text-xs rounded-xl shadow-sm transition-all"
-                    >
-                      + Log New Job Search Effort
-                    </button>
+                    <div className="flex items-center gap-2 flex-wrap">
+            <button
+              type="button"
+              onClick={() => setShowJobSearchModal(true)}
+              className="inline-flex items-center gap-1.5 px-3.5 py-2 bg-[#24083b] hover:bg-[#320b52] text-white font-bold text-xs rounded-xl shadow-sm transition-all"
+            >
+              + Log Job Search Effort
+            </button>
+
+            {!isWfa && (
+              <button
+                type="button"
+                onClick={() => setShowJobSearchModal(true)}
+                className="inline-flex items-center gap-1.5 px-3.5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded-xl shadow-sm transition-all"
+              >
+                + Log Other Activity (Paid Work / Study)
+              </button>
+            )}
+          </div>
                   </div>
+                  
 
                   <div className="overflow-x-auto">
                     <table className="w-full text-left text-xs border-collapse">
@@ -921,7 +1008,8 @@ export const ParticipantHome: React.FC = () => {
                           <th className="p-3">Activity Type</th>
                           <th className="p-3">Title / Employer</th>
                           <th className="p-3">Verification ID</th>
-                          {!isRtoGraduate && <th className="p-3">Points</th>}
+                          <th className="p-3">Logged Hours</th>
+                          {isWfa && <th className="p-3">PBAS Points</th>}
                           <th className="p-3">Status</th>
                           <th className="p-3 text-right">Activity Record / Certificate</th>
                         </tr>
@@ -933,7 +1021,8 @@ export const ParticipantHome: React.FC = () => {
                             <td className="p-3 font-bold text-slate-800">{act.type}</td>
                             <td className="p-3 text-slate-700">{act.title}</td>
                             <td className="p-3 font-mono text-slate-500 bg-slate-100 px-2 py-1 rounded w-max text-[11px]">{act.reference}</td>
-                            {!isRtoGraduate && (
+                            <td className="p-3 font-bold text-purple-950">{act.hours ? `${act.hours} hrs` : '1.0 hr'}</td>
+                            {isWfa && (
                               <td className="p-3 font-bold">
                                 {act.points > 0 ? (
                                   <span className="text-emerald-600">+{act.points} Pts</span>
@@ -1204,7 +1293,7 @@ export const ParticipantHome: React.FC = () => {
             <div className="flex justify-end gap-2 pt-2 border-t border-slate-100">
               <button type="button" onClick={() => setShowJobSearchModal(false)} className="px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100 rounded-xl">Cancel</button>
               <button type="submit" className="px-4 py-2 text-xs bg-[#24083b] text-white font-bold rounded-xl shadow-sm">
-                {isRtoGraduate ? "Save to Log" : "Submit Effort (+5 Pts Pending)"}
+                Submit Effort
               </button>
             </div>
           </form>
@@ -1236,7 +1325,7 @@ export const ParticipantHome: React.FC = () => {
             <div className="flex justify-end gap-2 pt-2 border-t border-slate-100">
               <button type="button" onClick={() => setShowJobModal(false)} className="px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100 rounded-xl">Cancel</button>
               <button type="submit" className="px-4 py-2 text-xs bg-[#16a34a] text-white font-bold rounded-xl shadow-sm">
-                {isRtoGraduate ? "Submit Placement" : "Submit Placement (+50 Pts Pending)"}
+                Submit Placement
               </button>
             </div>
           </form>
@@ -1268,7 +1357,7 @@ export const ParticipantHome: React.FC = () => {
             <div className="flex justify-end gap-2 pt-2 border-t border-slate-100">
               <button type="button" onClick={() => setShowInterviewModal(false)} className="px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100 rounded-xl">Cancel</button>
               <button type="submit" className="px-4 py-2 text-xs bg-purple-600 text-white font-bold rounded-xl shadow-sm">
-                {isRtoGraduate ? "Submit Interview" : "Submit Employer Interview (+25 Pts Pending)"}
+                Submit Interview
               </button>
             </div>
           </form>
