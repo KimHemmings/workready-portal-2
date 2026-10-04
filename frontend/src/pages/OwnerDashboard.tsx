@@ -2,8 +2,8 @@ import React, { useState } from 'react';
 import { usePortal } from '../context/PortalContext';
 import type { CandidateProfile, VerificationItem } from '../lib/types';
 import { 
-  BarChart3, Users, Award, ShieldCheck, Download, Filter, LogOut, 
-  Sparkles, CheckCircle2, AlertCircle, ChevronRight, TrendingUp, UserPlus, X, UserCheck, PlusCircle
+  BarChart3, Users, ShieldCheck, Download, LogOut, 
+  Sparkles, TrendingUp, UserPlus, X, PlusCircle
 } from 'lucide-react';
 
 interface StaffMember {
@@ -16,7 +16,7 @@ interface StaffMember {
 }
 
 export default function OwnerDashboard() {
-  const { candidates, verificationItems } = usePortal();
+  const { candidates, verificationItems, addCandidate } = usePortal();
 
   const [currentOwnerName] = useState('Morgan Taylor');
   const [activeTab, setActiveTab] = useState<'kpi' | 'staff' | 'pillars' | 'dewr'>('kpi');
@@ -71,7 +71,19 @@ export default function OwnerDashboard() {
     e.preventDefault();
     if (!newCandidateName.trim() || !newCandidateEmail.trim()) return;
 
-    // Increment caseload count for selected staff member
+    // 1. Dispatch directly into PortalContext global state
+    addCandidate({
+      name: newCandidateName.trim(),
+      email: newCandidateEmail.trim(),
+      phone: '0400 000 000',
+      status: 'On Track',
+      pbasTarget: 100,
+      startDate: new Date().toISOString().split('T')[0],
+      finishDate: '2026-12-31',
+      primaryChallenge: 'General Support',
+    });
+
+    // 2. Increment caseload count for selected Case Manager
     setStaffList(prev => prev.map(staff => 
       staff.id === assignedStaffId 
         ? { ...staff, caseloadCount: staff.caseloadCount + 1 } 

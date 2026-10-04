@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { usePortal } from '../context/PortalContext';
 import { 
   CheckCircle2, 
   XCircle, 
@@ -25,12 +26,10 @@ import {
   Calendar,
   FolderLock,
   Plus,
-  File,
-  ChevronRight,
-  AlertTriangle
+  File
 } from 'lucide-react';
 
-interface Candidate {
+interface CandidateDisplay {
   id: string;
   name: string;
   waId: string;
@@ -86,25 +85,44 @@ interface SupportMessage {
 }
 
 export const CaseManager: React.FC = () => {
+  const { candidates: contextCandidates, addCandidate } = usePortal();
+
   // Navigation Tabs
   const [activeTab, setActiveTab] = useState<'queue' | 'profile' | 'appointments' | 'documents' | 'communication' | 'exports'>('queue');
   const [profileSection, setProfileSection] = useState<'star' | 'job_search' | 'pillars' | 'lms'>('star');
 
-  // Candidate Roster State
-  const [candidates, setCandidates] = useState<Candidate[]>([
-    { id: 'c1', name: 'Alex Participant', waId: 'WA-882194', pbasTarget: 100, verifiedPoints: 35, status: 'On Track' },
-    { id: 'c2', name: 'Jordan Smith', waId: 'WA-904112', pbasTarget: 80, verifiedPoints: 60, status: 'On Track' },
-    { id: 'c3', name: 'Sam Taylor', waId: 'WA-712399', pbasTarget: 100, verifiedPoints: 15, status: 'Action Needed' }
-  ]);
+  // Dynamic Roster Mapping from PortalContext
+  const [localCandidates, setLocalCandidates] = useState<CandidateDisplay[]>([]);
 
-  const [selectedCandidateId, setSelectedCandidateId] = useState<string>('c1');
-  const activeCandidate = candidates.find((c) => c.id === selectedCandidateId) || candidates[0];
+  useEffect(() => {
+    if (contextCandidates && contextCandidates.length > 0) {
+      const mapped = contextCandidates.map((c, idx) => ({
+        id: c.id,
+        name: c.name,
+        waId: `WA-${882190 + idx * 100}`,
+        pbasTarget: c.pbasTarget || 100,
+        verifiedPoints: c.pbasVerified || 35,
+        status: (c.status === 'High Risk' ? 'Action Needed' : 'On Track') as CandidateDisplay['status']
+      }));
+      setLocalCandidates(mapped);
+    } else {
+      setLocalCandidates([
+        { id: 'c1', name: 'Alex Participant', waId: 'WA-882194', pbasTarget: 100, verifiedPoints: 35, status: 'On Track' },
+        { id: 'c2', name: 'Jordan Smith', waId: 'WA-904112', pbasTarget: 80, verifiedPoints: 60, status: 'On Track' },
+        { id: 'c3', name: 'Sam Taylor', waId: 'WA-712399', pbasTarget: 100, verifiedPoints: 15, status: 'Action Needed' }
+      ]);
+    }
+  }, [contextCandidates]);
+
+  const [selectedCandidateId, setSelectedCandidateId] = useState<string>('CAN-101');
+  const activeCandidate = localCandidates.find((c) => c.id === selectedCandidateId) || localCandidates[0] || {
+    id: 'c1', name: 'Alex Participant', waId: 'WA-882194', pbasTarget: 100, verifiedPoints: 35, status: 'On Track'
+  };
 
   // Appointment State
   const [appointments, setAppointments] = useState<Appointment[]>([
-    { id: 'apt-1', candidateId: 'c1', candidateName: 'Alex Participant', type: 'Monthly PBAS Progress Audit', date: '2026-09-22', time: '10:00 AM', location: 'Provider Office (In-Person)', status: 'Scheduled' },
-    { id: 'apt-2', candidateId: 'c1', candidateName: 'Alex Participant', type: 'STAR Interview Coaching Session', date: '2026-09-29', time: '02:30 PM', location: 'Phone Check-in', status: 'Scheduled' },
-    { id: 'apt-3', candidateId: 'c2', candidateName: 'Jordan Smith', type: 'Job Placement Agreement Sign-off', date: '2026-09-24', time: '11:15 AM', location: 'Provider Office (In-Person)', status: 'Scheduled' }
+    { id: 'apt-1', candidateId: activeCandidate.id, candidateName: activeCandidate.name, type: 'Monthly PBAS Progress Audit', date: '2026-09-22', time: '10:00 AM', location: 'Provider Office (In-Person)', status: 'Scheduled' },
+    { id: 'apt-2', candidateId: activeCandidate.id, candidateName: activeCandidate.name, type: 'STAR Interview Coaching Session', date: '2026-09-29', time: '02:30 PM', location: 'Phone Check-in', status: 'Scheduled' }
   ]);
   const [showAptModal, setShowAptModal] = useState(false);
   const [aptType, setAptType] = useState('Monthly PBAS Progress Audit');
@@ -114,30 +132,20 @@ export const CaseManager: React.FC = () => {
 
   // Document Locker State
   const [documents, setDocuments] = useState<DocumentFile[]>([
-    { id: 'doc-1', candidateId: 'c1', candidateName: 'Alex Participant', name: 'Alex_Participant_Resume_2026.pdf', category: 'Resume', uploadedBy: 'Alex Participant', date: '12/09/2026', size: '1.2 MB' },
-    { id: 'doc-2', candidateId: 'c1', candidateName: 'Alex Participant', name: 'Warehouse_Logistics_CoverLetter.pdf', category: 'Cover Letter', uploadedBy: 'Alex Participant', date: '14/09/2026', size: '450 KB' },
-    { id: 'doc-3', candidateId: 'c1', candidateName: 'Alex Participant', name: 'Job_Search_Plan_Casey_Signed.pdf', category: 'Provider Upload', uploadedBy: 'Casey (Case Manager)', date: '10/09/2026', size: '890 KB' },
-    { id: 'doc-4', candidateId: 'c2', candidateName: 'Jordan Smith', name: 'Jordan_Smith_Resume.pdf', category: 'Resume', uploadedBy: 'Jordan Smith', date: '08/09/2026', size: '980 KB' }
+    { id: 'doc-1', candidateId: activeCandidate.id, candidateName: activeCandidate.name, name: 'Alex_Participant_Resume_2026.pdf', category: 'Resume', uploadedBy: activeCandidate.name, date: '12/09/2026', size: '1.2 MB' },
+    { id: 'doc-2', candidateId: activeCandidate.id, candidateName: activeCandidate.name, name: 'Warehouse_Logistics_CoverLetter.pdf', category: 'Cover Letter', uploadedBy: activeCandidate.name, date: '14/09/2026', size: '450 KB' },
+    { id: 'doc-3', candidateId: activeCandidate.id, candidateName: activeCandidate.name, name: 'Job_Search_Plan_Casey_Signed.pdf', category: 'Provider Upload', uploadedBy: 'Casey (Case Manager)', date: '10/09/2026', size: '890 KB' }
   ]);
 
   // Support Inbox State
   const [supportMessages, setSupportMessages] = useState<SupportMessage[]>([
     {
       id: 'msg-1',
-      candidateId: 'c1',
-      candidateName: 'Alex Participant',
+      candidateId: activeCandidate.id,
+      candidateName: activeCandidate.name,
       topic: 'STAR Practice Feedback',
       message: 'Hi Casey, I completed my interview practice for the Warehouse role. Can you review my Action section and let me know if it covers safety protocols sufficiently?',
       date: '15/09/2026',
-      status: 'Unread'
-    },
-    {
-      id: 'msg-2',
-      candidateId: 'c3',
-      candidateName: 'Sam Taylor',
-      topic: 'Schedule Target Adjustment',
-      message: 'I have medical appointments next week. Can we adjust my monthly PBAS obligation target down to 60 points for this cycle?',
-      date: '12/09/2026',
       status: 'Unread'
     }
   ]);
@@ -150,7 +158,7 @@ export const CaseManager: React.FC = () => {
 
   // Modals
   const [showAddModal, setShowAddModal] = useState(false);
-  const [editingCandidate, setEditingCandidate] = useState<Candidate | null>(null);
+  const [editingCandidate, setEditingCandidate] = useState<CandidateDisplay | null>(null);
   const [selectedReport, setSelectedReport] = useState<any | null>(null);
 
   // Form Inputs for Adding Candidate
@@ -174,8 +182,8 @@ export const CaseManager: React.FC = () => {
           points: 25,
           status: 'Pending Verification',
           date: item.date || new Date().toLocaleDateString('en-AU'),
-          candidateId: 'c1',
-          candidateName: 'Alex Participant',
+          candidateId: activeCandidate.id,
+          candidateName: activeCandidate.name,
           reportData: item
         }));
       }
@@ -189,8 +197,8 @@ export const CaseManager: React.FC = () => {
           points: 5,
           status: 'Pending Verification',
           date: '14/09/2026',
-          candidateId: 'c1',
-          candidateName: 'Alex Participant'
+          candidateId: activeCandidate.id,
+          candidateName: activeCandidate.name
         },
         {
           id: 'act-rev-1',
@@ -200,8 +208,8 @@ export const CaseManager: React.FC = () => {
           points: 10,
           status: 'Pending Verification',
           date: '15/09/2026',
-          candidateId: 'c1',
-          candidateName: 'Alex Participant'
+          candidateId: activeCandidate.id,
+          candidateName: activeCandidate.name
         },
         {
           id: 'act-1',
@@ -211,8 +219,8 @@ export const CaseManager: React.FC = () => {
           points: 10,
           status: 'Verified',
           date: '10/09/2026',
-          candidateId: 'c1',
-          candidateName: 'Alex Participant'
+          candidateId: activeCandidate.id,
+          candidateName: activeCandidate.name
         }
       ];
 
@@ -231,24 +239,26 @@ export const CaseManager: React.FC = () => {
 
   useEffect(() => {
     loadSubmissions();
-  }, []);
+  }, [activeCandidate.id]);
 
   // Handlers
   const handleAddCandidate = (e: React.FormEvent) => {
     e.preventDefault();
     if (!newCandidateName || !newCandidateWaId) return;
 
-    const newEntry: Candidate = {
-      id: `c-${Date.now()}`,
-      name: newCandidateName,
-      waId: newCandidateWaId,
-      pbasTarget: newCandidateTarget,
-      verifiedPoints: 0,
-      status: 'On Track'
-    };
+    if (addCandidate) {
+      addCandidate({
+        name: newCandidateName,
+        email: `${newCandidateName.toLowerCase().replace(/\s+/g, '.')}@workready.com`,
+        phone: '0400 000 000',
+        status: 'On Track',
+        pbasTarget: newCandidateTarget,
+        startDate: new Date().toISOString().split('T')[0],
+        finishDate: '2026-12-31',
+        primaryChallenge: 'General Support'
+      });
+    }
 
-    setCandidates([...candidates, newEntry]);
-    setSelectedCandidateId(newEntry.id);
     setNewCandidateName('');
     setNewCandidateWaId('');
     setNewCandidateTarget(100);
@@ -259,7 +269,7 @@ export const CaseManager: React.FC = () => {
     e.preventDefault();
     if (!editingCandidate) return;
 
-    setCandidates((prev) =>
+    setLocalCandidates((prev) =>
       prev.map((c) => (c.id === editingCandidate.id ? editingCandidate : c))
     );
     setEditingCandidate(null);
@@ -269,7 +279,7 @@ export const CaseManager: React.FC = () => {
     setActivities((prev) =>
       prev.map((act) => (act.id === id ? { ...act, status: 'Verified' } : act))
     );
-    setCandidates((prev) =>
+    setLocalCandidates((prev) =>
       prev.map((c) =>
         c.id === candidateId
           ? { ...c, verifiedPoints: Math.min(c.verifiedPoints + points, c.pbasTarget) }
@@ -356,7 +366,7 @@ export const CaseManager: React.FC = () => {
   };
 
   // Filtered Lists
-  const candidateActivities = activities.filter((a) => a.candidateId === activeCandidate.id);
+  const candidateActivities = activities.filter((a) => a.candidateId === activeCandidate.id || a.candidateName === activeCandidate.name);
   const pendingList = candidateActivities.filter((a) => a.status === 'Pending Verification');
   const pendingPointsTotal = pendingList.reduce((sum, a) => sum + a.points, 0);
 
@@ -367,8 +377,8 @@ export const CaseManager: React.FC = () => {
     return act.type === filterType;
   });
 
-  const candidateDocs = documents.filter((d) => d.candidateId === activeCandidate.id);
-  const candidateApts = appointments.filter((a) => a.candidateId === activeCandidate.id);
+  const candidateDocs = documents.filter((d) => d.candidateId === activeCandidate.id || d.candidateName === activeCandidate.name);
+  const candidateApts = appointments.filter((a) => a.candidateId === activeCandidate.id || a.candidateName === activeCandidate.name);
   const activeMsg = supportMessages.find((m) => m.id === selectedMsgId);
 
   return (
@@ -418,7 +428,7 @@ export const CaseManager: React.FC = () => {
             <span className="text-xs font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1 mr-2">
               <Users className="w-4 h-4 text-purple-700" /> Roster:
             </span>
-            {candidates.map((c) => (
+            {localCandidates.map((c) => (
               <button
                 key={c.id}
                 onClick={() => setSelectedCandidateId(c.id)}

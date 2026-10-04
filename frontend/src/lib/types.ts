@@ -224,10 +224,11 @@ export interface CandidateProfile {
   email: string;
   phone: string;
   status: 'On Track' | 'Compliant' | 'High Risk' | 'Blocked' | 'Needs Support';
-  
+  licenseePartnerName?: string;
+
   // Program Adaptability
   programType?: ProgramType; // Defaults to 'workforce_australia' if omitted
-  
+
   // Compliance / Points tracking (Set to 0 for RTO Graduates)
   pbasTarget: number;
   pbasVerified: number;

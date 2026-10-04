@@ -6,7 +6,7 @@ export interface PortalContextType {
   verificationItems: VerificationItem[];
   appointments: Appointment[];
   documentCredentials: DocumentCredential[];
-  addCandidate: (candidate: Omit<CandidateProfile, 'id' | 'pbasVerified' | 'pbasPending' | 'assessmentCompleted' | 'lastCheckIn' | 'fivePillars'> & Partial<CandidateProfile>) => void;
+  addCandidate: (candidate: Omit<CandidateProfile, 'id' | 'pbasVerified' | 'pbasPending' | 'assessmentCompleted' | 'lastCheckIn' | 'fivePillars'>) => void;
   addVerificationItem: (item: Omit<VerificationItem, 'id' | 'dateSubmitted' | 'status'>) => void;
   approveVerification: (id: string, note?: string) => void;
   declineVerification: (id: string, note?: string) => void;
@@ -19,13 +19,15 @@ export interface PortalContextType {
   ) => void;
   addAppointment: (appointment: Omit<Appointment, 'id'>) => void;
   updateFivePillars: (candidateId: string, pillars: CandidateProfile['fivePillars']) => void;
+
+  // Functions for the Sales Sandbox
+  startDemoSandbox: (partnerName?: string) => void;
+  resetDemoSandbox: () => void;
 }
 
 const PortalContext = createContext<PortalContextType | undefined>(undefined);
 
-export const PortalProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
- // Inside PortalContext.tsx:
-const [candidates, setCandidates] = useState<CandidateProfile[]>([
+const initialCandidates: CandidateProfile[] = [
   {
     id: 'CAN-101',
     name: 'Alex Mercer',
@@ -49,7 +51,11 @@ const [candidates, setCandidates] = useState<CandidateProfile[]>([
       mindset: 50,
     },
   },
-]);
+];
+
+export const PortalProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const [candidates, setCandidates] = useState<CandidateProfile[]>(initialCandidates);
+
   const [verificationItems, setVerificationItems] = useState<VerificationItem[]>([
     {
       id: 'VER-901',
@@ -95,21 +101,22 @@ const [candidates, setCandidates] = useState<CandidateProfile[]>([
   ]);
 
   const addCandidate: PortalContextType['addCandidate'] = (candidateInput) => {
+    const candidateData = candidateInput as Partial<CandidateProfile>;
     const newCandidate: CandidateProfile = {
-      id: candidateInput.id || `CAN-${Math.floor(100 + Math.random() * 900)}`,
+      id: candidateData.id || `CAN-${Math.floor(100 + Math.random() * 900)}`,
       name: candidateInput.name,
       email: candidateInput.email,
       phone: candidateInput.phone,
       status: candidateInput.status,
       pbasTarget: candidateInput.pbasTarget,
-      pbasVerified: candidateInput.pbasVerified ?? 0,
-      pbasPending: candidateInput.pbasPending ?? 0,
+      pbasVerified: candidateData.pbasVerified ?? 0,
+      pbasPending: candidateData.pbasPending ?? 0,
       startDate: candidateInput.startDate,
       finishDate: candidateInput.finishDate,
-      assessmentCompleted: candidateInput.assessmentCompleted ?? false,
+      assessmentCompleted: candidateData.assessmentCompleted ?? false,
       primaryChallenge: candidateInput.primaryChallenge,
-      lastCheckIn: candidateInput.lastCheckIn ?? new Date().toISOString().split('T')[0],
-      fivePillars: candidateInput.fivePillars ?? {
+      lastCheckIn: candidateData.lastCheckIn ?? new Date().toISOString().split('T')[0],
+      fivePillars: candidateData.fivePillars ?? {
         jobSearch: 50,
         interviewReadiness: 50,
         technicalSkills: 50,
@@ -198,6 +205,16 @@ const [candidates, setCandidates] = useState<CandidateProfile[]>([
     );
   };
 
+  const startDemoSandbox = (partnerName: string = 'Apex Pathways Network') => {
+    setCandidates((prev) =>
+      prev.map((c) => ({ ...c, licenseePartnerName: partnerName }))
+    );
+  };
+
+  const resetDemoSandbox = () => {
+    setCandidates(initialCandidates);
+  };
+
   return (
     <PortalContext.Provider
       value={{
@@ -213,6 +230,8 @@ const [candidates, setCandidates] = useState<CandidateProfile[]>([
         updateCandidateRequirements,
         addAppointment,
         updateFivePillars,
+        startDemoSandbox,
+        resetDemoSandbox,
       }}
     >
       {children}
