@@ -376,8 +376,15 @@ export const PortalProvider: React.FC<{ children: ReactNode }> = ({ children }) 
   ]);
   const [outcomeClaims, setOutcomeClaims] = useState<OutcomeClaim[]>([]);
 
-  // Demo State Reset Handler
+  // Enhanced Demo Sandbox Reset Handler
   const resetSandboxState = () => {
+    // 1. Wipe all local storage keys used across modules
+    localStorage.removeItem('workready_completed_timestamps');
+    localStorage.removeItem('workready_cm_audit_logs');
+    localStorage.removeItem('workready_cm_is_away');
+    localStorage.removeItem('workready_star_history');
+
+    // 2. Reset queues & context states back to seed defaults
     setVerificationItems(initialVerificationItems);
     setOutcomeClaims([]);
     setSupportMessages([
@@ -388,27 +395,20 @@ export const PortalProvider: React.FC<{ children: ReactNode }> = ({ children }) 
         topic: 'STAR Interview Practice Review',
         message: 'Hi Casey, I completed my Warehouse Role interview practice session. Can you review my WHS safety response?',
         date: new Date().toLocaleDateString('en-AU'),
-        status: 'Unread',
+        status: 'Responded',
+        coachingResponse: 'Great effort Alex! Your WHS safety protocol response was clear and thorough. Approved +25 Pts.',
+        senderRole: 'Case Manager'
       },
     ]);
-    setCandidates((prev) =>
-      prev.map((c) =>
-        c.id === 'c1'
-          ? {
-              ...c,
-              pbasVerified: 45,
-              pbasEarned: 45,
-              pbasPending: 25,
-              verifiedPoints: 45,
-              points: 45,
-              starRunsCompleted: 0,
-            }
-          : c
-      )
-    );
-    if (activeCandidate) {
-      setActiveCandidate((prev) => (prev ? { ...prev, starRunsCompleted: 0, pbasVerified: 45 } : null));
-    }
+
+    setCandidates(initialCandidates);
+    setActiveCandidate(initialCandidates[0]);
+    setActiveContract('Workforce Australia');
+    setActiveRole('Candidate');
+
+    // Trigger window event so components re-evaluate localStorage states
+    window.dispatchEvent(new Event('moduleCompleted'));
+    alert('🔄 Sandbox reset complete! Local storage cleared and initial seed data restored.');
   };
 
   // Update Candidate PBAS Points Helper

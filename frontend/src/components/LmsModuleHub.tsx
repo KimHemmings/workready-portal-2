@@ -339,18 +339,25 @@ export const LmsModuleHub: React.FC<LmsModuleHubProps> = ({ onModuleCompleted, c
                     </span>
 
                     {isCompleted ? (
-                      <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-black bg-emerald-100 text-emerald-800 border border-emerald-300 shadow-sm">
-                        <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" /> Completed
-                      </span>
-                    ) : isLocked ? (
-                      <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-black bg-slate-200 text-slate-700 border border-slate-300">
-                        <Lock className="w-3 h-3 text-slate-500" /> Monthly Cap Reached
-                      </span>
-                    ) : (
-                      <span className={`text-[10px] font-bold px-2.5 py-0.5 rounded-full border ${style.badgeBg}`}>
-                        {mod.category}
-                      </span>
-                    )}
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setSelectedModule(mod);
+                      }}
+                      className="inline-flex items-center gap-1.5 font-extrabold text-emerald-800 hover:text-emerald-950 bg-emerald-100 hover:bg-emerald-200 px-3 py-1.5 rounded-xl border border-emerald-300 transition-all text-xs shadow-sm"
+                    >
+                      <RefreshCw className="w-3.5 h-3.5 text-emerald-700" /> Re-take / Review
+                    </button>
+                  ) : isLocked ? (
+                    <span className="inline-flex items-center gap-1 font-extrabold text-slate-400">
+                      Locked <Lock className="w-3 h-3" />
+                    </span>
+                  ) : (
+                    <span className="inline-flex items-center gap-1 font-extrabold text-[#24083b] group-hover:translate-x-1 transition-transform">
+                      Start <ArrowRight className="w-3.5 h-3.5" />
+                    </span>
+                  )}
                   </div>
 
                   <h3 className={`font-extrabold text-base transition-colors leading-snug ${

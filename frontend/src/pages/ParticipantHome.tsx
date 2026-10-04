@@ -21,6 +21,7 @@ import {
   FileText,
   UserCheck,
   PartyPopper,
+  PlusCircle,
   Sparkles,
   Zap,
   Download,
@@ -49,7 +50,7 @@ interface ActivityLog {
 }
 
 export const ParticipantHome: React.FC = () => {
-  const { candidates, activeContract, addOutcomeClaim } = usePortal();
+ const { candidates, activeContract, addOutcomeClaim, supportMessages } = usePortal();
   const activeCandidate = candidates[0];
 
   // Contract Framework Alignment Helpers
@@ -174,7 +175,11 @@ const isIea = isDes;
     window.addEventListener('starHistoryUpdated', syncStarActivityLog);
     return () => window.removeEventListener('starHistoryUpdated', syncStarActivityLog);
   }, []);
-
+const [showOtherActivityModal, setShowOtherActivityModal] = useState<boolean>(false);
+const [otherActivityType, setOtherActivityType] = useState<string>('Paid Work / Training');
+const [otherActivityTitle, setOtherActivityTitle] = useState<string>('');
+const [otherActivityHours, setOtherActivityHours] = useState<string>('');
+const [otherActivityNotes, setOtherActivityNotes] = useState<string>('');
   const [showJobModal, setShowJobModal] = useState<boolean>(false);
   const [showInterviewModal, setShowInterviewModal] = useState<boolean>(false);
   const [showJobSearchModal, setShowJobSearchModal] = useState<boolean>(false);
@@ -396,24 +401,26 @@ const isIea = isDes;
             {/* ACTION BUTTONS */}
             <div className="flex flex-wrap items-center gap-3 w-full md:w-auto">
               {!isRto && (
-              <div className="flex items-center gap-3">
-                <button
-                  onClick={() => setShowInterviewModal(true)}
-                  className="flex-1 md:flex-none px-5 py-2.5 bg-gradient-to-r from-amber-400 to-orange-500 text-slate-950 font-black text-xs rounded-2xl shadow-lg flex items-center justify-center gap-2 border-2 border-amber-300"
-                >
-                  <Briefcase className="w-4 h-4" />
-                  <span>I Got an Interview! {isWfa ? '(+25 Pts)' : ''}</span>
-                </button>
+  <div className="flex flex-wrap items-center gap-3 w-full md:w-auto">
+    <button
+      type="button"
+      onClick={() => setShowInterviewModal(true)}
+      className="flex-1 md:flex-none px-5 py-2.5 bg-gradient-to-r from-amber-400 to-orange-500 text-slate-950 font-black text-xs rounded-2xl shadow-lg flex items-center justify-center gap-2 border-2 border-amber-300"
+    >
+      <Briefcase className="w-4 h-4" />
+      <span>I Got an Interview! {isWfa ? '(+25 Pts)' : ''}</span>
+    </button>
 
-                <button
-                  onClick={() => setShowJobModal(true)}
-                  className="flex-1 md:flex-none px-5 py-2.5 bg-gradient-to-r from-emerald-500 to-cyan-600 text-white font-black text-xs rounded-2xl shadow-lg flex items-center justify-center gap-2 border-2 border-emerald-300/80"
-                >
-                  <PartyPopper className="w-4 h-4 text-amber-300" />
-                  <span>I Got the Job! {isWfa ? '(+50 Pts)' : ''}</span>
-                </button>
-              </div>
-            )}
+    <button
+      type="button"
+      onClick={() => setShowJobModal(true)}
+      className="flex-1 md:flex-none px-5 py-2.5 bg-gradient-to-r from-emerald-500 to-cyan-600 text-white font-black text-xs rounded-2xl shadow-lg flex items-center justify-center gap-2 border-2 border-emerald-300/80"
+    >
+      <PartyPopper className="w-4 h-4 text-amber-300" />
+      <span>I Got the Job! {isWfa ? '(+50 Pts)' : ''}</span>
+    </button>
+  </div>
+)}
               <button
                 onClick={() => {
                   const url = new URL(window.location.href);
@@ -978,25 +985,25 @@ const isIea = isDes;
                         Track submitted job applications, interviews, and learning milestones awaiting Case Manager sign-off.
                       </p>
                     </div>
-                    <div className="flex items-center gap-2 flex-wrap">
-            <button
-              type="button"
-              onClick={() => setShowJobSearchModal(true)}
-              className="inline-flex items-center gap-1.5 px-3.5 py-2 bg-[#24083b] hover:bg-[#320b52] text-white font-bold text-xs rounded-xl shadow-sm transition-all"
-            >
-              + Log Job Search Effort
-            </button>
+                    {!isRto && (
+              <div className="flex items-center gap-2 flex-wrap">
+                <button
+                  type="button"
+                  onClick={() => setShowJobSearchModal(true)}
+                  className="inline-flex items-center gap-1.5 px-3.5 py-2 bg-[#24083b] hover:bg-[#320b52] text-white font-bold text-xs rounded-xl shadow-sm"
+                >
+                  + Log Job Search Effort
+                </button>
 
-            {!isWfa && (
-              <button
-                type="button"
-                onClick={() => setShowJobSearchModal(true)}
-                className="inline-flex items-center gap-1.5 px-3.5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded-xl shadow-sm transition-all"
-              >
-                + Log Other Activity (Paid Work / Study)
-              </button>
+                <button
+  type="button"
+  onClick={() => setShowOtherActivityModal(true)}
+  className="inline-flex items-center gap-1.5 px-3.5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded-xl shadow-sm"
+>
+  + Log Other Activity (Paid Work / Study)
+</button>
+              </div>
             )}
-          </div>
                   </div>
                   
 
@@ -1074,7 +1081,6 @@ const isIea = isDes;
         const activityTitle = selectedReport.jobRole || selectedReport.title || 'Skills & Activity Verification';
         const timestamp = selectedReport.timestamp || selectedReport.date || 'Recorded Session';
         const employerName = selectedReport.employer || selectedReport.company;
-
         return (
           <div className="fixed inset-0 bg-slate-950/70 backdrop-blur-sm z-50 flex items-center justify-center p-4 font-sans">
             <div className="bg-white rounded-2xl max-w-2xl w-full p-6 space-y-5 shadow-2xl border border-slate-200 max-h-[90vh] overflow-y-auto">
@@ -1382,6 +1388,134 @@ const isIea = isDes;
           </form>
         </div>
       )}
+
+      {/* PASTE LOG EXTERNAL ACTIVITY MODAL RIGHT HERE */}
+      {showOtherActivityModal && (
+        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-3xl p-6 md:p-8 max-w-lg w-full shadow-2xl space-y-5 border border-slate-100">
+            <div className="flex justify-between items-center border-b border-slate-100 pb-4">
+              <div>
+                <h3 className="text-xl font-black text-[#24083b] flex items-center gap-2">
+                  <span>Log External Activity</span> 📋
+                </h3>
+                <p className="text-xs text-slate-500 font-medium">
+                  Submit details of external work, training, or study. Your Case Manager will review and assign PBAS points/hours.
+                </p>
+              </div>
+              <button 
+                type="button"
+                onClick={() => setShowOtherActivityModal(false)}
+                className="text-slate-400 hover:text-slate-600 font-bold p-1"
+              >
+                ✕
+              </button>
+            </div>
+
+            <form onSubmit={(e) => {
+              e.preventDefault();
+              const newAct: ActivityLog = {
+                id: Date.now().toString(),
+                type: 'Job Search',
+                title: `${otherActivityType}: ${otherActivityTitle}`,
+                reference: `EXT-${Date.now().toString().slice(-5)}`,
+                points: 0,
+                hours: parseFloat(otherActivityHours) || 1.0,
+                status: 'Pending Verification',
+                date: new Date().toLocaleDateString('en-AU'),
+                reportData: {
+                  candidateName: activeCandidate?.name || 'Alex Mercer',
+                  jobRole: otherActivityTitle,
+                  type: otherActivityType,
+                  timestamp: new Date().toLocaleString('en-AU'),
+                  feedbackNotes: [otherActivityNotes || 'External activity logged for CM review']
+                }
+              };
+              setActivities((prev) => [newAct, ...prev]);
+              setShowOtherActivityModal(false);
+              setOtherActivityTitle('');
+              setOtherActivityHours('');
+              setOtherActivityNotes('');
+              alert('Activity submitted! Your Case Manager will review and assign compliance points.');
+            }} className="space-y-4 text-xs">
+              
+              <div>
+                <label className="block font-bold text-slate-700 mb-1">Activity Category *</label>
+                <select 
+                  value={otherActivityType}
+                  onChange={(e) => setOtherActivityType(e.target.value)}
+                  className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl font-medium focus:ring-2 focus:ring-purple-500"
+                >
+                  <option value="Paid Work / Employment">Paid Work / Employment</option>
+                  <option value="External Course / Training">External Course / Training</option>
+                  <option value="Volunteering / Community Service">Volunteering / Community Service</option>
+                  <option value="Medical / Support Appointment">Medical / Support Appointment</option>
+                  <option value="Other Self-Directed Activity">Other Self-Directed Activity</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block font-bold text-slate-700 mb-1">Activity / Provider Name *</label>
+                <input 
+                  type="text"
+                  required
+                  placeholder="e.g. Local Community Center First Aid Course / Casual Shift"
+                  value={otherActivityTitle}
+                  onChange={(e) => setOtherActivityTitle(e.target.value)}
+                  className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl font-medium focus:ring-2 focus:ring-purple-500"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block font-bold text-slate-700 mb-1">Completed Hours *</label>
+                  <input 
+                    type="number"
+                    required
+                    placeholder="e.g. 4"
+                    value={otherActivityHours}
+                    onChange={(e) => setOtherActivityHours(e.target.value)}
+                    className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl font-medium focus:ring-2 focus:ring-purple-500"
+                  />
+                </div>
+                <div>
+                  <label className="block font-bold text-slate-700 mb-1">PBAS Points Status</label>
+                  <div className="p-3 bg-amber-50 border border-amber-200 rounded-xl text-amber-900 font-bold text-center">
+                    ⏳ Case Manager Assessed
+                  </div>
+                </div>
+              </div>
+
+              <div>
+                <label className="block font-bold text-slate-700 mb-1">Additional Verification Notes / Reference</label>
+                <textarea 
+                  rows={3}
+                  placeholder="Provide reference contact details, receipt number, or proof link..."
+                  value={otherActivityNotes}
+                  onChange={(e) => setOtherActivityNotes(e.target.value)}
+                  className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl font-medium focus:ring-2 focus:ring-purple-500"
+                />
+              </div>
+
+              <div className="flex justify-end gap-3 pt-2">
+                <button
+                  type="button"
+                  onClick={() => setShowOtherActivityModal(false)}
+                  className="px-5 py-2.5 text-slate-600 font-bold hover:bg-slate-100 rounded-xl"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="px-6 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-black rounded-xl shadow-lg shadow-emerald-600/20"
+                >
+                  Submit for Verification
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
     </div>
   );
 };
