@@ -214,14 +214,8 @@ const itemsPerPage = 15;
     link.href = 'data:text/csv;charset=utf-8,' + encodeURI([headers.join(','), ...rows].join('\n'));
     link.download = `Candidate_Roster_${new Date().toISOString().slice(0, 10)}.csv`;
     link.click();
-    <button
-  type="button"
-  onClick={exportToCSV}
-  className="ml-3 px-3 py-1 bg-emerald-700 hover:bg-emerald-800 text-white font-bold rounded-xl text-xs"
->
-  Export CSV
-</button>
   };
+  
   // OBLIGATION CYCLE HANDLERS
   const handleUpdateObligationTarget = (candidateName: string, newTarget: number) => {
     addAuditEntry(candidateName, `Updated PBAS cycle obligation target to ${newTarget} points`);
