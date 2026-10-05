@@ -182,29 +182,54 @@ const itemsPerPage = 15;
   };
 
   const filteredCandidates = candidates.filter((c) => {
-    const matchesSearch = c.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
-                          (c.waId && c.waId.toLowerCase().includes(searchTerm.toLowerCase()));
-    
-    // Calculate compliance metrics for 200-scale triage
+    const matchesSearch =
+      c.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (c.waId && c.waId.toLowerCase().includes(searchTerm.toLowerCase()));
+
+    const candidateCoach =
+      (c as { caseManager?: string; coach?: string; coachName?: string }).caseManager ||
+      (c as { caseManager?: string; coach?: string; coachName?: string }).coach ||
+      (c as { caseManager?: string; coach?: string; coachName?: string }).coachName ||
+      '';
+
+    let matchesCaseload = true;
+    if (selectedCaseload === 'casey') {
+      matchesCaseload = !candidateCoach || candidateCoach.toLowerCase().includes('casey');
+    } else if (selectedCaseload === 'jordan') {
+      matchesCaseload = candidateCoach.toLowerCase().includes('jordan');
+    } else if (selectedCaseload === 'taylor') {
+      matchesCaseload = candidateCoach.toLowerCase().includes('taylor');
+    } else if (selectedCaseload === 'all') {
+      matchesCaseload = true;
+    }
+
     const verified = c.pbasVerified ?? 45;
     const target = c.pbasTarget ?? 100;
     const progressPct = (verified / target) * 100;
-    const hasPending = verificationItems.some(v => v.candidateName.includes(c.name.split(' ')[0]) && v.status === 'Pending');
+
+    const hasPending = verificationItems.some(
+      (v) =>
+        v.candidateName.toLowerCase().includes(c.name.split(' ')[0].toLowerCase()) &&
+        v.status === 'Pending'
+    );
+
+    const isAtRisk = progressPct < 50 || c.status === 'High Risk';
 
     let matchesStatus = true;
     if (statusFilter === 'ACTION') matchesStatus = hasPending;
-    if (statusFilter === 'AT_RISK') matchesStatus = progressPct < 50;
-    if (statusFilter === 'ON_TRACK') matchesStatus = progressPct >= 50 && !hasPending;
+    if (statusFilter === 'AT_RISK') matchesStatus = isAtRisk;
+    if (statusFilter === 'ON_TRACK') matchesStatus = !isAtRisk && !hasPending;
 
-    return matchesSearch && matchesStatus;
+    return matchesSearch && matchesCaseload && matchesStatus;
   });
 
-  // Calculate pagination AFTER filtering candidates
   const totalPages = Math.ceil(filteredCandidates.length / itemsPerPage);
+
   const paginatedCandidates = filteredCandidates.slice(
     (currentPage - 1) * itemsPerPage,
     currentPage * itemsPerPage
   );
+
   const exportToCSV = () => {
     const headers = ['Candidate Name', 'Email', 'WA ID', 'Status', 'PBAS Verified', 'PBAS Target'];
     const rows = filteredCandidates.map(c => [
@@ -215,7 +240,6 @@ const itemsPerPage = 15;
     link.download = `Candidate_Roster_${new Date().toISOString().slice(0, 10)}.csv`;
     link.click();
   };
-  
   // OBLIGATION CYCLE HANDLERS
   const handleUpdateObligationTarget = (candidateName: string, newTarget: number) => {
     addAuditEntry(candidateName, `Updated PBAS cycle obligation target to ${newTarget} points`);
@@ -544,33 +568,52 @@ const itemsPerPage = 15;
                   />
                 </div>
 
-                {/* STATUS TRIAGE PILLS */}
-                <div className="flex items-center space-x-1 bg-slate-100 p-1 rounded-xl text-[11px] font-bold">
+                {/* COLOR-CODED STATUS TRIAGE PILLS */}
+                <div className="flex items-center space-x-1.5 bg-slate-100 p-1 rounded-xl text-[11px] font-extrabold">
                   <button
                     type="button"
                     onClick={() => { setStatusFilter('ALL'); setCurrentPage(1); }}
-                    className={`px-2.5 py-1 rounded-lg transition-all ${statusFilter === 'ALL' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500 hover:text-slate-800'}`}
+                    className={`px-3 py-1 rounded-lg transition-all ${
+                      statusFilter === 'ALL' 
+                        ? 'bg-slate-900 text-white shadow-sm' 
+                        : 'text-slate-600 hover:bg-slate-200'
+                    }`}
                   >
                     All
                   </button>
+
                   <button
                     type="button"
                     onClick={() => { setStatusFilter('ACTION'); setCurrentPage(1); }}
-                    className={`px-2.5 py-1 rounded-lg transition-all ${statusFilter === 'ACTION' ? 'bg-purple-950 text-white shadow-sm' : 'text-slate-500 hover:text-slate-800'}`}
+                    className={`px-3 py-1 rounded-lg transition-all border ${
+                      statusFilter === 'ACTION' 
+                        ? 'bg-purple-950 text-white border-purple-950 shadow-sm' 
+                        : 'bg-purple-50 text-purple-900 border-purple-200 hover:bg-purple-100'
+                    }`}
                   >
                     Action Needed
                   </button>
+
                   <button
                     type="button"
                     onClick={() => { setStatusFilter('AT_RISK'); setCurrentPage(1); }}
-                    className={`px-2.5 py-1 rounded-lg transition-all ${statusFilter === 'AT_RISK' ? 'bg-rose-600 text-white shadow-sm' : 'text-slate-500 hover:text-slate-800'}`}
+                    className={`px-3 py-1 rounded-lg transition-all border ${
+                      statusFilter === 'AT_RISK' 
+                        ? 'bg-rose-700 text-white border-rose-700 shadow-sm' 
+                        : 'bg-rose-50 text-rose-800 border-rose-200 hover:bg-rose-100'
+                    }`}
                   >
                     At Risk
                   </button>
+
                   <button
                     type="button"
                     onClick={() => { setStatusFilter('ON_TRACK'); setCurrentPage(1); }}
-                    className={`px-2.5 py-1 rounded-lg transition-all ${statusFilter === 'ON_TRACK' ? 'bg-emerald-700 text-white shadow-sm' : 'text-slate-500 hover:text-slate-800'}`}
+                    className={`px-3 py-1 rounded-lg transition-all border ${
+                      statusFilter === 'ON_TRACK' 
+                        ? 'bg-emerald-700 text-white border-emerald-700 shadow-sm' 
+                        : 'bg-emerald-50 text-emerald-800 border-emerald-200 hover:bg-emerald-100'
+                    }`}
                   >
                     On Track
                   </button>
@@ -617,10 +660,11 @@ const itemsPerPage = 15;
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100 text-xs">
-                  {paginatedCandidates.map((candidate) => {
+                  {paginatedCandidates.map((candidate: Candidate) => {
                     const verified = candidate.pbasVerified ?? 45;
                     const target = candidate.pbasTarget ?? 100;
                     const progressPct = Math.min(100, Math.round((verified / target) * 100));
+                    const isAtRisk = progressPct < 50 || candidate.status === 'High Risk';
 
                     return (
                       <tr key={candidate.id} className="hover:bg-purple-50/50 transition-all">
@@ -643,8 +687,12 @@ const itemsPerPage = 15;
                           <div className="text-[11px] text-slate-500">{candidate.email} • {candidate.waId || 'WA-882194'}</div>
                         </td>
                         <td className="p-4">
-                          <span className="px-2.5 py-1 bg-emerald-50 text-emerald-700 border border-emerald-200 font-bold text-[10px] rounded-full uppercase">
-                            {candidate.status || 'On Track'}
+                          <span className={`px-2.5 py-1 border font-extrabold text-[10px] rounded-full uppercase ${
+                            isAtRisk 
+                              ? 'bg-rose-50 text-rose-700 border-rose-200' 
+                              : 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                          }`}>
+                            {isAtRisk ? 'High Risk' : (candidate.status || 'On Track')}
                           </span>
                         </td>
                         <td className="p-4 w-48">
@@ -654,7 +702,11 @@ const itemsPerPage = 15;
                           </div>
                           <div className="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
                             <div 
-                              className="bg-gradient-to-r from-purple-600 to-emerald-500 h-full"
+                              className={`h-full ${
+                                isAtRisk 
+                                  ? 'bg-gradient-to-r from-rose-500 to-amber-500' 
+                                  : 'bg-gradient-to-r from-purple-600 to-emerald-500'
+                              }`}
                               style={{ width: `${progressPct}%` }}
                             />
                           </div>
