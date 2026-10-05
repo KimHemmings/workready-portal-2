@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import ParticipantHome from './ParticipantHome';
-import CaseManager from './CaseManager';
+import CoachDashboard from './CoachDashboard';
 import OwnerDashboard from './OwnerDashboard';
 import { usePortal } from '../context/PortalContext';
 import { 
@@ -647,7 +647,7 @@ export function SalesDemoDashboard() {
           {/* OPERATIONAL COMPONENT VIEWPORT */}
           <div className="flex-1 overflow-y-auto bg-slate-50">
             {activeFullDemoRole === 'participant' && <ParticipantHome />}
-            {activeFullDemoRole === 'coach' && <CaseManager />}
+            {activeFullDemoRole === 'coach' && <CoachDashboard />}
             {activeFullDemoRole === 'owner' && <OwnerDashboard />}
           </div>
         </div>

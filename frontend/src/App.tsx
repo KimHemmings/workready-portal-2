@@ -44,11 +44,52 @@ export function App() {
 
   return (
     <PortalProvider>
-      <div className="min-h-screen bg-slate-50">
+      <div className="min-h-screen bg-slate-50 relative pb-16">
+        {/* DEMO PROFILE SWITCHER TOOLBAR */}
+        <div className="fixed bottom-3 left-1/2 -translate-x-1/2 z-50 bg-slate-900/95 text-white px-4 py-2 rounded-full shadow-2xl border border-slate-700 flex items-center space-x-2 text-xs font-bold backdrop-blur-md">
+          <span className="text-slate-400 mr-1">Switch View:</span>
+          
+          <button
+            onClick={() => changeRole('sales')}
+            className={`px-3 py-1 rounded-full transition-all ${
+              userRole === 'sales' ? 'bg-purple-600 text-white shadow' : 'text-slate-300 hover:text-white'
+            }`}
+          >
+            Sales Demo View
+          </button>
+
+          <button
+            onClick={() => changeRole('coach')}
+            className={`px-3 py-1 rounded-full transition-all ${
+              userRole === 'coach' || userRole === 'casey' ? 'bg-purple-600 text-white shadow' : 'text-slate-300 hover:text-white'
+            }`}
+          >
+            Coach Portal
+          </button>
+
+          <button
+            onClick={() => changeRole('candidate')}
+            className={`px-3 py-1 rounded-full transition-all ${
+              userRole === 'candidate' ? 'bg-emerald-600 text-white shadow' : 'text-slate-300 hover:text-white'
+            }`}
+          >
+            Candidate Portal
+          </button>
+
+          <button
+            onClick={() => changeRole(null)}
+            className="px-2 py-1 text-slate-400 hover:text-red-400 transition-colors ml-2"
+            title="Sign Out to Login Screen"
+          >
+            ✕ Exit
+          </button>
+        </div>
+
+        {/* MAIN ROUTE RENDERING */}
         {userRole === 'candidate' && <ParticipantHome />}
         {(userRole === 'coach' || userRole === 'casey') && <CoachDashboard />}
         {userRole === 'owner' && <OwnerDashboard />}
-        {userRole === 'sales' && <CoachDashboard />}
+        {userRole === 'sales' && <SalesDemoDashboard />}
         {userRole === 'admin' && <AdminDashboard />}
         {userRole === 'system_admin' && <SystemAdminDashboard />}
       </div>

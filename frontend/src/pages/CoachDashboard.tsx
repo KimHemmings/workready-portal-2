@@ -275,29 +275,41 @@ const itemsPerPage = 15;
   const onTrackCount = candidates.filter(c => ((c.pbasVerified ?? 45) / (c.pbasTarget ?? 100)) >= 0.5).length;
   const atRiskCount = candidates.filter(c => ((c.pbasVerified ?? 45) / (c.pbasTarget ?? 100)) < 0.5).length;
   const pendingItems = verificationItems.filter((v) => v.status === 'Pending');
-  const victoryItems = pendingItems.filter(v => v.type === 'Job Placement' || v.type === 'Interview Claim' || v.type === 'STAR Interview');
+  // Filter ONLY for high-priority placement outcomes ("I Got a Job!" and "I Got an Interview!")
+  const victoryItems = pendingItems.filter(v => {
+    const title = v.title.toLowerCase();
+    const type = (v.type || '').toLowerCase();
+    return (
+      type === 'job placement' || 
+      type === 'interview claim' ||
+      title.includes('job') || 
+      title.includes('interview') ||
+      title.includes('hired') ||
+      title.includes('placed')
+    );
+  });
 
   return (
     <div className="min-h-screen bg-slate-50 text-slate-900 font-sans">
-      <header className="bg-gradient-to-r from-[#1e1b4b] via-[#24083b] to-[#1e1b4b] text-white px-6 py-4 border-b border-purple-900/50 shadow-md">
+<header className="bg-gradient-to-r from-[#1e1b4b] via-[#24083b] to-[#1e1b4b] text-white px-6 py-4 border-b border-purple-900/50 shadow-md">
         <div className="max-w-7xl mx-auto flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div className="flex items-center space-x-4">
             {/* PROMINENT HIGH-VISIBILITY LOGO BADGE */}
             <div className="w-16 h-16 bg-white rounded-2xl flex items-center justify-center shadow-xl shadow-black/30 ring-2 ring-purple-400/40 overflow-hidden shrink-0 transition-transform hover:scale-105">
               <img 
-                src="/logo.png" 
-                alt="Straight Up Training Logo" 
-                className="w-full h-full object-cover scale-150 transform transition-transform"
-                onError={(e) => {
-                  const target = e.target as HTMLImageElement;
-                  if (target.src.includes('logo.png')) {
-                    target.src = '/White_Background_PNG.png';
-                  } else {
-                    target.onerror = null;
-                    target.parentElement!.innerHTML = '<span class="font-black text-purple-950 text-xl tracking-tighter">SU</span>';
-                  }
-                }}
-              />
+  src="/logo.png" 
+  alt="Straight Up Training Logo" 
+  className="w-full h-full object-contain p-1"
+  onError={(e) => {
+    const target = e.target as HTMLImageElement;
+    if (target.src.includes('logo.png')) {
+      target.src = '/White_Background_PNG.png';
+    } else {
+      target.onerror = null;
+      target.parentElement!.innerHTML = '<span class="font-black text-purple-950 text-xl tracking-tighter">SU</span>';
+    }
+  }}
+/>
             </div>
             <div>
               <div className="flex items-center space-x-2.5">
@@ -349,6 +361,16 @@ const itemsPerPage = 15;
                 <option value="all">All Site Caseloads</option>
               </select>
             </div>
+
+            {/* HIGH-VISIBILITY COLORED BUSINESS MANAGER CONTACT BUTTON */}
+            <button
+              type="button"
+              onClick={() => alert("Opening secure communication line to Business Manager...")}
+              className="px-3.5 py-1.5 bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black text-xs rounded-xl transition-all flex items-center space-x-1.5 shadow-md shadow-emerald-500/20"
+            >
+              <MessageSquare className="w-3.5 h-3.5 text-slate-950" />
+              <span>Contact Business Manager</span>
+            </button>
 
             <button
               onClick={handleSignOut}
@@ -462,30 +484,32 @@ const itemsPerPage = 15;
           </div>
         </div>
 
+        {/* COMPACT PRIORITY VICTORY BANNER (Job & Interview Claims Only) */}
         {victoryItems.length > 0 && (
-          <div className="bg-gradient-to-r from-emerald-600 via-teal-600 to-emerald-700 text-white p-4 rounded-2xl shadow-lg space-y-2 border border-emerald-400/30">
-            <div className="flex items-center space-x-2">
-              <Award className="w-5 h-5 text-amber-300 animate-bounce" />
-              <h3 className="font-extrabold text-sm uppercase tracking-wide text-amber-200">
-                Priority Victory Submissions Pending Review ({victoryItems.length})
-              </h3>
+          <div className="bg-[#0f382c] border border-emerald-500/40 rounded-xl p-3 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-3 my-2">
+            <div className="flex items-center space-x-2.5">
+              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping shrink-0" />
+              <div className="flex items-center space-x-2 text-xs">
+                <span className="font-black text-emerald-300 uppercase tracking-wider text-[11px]">
+                  Priority Victory Claim ({victoryItems.length}):
+                </span>
+                <span className="font-bold text-white">
+                  {victoryItems[0].candidateName}
+                </span>
+                <span className="text-emerald-200/90 font-medium hidden lg:inline">
+                  — [{victoryItems[0].type || 'Outcome Claim'}] {victoryItems[0].title}
+                </span>
+              </div>
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-              {victoryItems.map((item) => (
-                <div key={item.id} className="bg-white/10 backdrop-blur-md border border-white/20 p-3 rounded-xl flex items-center justify-between text-xs">
-                  <div>
-                    <span className="font-bold text-white">{item.candidateName}</span>
-                    <span className="text-emerald-200 ml-2">({item.title})</span>
-                    <p className="text-[11px] text-emerald-100">{item.details || 'Submitted for verification.'}</p>
-                  </div>
-                  <button
-                    onClick={() => setSelectedEvidence(item)}
-                    className="px-3 py-1.5 bg-white text-emerald-950 font-bold rounded-lg hover:bg-emerald-50 text-xs shadow-sm"
-                  >
-                    Verify (+{item.points} Pts)
-                  </button>
-                </div>
-              ))}
+
+            <div className="flex items-center space-x-2 shrink-0">
+              <button
+                type="button"
+                onClick={() => setSelectedEvidence(victoryItems[0])}
+                className="px-3.5 py-1.5 bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black text-xs rounded-lg transition-all shadow-md shadow-emerald-500/20"
+              >
+                Verify Victory (+{victoryItems[0].points} Pts)
+              </button>
             </div>
           </div>
         )}
