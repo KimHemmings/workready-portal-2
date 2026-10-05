@@ -59,6 +59,15 @@ export function App() {
           </button>
 
           <button
+            onClick={() => changeRole('owner')}
+            className={`px-3 py-1 rounded-full transition-all ${
+              userRole === 'owner' ? 'bg-amber-600 text-white shadow' : 'text-slate-300 hover:text-white'
+            }`}
+          >
+            Business Manager
+          </button>
+
+          <button
             onClick={() => changeRole('coach')}
             className={`px-3 py-1 rounded-full transition-all ${
               userRole === 'coach' || userRole === 'casey' ? 'bg-purple-600 text-white shadow' : 'text-slate-300 hover:text-white'

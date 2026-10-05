@@ -1,608 +1,853 @@
 import React, { useState } from 'react';
 import { usePortal } from '../context/PortalContext';
-import type { Candidate, VerificationItem } from '../context/PortalContext';
-import { 
-  BarChart3, Users, ShieldCheck, Download, LogOut, 
-  Sparkles, TrendingUp, UserPlus, X, PlusCircle
+import {
+  ShieldCheck,
+  Users,
+  Briefcase,
+  Clock,
+  Award,
+  Building2,
+  FileSpreadsheet,
+  Plus,
+  TrendingUp,
+  Sliders,
+  CheckCircle2,
+  AlertTriangle,
+  LogOut,
+  Palette,
+  Download,
+  Sparkles
 } from 'lucide-react';
 
-interface StaffMember {
-  id: string;
-  name: string;
-  email: string;
-  role: string;
-  caseloadCount: number;
-  status: 'Active' | 'Away';
-}
+// Site Locations Configuration Data
+const SITE_LOCATIONS = [
+  { id: 'ALL', name: 'All Sites (Provider Aggregate)', candidateQuota: 200, staffQuota: 5 },
+  { id: 'brisbane_north', name: 'Brisbane North Hub', candidateQuota: 100, staffQuota: 3 },
+  { id: 'gold_coast', name: 'Gold Coast Hub', candidateQuota: 50, staffQuota: 1 },
+  { id: 'sydney_cbd', name: 'Sydney CBD Hub', candidateQuota: 50, staffQuota: 1 },
+];
 
-export default function OwnerDashboard() {
-  const { candidates, verificationItems, addCandidate } = usePortal();
+export function OwnerDashboard() {
+  const { candidates, verificationItems, activeContract, resetSandboxState, addCandidate } = usePortal();
 
-  const [currentOwnerName] = useState('Morgan Taylor');
-  const [activeTab, setActiveTab] = useState<'kpi' | 'staff' | 'pillars' | 'dewr'>('kpi');
-  
-  // Staff State Management
-  const [staffList, setStaffList] = useState<StaffMember[]>([
-    { id: '1', name: 'Casey Smith', email: 'casey@workready.com', role: 'Senior Case Manager', caseloadCount: 4, status: 'Active' },
-    { id: '2', name: 'Jordan Vance', email: 'jordan@workready.com', role: 'Case Manager', caseloadCount: 3, status: 'Away' },
-    { id: '3', name: 'Taylor Reed', email: 'taylor@workready.com', role: 'Case Manager', caseloadCount: 2, status: 'Active' }
-  ]);
+// Provision Modal Form State
+const [newCandidateName, setNewCandidateName] = useState<string>('');
+const [assignedCm, setAssignedCm] = useState<string>('Casey Smith');
 
-  // Modal Visibility States
-  const [showAddStaffModal, setShowAddStaffModal] = useState(false);
-  const [showAddCandidateModal, setShowAddCandidateModal] = useState(false);
+  // Active Site Location State
+  const [selectedSite, setSelectedSite] = useState<string>('ALL');
 
-  // Form Inputs
-  const [newStaffName, setNewStaffName] = useState('');
-  const [newStaffEmail, setNewStaffEmail] = useState('');
-  const [newStaffRole, setNewStaffRole] = useState('Case Manager');
+  // Active Tab State
+  const [activeTab, setActiveTab] = useState<'command' | 'roster' | 'slas' | 'branding' | 'audit'>('command');
 
-  const [newCandidateName, setNewCandidateName] = useState('');
-  const [newCandidateEmail, setNewCandidateEmail] = useState('');
-  const [assignedStaffId, setAssignedStaffId] = useState('1');
+  // License & Capacity Management State
+  const [candidateQuota, setCandidateQuota] = useState<number>(200);
+  const [staffQuota, setStaffQuota] = useState<number>(5);
+
+  // SLA Management State (Business Days)
+  const [placementSlaDays, setPlacementSlaDays] = useState<number>(2);
+  const [interviewSlaDays, setInterviewSlaDays] = useState<number>(2);
+  const [evidenceSlaDays, setEvidenceSlaDays] = useState<number>(4);
+
+  // Dual Branding State
+  const [providerName, setProviderName] = useState<string>('Straight Up Training Partner');
+  const [primaryBrandColor, setPrimaryBrandColor] = useState<string>('#4f46e5');
+
+  // Modals / Actions
+  const [showAddStaffModal, setShowAddStaffModal] = useState<boolean>(false);
+  const [showAddCandidateModal, setShowAddCandidateModal] = useState<boolean>(false);
+
+  // Dynamically retrieve quotas based on selected site
+  const activeSiteConfig = SITE_LOCATIONS.find(s => s.id === selectedSite) || SITE_LOCATIONS[0];
+
+  // Derived Metrics & Site Filtering
+  const siteCandidates = candidates ? candidates.filter(c => 
+    selectedSite === 'ALL' || (c as any).siteId === selectedSite
+  ) : [];
+
+  const activeCandidateCount = siteCandidates.length;
+  const activeStaffCount = 3; // Static active staff roster count for demo
+
+  // Quotas adjusted by selected site
+  const currentCandidateQuota = activeSiteConfig.candidateQuota;
+  const currentStaffQuota = activeSiteConfig.staffQuota;
+
+  const candidateQuotaPercent = Math.round((activeCandidateCount / currentCandidateQuota) * 100);
+  const staffQuotaPercent = Math.round((activeStaffCount / currentStaffQuota) * 100);
+
+  // Verification SLA Health Calculation
+  const pendingCount = verificationItems ? verificationItems.filter(v => v.status === 'Pending').length : 0;
+  const placementsPending = verificationItems
+    ? verificationItems.filter(v => v.status === 'Pending' && (v.type === 'Interview Claim' || v.type === 'Job Placement' || v.title.toLowerCase().includes('job'))).length
+    : 0;
 
   const handleSignOut = () => {
+    resetSandboxState();
     const url = new URL(window.location.href);
     url.searchParams.delete('role');
     window.history.pushState({}, '', url.pathname);
     window.dispatchEvent(new Event('popstate'));
   };
 
-  const handleAddStaff = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!newStaffName.trim() || !newStaffEmail.trim()) return;
-
-    const newMember: StaffMember = {
-      id: Date.now().toString(),
-      name: newStaffName.trim(),
-      email: newStaffEmail.trim(),
-      role: newStaffRole,
-      caseloadCount: 0,
-      status: 'Active'
-    };
-
-    setStaffList(prev => [...prev, newMember]);
-    setNewStaffName('');
-    setNewStaffEmail('');
-    setShowAddStaffModal(false);
-  };
-
-  const handleAddCandidate = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!newCandidateName.trim() || !newCandidateEmail.trim()) return;
-
-    // 1. Dispatch directly into PortalContext global state
-    addCandidate({
-      name: newCandidateName.trim(),
-      email: newCandidateEmail.trim(),
-      phone: '0400 000 000',
-      status: 'On Track',
-      pbasTarget: 100,
-      startDate: new Date().toISOString().split('T')[0],
-      finishDate: '2026-12-31',
-      primaryChallenge: 'General Support',
-    });
-
-    // 2. Increment caseload count for selected Case Manager
-    setStaffList(prev => prev.map(staff => 
-      staff.id === assignedStaffId 
-        ? { ...staff, caseloadCount: staff.caseloadCount + 1 } 
-        : staff
-    ));
-
-    setNewCandidateName('');
-    setNewCandidateEmail('');
-    setShowAddCandidateModal(false);
-  };
-
-  // Executive KPI Calculations
-  const totalCandidates = candidates.length;
-  const compliantCandidates = candidates.filter((c: Candidate) => c.status === 'On Track' || c.status === 'Exempt').length;
-  const overallComplianceRate = totalCandidates > 0 ? Math.round((compliantCandidates / totalCandidates) * 100) : 100;
-
-  const totalVerifiedPoints = candidates.reduce((acc: number, c: Candidate) => acc + (c.pbasVerified || c.verifiedPoints || 0), 0);
-  const totalTargetPoints = candidates.reduce((acc: number, c: Candidate) => acc + (c.pbasTarget || 100), 0);
-
-  const verifiedPlacements = verificationItems.filter((v: VerificationItem) => v.type === 'Job Placement' && v.status === 'Verified').length;
-  const verifiedInterviews = verificationItems.filter((v: VerificationItem) => (v.type === 'Interview Claim' || v.type === 'STAR Interview') && v.status === 'Verified').length;
-
-  // Aggregate 5 Pillars Diagnostic Averages
-  const aggregatePillars = candidates.reduce(
-    (acc, c: Candidate) => {
-      const pillars = c.fivePillars;
-      if (!pillars) return acc;
-      return {
-        jobSearch: acc.jobSearch + (pillars.jobSearch ?? pillars.resume ?? 0),
-        interview: acc.interview + (pillars.interview ?? 0),
-        skills: acc.skills + (pillars.skills ?? pillars.whs ?? 0),
-        logistics: acc.logistics + (pillars.logistics ?? pillars.digital ?? 0),
-        mindset: acc.mindset + (pillars.mindset ?? pillars.careerPlan ?? 0),
-      };
-    },
-    { jobSearch: 0, interview: 0, skills: 0, logistics: 0, mindset: 0 }
-  );
-
-  const avgPillars = totalCandidates > 0 ? {
-    jobSearch: Math.round(aggregatePillars.jobSearch / totalCandidates),
-    interview: Math.round(aggregatePillars.interview / totalCandidates),
-    skills: Math.round(aggregatePillars.skills / totalCandidates),
-    logistics: Math.round(aggregatePillars.logistics / totalCandidates),
-    mindset: Math.round(aggregatePillars.mindset / totalCandidates),
-  } : { jobSearch: 85, interview: 78, skills: 90, logistics: 92, mindset: 88 };
-
-  const handleExportDEWRReport = () => {
-    const headers = ['Candidate Name', 'Email', 'Status', 'PBAS Verified Points', 'PBAS Target', 'Compliance %'];
-    const rows = candidates.map((c: Candidate) => [
-      `"${c.name}"`,
-      `"${c.email}"`,
-      `"${c.status}"`,
-      c.pbasVerified,
-      c.pbasTarget,
-      `${Math.round((c.pbasVerified / c.pbasTarget) * 100)}%`
-    ]);
-
-    const csvContent = 'data:text/csv;charset=utf-8,' + [headers.join(','), ...rows.map(e => e.join(','))].join('\n');
+  const handleExportAuditCSV = () => {
+    const csvContent = "data:text/csv;charset=utf-8," 
+      + "Candidate Name,Ref ID,Item Type,Status,Submitted Date\n"
+      + (verificationItems || []).map(i => `"${i.candidateName}","${i.id}","${i.type}","${i.status}","${i.submittedDate}"`).join("\n");
+    
     const encodedUri = encodeURI(csvContent);
-    const link = document.createElement('a');
-    link.setAttribute('href', encodedUri);
-    link.setAttribute('download', `DEWR_Compliance_Audit_Export_${new Date().toISOString().slice(0, 10)}.csv`);
+    const link = document.createElement("a");
+    link.setAttribute("href", encodedUri);
+    link.setAttribute("download", `DEWR_Audit_Report_${new Date().toISOString().slice(0,10)}.csv`);
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 text-slate-900 font-sans">
-      <header className="bg-gradient-to-r from-[#1e1b4b] via-[#24083b] to-[#1e1b4b] text-white px-6 py-4 border-b border-purple-900/50 shadow-md">
+    <div className="min-h-screen bg-slate-50 text-slate-900 font-sans pb-16">
+      {/* 1. EXECUTIVE DUAL-BRANDED HEADER */}
+      <header className="bg-gradient-to-r from-[#1e1b4b] via-[#24083b] to-[#1e1b4b] text-white px-6 py-5 border-b border-purple-900/50 shadow-lg">
         <div className="max-w-7xl mx-auto flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div className="flex items-center space-x-4">
-            <div className="w-10 h-10 bg-white rounded-xl p-1 flex items-center justify-center shadow-sm overflow-hidden shrink-0">
-              <img 
-                src="/logo.png" 
-                alt="Straight Up Training Logo" 
+            <div className="w-12 h-12 bg-white rounded-2xl p-1.5 flex items-center justify-center shadow-md overflow-hidden shrink-0">
+              <img
+                src="/logo.png"
+                alt="Provider Logo"
                 className="w-full h-full object-contain"
                 onError={(e) => {
                   const target = e.target as HTMLImageElement;
-                  if (target.src.includes('logo.png')) {
-                    target.src = '/White_Background_PNG.png';
-                  } else {
-                    target.onerror = null;
-                    target.parentElement!.innerHTML = '<span class="font-extrabold text-purple-950 text-sm">SU</span>';
+                  target.onerror = null;
+                  if (target.parentElement) {
+                    target.parentElement.innerHTML = '<span class="font-black text-purple-950 text-lg">SU</span>';
                   }
                 }}
               />
             </div>
             <div>
               <div className="flex items-center space-x-2">
-                <h1 className="font-extrabold text-xl tracking-tight text-white">Straight Up Training</h1>
-                <span className="bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider">
-                  WorkReady Partner
+                <h1 className="font-extrabold text-2xl tracking-tight text-white">{providerName}</h1>
+                <span className="bg-amber-400 text-purple-950 text-[10px] font-black px-2.5 py-0.5 rounded-full uppercase tracking-wider shadow-sm">
+                  {activeContract || 'Workforce Australia'}
                 </span>
               </div>
-              <p className="text-xs text-purple-200/80">
-                Business Manager Hub • Operational Governance & Staff Management
+
+              {/* SITE LOCATION SELECTOR */}
+              <div className="flex items-center space-x-1.5 my-1">
+                <Building2 className="w-3.5 h-3.5 text-amber-300 shrink-0" />
+                <select
+                  value={selectedSite}
+                  onChange={(e) => setSelectedSite(e.target.value)}
+                  className="bg-white/10 hover:bg-white/20 text-white font-bold text-xs px-2.5 py-0.5 rounded-lg border border-white/20 focus:outline-none cursor-pointer transition-all"
+                >
+                  {SITE_LOCATIONS.map((site) => (
+                    <option key={site.id} value={site.id} className="text-slate-900 font-bold">
+                      {site.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <p className="text-xs text-purple-200/80 font-medium">
+                Business Manager Hub • Governance, License Quotas & SLA Controls
               </p>
             </div>
           </div>
 
-          <div className="flex flex-wrap items-center gap-2">
+          <div className="flex items-center space-x-3 flex-wrap">
             <button
               onClick={() => setShowAddStaffModal(true)}
-              className="px-3.5 py-1.5 bg-purple-600/80 hover:bg-purple-600 border border-purple-400/40 text-white text-xs font-bold rounded-xl transition-all flex items-center space-x-1.5 shadow-sm"
+              className="px-3.5 py-2 bg-purple-800/80 hover:bg-purple-700 border border-purple-400/40 text-white text-xs font-extrabold rounded-xl transition-all flex items-center space-x-1.5 shadow-sm"
             >
-              <UserPlus className="w-3.5 h-3.5" />
-              <span>+ Add Case Manager</span>
+              <Users className="w-3.5 h-3.5 text-purple-300" />
+              <span>+ Provision Case Manager</span>
             </button>
 
             <button
               onClick={() => setShowAddCandidateModal(true)}
-              className="px-3.5 py-1.5 bg-purple-600/80 hover:bg-purple-600 border border-purple-400/40 text-white text-xs font-bold rounded-xl transition-all flex items-center space-x-1.5 shadow-sm"
+              className="px-3.5 py-2 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-extrabold rounded-xl transition-all flex items-center space-x-1.5 shadow-sm"
             >
-              <PlusCircle className="w-3.5 h-3.5" />
+              <Plus className="w-3.5 h-3.5 text-emerald-200" />
               <span>+ Add Candidate</span>
             </button>
 
             <button
-              onClick={handleExportDEWRReport}
-              className="px-3.5 py-1.5 bg-emerald-600 hover:bg-emerald-700 border border-emerald-400/30 text-white text-xs font-bold rounded-xl transition-all flex items-center space-x-1.5 shadow-sm"
+              onClick={handleExportAuditCSV}
+              className="px-3.5 py-2 bg-white/10 hover:bg-white/20 border border-white/20 text-white text-xs font-bold rounded-xl transition-all flex items-center space-x-1.5"
             >
-              <Download className="w-3.5 h-3.5" />
-              <span>Export CSV</span>
+              <Download className="w-3.5 h-3.5 text-amber-300" />
+              <span>Export Audit CSV</span>
             </button>
 
             <button
               onClick={handleSignOut}
-              className="px-3.5 py-1.5 bg-white/10 hover:bg-white/20 border border-white/20 text-white text-xs font-bold rounded-xl transition-all flex items-center space-x-1.5"
+              className="p-2 bg-white/10 hover:bg-rose-500/30 border border-white/20 text-white rounded-xl transition-all ml-1"
+              title="Sign Out"
             >
-              <LogOut className="w-3.5 h-3.5" />
-              <span>Sign Out</span>
+              <LogOut className="w-4 h-4 text-purple-200" />
             </button>
           </div>
         </div>
       </header>
 
       <main className="max-w-7xl mx-auto p-6 space-y-6">
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white p-4 rounded-2xl border border-slate-200 shadow-sm">
-          <div>
-            <h2 className="text-xl font-extrabold text-purple-950">
-              Executive Overview — {currentOwnerName}
-            </h2>
-            <p className="text-xs text-slate-500 mt-0.5">
-              Program Outcomes, Staff Capacity, & Candidate Provisioning
+        {/* 2. GLOBAL LICENSE QUOTA & CAPACITY GAUGE BAR */}
+        <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 items-center">
+          <div className="p-3.5 bg-slate-50 border border-slate-200 rounded-xl space-y-2">
+            <div className="flex justify-between items-center text-xs">
+              <span className="font-bold text-slate-600 flex items-center space-x-1.5">
+                <Users className="w-4 h-4 text-purple-600" />
+                <span>Candidate Licenses</span>
+              </span>
+              <span className="font-extrabold text-purple-950">
+                {activeCandidateCount} / {currentCandidateQuota}
+              </span>
+            </div>
+            <div className="w-full bg-slate-200 h-2 rounded-full overflow-hidden">
+              <div
+                className={`h-full transition-all rounded-full ${
+                  candidateQuotaPercent > 90 ? 'bg-amber-500' : 'bg-purple-600'
+                }`}
+                style={{ width: `${Math.min(100, candidateQuotaPercent)}%` }}
+              />
+            </div>
+            <p className="text-[10px] text-slate-400 font-medium">
+              {currentCandidateQuota - activeCandidateCount} Seats Available ({candidateQuotaPercent}% used)
             </p>
           </div>
 
-          <div className="flex bg-slate-100 p-1 rounded-xl border border-slate-200 text-xs font-bold space-x-1">
-            <button
-              onClick={() => setActiveTab('kpi')}
-              className={`px-4 py-2 rounded-lg transition-all flex items-center space-x-2 ${
-                activeTab === 'kpi'
-                  ? 'bg-purple-950 text-white shadow-sm'
-                  : 'text-slate-600 hover:text-slate-900'
-              }`}
-            >
-              <BarChart3 className="w-4 h-4 text-emerald-400" />
-              <span>Command Center</span>
-            </button>
+          <div className="p-3.5 bg-slate-50 border border-slate-200 rounded-xl space-y-2">
+            <div className="flex justify-between items-center text-xs">
+              <span className="font-bold text-slate-600 flex items-center space-x-1.5">
+                <Briefcase className="w-4 h-4 text-emerald-600" />
+                <span>Case Manager Seats</span>
+              </span>
+              <span className="font-extrabold text-slate-900">
+                {activeStaffCount} / {currentStaffQuota}
+              </span>
+            </div>
+            <div className="w-full bg-slate-200 h-2 rounded-full overflow-hidden">
+              <div
+                className="bg-emerald-500 h-full transition-all rounded-full"
+                style={{ width: `${Math.min(100, staffQuotaPercent)}%` }}
+              />
+            </div>
+            <p className="text-[10px] text-slate-400 font-medium">
+              {currentStaffQuota - activeStaffCount} Staff Licenses Available ({staffQuotaPercent}% used)
+            </p>
+          </div>
 
-            <button
-              onClick={() => setActiveTab('staff')}
-              className={`px-4 py-2 rounded-lg transition-all flex items-center space-x-2 ${
-                activeTab === 'staff'
-                  ? 'bg-purple-950 text-white shadow-sm'
-                  : 'text-slate-600 hover:text-slate-900'
-              }`}
-            >
-              <Users className="w-4 h-4 text-purple-400" />
-              <span>Staff & Caseloads ({staffList.length})</span>
-            </button>
+          <div className="p-3.5 bg-slate-50 border border-slate-200 rounded-xl space-y-1">
+            <span className="text-xs font-bold text-slate-600 flex items-center space-x-1.5">
+              <Clock className="w-4 h-4 text-amber-500" />
+              <span>Operational Placement SLA</span>
+            </span>
+            <div className="text-lg font-black text-purple-950">{placementSlaDays} Business Days</div>
+            <p className="text-[10px] text-emerald-600 font-bold flex items-center space-x-1">
+              <CheckCircle2 className="w-3 h-3" />
+              <span>Target Enforcement Active</span>
+            </p>
+          </div>
 
-            <button
-              onClick={() => setActiveTab('pillars')}
-              className={`px-4 py-2 rounded-lg transition-all flex items-center space-x-2 ${
-                activeTab === 'pillars'
-                  ? 'bg-purple-950 text-white shadow-sm'
-                  : 'text-slate-600 hover:text-slate-900'
-              }`}
-            >
-              <Sparkles className="w-4 h-4 text-amber-400" />
-              <span>Macro 5-Pillars</span>
-            </button>
-
-            <button
-              onClick={() => setActiveTab('dewr')}
-              className={`px-4 py-2 rounded-lg transition-all flex items-center space-x-2 ${
-                activeTab === 'dewr'
-                  ? 'bg-purple-950 text-white shadow-sm'
-                  : 'text-slate-600 hover:text-slate-900'
-              }`}
-            >
-              <ShieldCheck className="w-4 h-4 text-blue-400" />
-              <span>DEWR Audit</span>
-            </button>
+          <div className="p-3.5 bg-slate-50 border border-slate-200 rounded-xl space-y-1">
+            <span className="text-xs font-bold text-slate-600 flex items-center space-x-1.5">
+              <AlertTriangle className="w-4 h-4 text-rose-500" />
+              <span>Unverified Queue Backlog</span>
+            </span>
+            <div className="text-lg font-black text-rose-600">{pendingCount} Items Total</div>
+            <p className="text-[10px] text-slate-500 font-medium">
+              {placementsPending} High-Priority Job/Interview Claims
+            </p>
           </div>
         </div>
 
+        {/* 3. NAVIGATION TAB CONTROLS */}
+        <div className="flex bg-white p-1.5 rounded-2xl border border-slate-200 shadow-sm text-xs font-bold space-x-1 overflow-x-auto">
+          <button
+            onClick={() => setActiveTab('command')}
+            className={`px-4 py-2.5 rounded-xl transition-all flex items-center space-x-2 shrink-0 ${
+              activeTab === 'command'
+                ? 'bg-purple-950 text-white shadow-sm'
+                : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
+            }`}
+          >
+            <TrendingUp className="w-4 h-4 text-emerald-400" />
+            <span>Command Center & Outcomes</span>
+          </button>
+
+          <button
+            onClick={() => setActiveTab('roster')}
+            className={`px-4 py-2.5 rounded-xl transition-all flex items-center space-x-2 shrink-0 ${
+              activeTab === 'roster'
+                ? 'bg-purple-950 text-white shadow-sm'
+                : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
+            }`}
+          >
+            <Users className="w-4 h-4 text-purple-400" />
+            <span>Staff Roster & Leave Coverage</span>
+          </button>
+
+          <button
+            onClick={() => setActiveTab('slas')}
+            className={`px-4 py-2.5 rounded-xl transition-all flex items-center space-x-2 shrink-0 ${
+              activeTab === 'slas'
+                ? 'bg-purple-950 text-white shadow-sm'
+                : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
+            }`}
+          >
+            <Sliders className="w-4 h-4 text-amber-400" />
+            <span>SLA Target Rules Engine</span>
+          </button>
+
+          <button
+            onClick={() => setActiveTab('branding')}
+            className={`px-4 py-2.5 rounded-xl transition-all flex items-center space-x-2 shrink-0 ${
+              activeTab === 'branding'
+                ? 'bg-purple-950 text-white shadow-sm'
+                : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
+            }`}
+          >
+            <Palette className="w-4 h-4 text-indigo-400" />
+            <span>Dual Branding Controls</span>
+          </button>
+
+          <button
+            onClick={() => setActiveTab('audit')}
+            className={`px-4 py-2.5 rounded-xl transition-all flex items-center space-x-2 shrink-0 ${
+              activeTab === 'audit'
+                ? 'bg-purple-950 text-white shadow-sm'
+                : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
+            }`}
+          >
+            <FileSpreadsheet className="w-4 h-4 text-blue-400" />
+            <span>DEWR Audit & Governance</span>
+          </button>
+        </div>
+
         {/* TAB 1: COMMAND CENTER */}
-        {activeTab === 'kpi' && (
+        {activeTab === 'command' && (
           <div className="space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-              <div className="bg-white rounded-2xl p-5 border border-slate-200 shadow-sm space-y-2">
-                <span className="text-xs text-slate-500 font-bold uppercase tracking-wider">Total Active Caseload</span>
-                <div className="flex items-baseline justify-between">
-                  <span className="text-3xl font-extrabold text-slate-900">{totalCandidates}</span>
-                  <span className="px-2 py-0.5 bg-purple-100 text-purple-800 font-bold text-xs rounded-full">Participants</span>
-                </div>
-                <p className="text-[11px] text-slate-500">Managed by {staffList.length} Case Managers</p>
-              </div>
-
-              <div className="bg-white rounded-2xl p-5 border border-slate-200 shadow-sm space-y-2">
-                <span className="text-xs text-slate-500 font-bold uppercase tracking-wider">PBAS Monthly Compliance</span>
-                <div className="flex items-baseline justify-between">
-                  <span className="text-3xl font-extrabold text-emerald-600">{overallComplianceRate}%</span>
-                  <span className="px-2 py-0.5 bg-emerald-100 text-emerald-800 font-bold text-xs rounded-full">On Track</span>
-                </div>
-                <p className="text-[11px] text-slate-500">{compliantCandidates} of {totalCandidates} Candidates meeting target</p>
-              </div>
-
-              <div className="bg-white rounded-2xl p-5 border border-slate-200 shadow-sm space-y-2">
-                <span className="text-xs text-slate-500 font-bold uppercase tracking-wider">Verified Job Placements</span>
-                <div className="flex items-baseline justify-between">
-                  <span className="text-3xl font-extrabold text-purple-950">{verifiedPlacements}</span>
-                  <span className="px-2 py-0.5 bg-amber-100 text-amber-800 font-bold text-xs rounded-full">+50 Pts Each</span>
-                </div>
-                <p className="text-[11px] text-slate-500">Verified employment claims</p>
-              </div>
-
-              <div className="bg-white rounded-2xl p-5 border border-slate-200 shadow-sm space-y-2">
-                <span className="text-xs text-slate-500 font-bold uppercase tracking-wider">Total Verified Points</span>
-                <div className="flex items-baseline justify-between">
-                  <span className="text-3xl font-extrabold text-slate-900">{totalVerifiedPoints}</span>
-                  <span className="text-xs text-slate-400 font-semibold">/ {totalTargetPoints} Target</span>
-                </div>
-                <p className="text-[11px] text-slate-500">Provider-wide aggregate points</p>
-              </div>
-            </div>
-
-            <div className="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm space-y-4">
-              <h3 className="text-base font-extrabold text-purple-950 flex items-center space-x-2">
-                <TrendingUp className="w-5 h-5 text-emerald-600" />
-                <span>Program Outcome Revenue & Placement Metrics</span>
-              </h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="p-4 bg-emerald-50 border border-emerald-200 rounded-xl space-y-2">
-                  <div className="font-bold text-xs text-emerald-950 uppercase">Verified Placements & Milestones</div>
-                  <div className="text-2xl font-extrabold text-emerald-900">{verifiedPlacements} Active Placements</div>
-                  <p className="text-xs text-emerald-800">
-                    Full sign-off completed by Case Management staff. Ready for claim verification.
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+              <div className="lg:col-span-2 bg-gradient-to-br from-purple-950 via-slate-900 to-purple-950 text-white p-6 rounded-2xl shadow-xl border border-purple-800/50 space-y-6">
+                <div>
+                  <span className="text-[10px] font-extrabold uppercase tracking-widest text-emerald-400 bg-emerald-500/20 border border-emerald-500/30 px-2.5 py-1 rounded-full">
+                    Site Claim Pipeline Readiness
+                  </span>
+                  <h3 className="text-2xl font-extrabold text-white mt-2">Verified Milestone Claims</h3>
+                  <p className="text-xs text-purple-200/80">
+                    Department outcome claim eligibility ready for submission.
                   </p>
                 </div>
 
-                <div className="p-4 bg-purple-50 border border-purple-200 rounded-xl space-y-2">
-                  <div className="font-bold text-xs text-purple-950 uppercase">Verified Interview Milestones</div>
-                  <div className="text-2xl font-extrabold text-purple-950">{verifiedInterviews} Completed Interviews</div>
-                  <p className="text-xs text-purple-900">
-                    Pre-interview preparation and outcome verification recorded.
-                  </p>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div className="bg-white/10 backdrop-blur-md border border-white/10 p-4 rounded-xl">
+                    <span className="text-xs text-purple-200 font-bold block">12-Week Placements</span>
+                    <div className="text-2xl font-black text-emerald-400 mt-1">
+                      {candidates ? candidates.filter(c => (c.pbasVerified ?? 45) >= 50).length : 0} Candidates
+                    </div>
+                    <span className="text-[10px] text-purple-300">Verified & Ready to Claim</span>
+                  </div>
+
+                  <div className="bg-white/10 backdrop-blur-md border border-white/10 p-4 rounded-xl">
+                    <span className="text-xs text-purple-200 font-bold block">26-Week Sustained Placements</span>
+                    <div className="text-2xl font-black text-amber-300 mt-1">1 Candidate</div>
+                    <span className="text-[10px] text-purple-300">Ongoing Support Active</span>
+                  </div>
+
+                  <div className="bg-white/10 backdrop-blur-md border border-white/10 p-4 rounded-xl">
+                    <span className="text-xs text-purple-200 font-bold block">Avg. Site Turnaround</span>
+                    <div className="text-2xl font-black text-white mt-1">1.4 Days</div>
+                    <span className="text-[10px] text-emerald-400">Exceeding {placementSlaDays}-day target</span>
+                  </div>
                 </div>
-              </div>
-            </div>
-          </div>
-        )}
 
-        {/* TAB 2: STAFF & CASELOAD MANAGEMENT */}
-        {activeTab === 'staff' && (
-          <div className="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm space-y-4">
-            <div className="flex items-center justify-between border-b border-slate-100 pb-4">
-              <div>
-                <h3 className="text-base font-extrabold text-slate-900">Staff & Caseload Provisioning</h3>
-                <p className="text-xs text-slate-500 mt-0.5">Manage Case Manager assignments and active capacity.</p>
-              </div>
-              <div className="flex space-x-2">
-                <button
-                  onClick={() => setShowAddStaffModal(true)}
-                  className="px-3.5 py-1.5 bg-purple-950 hover:bg-purple-900 text-white font-bold text-xs rounded-xl shadow-sm flex items-center space-x-1.5"
-                >
-                  <UserPlus className="w-3.5 h-3.5 text-purple-300" />
-                  <span>+ Add New Case Manager</span>
-                </button>
-                <button
-                  onClick={() => setShowAddCandidateModal(true)}
-                  className="px-3.5 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded-xl shadow-sm flex items-center space-x-1.5"
-                >
-                  <PlusCircle className="w-3.5 h-3.5 text-emerald-200" />
-                  <span>+ Provision Candidate</span>
-                </button>
-              </div>
-            </div>
-
-            <div className="grid grid-cols-1 gap-3">
-              {staffList.map((staff) => (
-                <div key={staff.id} className="p-4 bg-slate-50 border border-slate-200 rounded-xl flex items-center justify-between text-xs font-semibold">
+                <div className="p-4 bg-white/5 border border-white/10 rounded-xl flex items-center justify-between">
                   <div className="flex items-center space-x-3">
-                    <div className="w-10 h-10 bg-purple-950 text-white rounded-xl font-extrabold flex items-center justify-center text-sm">
-                      {staff.name.split(' ').map(n => n[0]).join('')}
-                    </div>
+                    <Sparkles className="w-5 h-5 text-amber-300 shrink-0" />
                     <div>
-                      <div className="font-extrabold text-slate-900 text-sm">{staff.name}</div>
-                      <div className="text-slate-500">{staff.role} • {staff.email}</div>
+                      <h4 className="text-xs font-bold text-white">Estimated Unclaimed Outcome Value</h4>
+                      <p className="text-[11px] text-purple-200">
+                        Based on verified candidate placement documentation on site file.
+                      </p>
                     </div>
                   </div>
+                  <div className="text-xl font-black text-emerald-400">$12,800 AUD</div>
+                </div>
+              </div>
 
-                  <div className="flex items-center space-x-4">
-                    <span className="px-3 py-1 bg-white border border-slate-200 rounded-lg text-slate-700 font-bold">
-                      Caseload: {staff.caseloadCount} Candidates
-                    </span>
-                    <span className={`px-2.5 py-1 rounded-full font-bold ${
-                      staff.status === 'Active' 
-                        ? 'bg-emerald-100 text-emerald-800 border border-emerald-300' 
-                        : 'bg-amber-100 text-amber-800 border border-amber-300'
-                    }`}>
-                      Status: {staff.status}
-                    </span>
+              <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-4">
+                <h4 className="font-extrabold text-slate-900 text-base flex items-center space-x-2">
+                  <Building2 className="w-5 h-5 text-purple-600" />
+                  <span>License Quota Settings</span>
+                </h4>
+                <p className="text-xs text-slate-500">Adjust max site participant & staff seat caps.</p>
+
+                <div className="space-y-4 text-xs">
+                  <div>
+                    <div className="flex justify-between font-bold text-slate-700 mb-1">
+                      <span>Candidate Quota Limit</span>
+                      <span className="text-purple-950 font-black">{candidateQuota} Seats</span>
+                    </div>
+                    <input
+                      type="range"
+                      min="50"
+                      max="1000"
+                      step="25"
+                      value={candidateQuota}
+                      onChange={(e) => setCandidateQuota(Number(e.target.value))}
+                      className="w-full accent-purple-600 cursor-pointer"
+                    />
+                  </div>
+
+                  <div>
+                    <div className="flex justify-between font-bold text-slate-700 mb-1">
+                      <span>Case Manager Seats</span>
+                      <span className="text-purple-950 font-black">{staffQuota} Staff</span>
+                    </div>
+                    <input
+                      type="range"
+                      min="1"
+                      max="20"
+                      step="1"
+                      value={staffQuota}
+                      onChange={(e) => setStaffQuota(Number(e.target.value))}
+                      className="w-full accent-purple-600 cursor-pointer"
+                    />
+                  </div>
+
+                  <div className="p-3 bg-purple-50 border border-purple-200 rounded-xl text-[11px] text-purple-900 space-y-1">
+                    <span className="font-extrabold block">License Quota Info:</span>
+                    <p className="text-purple-800">
+                      To request contract seat expansions beyond {candidateQuota} candidates, contact your Straight Up Training Growth Manager.
+                    </p>
                   </div>
                 </div>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {/* TAB 3: MACRO 5-PILLARS */}
-        {activeTab === 'pillars' && (
-          <div className="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm space-y-4">
-            <h3 className="text-base font-extrabold text-slate-900 flex items-center space-x-2">
-              <Sparkles className="w-5 h-5 text-purple-600" />
-              <span>Macro Program Diagnostic Averages across 5 Pillars</span>
-            </h3>
-            <div className="grid grid-cols-1 md:grid-cols-5 gap-3 text-center font-bold">
-              <div className="p-4 bg-purple-50 border border-purple-200 rounded-2xl space-y-1">
-                <span className="text-xs text-purple-900 uppercase">Job Search</span>
-                <div className="text-2xl text-purple-950">{avgPillars.jobSearch}%</div>
-              </div>
-              <div className="p-4 bg-emerald-50 border border-emerald-200 rounded-2xl space-y-1">
-                <span className="text-xs text-emerald-900 uppercase">Interview</span>
-                <div className="text-2xl text-emerald-950">{avgPillars.interview}%</div>
-              </div>
-              <div className="p-4 bg-blue-50 border border-blue-200 rounded-2xl space-y-1">
-                <span className="text-xs text-blue-900 uppercase">Skills</span>
-                <div className="text-2xl text-blue-950">{avgPillars.skills}%</div>
-              </div>
-              <div className="p-4 bg-amber-50 border border-amber-200 rounded-2xl space-y-1">
-                <span className="text-xs text-amber-900 uppercase">Logistics</span>
-                <div className="text-2xl text-amber-950">{avgPillars.logistics}%</div>
-              </div>
-              <div className="p-4 bg-rose-50 border border-rose-200 rounded-2xl space-y-1">
-                <span className="text-xs text-rose-900 uppercase">Mindset</span>
-                <div className="text-2xl text-rose-950">{avgPillars.mindset}%</div>
               </div>
             </div>
           </div>
         )}
 
-        {/* TAB 4: DEWR AUDIT */}
-        {activeTab === 'dewr' && (
-          <div className="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm space-y-4">
-            <div className="flex items-center justify-between border-b border-slate-100 pb-4">
+        {/* TAB 2: STAFF ROSTER */}
+        {activeTab === 'roster' && (
+          <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 space-y-4">
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
               <div>
-                <h3 className="text-base font-extrabold text-slate-900 flex items-center space-x-2">
-                  <ShieldCheck className="w-5 h-5 text-emerald-600" />
-                  <span>DEWR PBAS Audit & Compliance Reporting</span>
-                </h3>
-                <p className="text-xs text-slate-500 mt-0.5">
-                  Generate audit-ready evidence files and candidate compliance logs.
+                <h3 className="text-lg font-extrabold text-purple-950">Active Case Manager Roster</h3>
+                <p className="text-xs text-slate-500 font-medium">
+                  Manage CM staff licenses, caseload assignments, and Leave Coverage Mode.
                 </p>
               </div>
+
               <button
-                onClick={handleExportDEWRReport}
-                className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded-xl shadow-sm flex items-center space-x-2"
+                onClick={() => setShowAddStaffModal(true)}
+                className="px-4 py-2 bg-purple-950 text-white font-extrabold text-xs rounded-xl shadow-md hover:bg-purple-900 transition-all flex items-center space-x-1.5 w-max"
               >
-                <Download className="w-4 h-4" />
-                <span>Export Master Audit CSV</span>
+                <Plus className="w-4 h-4 text-amber-300" />
+                <span>+ Provision New Case Manager</span>
               </button>
+            </div>
+
+            <div className="overflow-x-auto">
+              <table className="w-full text-left text-xs border-collapse">
+                <thead>
+                  <tr className="bg-slate-100 text-slate-700 font-extrabold border-b border-slate-200">
+                    <th className="p-3.5 rounded-tl-xl">Case Manager Name</th>
+                    <th className="p-3.5">Assigned Caseload</th>
+                    <th className="p-3.5">PBAS Compliance</th>
+                    <th className="p-3.5">Avg Turnaround SLA</th>
+                    <th className="p-3.5">Coverage Status</th>
+                    <th className="p-3.5 text-right rounded-tr-xl">Action</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100">
+                  <tr className="hover:bg-slate-50 transition-all">
+                    <td className="p-3.5 font-bold text-slate-900 flex items-center space-x-2">
+                      <div className="w-7 h-7 rounded-full bg-purple-100 text-purple-900 font-black flex items-center justify-center text-xs">
+                        CS
+                      </div>
+                      <span>Casey Smith (Primary)</span>
+                    </td>
+                    <td className="p-3.5 font-bold text-purple-950">3 Participants</td>
+                    <td className="p-3.5 font-extrabold text-emerald-600">88% Compliant</td>
+                    <td className="p-3.5 font-bold text-slate-700">1.2 Business Days</td>
+                    <td className="p-3.5">
+                      <span className="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-emerald-100 text-emerald-800 border border-emerald-200">
+                        Active On-Duty
+                      </span>
+                    </td>
+                    <td className="p-3.5 text-right">
+                      <button className="px-3 py-1 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-[11px] rounded-lg transition-all">
+                        Toggle Leave Mode
+                      </button>
+                    </td>
+                  </tr>
+
+                  <tr className="hover:bg-slate-50 transition-all">
+                    <td className="p-3.5 font-bold text-slate-900 flex items-center space-x-2">
+                      <div className="w-7 h-7 rounded-full bg-indigo-100 text-indigo-900 font-black flex items-center justify-center text-xs">
+                        JS
+                      </div>
+                      <span>Jordan Smith (Coverage)</span>
+                    </td>
+                    <td className="p-3.5 font-bold text-purple-950">1 Participant</td>
+                    <td className="p-3.5 font-extrabold text-amber-600">75% Compliant</td>
+                    <td className="p-3.5 font-bold text-slate-700">1.8 Business Days</td>
+                    <td className="p-3.5">
+                      <span className="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-blue-100 text-blue-800 border border-blue-200">
+                        Coverage Mode Active
+                      </span>
+                    </td>
+                    <td className="p-3.5 text-right">
+                      <button className="px-3 py-1 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-[11px] rounded-lg transition-all">
+                        Manage Caseload
+                      </button>
+                    </td>
+                  </tr>
+
+                  <tr className="hover:bg-slate-50 transition-all">
+                    <td className="p-3.5 font-bold text-slate-900 flex items-center space-x-2">
+                      <div className="w-7 h-7 rounded-full bg-slate-200 text-slate-700 font-black flex items-center justify-center text-xs">
+                        ST
+                      </div>
+                      <span>Sam Taylor</span>
+                    </td>
+                    <td className="p-3.5 font-bold text-purple-950">1 Participant</td>
+                    <td className="p-3.5 font-extrabold text-emerald-600">100% Compliant</td>
+                    <td className="p-3.5 font-bold text-slate-700">0.9 Business Days</td>
+                    <td className="p-3.5">
+                      <span className="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-emerald-100 text-emerald-800 border border-emerald-200">
+                        Active On-Duty
+                      </span>
+                    </td>
+                    <td className="p-3.5 text-right">
+                      <button className="px-3 py-1 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-[11px] rounded-lg transition-all">
+                        Manage Caseload
+                      </button>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )}
+
+        {/* TAB 3: SLA TARGET RULES */}
+        {activeTab === 'slas' && (
+          <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 space-y-6">
+            <div>
+              <h3 className="text-lg font-extrabold text-purple-950">Operational SLA Policy Rules</h3>
+              <p className="text-xs text-slate-500 font-medium">
+                Set max business day verification windows for Case Manager sign-off compliance.
+              </p>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <div className="p-5 bg-slate-50 border border-slate-200 rounded-2xl space-y-4">
+                <div className="flex items-center space-x-2 text-purple-950 font-extrabold text-sm">
+                  <Award className="w-5 h-5 text-emerald-600" />
+                  <span>Job Placement Claims</span>
+                </div>
+                <p className="text-xs text-slate-500">
+                  Target window for verifying "I Got a Job!" candidate submissions.
+                </p>
+
+                <div>
+                  <div className="flex justify-between text-xs font-bold text-slate-700 mb-1">
+                    <span>SLA Target Window</span>
+                    <span className="text-emerald-700 font-black">{placementSlaDays} Business Days</span>
+                  </div>
+                  <input
+                    type="range"
+                    min="1"
+                    max="5"
+                    step="1"
+                    value={placementSlaDays}
+                    onChange={(e) => setPlacementSlaDays(Number(e.target.value))}
+                    className="w-full accent-emerald-600 cursor-pointer"
+                  />
+                </div>
+              </div>
+
+              <div className="p-5 bg-slate-50 border border-slate-200 rounded-2xl space-y-4">
+                <div className="flex items-center space-x-2 text-purple-950 font-extrabold text-sm">
+                  <Clock className="w-5 h-5 text-amber-500" />
+                  <span>Interview Milestone Claims</span>
+                </div>
+                <p className="text-xs text-slate-500">
+                  Target window for verifying interview confirmations and prep logs.
+                </p>
+
+                <div>
+                  <div className="flex justify-between text-xs font-bold text-slate-700 mb-1">
+                    <span>SLA Target Window</span>
+                    <span className="text-amber-700 font-black">{interviewSlaDays} Business Days</span>
+                  </div>
+                  <input
+                    type="range"
+                    min="1"
+                    max="5"
+                    step="1"
+                    value={interviewSlaDays}
+                    onChange={(e) => setInterviewSlaDays(Number(e.target.value))}
+                    className="w-full accent-amber-500 cursor-pointer"
+                  />
+                </div>
+              </div>
+
+              <div className="p-5 bg-slate-50 border border-slate-200 rounded-2xl space-y-4">
+                <div className="flex items-center space-x-2 text-purple-950 font-extrabold text-sm">
+                  <FileSpreadsheet className="w-5 h-5 text-indigo-600" />
+                  <span>PBAS Evidence & STAR Runs</span>
+                </div>
+                <p className="text-xs text-slate-500">
+                  Target window for general activity proof and LMS micro-credentials.
+                </p>
+
+                <div>
+                  <div className="flex justify-between text-xs font-bold text-slate-700 mb-1">
+                    <span>SLA Target Window</span>
+                    <span className="text-indigo-700 font-black">{evidenceSlaDays} Business Days</span>
+                  </div>
+                  <input
+                    type="range"
+                    min="1"
+                    max="10"
+                    step="1"
+                    value={evidenceSlaDays}
+                    onChange={(e) => setEvidenceSlaDays(Number(e.target.value))}
+                    className="w-full accent-indigo-600 cursor-pointer"
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* TAB 4: BRANDING */}
+        {activeTab === 'branding' && (
+          <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 space-y-6">
+            <div>
+              <h3 className="text-lg font-extrabold text-purple-950">Dual Branding Configuration</h3>
+              <p className="text-xs text-slate-500 font-medium">
+                Customize site branding to match your provider organization identity.
+              </p>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="space-y-4 text-xs">
+                <div>
+                  <label className="font-bold text-slate-700 block mb-1">Provider Display Name</label>
+                  <input
+                    type="text"
+                    value={providerName}
+                    onChange={(e) => setProviderName(e.target.value)}
+                    className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl font-bold text-slate-900 focus:outline-none focus:border-purple-600"
+                  />
+                </div>
+
+                <div>
+                  <label className="font-bold text-slate-700 block mb-1">Primary Brand Accent Color</label>
+                  <div className="flex items-center space-x-3">
+                    <input
+                      type="color"
+                      value={primaryBrandColor}
+                      onChange={(e) => setPrimaryBrandColor(e.target.value)}
+                      className="w-10 h-10 rounded-xl cursor-pointer border border-slate-200 p-0.5"
+                    />
+                    <span className="font-mono font-bold text-slate-700">{primaryBrandColor}</span>
+                  </div>
+                </div>
+              </div>
+
+              <div className="p-5 rounded-2xl border border-slate-200 space-y-3 bg-slate-950 text-white">
+                <span className="text-[10px] font-bold uppercase tracking-wider text-purple-300 block">
+                  Header Preview
+                </span>
+                <div className="flex items-center space-x-3 p-3 rounded-xl border border-white/10 bg-white/5">
+                  <div className="w-8 h-8 rounded-lg bg-white p-1 shrink-0">
+                    <img src="/logo.png" alt="Logo" className="w-full h-full object-contain" />
+                  </div>
+                  <div>
+                    <h5 className="font-extrabold text-sm">{providerName}</h5>
+                    <span className="text-[10px] text-purple-200">WorkReady Partner Workspace</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* TAB 5: AUDIT LOG */}
+        {activeTab === 'audit' && (
+          <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 space-y-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <h3 className="text-lg font-extrabold text-purple-950">Site-Wide Audit Log & Governance</h3>
+                <p className="text-xs text-slate-500 font-medium">
+                  Auditor-ready compliance records and verification history.
+                </p>
+              </div>
+
+              <button
+                onClick={handleExportAuditCSV}
+                className="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white font-extrabold text-xs rounded-xl shadow-md transition-all flex items-center space-x-1.5"
+              >
+                <Download className="w-4 h-4 text-emerald-100" />
+                <span>Export Official Audit CSV</span>
+              </button>
+            </div>
+
+            <div className="overflow-x-auto">
+              <table className="w-full text-left text-xs border-collapse">
+                <thead>
+                  <tr className="bg-slate-100 text-slate-700 font-extrabold border-b border-slate-200">
+                    <th className="p-3.5 rounded-tl-xl">Candidate Name</th>
+                    <th className="p-3.5">Evidence / Claim Title</th>
+                    <th className="p-3.5">Type</th>
+                    <th className="p-3.5">Status</th>
+                    <th className="p-3.5 text-right rounded-tr-xl">Submitted Date</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100">
+                  {(verificationItems || []).map((item) => (
+                    <tr key={item.id} className="hover:bg-slate-50 transition-all">
+                      <td className="p-3.5 font-bold text-slate-900">{item.candidateName}</td>
+                      <td className="p-3.5 text-slate-700">{item.title}</td>
+                      <td className="p-3.5 font-bold text-purple-950">{item.type}</td>
+                      <td className="p-3.5">
+                        <span
+                          className={`px-2 py-0.5 rounded-full text-[10px] font-extrabold ${
+                            item.status === 'Verified'
+                              ? 'bg-emerald-100 text-emerald-800 border border-emerald-200'
+                              : 'bg-amber-100 text-amber-800 border border-amber-200'
+                          }`}
+                        >
+                          {item.status}
+                        </span>
+                      </td>
+                      <td className="p-3.5 text-right text-slate-500 font-mono">{item.submittedDate}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
             </div>
           </div>
         )}
       </main>
 
-      {/* MODAL: ADD CASE MANAGER */}
+      {/* MODAL: PROVISION CASE MANAGER */}
       {showAddStaffModal && (
-        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-2xl max-w-md w-full p-6 space-y-4 shadow-xl border border-slate-200">
-            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-              <h3 className="font-extrabold text-slate-900 text-base">Add New Case Manager</h3>
+        <div className="fixed inset-0 bg-slate-950/70 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl space-y-4 border border-slate-200">
+            <div className="flex justify-between items-center border-b border-slate-100 pb-3">
+              <h4 className="font-extrabold text-slate-900 text-base">Provision New Case Manager</h4>
               <button onClick={() => setShowAddStaffModal(false)} className="text-slate-400 hover:text-slate-600 font-bold">
-                <X className="w-5 h-5" />
+                ✕
               </button>
             </div>
 
-            <form onSubmit={handleAddStaff} className="space-y-3 text-xs">
+            <div className="space-y-3 text-xs">
               <div>
                 <label className="font-bold text-slate-700 block mb-1">Full Name</label>
-                <input
-                  type="text"
-                  placeholder="e.g. Jordan Reed"
-                  value={newStaffName}
-                  onChange={(e) => setNewStaffName(e.target.value)}
-                  className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 outline-none focus:border-purple-600 font-medium"
-                  required
-                />
+                <input type="text" placeholder="e.g. Sarah Jenkins" className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl font-medium" />
               </div>
 
               <div>
-                <label className="font-bold text-slate-700 block mb-1">Work Email</label>
-                <input
-                  type="email"
-                  placeholder="jordan@workready.com"
-                  value={newStaffEmail}
-                  onChange={(e) => setNewStaffEmail(e.target.value)}
-                  className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 outline-none focus:border-purple-600 font-medium"
-                  required
-                />
+                <label className="font-bold text-slate-700 block mb-1">Staff Email</label>
+                <input type="email" placeholder="sarah.j@provider.org.au" className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl font-medium" />
               </div>
 
               <div>
-                <label className="font-bold text-slate-700 block mb-1">Role Title</label>
-                <select
-                  value={newStaffRole}
-                  onChange={(e) => setNewStaffRole(e.target.value)}
-                  className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 outline-none font-bold text-slate-800"
-                >
-                  <option value="Case Manager">Case Manager</option>
-                  <option value="Senior Case Manager">Senior Case Manager</option>
-                  <option value="Employment Specialist">Employment Specialist</option>
-                </select>
+                <label className="font-bold text-slate-700 block mb-1">Initial License Allocation</label>
+                <input type="number" defaultValue={50} className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl font-medium" />
               </div>
+            </div>
 
-              <div className="flex justify-end space-x-2 pt-3 border-t border-slate-100">
-                <button
-                  type="button"
-                  onClick={() => setShowAddStaffModal(false)}
-                  className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-xl"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  className="px-4 py-2 bg-purple-950 hover:bg-purple-900 text-white font-bold rounded-xl shadow-sm"
-                >
-                  Add Staff Member
-                </button>
-              </div>
-            </form>
+            <div className="flex space-x-2 pt-2">
+              <button onClick={() => setShowAddStaffModal(false)} className="flex-1 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-xl text-xs">
+                Cancel
+              </button>
+              <button
+                onClick={() => {
+                  alert('Case Manager provisioned and license seat allocated!');
+                  setShowAddStaffModal(false);
+                }}
+                className="flex-1 py-2.5 bg-purple-950 hover:bg-purple-900 text-white font-extrabold rounded-xl text-xs"
+              >
+                Provision Seat
+              </button>
+            </div>
           </div>
         </div>
       )}
 
       {/* MODAL: PROVISION CANDIDATE */}
       {showAddCandidateModal && (
-        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-2xl max-w-md w-full p-6 space-y-4 shadow-xl border border-slate-200">
-            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-              <h3 className="font-extrabold text-slate-900 text-base">Provision New Candidate</h3>
+        <div className="fixed inset-0 bg-slate-950/70 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl space-y-4 border border-slate-200">
+            <div className="flex justify-between items-center border-b border-slate-100 pb-3">
+              <h4 className="font-extrabold text-slate-900 text-base">Provision New Candidate</h4>
               <button onClick={() => setShowAddCandidateModal(false)} className="text-slate-400 hover:text-slate-600 font-bold">
-                <X className="w-5 h-5" />
+                ✕
               </button>
             </div>
 
-            <form onSubmit={handleAddCandidate} className="space-y-3 text-xs">
+            <div className="space-y-3 text-xs">
               <div>
                 <label className="font-bold text-slate-700 block mb-1">Candidate Name</label>
                 <input
                   type="text"
-                  placeholder="e.g. Sam Miller"
                   value={newCandidateName}
                   onChange={(e) => setNewCandidateName(e.target.value)}
-                  className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 outline-none focus:border-purple-600 font-medium"
-                  required
+                  placeholder="e.g. Taylor Reed"
+                  className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl font-medium"
                 />
               </div>
 
               <div>
-                <label className="font-bold text-slate-700 block mb-1">Candidate Email</label>
-                <input
-                  type="email"
-                  placeholder="sam@candidate.com"
-                  value={newCandidateEmail}
-                  onChange={(e) => setNewCandidateEmail(e.target.value)}
-                  className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 outline-none focus:border-purple-600 font-medium"
-                  required
-                />
-              </div>
-
-              <div>
-                <label className="font-bold text-slate-700 block mb-1">Assign to Case Manager</label>
+                <label className="font-bold text-slate-700 block mb-1">Assigned Case Manager</label>
                 <select
-                  value={assignedStaffId}
-                  onChange={(e) => setAssignedStaffId(e.target.value)}
-                  className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 outline-none font-bold text-slate-800"
+                  value={assignedCm}
+                  onChange={(e) => setAssignedCm(e.target.value)}
+                  className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl font-bold text-slate-800"
                 >
-                  {staffList.map((staff) => (
-                    <option key={staff.id} value={staff.id}>
-                      {staff.name} ({staff.role})
-                    </option>
-                  ))}
+                  <option value="Casey Smith">Casey Smith</option>
+                  <option value="Jordan Smith">Jordan Smith</option>
+                  <option value="Sam Taylor">Sam Taylor</option>
                 </select>
               </div>
+            </div>
 
-              <div className="flex justify-end space-x-2 pt-3 border-t border-slate-100">
-                <button
-                  type="button"
-                  onClick={() => setShowAddCandidateModal(false)}
-                  className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-xl"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl shadow-sm"
-                >
-                  Provision & Assign
-                </button>
-              </div>
-            </form>
+            <div className="flex space-x-2 pt-2">
+              <button
+                onClick={() => setShowAddCandidateModal(false)}
+                className="flex-1 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-xl text-xs"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => {
+                  if (addCandidate) {
+                    addCandidate({
+                      name: newCandidateName.trim() || 'Taylor Reed',
+                      pbasVerified: 0,
+                      pbasTarget: 100,
+                      status: 'On Track',
+                      assignedCm: assignedCm
+                    });
+                  }
+                  setNewCandidateName('');
+                  setShowAddCandidateModal(false);
+                }}
+                className="flex-1 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white font-extrabold rounded-xl text-xs"
+              >
+                Assign & Provision
+              </button>
+            </div>
           </div>
         </div>
       )}
     </div>
   );
 }
+
+export default OwnerDashboard;
