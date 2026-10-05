@@ -51,7 +51,7 @@ export interface Candidate {
   lastCheckIn?: string;
   waId?: string;
   contractFramework?: 'Workforce Australia' | 'Inclusive Employment Australia (IEA)' | 'DES' | 'TtW' | 'RTO';
-  programType?: 'workforce_australia' | '(IEA)' | 'ttw' | 'rto_graduate'; // Added to resolve TS2339
+  programType?: 'workforce_australia' | '(IEA)' | 'ttw' | 'rto_graduate';
   licenseePartnerName?: string;
   starRunsCompleted?: number;
 }
@@ -137,7 +137,7 @@ interface PortalContextType {
 
   // Outcome Claims
   outcomeClaims: OutcomeClaim[];
-  candidateClaims: OutcomeClaim[]; // Alias for candidate portal
+  candidateClaims: OutcomeClaim[];
   addOutcomeClaim: (claim: Omit<OutcomeClaim, 'id' | 'date' | 'status'>) => void;
   submitCandidateClaim: (claim: Omit<OutcomeClaim, 'id' | 'date' | 'status'>) => void;
   verifyOutcomeClaim: (id: string) => void;
@@ -376,15 +376,14 @@ export const PortalProvider: React.FC<{ children: ReactNode }> = ({ children }) 
   ]);
   const [outcomeClaims, setOutcomeClaims] = useState<OutcomeClaim[]>([]);
 
-  // Enhanced Demo Sandbox Reset Handler
+  // Demo State Reset Handler (Purges local storage & restores baseline seed data)
   const resetSandboxState = () => {
-    // 1. Wipe all local storage keys used across modules
-    localStorage.removeItem('workready_completed_timestamps');
-    localStorage.removeItem('workready_cm_audit_logs');
-    localStorage.removeItem('workready_cm_is_away');
+    // 1. Purge component local storage keys
     localStorage.removeItem('workready_star_history');
+    localStorage.removeItem('workready_resume_draft');
+    window.dispatchEvent(new Event('starHistoryUpdated'));
 
-    // 2. Reset queues & context states back to seed defaults
+    // 2. Reset context queues and candidates to baseline
     setVerificationItems(initialVerificationItems);
     setOutcomeClaims([]);
     setSupportMessages([
@@ -395,20 +394,27 @@ export const PortalProvider: React.FC<{ children: ReactNode }> = ({ children }) 
         topic: 'STAR Interview Practice Review',
         message: 'Hi Casey, I completed my Warehouse Role interview practice session. Can you review my WHS safety response?',
         date: new Date().toLocaleDateString('en-AU'),
-        status: 'Responded',
-        coachingResponse: 'Great effort Alex! Your WHS safety protocol response was clear and thorough. Approved +25 Pts.',
-        senderRole: 'Case Manager'
+        status: 'Unread',
       },
     ]);
-
-    setCandidates(initialCandidates);
-    setActiveCandidate(initialCandidates[0]);
-    setActiveContract('Workforce Australia');
-    setActiveRole('Candidate');
-
-    // Trigger window event so components re-evaluate localStorage states
-    window.dispatchEvent(new Event('moduleCompleted'));
-    alert('🔄 Sandbox reset complete! Local storage cleared and initial seed data restored.');
+    setCandidates((prev) =>
+      prev.map((c) =>
+        c.id === 'c1'
+          ? {
+              ...c,
+              pbasVerified: 45,
+              pbasEarned: 45,
+              pbasPending: 25,
+              verifiedPoints: 45,
+              points: 45,
+              starRunsCompleted: 0,
+            }
+          : c
+      )
+    );
+    if (activeCandidate) {
+      setActiveCandidate((prev) => (prev ? { ...prev, starRunsCompleted: 0, pbasVerified: 45 } : null));
+    }
   };
 
   // Update Candidate PBAS Points Helper

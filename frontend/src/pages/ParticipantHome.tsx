@@ -144,6 +144,12 @@ const isIea = isDes;
           if (parsedRecords.length === 0) return;
           recordToSync = parsedRecords[0];
         }
+        useEffect(() => {
+    // Reset stored STAR history & resume drafts whenever candidate or contract changes
+    localStorage.removeItem('workready_star_history');
+    localStorage.removeItem('workready_resume_draft');
+    window.dispatchEvent(new Event('starHistoryUpdated'));
+  }, [activeCandidate?.id, activeContract]);
 
         setActivities((prev) => {
           const exists = prev.some((act) => act.id === recordToSync.id);
@@ -176,10 +182,11 @@ const isIea = isDes;
     return () => window.removeEventListener('starHistoryUpdated', syncStarActivityLog);
   }, []);
 const [showOtherActivityModal, setShowOtherActivityModal] = useState<boolean>(false);
-const [otherActivityType, setOtherActivityType] = useState<string>('Paid Work / Training');
-const [otherActivityTitle, setOtherActivityTitle] = useState<string>('');
-const [otherActivityHours, setOtherActivityHours] = useState<string>('');
-const [otherActivityNotes, setOtherActivityNotes] = useState<string>('');
+  const [otherActivityType, setOtherActivityType] = useState<string>('Paid Work / Training');
+  const [otherActivityTitle, setOtherActivityTitle] = useState<string>('');
+  const [otherActivityHours, setOtherActivityHours] = useState<string>('');
+  const [otherActivityNotes, setOtherActivityNotes] = useState<string>('');
+
   const [showJobModal, setShowJobModal] = useState<boolean>(false);
   const [showInterviewModal, setShowInterviewModal] = useState<boolean>(false);
   const [showJobSearchModal, setShowJobSearchModal] = useState<boolean>(false);
@@ -422,13 +429,19 @@ const [otherActivityNotes, setOtherActivityNotes] = useState<string>('');
   </div>
 )}
               <button
+                type="button"
                 onClick={() => {
+                  // Clean up Job Readiness storage only when explicitly signing out
+                  localStorage.removeItem('workready_star_history');
+                  localStorage.removeItem('workready_resume_draft');
+                  window.dispatchEvent(new Event('starHistoryUpdated'));
+
                   const url = new URL(window.location.href);
                   url.searchParams.delete('role');
                   window.history.pushState({}, '', url.pathname);
                   window.dispatchEvent(new Event('popstate'));
                 }}
-                className="px-3.5 py-2 bg-white/10 border border-white/20 text-white text-xs font-bold rounded-2xl"
+                className="px-3.5 py-2 bg-white/10 border border-white/20 text-white text-xs font-bold rounded-2xl hover:bg-white/20 transition-all"
               >
                 Sign Out
               </button>
@@ -840,11 +853,11 @@ const [otherActivityNotes, setOtherActivityNotes] = useState<string>('');
             <LmsModuleHub onModuleCompleted={handleModuleCompleted} candidateId={activeCandidate?.id} />
           )}
 
-          {activeTab === 2 && (
-            <div className="space-y-8">
-              <StarInterviewSimulator />
+         {activeTab === 2 && (
+            <div className="space-y-8" key={`job-readiness-${activeCandidate?.id || 'default'}-${activeContract}`}>
+              <StarInterviewSimulator key={`star-${activeCandidate?.id}`} />
               <div className="border-t border-slate-200 pt-8">
-                <ResumeBuilder maxAttempts={3} />
+                <ResumeBuilder key={`resume-${activeCandidate?.id}`} maxAttempts={3} />
               </div>
             </div>
           )}
@@ -1389,7 +1402,7 @@ const [otherActivityNotes, setOtherActivityNotes] = useState<string>('');
         </div>
       )}
 
-      {/* PASTE LOG EXTERNAL ACTIVITY MODAL RIGHT HERE */}
+      {/* LOG EXTERNAL ACTIVITY MODAL */}
       {showOtherActivityModal && (
         <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
           <div className="bg-white rounded-3xl p-6 md:p-8 max-w-lg w-full shadow-2xl space-y-5 border border-slate-100">

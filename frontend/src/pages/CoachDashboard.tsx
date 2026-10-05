@@ -33,10 +33,16 @@ export default function CoachDashboard() {
 
   const [currentCoachName] = useState('Casey Smith');
   const [selectedCaseload, setSelectedCaseload] = useState<string>('casey');
-  const [activeTab, setActiveTab] = useState<'pending' | 'roster' | 'audit'>('pending');
+  const [activeTab, setActiveTab] = useState<'pending' | 'roster' | 'audit'>('roster');
   const [searchTerm, setSearchTerm] = useState('');
+  const [currentPage, setCurrentPage] = useState(1);
+const itemsPerPage = 15;
+  const [statusFilter, setStatusFilter] = useState<'ALL' | 'ACTION' | 'AT_RISK' | 'ON_TRACK'>('ALL');
+  const [selectedCandidateIds, setSelectedCandidateIds] = useState<string[]>([]);
   const [selectedEvidence, setSelectedEvidence] = useState<VerificationItem | null>(null);
   const [inspectCandidate, setInspectCandidate] = useState<Candidate | null>(null);
+  const [overridePoints, setOverridePoints] = useState<number | null>(null);
+  
 
   // Away Status Toggle State
   const [isAway, setIsAway] = useState<boolean>(() => {
@@ -159,10 +165,14 @@ export default function CoachDashboard() {
     window.dispatchEvent(new Event('popstate'));
   };
 
-  const handleApprove = (item: VerificationItem) => {
+  const handleApprove = (item: VerificationItem, finalPoints?: number) => {
+    const pointsToAward = finalPoints ?? overridePoints ?? item.points;
+    const updatedItem = { ...item, points: pointsToAward };
+
     updateVerificationStatus(item.id, 'Verified');
-    addAuditEntry(item.candidateName, `Approved ${item.title} (+${item.points} Pts)`);
+    addAuditEntry(item.candidateName, `Approved ${item.title} (+${pointsToAward} Pts)`);
     setSelectedEvidence(null);
+    setOverridePoints(null);
   };
 
   const handleDecline = (item: VerificationItem) => {
@@ -172,12 +182,80 @@ export default function CoachDashboard() {
   };
 
   const filteredCandidates = candidates.filter((c) => {
-    const matchesSearch = c.name.toLowerCase().includes(searchTerm.toLowerCase());
-    if (selectedCaseload === 'casey') return matchesSearch && (c.id === 'c1' || c.name.includes('Alex'));
-    if (selectedCaseload === 'jordan') return matchesSearch && c.id !== 'c1';
-    return matchesSearch;
+    const matchesSearch = c.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
+                          (c.waId && c.waId.toLowerCase().includes(searchTerm.toLowerCase()));
+    
+    // Calculate compliance metrics for 200-scale triage
+    const verified = c.pbasVerified ?? 45;
+    const target = c.pbasTarget ?? 100;
+    const progressPct = (verified / target) * 100;
+    const hasPending = verificationItems.some(v => v.candidateName.includes(c.name.split(' ')[0]) && v.status === 'Pending');
+
+    let matchesStatus = true;
+    if (statusFilter === 'ACTION') matchesStatus = hasPending;
+    if (statusFilter === 'AT_RISK') matchesStatus = progressPct < 50;
+    if (statusFilter === 'ON_TRACK') matchesStatus = progressPct >= 50 && !hasPending;
+
+    return matchesSearch && matchesStatus;
   });
 
+  // Calculate pagination AFTER filtering candidates
+  const totalPages = Math.ceil(filteredCandidates.length / itemsPerPage);
+  const paginatedCandidates = filteredCandidates.slice(
+    (currentPage - 1) * itemsPerPage,
+    currentPage * itemsPerPage
+  );
+  const exportToCSV = () => {
+    const headers = ['Candidate Name', 'Email', 'WA ID', 'Status', 'PBAS Verified', 'PBAS Target'];
+    const rows = filteredCandidates.map(c => [
+      `"${c.name}"`, `"${c.email}"`, `"${c.waId || ''}"`, `"${c.status || 'On Track'}"`, c.pbasVerified ?? 45, c.pbasTarget ?? 100
+    ].join(','));
+    const link = document.createElement('a');
+    link.href = 'data:text/csv;charset=utf-8,' + encodeURI([headers.join(','), ...rows].join('\n'));
+    link.download = `Candidate_Roster_${new Date().toISOString().slice(0, 10)}.csv`;
+    link.click();
+    <button
+  type="button"
+  onClick={exportToCSV}
+  className="ml-3 px-3 py-1 bg-emerald-700 hover:bg-emerald-800 text-white font-bold rounded-xl text-xs"
+>
+  Export CSV
+</button>
+  };
+  // OBLIGATION CYCLE HANDLERS
+  const handleUpdateObligationTarget = (candidateName: string, newTarget: number) => {
+    addAuditEntry(candidateName, `Updated PBAS cycle obligation target to ${newTarget} points`);
+    alert(`Obligation target updated to ${newTarget} Pts for ${candidateName}.`);
+  };
+
+  const handleAdaptObligations = (candidateName: string, adaptationReason: string) => {
+    addAuditEntry(candidateName, `Adapted obligations: ${adaptationReason}`);
+    alert(`Obligation requirements adapted for ${candidateName}: ${adaptationReason}`);
+  };
+  // 1-TOUCH FULL PBAS CYCLE AUDIT PACKAGE DOWNLOAD
+  const handleDownloadPBASAuditPackage = (candidate: Candidate) => {
+    addAuditEntry(
+      candidate.name,
+      `Downloaded complete timestamped PBAS Cycle Audit Package (Certificates, Evidence & STAR Reports)`
+    );
+    alert(`Downloading PBAS Audit Package for ${candidate.name}...\n\nIncluded Documents:\n- Timestamped PBAS Verification Summary.pdf\n- AI STAR Practice Coaching Reports.pdf\n- Verified Certificates & Activity Proofs.zip`);
+  };
+
+  // RESUME & COVER LETTER DOWNLOAD HANDLERS
+  const handleDownloadDoc = (candidateName: string, docType: string) => {
+    addAuditEntry(candidateName, `Downloaded candidate ${docType}`);
+    alert(`Downloading ${docType} for ${candidateName}...`);
+  };
+
+  // DOCUMENT LOCKER UPLOAD HANDLER
+  const handleUploadToLocker = (candidateName: string) => {
+    addAuditEntry(candidateName, `Uploaded new compliance document to Candidate Document Locker`);
+    alert(`Document uploaded successfully to ${candidateName}'s Locker.`);
+  };
+  // KPI METRICS CALCULATIONS
+  const totalCaseloadCount = candidates.length;
+  const onTrackCount = candidates.filter(c => ((c.pbasVerified ?? 45) / (c.pbasTarget ?? 100)) >= 0.5).length;
+  const atRiskCount = candidates.filter(c => ((c.pbasVerified ?? 45) / (c.pbasTarget ?? 100)) < 0.5).length;
   const pendingItems = verificationItems.filter((v) => v.status === 'Pending');
   const victoryItems = pendingItems.filter(v => v.type === 'Job Placement' || v.type === 'Interview Claim' || v.type === 'STAR Interview');
 
@@ -186,30 +264,31 @@ export default function CoachDashboard() {
       <header className="bg-gradient-to-r from-[#1e1b4b] via-[#24083b] to-[#1e1b4b] text-white px-6 py-4 border-b border-purple-900/50 shadow-md">
         <div className="max-w-7xl mx-auto flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div className="flex items-center space-x-4">
-            <div className="w-10 h-10 bg-white rounded-xl p-1 flex items-center justify-center shadow-sm overflow-hidden shrink-0">
+            {/* PROMINENT HIGH-VISIBILITY LOGO BADGE */}
+            <div className="w-16 h-16 bg-white rounded-2xl flex items-center justify-center shadow-xl shadow-black/30 ring-2 ring-purple-400/40 overflow-hidden shrink-0 transition-transform hover:scale-105">
               <img 
                 src="/logo.png" 
                 alt="Straight Up Training Logo" 
-                className="w-full h-full object-contain"
+                className="w-full h-full object-cover scale-150 transform transition-transform"
                 onError={(e) => {
                   const target = e.target as HTMLImageElement;
                   if (target.src.includes('logo.png')) {
                     target.src = '/White_Background_PNG.png';
                   } else {
                     target.onerror = null;
-                    target.parentElement!.innerHTML = '<span class="font-extrabold text-purple-950 text-sm">SU</span>';
+                    target.parentElement!.innerHTML = '<span class="font-black text-purple-950 text-xl tracking-tighter">SU</span>';
                   }
                 }}
               />
             </div>
             <div>
-              <div className="flex items-center space-x-2">
-                <h1 className="font-extrabold text-xl tracking-tight text-white">Straight Up Training</h1>
-                <span className="bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider">
+              <div className="flex items-center space-x-2.5">
+                <h1 className="font-extrabold text-2xl tracking-tight text-white">Straight Up Training</h1>
+                <span className="bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 text-[10px] font-bold px-2.5 py-0.5 rounded-full uppercase tracking-wider">
                   WorkReady Partner
                 </span>
               </div>
-              <p className="text-xs text-purple-200/80">
+              <p className="text-xs text-purple-200/80 font-medium mt-0.5">
                 Case Manager Portal • Staff Overview & PBAS Compliance
               </p>
             </div>
@@ -277,6 +356,48 @@ export default function CoachDashboard() {
                 </span>
               )}
             </div>
+            {/* EXECUTIVE KPI SUMMARY CARDS */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3.5 my-4">
+          <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex items-center space-x-3">
+            <div className="p-3 bg-purple-50 text-purple-900 rounded-xl font-bold text-xs">
+              TOTAL
+            </div>
+            <div>
+              <div className="text-[11px] font-extrabold uppercase text-slate-400 tracking-wider">Active Roster</div>
+              <div className="text-xl font-black text-slate-900">{totalCaseloadCount}</div>
+            </div>
+          </div>
+
+          <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex items-center space-x-3">
+            <div className="p-3 bg-emerald-50 text-emerald-700 rounded-xl font-bold text-xs">
+              TRACK
+            </div>
+            <div>
+              <div className="text-[11px] font-extrabold uppercase text-slate-400 tracking-wider">On Track</div>
+              <div className="text-xl font-black text-emerald-700">{onTrackCount}</div>
+            </div>
+          </div>
+
+          <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex items-center space-x-3">
+            <div className="p-3 bg-rose-50 text-rose-700 rounded-xl font-bold text-xs">
+              RISK
+            </div>
+            <div>
+              <div className="text-[11px] font-extrabold uppercase text-slate-400 tracking-wider">At Risk</div>
+              <div className="text-xl font-black text-rose-700">{atRiskCount}</div>
+            </div>
+          </div>
+
+          <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex items-center space-x-3">
+            <div className="p-3 bg-amber-50 text-amber-700 rounded-xl font-bold text-xs">
+              PROOFS
+            </div>
+            <div>
+              <div className="text-[11px] font-extrabold uppercase text-slate-400 tracking-wider">Pending Claims</div>
+              <div className="text-xl font-black text-amber-700">{pendingItems.length}</div>
+            </div>
+          </div>
+        </div>
             <p className="text-xs text-slate-500 mt-0.5">
               {selectedCaseload === 'casey' 
                 ? "Managing your direct candidate caseload." 
@@ -413,124 +534,240 @@ export default function CoachDashboard() {
         {/* TAB 2: ROSTER WITH EXPAND / COLLAPSE DROPDOWN ARROWS */}
         {activeTab === 'roster' && (
           <div className="space-y-4">
-            <div className="flex items-center justify-between bg-white p-4 rounded-xl border border-slate-200">
-              <div className="relative flex-1 max-w-md">
-                <Search className="w-4 h-4 absolute left-3 top-3 text-slate-400" />
-                <input
-                  type="text"
-                  placeholder="Search candidate roster by name..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="w-full pl-9 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium outline-none focus:border-purple-600"
-                />
+           {/* TOOLBAR: SEARCH, STATUS TRIAGE FILTERS, COUNTER & EXPORT */}
+            <div className="bg-white p-3.5 rounded-2xl border border-slate-200 shadow-sm flex flex-col md:flex-row items-center justify-between gap-3 my-3">
+              <div className="flex items-center space-x-3 w-full md:w-auto flex-1">
+                <div className="relative flex-1 max-w-sm">
+                  <input
+                    type="text"
+                    placeholder="Filter participants by Name or WA ID..."
+                    value={searchTerm}
+                    onChange={(e) => {
+                      setSearchTerm(e.target.value);
+                      setCurrentPage(1);
+                    }}
+                    className="w-full px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium outline-none focus:border-purple-600"
+                  />
+                </div>
+
+                {/* STATUS TRIAGE PILLS */}
+                <div className="flex items-center space-x-1 bg-slate-100 p-1 rounded-xl text-[11px] font-bold">
+                  <button
+                    type="button"
+                    onClick={() => { setStatusFilter('ALL'); setCurrentPage(1); }}
+                    className={`px-2.5 py-1 rounded-lg transition-all ${statusFilter === 'ALL' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500 hover:text-slate-800'}`}
+                  >
+                    All
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => { setStatusFilter('ACTION'); setCurrentPage(1); }}
+                    className={`px-2.5 py-1 rounded-lg transition-all ${statusFilter === 'ACTION' ? 'bg-purple-950 text-white shadow-sm' : 'text-slate-500 hover:text-slate-800'}`}
+                  >
+                    Action Needed
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => { setStatusFilter('AT_RISK'); setCurrentPage(1); }}
+                    className={`px-2.5 py-1 rounded-lg transition-all ${statusFilter === 'AT_RISK' ? 'bg-rose-600 text-white shadow-sm' : 'text-slate-500 hover:text-slate-800'}`}
+                  >
+                    At Risk
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => { setStatusFilter('ON_TRACK'); setCurrentPage(1); }}
+                    className={`px-2.5 py-1 rounded-lg transition-all ${statusFilter === 'ON_TRACK' ? 'bg-emerald-700 text-white shadow-sm' : 'text-slate-500 hover:text-slate-800'}`}
+                  >
+                    On Track
+                  </button>
+                </div>
               </div>
-              <span className="text-xs text-slate-500 font-semibold">
-                Showing {filteredCandidates.length} Candidates
-              </span>
+
+              <div className="flex items-center space-x-3 w-full md:w-auto justify-between md:justify-end">
+                <span className="text-xs text-slate-500 font-semibold">
+                  Showing {filteredCandidates.length} Candidates
+                </span>
+                <button
+                  type="button"
+                  onClick={exportToCSV}
+                  className="px-3.5 py-2 bg-emerald-700 hover:bg-emerald-800 text-white font-bold rounded-xl text-xs transition-all shadow-sm"
+                >
+                  Export CSV
+                </button>
+              </div>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {filteredCandidates.map((candidate) => {
-                const isExpanded = expandedCandidates[candidate.id] ?? true;
+            {/* HIGH-DENSITY CASELOAD TABLE */}
+            <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+              <table className="w-full text-left border-collapse">
+                <thead>
+                  <tr className="bg-slate-50 border-b border-slate-200 text-[11px] font-extrabold uppercase text-slate-500 tracking-wider">
+                    <th className="p-4 w-10">
+                      <input
+                        type="checkbox"
+                        checked={selectedCandidateIds.length === filteredCandidates.length && filteredCandidates.length > 0}
+                        onChange={(e) => {
+                          if (e.target.checked) {
+                            setSelectedCandidateIds(filteredCandidates.map(c => c.id));
+                          } else {
+                            setSelectedCandidateIds([]);
+                          }
+                        }}
+                        className="rounded border-slate-300 text-purple-900 focus:ring-purple-600"
+                      />
+                    </th>
+                    <th className="p-4">Participant Name & WA ID</th>
+                    <th className="p-4">Status</th>
+                    <th className="p-4">PBAS Progress</th>
+                    <th className="p-4 text-right">Actions</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100 text-xs">
+                  {paginatedCandidates.map((candidate) => {
+                    const verified = candidate.pbasVerified ?? 45;
+                    const target = candidate.pbasTarget ?? 100;
+                    const progressPct = Math.min(100, Math.round((verified / target) * 100));
 
-                return (
-                  <div key={candidate.id} className="bg-white rounded-2xl p-5 border border-slate-200 shadow-sm space-y-4 relative">
-                    <div className="flex items-start justify-between pr-8">
-                      <div>
-                        <h4 className="font-extrabold text-slate-900 text-base flex items-center space-x-2">
-                          <span>{candidate.name}</span>
-                        </h4>
-                        <p className="text-xs text-slate-500">{candidate.email} • WA ID: {candidate.waId || 'WA-882194'}</p>
-                      </div>
-                      <span className="px-2.5 py-1 bg-emerald-50 text-emerald-700 border border-emerald-200 font-bold text-xs rounded-full">
-                        {candidate.status}
-                      </span>
-                    </div>
-
-                    <button
-                      onClick={() => toggleExpandCandidate(candidate.id)}
-                      className="absolute top-4 right-4 p-1.5 text-slate-400 hover:text-purple-950 hover:bg-slate-100 rounded-lg transition-all"
-                      title={isExpanded ? "Collapse View" : "Expand Roster Details"}
-                    >
-                      {isExpanded ? (
-                        <ChevronUp className="w-5 h-5 text-purple-950 font-bold" />
-                      ) : (
-                        <ChevronDown className="w-5 h-5 text-slate-500" />
-                      )}
-                    </button>
-
-                    <div className="space-y-1.5">
-                      <div className="flex justify-between text-xs font-bold">
-                        <span className="text-slate-600">PBAS Monthly Verified Points</span>
-                        <span className="text-purple-950">{candidate.pbasVerified} / {candidate.pbasTarget} Pts</span>
-                      </div>
-                      <div className="w-full bg-slate-100 h-2.5 rounded-full overflow-hidden">
-                        <div 
-                          className="bg-gradient-to-r from-purple-600 to-emerald-500 h-full transition-all duration-500"
-                          style={{ width: `${Math.min(100, (candidate.pbasVerified / candidate.pbasTarget) * 100)}%` }}
-                        />
-                      </div>
-                    </div>
-
-                    {isExpanded && (
-                      <div className="space-y-3 pt-2 border-t border-slate-100 animate-fadeIn">
-                        {candidate.fivePillars && (
-                          <div className="p-3 bg-slate-50 rounded-xl border border-slate-200 space-y-2 text-xs">
-                            <div className="font-bold text-slate-800 flex items-center justify-between">
-                              <span>5 Pillars Diagnostic Mirror</span>
-                              <Sparkles className="w-3.5 h-3.5 text-purple-600" />
-                            </div>
-                            <div className="grid grid-cols-5 gap-1.5 text-center font-bold text-[10px]">
-                              <div className="bg-purple-100 text-purple-900 p-1.5 rounded">
-                                <div>Job Search</div>
-                                <div className="text-xs text-purple-950">{candidate.fivePillars.jobSearch || candidate.fivePillars.resume}%</div>
-                              </div>
-                              <div className="bg-emerald-100 text-emerald-900 p-1.5 rounded">
-                                <div>Interview</div>
-                                <div className="text-xs text-emerald-950">{candidate.fivePillars.interview}%</div>
-                              </div>
-                              <div className="bg-blue-100 text-blue-900 p-1.5 rounded">
-                                <div>Skills</div>
-                                <div className="text-xs text-blue-950">{candidate.fivePillars.skills || candidate.fivePillars.digital}%</div>
-                              </div>
-                              <div className="bg-amber-100 text-amber-900 p-1.5 rounded">
-                                <div>Logistics</div>
-                                <div className="text-xs text-amber-950">{candidate.fivePillars.logistics || candidate.fivePillars.whs}%</div>
-                              </div>
-                              <div className="bg-rose-100 text-rose-900 p-1.5 rounded">
-                                <div>Mindset</div>
-                                <div className="text-xs text-rose-950">{candidate.fivePillars.mindset || candidate.fivePillars.careerPlan}%</div>
-                              </div>
-                            </div>
+                    return (
+                      <tr key={candidate.id} className="hover:bg-purple-50/50 transition-all">
+                        <td className="p-4">
+                          <input
+                            type="checkbox"
+                            checked={selectedCandidateIds.includes(candidate.id)}
+                            onChange={(e) => {
+                              if (e.target.checked) {
+                                setSelectedCandidateIds(prev => [...prev, candidate.id]);
+                              } else {
+                                setSelectedCandidateIds(prev => prev.filter(id => id !== candidate.id));
+                              }
+                            }}
+                            className="rounded border-slate-300 text-purple-900 focus:ring-purple-600"
+                          />
+                        </td>
+                        <td className="p-4">
+                          <div className="font-extrabold text-slate-900 text-sm">{candidate.name}</div>
+                          <div className="text-[11px] text-slate-500">{candidate.email} • {candidate.waId || 'WA-882194'}</div>
+                        </td>
+                        <td className="p-4">
+                          <span className="px-2.5 py-1 bg-emerald-50 text-emerald-700 border border-emerald-200 font-bold text-[10px] rounded-full uppercase">
+                            {candidate.status || 'On Track'}
+                          </span>
+                        </td>
+                        <td className="p-4 w-48">
+                          <div className="flex justify-between text-[11px] font-bold mb-1">
+                            <span className="text-slate-600">{progressPct}%</span>
+                            <span className="text-purple-950">{verified} / {target} Pts</span>
                           </div>
-                        )}
-
-                        <div className="pt-2 flex justify-between items-center text-xs gap-2">
-                          <button 
+                          <div className="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
+                            <div 
+                              className="bg-gradient-to-r from-purple-600 to-emerald-500 h-full"
+                              style={{ width: `${progressPct}%` }}
+                            />
+                          </div>
+                        </td>
+                        <td className="p-4 text-right space-x-2">
+                          <button
+                            type="button"
                             onClick={() => setMessagingCandidate(candidate)}
-                            className="px-3 py-1.5 bg-purple-50 text-purple-900 border border-purple-200 font-bold rounded-xl hover:bg-purple-100 flex items-center space-x-1 text-xs"
+                            className="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-xl text-xs"
                           >
-                            <MessageSquare className="w-3.5 h-3.5" />
-                            <span>Message / Schedule</span>
+                            Contact
                           </button>
-
-                          <button 
+                          <button
+                            type="button"
                             onClick={() => {
                               setInspectCandidate(candidate);
-                              addAuditEntry(candidate.name, 'Opened candidate readiness mirror & STAR history');
+                              addAuditEntry(candidate.name, 'Opened active candidate inspection');
                             }}
-                            className="text-purple-950 font-bold hover:underline flex items-center space-x-1 text-xs"
+                            className="px-3.5 py-1.5 bg-purple-950 hover:bg-purple-900 text-white font-bold rounded-xl text-xs"
                           >
-                            <span>Locker</span>
-                            <ChevronRight className="w-3.5 h-3.5" />
+                            Inspect
                           </button>
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                );
-              })}
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
             </div>
+            {/* PAGINATION CONTROLS */}
+            <div className="flex items-center justify-between bg-white px-4 py-3 rounded-2xl border border-slate-200 text-xs font-bold text-slate-600 mt-4">
+              <span>
+                Page {currentPage} of {totalPages || 1} ({filteredCandidates.length} Candidates)
+              </span>
+              <div className="flex items-center space-x-2">
+                <button
+                  type="button"
+                  disabled={currentPage === 1}
+                  onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                  className="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 disabled:opacity-40 rounded-xl transition-all"
+                >
+                  Previous
+                </button>
+                <button
+                  type="button"
+                  disabled={currentPage >= totalPages}
+                  onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                  className="px-3 py-1.5 bg-purple-950 hover:bg-purple-900 disabled:opacity-40 text-white rounded-xl transition-all"
+                >
+                  Next
+                </button>
+              </div>
+            </div>
+            {/* ACTIVE SELECTED CANDIDATE DEEP INSPECTION HUB */}
+            {inspectCandidate && (
+              <div className="bg-white rounded-2xl border border-purple-200 p-6 shadow-sm space-y-6 mt-6">
+                <div className="flex items-center justify-between border-b border-slate-100 pb-4">
+                  <div className="flex items-center space-x-3">
+                    <div className="w-10 h-10 bg-purple-950 text-white font-extrabold rounded-full flex items-center justify-center text-sm">
+                      {inspectCandidate.name.split(' ').map(n => n[0]).join('')}
+                    </div>
+                    <div>
+                      <h3 className="font-extrabold text-slate-900 text-base">{inspectCandidate.name}</h3>
+                      <p className="text-xs text-slate-500">WA ID: {inspectCandidate.waId || 'WA-882190'} • {inspectCandidate.email}</p>
+                    </div>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <button
+                      type="button"
+                      onClick={() => setMessagingCandidate(inspectCandidate)}
+                      className="px-3.5 py-2 bg-purple-950 text-white font-bold rounded-xl text-xs"
+                    >
+                      Open Direct Support Hub
+                    </button>
+                  </div>
+                </div>
+
+                {/* 5-PILLARS DIAGNOSTIC SNAPSHOT */}
+                {inspectCandidate.fivePillars && (
+                  <div className="p-4 bg-slate-50 rounded-xl border border-slate-200 space-y-2">
+                    <span className="text-[10px] font-extrabold uppercase tracking-wider text-slate-500">5-Pillar Diagnostics Baseline</span>
+                    <div className="grid grid-cols-5 gap-2 text-center text-xs font-bold">
+                      <div className="bg-white p-2 rounded-lg border border-slate-200">
+                        <div className="text-[10px] text-slate-400">Resume</div>
+                        <div className="text-purple-950 font-extrabold">{inspectCandidate.fivePillars.resume}%</div>
+                      </div>
+                      <div className="bg-white p-2 rounded-lg border border-slate-200">
+                        <div className="text-[10px] text-slate-400">Interview</div>
+                        <div className="text-purple-950 font-extrabold">{inspectCandidate.fivePillars.interview}%</div>
+                      </div>
+                      <div className="bg-white p-2 rounded-lg border border-slate-200">
+                        <div className="text-[10px] text-slate-400">Digital</div>
+                        <div className="text-purple-950 font-extrabold">{inspectCandidate.fivePillars.digital}%</div>
+                      </div>
+                      <div className="bg-white p-2 rounded-lg border border-slate-200">
+                        <div className="text-[10px] text-slate-400">WHS</div>
+                        <div className="text-purple-950 font-extrabold">{inspectCandidate.fivePillars.whs}%</div>
+                      </div>
+                      <div className="bg-white p-2 rounded-lg border border-slate-200">
+                        <div className="text-[10px] text-slate-400">Career Plan</div>
+                        <div className="text-purple-950 font-extrabold">{inspectCandidate.fivePillars.careerPlan}%</div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
           </div>
         )}
 
@@ -693,54 +930,244 @@ export default function CoachDashboard() {
       )}
 
       {inspectCandidate && (
-        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-2xl max-w-2xl w-full p-6 space-y-4 shadow-xl border border-slate-200 max-h-[85vh] overflow-y-auto">
-            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-              <div>
-                <h3 className="font-extrabold text-slate-900 text-base">{inspectCandidate.name} — Candidate Evidence Locker</h3>
-                <p className="text-xs text-slate-500">WA ID: {inspectCandidate.waId || 'WA-882194'} • {inspectCandidate.email}</p>
+        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex justify-end z-50">
+          <div className="bg-white max-w-2xl w-full h-full p-6 flex flex-col justify-between shadow-2xl space-y-6 overflow-y-auto">
+            <div className="space-y-6">
+              {/* HEADER */}
+              <div className="flex items-center justify-between border-b border-slate-100 pb-4">
+                <div className="flex items-center space-x-3">
+                  <div className="w-12 h-12 bg-purple-950 text-white font-black rounded-2xl flex items-center justify-center text-base shadow-md">
+                    {inspectCandidate.name.split(' ').map(n => n[0]).join('')}
+                  </div>
+                  <div>
+                    <h3 className="font-extrabold text-slate-900 text-lg">{inspectCandidate.name}</h3>
+                    <p className="text-xs text-slate-500">WA ID: {inspectCandidate.waId || 'WA-882190'} • {inspectCandidate.email}</p>
+                  </div>
+                </div>
+                <button 
+                  onClick={() => setInspectCandidate(null)} 
+                  className="p-2 text-slate-400 hover:text-slate-600 font-bold rounded-xl bg-slate-50 border border-slate-200"
+                >
+                  <X className="w-5 h-5" />
+                </button>
               </div>
-              <button onClick={() => setInspectCandidate(null)} className="text-slate-400 hover:text-slate-600 font-bold text-lg">
-                <X className="w-5 h-5" />
-              </button>
-            </div>
 
-            <div className="space-y-3">
-              <h4 className="font-extrabold text-xs text-purple-950 uppercase tracking-wider flex items-center space-x-1.5">
-                <Sparkles className="w-4 h-4 text-purple-600" />
-                <span>AI STAR Practice Coaching Reports (+25 Pts Each)</span>
-              </h4>
-
-              {starHistory.length === 0 ? (
-                <div className="p-4 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-500 text-center">
-                  No AI STAR Mock practice sessions logged yet.
+              {/* 5-PILLARS DIAGNOSTIC OVERVIEW */}
+              <div className="p-4 bg-slate-50 rounded-2xl border border-slate-200 space-y-3">
+                <span className="text-[10px] font-extrabold uppercase tracking-wider text-slate-500">5-Pillars Capability Baseline</span>
+                <div className="grid grid-cols-5 gap-2 text-center text-xs font-bold">
+                  <div className="bg-white p-2.5 rounded-xl border border-slate-200">
+                    <div className="text-[10px] text-slate-400">Resume</div>
+                    <div className="text-purple-950 font-black text-sm">{inspectCandidate.fivePillars?.resume || 80}%</div>
+                  </div>
+                  <div className="bg-white p-2.5 rounded-xl border border-slate-200">
+                    <div className="text-[10px] text-slate-400">Interview</div>
+                    <div className="text-purple-950 font-black text-sm">{inspectCandidate.fivePillars?.interview || 65}%</div>
+                  </div>
+                  <div className="bg-white p-2.5 rounded-xl border border-slate-200">
+                    <div className="text-[10px] text-slate-400">Digital</div>
+                    <div className="text-purple-950 font-black text-sm">{inspectCandidate.fivePillars?.digital || 90}%</div>
+                  </div>
+                  <div className="bg-white p-2.5 rounded-xl border border-slate-200">
+                    <div className="text-[10px] text-slate-400">WHS</div>
+                    <div className="text-purple-950 font-black text-sm">{inspectCandidate.fivePillars?.whs || 100}%</div>
+                  </div>
+                  <div className="bg-white p-2.5 rounded-xl border border-slate-200">
+                    <div className="text-[10px] text-slate-400">Career</div>
+                    <div className="text-purple-950 font-black text-sm">{inspectCandidate.fivePillars?.careerPlan || 75}%</div>
+                  </div>
                 </div>
-              ) : (
-                <div className="space-y-2">
-                  {starHistory.map((star: any, idx: number) => (
-                    <div key={idx} className="p-3 bg-purple-50/50 border border-purple-200 rounded-xl space-y-1.5 text-xs">
-                      <div className="flex justify-between font-bold text-purple-950">
-                        <span>Role: {star.jobRole || 'General Job Practice'}</span>
-                        <span className="text-emerald-700">Score: {star.score || '85'}%</span>
-                      </div>
-                      <div className="grid grid-cols-2 gap-2 text-[11px] text-slate-700 bg-white p-2 rounded-lg border border-purple-100">
-                        <div><strong>Situation:</strong> {star.situation || 'N/A'}</div>
-                        <div><strong>Task:</strong> {star.task || 'N/A'}</div>
-                        <div><strong>Action:</strong> {star.action || 'N/A'}</div>
-                        <div><strong>Result:</strong> {star.result || 'N/A'}</div>
-                      </div>
+              </div>
+              {/* OBLIGATION CYCLE MANAGEMENT & ADAPTATION PANEL */}
+              <div className="p-4 bg-purple-50 rounded-2xl border border-purple-200 space-y-3">
+                <div className="flex items-center justify-between border-b border-purple-200/60 pb-2">
+                  <div>
+                    <h4 className="font-extrabold text-purple-950 text-xs uppercase tracking-wider">Active Obligation Cycle Controls</h4>
+                    <p className="text-[11px] text-purple-800 font-medium">Cycle Window: Current Monthly Cycle • Status: Active</p>
+                  </div>
+                  <span className="px-2.5 py-1 bg-purple-950 text-white font-extrabold text-[10px] rounded-lg uppercase">
+                    Monthly Target: {inspectCandidate.pbasTarget || 100} Pts
+                  </span>
+                </div>
+
+                {/* ADAPT OBLIGATIONS & SET CYCLE TARGETS */}
+                <div className="grid grid-cols-2 gap-3 pt-1">
+                  <div className="space-y-1">
+                    <label className="text-[10px] font-bold text-slate-600 uppercase">Set Cycle Points Target</label>
+                    <div className="flex space-x-2">
+                      <input
+                        type="number"
+                        defaultValue={inspectCandidate.pbasTarget || 100}
+                        id="targetInput"
+                        className="w-20 px-2 py-1 bg-white border border-slate-300 rounded-lg text-xs font-black text-center outline-none focus:border-purple-600"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const val = (document.getElementById('targetInput') as HTMLInputElement)?.value;
+                          handleUpdateObligationTarget(inspectCandidate.name, Number(val));
+                        }}
+                        className="px-3 py-1 bg-purple-950 hover:bg-purple-900 text-white font-bold text-xs rounded-lg transition-all"
+                      >
+                        Update
+                      </button>
                     </div>
-                  ))}
+                  </div>
+
+                  <div className="space-y-1">
+                    <label className="text-[10px] font-bold text-slate-600 uppercase">Adapt Obligations / Exemption</label>
+                    <select
+                      onChange={(e) => {
+                        if (e.target.value) handleAdaptObligations(inspectCandidate.name, e.target.value);
+                      }}
+                      className="w-full px-2 py-1.5 bg-white border border-slate-300 rounded-lg text-xs font-bold text-slate-800 outline-none focus:border-purple-600"
+                    >
+                      <option value="">-- Apply Adaptation --</option>
+                      <option value="Temporary Medical Reduction (50 Pts)">Temporary Medical Reduction (50 Pts)</option>
+                      <option value="Part-time Study Exemption (75 Pts)">Part-time Study Exemption (75 Pts)</option>
+                      <option value="Paid Employment Reduction (30 Pts)">Paid Employment Reduction (30 Pts)</option>
+                      <option value="Full Exemption (0 Pts)">Full Cycle Exemption (0 Pts)</option>
+                    </select>
+                  </div>
                 </div>
-              )}
+              </div>
+              {/* ONE-TOUCH PBAS CYCLE AUDIT DOWNLOAD BAR */}
+              <div className="p-4 bg-emerald-50 rounded-2xl border border-emerald-200 flex items-center justify-between">
+                <div>
+                  <h4 className="font-extrabold text-emerald-950 text-xs uppercase tracking-wider">End-of-Cycle PBAS Audit Package</h4>
+                  <p className="text-[11px] text-emerald-800 font-medium">Timestamped evidence, certificates, STAR reports, and activity logs.</p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => handleDownloadPBASAuditPackage(inspectCandidate)}
+                  className="px-4 py-2 bg-emerald-700 hover:bg-emerald-800 text-white font-extrabold text-xs rounded-xl shadow-sm transition-all"
+                >
+                  Download Complete Audit Bundle
+                </button>
+              </div>
+
+              {/* RESUME, COVER LETTER & DOCUMENT LOCKER */}
+              <div className="p-4 bg-slate-50 rounded-2xl border border-slate-200 space-y-4">
+                <div className="flex items-center justify-between border-b border-slate-200 pb-2">
+                  <span className="text-[10px] font-extrabold uppercase tracking-wider text-slate-500">Candidate Document Locker & Files</span>
+                  <label className="px-3 py-1 bg-purple-950 hover:bg-purple-900 text-white font-bold text-[11px] rounded-lg cursor-pointer">
+                    + Upload File
+                    <input
+                      type="file"
+                      className="hidden"
+                      onChange={() => handleUploadToLocker(inspectCandidate.name)}
+                    />
+                  </label>
+                </div>
+
+                {/* RESUME & COVER LETTER QUICK DOWNLOADS */}
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="p-3 bg-white rounded-xl border border-slate-200 flex items-center justify-between text-xs">
+                    <div>
+                      <div className="font-extrabold text-slate-900">Current Resume</div>
+                      <div className="text-[10px] text-slate-400">PDF • Updated recently</div>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => handleDownloadDoc(inspectCandidate.name, 'Resume')}
+                      className="px-2.5 py-1 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-lg text-[11px]"
+                    >
+                      Download
+                    </button>
+                  </div>
+
+                  <div className="p-3 bg-white rounded-xl border border-slate-200 flex items-center justify-between text-xs">
+                    <div>
+                      <div className="font-extrabold text-slate-900">Cover Letter</div>
+                      <div className="text-[10px] text-slate-400">PDF • Updated recently</div>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => handleDownloadDoc(inspectCandidate.name, 'Cover Letter')}
+                      className="px-2.5 py-1 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-lg text-[11px]"
+                    >
+                      Download
+                    </button>
+                  </div>
+                </div>
+
+                {/* LOCKER ATTACHMENT HISTORY */}
+                <div className="space-y-1.5">
+                  <span className="text-[10px] font-bold text-slate-400 uppercase">Verified Evidence & Certificates</span>
+                  <div className="bg-white rounded-xl border border-slate-200 divide-y divide-slate-100 text-xs">
+                    <div className="p-2.5 flex items-center justify-between">
+                      <span className="font-semibold text-slate-800">Job_Application_Proof_Sept2026.pdf</span>
+                      <button
+                        type="button"
+                        onClick={() => handleDownloadDoc(inspectCandidate.name, 'Application Proof')}
+                        className="text-purple-900 font-extrabold hover:underline text-[11px]"
+                      >
+                        Download
+                      </button>
+                    </div>
+                    <div className="p-2.5 flex items-center justify-between">
+                      <span className="font-semibold text-slate-800">First_Aid_Certificate_Verified.pdf</span>
+                      <button
+                        type="button"
+                        onClick={() => handleDownloadDoc(inspectCandidate.name, 'First Aid Certificate')}
+                        className="text-purple-900 font-extrabold hover:underline text-[11px]"
+                      >
+                        Download
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* AI STAR MOCK REPORTS */}
+              <div className="space-y-3">
+                <h4 className="font-extrabold text-xs text-purple-950 uppercase tracking-wider flex items-center space-x-1.5">
+                  <Sparkles className="w-4 h-4 text-purple-600" />
+                  <span>AI STAR Practice Coaching Reports (+25 Pts Each)</span>
+                </h4>
+
+                {starHistory.length === 0 ? (
+                  <div className="p-4 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-500 text-center">
+                    No AI STAR Mock practice sessions logged yet.
+                  </div>
+                ) : (
+                  <div className="space-y-2">
+                    {starHistory.map((star: any, idx: number) => (
+                      <div key={idx} className="p-3 bg-purple-50/50 border border-purple-200 rounded-xl space-y-1.5 text-xs">
+                        <div className="flex justify-between font-bold text-purple-950">
+                          <span>Role: {star.jobRole || 'General Job Practice'}</span>
+                          <span className="text-emerald-700">Score: {star.score || '85'}%</span>
+                        </div>
+                        <div className="grid grid-cols-2 gap-2 text-[11px] text-slate-700 bg-white p-2 rounded-lg border border-purple-100">
+                          <div><strong>Situation:</strong> {star.situation || 'N/A'}</div>
+                          <div><strong>Task:</strong> {star.task || 'N/A'}</div>
+                          <div><strong>Action:</strong> {star.action || 'N/A'}</div>
+                          <div><strong>Result:</strong> {star.result || 'N/A'}</div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
             </div>
 
-            <div className="flex justify-end pt-3 border-t border-slate-100">
+            {/* ACTION FOOTER */}
+            <div className="pt-4 border-t border-slate-100 flex items-center justify-between">
+              <button
+                type="button"
+                onClick={() => {
+                  setMessagingCandidate(inspectCandidate);
+                  setInspectCandidate(null);
+                }}
+                className="px-4 py-2 bg-purple-950 hover:bg-purple-900 text-white font-bold rounded-xl text-xs"
+              >
+                Open Direct Support Hub
+              </button>
               <button
                 onClick={() => setInspectCandidate(null)}
                 className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold rounded-xl"
               >
-                Close Locker
+                Close Drawer
               </button>
             </div>
           </div>
@@ -776,16 +1203,31 @@ export default function CoachDashboard() {
               </div>
             </div>
 
-            <div className="flex justify-end space-x-2 pt-3 border-t border-slate-100">
+            <div className="flex items-center gap-3 pt-3 border-t border-slate-100 justify-end">
               <button
-                onClick={() => setSelectedEvidence(null)}
-                className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold rounded-xl"
+                type="button"
+                onClick={() => handleDecline(selectedEvidence)}
+                className="px-4 py-2 bg-rose-50 hover:bg-rose-100 text-rose-700 text-xs font-bold rounded-xl transition-all"
               >
-                Close
+                Decline Claim
               </button>
+
+              <div className="flex items-center gap-2 bg-slate-100 px-3 py-1.5 rounded-xl border border-slate-200">
+                <span className="text-xs font-bold text-slate-600">Points:</span>
+                <input
+                  type="number"
+                  min="0"
+                  max="100"
+                  value={overridePoints ?? selectedEvidence.points}
+                  onChange={(e) => setOverridePoints(Number(e.target.value))}
+                  className="w-16 p-1 text-xs font-black text-center bg-white border border-slate-300 rounded-lg focus:ring-2 focus:ring-purple-500"
+                />
+              </div>
+
               <button
-                onClick={() => handleApprove(selectedEvidence)}
-                className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-xl"
+                type="button"
+                onClick={() => handleApprove(selectedEvidence, overridePoints ?? selectedEvidence.points)}
+                className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-xl transition-all shadow-md shadow-emerald-600/20"
               >
                 Approve & Grant Points
               </button>

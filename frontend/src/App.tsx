@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+﻿import React, { useState, useEffect } from 'react';
 import ParticipantHome from './pages/ParticipantHome';
 import CoachDashboard from './pages/CoachDashboard';
 import OwnerDashboard from './pages/OwnerDashboard';
@@ -48,7 +48,7 @@ export function App() {
         {userRole === 'candidate' && <ParticipantHome />}
         {(userRole === 'coach' || userRole === 'casey') && <CoachDashboard />}
         {userRole === 'owner' && <OwnerDashboard />}
-        {userRole === 'sales' && <SalesDemoDashboard />}
+        {userRole === 'sales' && <CoachDashboard />}
         {userRole === 'admin' && <AdminDashboard />}
         {userRole === 'system_admin' && <SystemAdminDashboard />}
       </div>
