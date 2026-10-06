@@ -1,110 +1,148 @@
 import React, { useState } from 'react';
+import { usePortal } from '../context/PortalContext';
 import ParticipantHome from './ParticipantHome';
 import CoachDashboard from './CoachDashboard';
 import OwnerDashboard from './OwnerDashboard';
-import { usePortal } from '../context/PortalContext';
-import { 
-  Sparkles, Calculator, Presentation, ShieldCheck, 
-  Users, LogOut, Briefcase, X, Maximize2, Lightbulb,
-  ChevronRight, CheckCircle2, XCircle, RotateCcw
+import {
+  Calculator,
+  Presentation,
+  TrendingUp,
+  Clock,
+  Users,
+  Award,
+  Sparkles,
+  CheckCircle2,
+  HelpCircle,
+  Building2,
+  ChevronRight,
+  LogOut,
+  Maximize2,
+  X,
+  FileSpreadsheet,
+  Zap,
+  ShieldCheck,
+  RotateCcw,
+  Briefcase,
+  Lightbulb,
+  XCircle
 } from 'lucide-react';
 
-type MarketSegment = 'workforce_au' | 'des' | 'parentsnext_ttw' | 'rto_tafe';
+export type MarketSegment = 'workforce_au' | 'des' | 'parentsnext_ttw' | 'rto_tafe';
 
-interface MarketConfig {
+export const MARKET_PRESETS: Record<MarketSegment, {
   name: string;
   badge: string;
+  framework: string;
   avgOutcomeFee: number;
   adminHoursSavedPerStaff: number;
-  metricLabel: string;
-  feeLabel: string;
-  complianceLabel: string;
-  repHook: string;
-  objectionTip: string;
-}
-
-const MARKET_PRESETS: Record<MarketSegment, MarketConfig> = {
+  pitchHook: string;
+  repHook?: string;
+  objectionHandling: string;
+  objectionTip?: string;
+  trainingTimeReducedPct: number;
+  feeLabel?: string;
+  complianceLabel?: string;
+}> = {
   workforce_au: {
     name: 'Workforce Australia (WFA)',
     badge: 'DEWR Framework',
+    framework: 'DEWR Framework',
     avgOutcomeFee: 3200,
     adminHoursSavedPerStaff: 6.5,
-    metricLabel: 'Monthly PBAS Points Automated',
+    trainingTimeReducedPct: 75,
     feeLabel: 'Avg. 12/26-Week Outcome Fee',
     complianceLabel: 'PBAS Points Target Compliance',
-    repHook: 'Eliminate manual PBAS evidence collection and keep participants 100% compliant with automated sign-offs.',
-    objectionTip: 'WFA outcome fees average $2,800–$3,500. Focus on how 1-click approvals free up Case Managers to focus on job placement.',
+    pitchHook: "Reclaiming 6.5 hrs/week per Case Manager converts directly into 13 additional 1-on-1 coaching sessions per staff member. Automating PBAS sign-offs transforms staff from paperwork clerks into high-impact employment coaches.",
+    repHook: "Eliminate manual PBAS evidence collection and keep participants 100% compliant with automated sign-offs.",
+    objectionHandling: "Focus on how 1-click evidence approvals eliminate manual PBAS chasing and safeguard against DEWR audit demerits and payment clawbacks.",
+    objectionTip: "WFA outcome fees average $2,800–$3,500. Focus on how 1-click approvals free up Case Managers to focus on job placement."
   },
   des: {
-    name: 'Inclusive Employment Australia (IEA)',
+    name: 'Inclusive Employment Australia (IEA / DES)',
     badge: 'IEA / Ongoing Support',
-    avgOutcomeFee: 4500,
-    adminHoursSavedPerStaff: 8.0,
-    metricLabel: 'Participant Benchmark Hours Logged',
-    feeLabel: 'Avg. Sustained Outcome Fee',
-    complianceLabel: 'Ongoing Support Retention Rate',
-    repHook: 'IEA providers lose up to 18% of outcome claims due to incomplete hours tracking. Our mobile log solves that instantly.',
-    objectionTip: 'IEA outcome claims average $4,000–$6,000. Highlight how easy it is for participants to submit flexible work hours logs from their phones.',
+    framework: 'DSS / Ongoing Support',
+    avgOutcomeFee: 2800,
+    adminHoursSavedPerStaff: 5.5,
+    trainingTimeReducedPct: 70,
+    feeLabel: 'Avg. Ongoing Support Outcome Fee',
+    complianceLabel: 'Ongoing Support & Retention Rate',
+    pitchHook: "Frees Case Managers to focus on high-touch participant retention and workplace support rather than tracking contact documentation. Prevents participant drop-offs.",
+    repHook: "Automate ongoing support tracking and timestamped participant contact proof.",
+    objectionHandling: "Emphasize how timestamped contact logs and flexible obligation tracking create bulletproof compliance proof for DSS audits.",
+    objectionTip: "DES outcomes rely on retention. Show how automated check-ins prevent participant drop-offs."
   },
   parentsnext_ttw: {
-    name: 'Transition to Work / ParentsNext',
+    name: 'Transition to Work (TtW) / ParentsNext',
     badge: 'Youth & Early Intervention',
+    framework: 'Youth & Early Intervention',
     avgOutcomeFee: 2400,
-    adminHoursSavedPerStaff: 5.5,
-    metricLabel: 'Milestone & Activity Submissions',
-    feeLabel: 'Avg. Progress Milestone Value',
-    complianceLabel: 'Participation Engagement Rate',
-    repHook: 'Boost youth participant engagement through gamified STAR practice runs and interactive LMS modules.',
-    objectionTip: 'Focus on engagement metrics and confidence building (the 5-Pillar assessment) rather than strict DEWR audits.',
+    adminHoursSavedPerStaff: 5.0,
+    trainingTimeReducedPct: 80,
+    feeLabel: 'Avg. Education / Outcome Fee',
+    complianceLabel: 'Participation & Education Rate',
+    pitchHook: "Accelerates youth engagement through instant AI STAR interview practice runs and rapid digital evidence validation, keeping participants active and compliant.",
+    repHook: "Engage youth candidates on mobile while automating activity sign-offs.",
+    objectionHandling: "Demonstrate how guided workflows allow new youth coaches to onboard in days without deep policy training.",
+    objectionTip: "TtW targets youth engagement. Highlight the AI STAR interview feature for candidate readiness."
   },
   rto_tafe: {
     name: 'RTOs, TAFEs & Higher Education',
     badge: 'Vocational & Higher Ed',
+    framework: 'ASQA & Graduate Outcome Standards',
     avgOutcomeFee: 1800,
-    adminHoursSavedPerStaff: 5.0,
-    metricLabel: 'Student Placement Portfolios',
-    feeLabel: 'Per-Student Completion Retention',
-    complianceLabel: 'Module Completion & Placement Rate',
-    repHook: 'Streamline mandatory work-integrated learning (WIL) placements and student portfolio tracking for audit compliance.',
-    objectionTip: 'Education providers care about course completion and graduate outcomes. Emphasize employer matching and interview prep.',
-  },
+    adminHoursSavedPerStaff: 0, // No admin pitch
+    trainingTimeReducedPct: 85, // Job-readiness velocity
+    feeLabel: 'Est. Value per Placed Graduate',
+    complianceLabel: 'ASQA Graduate Placement Proof',
+    pitchHook: "Proves that vocational training directly translates into real-world job readiness and employment pathways. Timestamped STAR reports and digital resume lockers give RTOs bulletproof ASQA evidence while driving higher graduate placement rates and student enrollment appeal.",
+    repHook: "Centralize graduate resumes, STAR interview practice logs, and verified employment pathway evidence for ASQA compliance.",
+    objectionHandling: "Highlight that this platform does not replace vocational training—it provides the missing job-readiness & outcome tracking layer to prove student employment pathways to ASQA auditors and funding bodies.",
+    objectionTip: "RTOs care about graduate outcomes and ASQA compliance. Position this as an outcome booster that drives course completion and student enrollment appeal."
+  }
 };
 
 export function SalesDemoDashboard() {
   const { setActiveContract, resetSandboxState } = usePortal();
 
+  // Selected Market State
   const [selectedMarket, setSelectedMarket] = useState<MarketSegment>('workforce_au');
   const activePreset = MARKET_PRESETS[selectedMarket];
 
-  // Calculator State
+  // Calculator Inputs & Preserved State
   const [caseloadSize, setCaseloadSize] = useState<number>(150);
   const [avgStaffCount, setAvgStaffCount] = useState<number>(5);
   const [currentPlacementRate, setCurrentPlacementRate] = useState<number>(35);
   const [customOutcomeFee, setCustomOutcomeFee] = useState<number>(activePreset.avgOutcomeFee);
+  const [hourlyStaffCost, setHourlyStaffCost] = useState<number>(45);
 
+  // Drawers, Modals & Interactive Viewports
   const [activeDemoTab, setActiveDemoTab] = useState<'calculator' | 'presentation'>('calculator');
   const [activeSlide, setActiveSlide] = useState<number>(0);
   const [showDemoDrawer, setShowDemoDrawer] = useState<boolean>(false);
-  
-  // State for rendering full, live interactive profile pages inside full-screen demo viewports
+  const [showCalculationDrawer, setShowCalculationDrawer] = useState<boolean>(false);
   const [activeFullDemoRole, setActiveFullDemoRole] = useState<'participant' | 'coach' | 'owner' | null>(null);
 
-  // Sync custom fee default & global contract framework whenever market selection changes
+  // Sync Market Changes
   const handleMarketChange = (market: MarketSegment) => {
     setSelectedMarket(market);
     setCustomOutcomeFee(MARKET_PRESETS[market].avgOutcomeFee);
 
-    // Update global contract framework in PortalContext
     if (market === 'workforce_au') setActiveContract('Workforce Australia');
     else if (market === 'des') setActiveContract('Inclusive Employment Australia (IEA)' as any);
     else if (market === 'parentsnext_ttw') setActiveContract('TtW');
     else if (market === 'rto_tafe') setActiveContract('RTO');
   };
-  // Dynamic Calculations
+
+  // Ground-Truthed Formulas
   const projectedPlacementRate = Math.min(85, currentPlacementRate + 25);
   const additionalPlacements = Math.round((caseloadSize * (projectedPlacementRate - currentPlacementRate)) / 100);
   const estimatedRevenueGain = additionalPlacements * customOutcomeFee;
-  const totalWeeklyHoursSaved = Math.round(activePreset.adminHoursSavedPerStaff * avgStaffCount);
+  
+  const hoursSavedPerStaff = activePreset.adminHoursSavedPerStaff;
+  const totalWeeklyHoursSaved = Math.round(hoursSavedPerStaff * avgStaffCount);
+  const totalAnnualHoursSaved = totalWeeklyHoursSaved * 52;
+  const annualCapacityValueReclaimed = Math.round(totalAnnualHoursSaved * hourlyStaffCost);
+  const extraCoachingSessionsPerWeek = Math.round(totalWeeklyHoursSaved * 2);
 
   const handleSignOut = () => {
     resetSandboxState();
@@ -114,53 +152,96 @@ export function SalesDemoDashboard() {
     window.dispatchEvent(new Event('popstate'));
   };
 
-  const pitchSlides = [
-    {
-      step: '01',
-      title: 'The Challenge',
-      subtitle: 'Paperwork Friction & Compliance Drift',
-      badge: 'Current Industry Pain',
-      badgeColor: 'bg-rose-500/20 text-rose-300 border-rose-500/30',
-      description: 'Case Managers spend up to 35% of their week chasing participant activity proof, logging manual points, and filling out paper forms instead of placing candidates.',
-      keyTakeaway: 'Result: High staff burnout, delayed outcome claims, and DEWR/DES audit compliance risks.'
-    },
-    {
-      step: '02',
-      title: 'The Unified Bridge',
-      subtitle: '3-Way Profile State Synchronization',
-      badge: 'Core Platform Engine',
-      badgeColor: 'bg-purple-500/20 text-purple-300 border-purple-500/30',
-      description: 'Straight Up Training links Candidate self-submissions, Case Manager sign-off queues, and Business Manager outcome metrics into a single real-time global state.',
-      keyTakeaway: 'Result: Zero manual data re-entry. Submissions flow seamlessly from mobile to auditor CSV.'
-    },
-    {
-      step: '03',
-      title: 'Participant Empowerment',
-      subtitle: 'Mobile Evidence & AI Practice Locker',
-      badge: 'Candidate Experience',
-      badgeColor: 'bg-emerald-500/20 text-emerald-300 border-emerald-500/30',
-      description: 'Candidates complete AI STAR mock interviews and upload job applications directly from their phones, automatically queuing compliance credits for sign-off.',
-      keyTakeaway: 'Result: 100% mutual obligation compliance with minimal staff chasing.'
-    },
-    {
-      step: '04',
-      title: 'Case Manager Velocity',
-      subtitle: '1-Click Approvals & Leave Coverage Mode',
-      badge: 'Operational Efficiency',
-      badgeColor: 'bg-amber-500/20 text-amber-300 border-amber-400/30',
-      description: 'Case Managers audit evidence in under 2 minutes. When staff go on leave, Coverage Mode reassigns caseloads with zero lost participant evidence.',
-      keyTakeaway: 'Result: Saves 6.5+ hours weekly per Case Manager.'
-    },
-    {
-      step: '05',
-      title: 'Audit & Governance',
-      subtitle: 'Auditor-Ready CSV Exports & 90-Day Logs',
-      badge: 'Executive & DEWR Compliance',
-      badgeColor: 'bg-blue-500/20 text-blue-300 border-blue-500/30',
-      description: 'Executive dashboards give Business Managers macro 5-Pillar diagnostics and instant 1-click CSV export for Department and internal compliance audits.',
-      keyTakeaway: 'Result: 100% audit protection and accelerated 12/26-week milestone claims.'
-    }
-  ];
+  // Human-Centered Market Story Engine
+  const MARKET_SLIDES = {
+    workforce_au: [
+      {
+        step: '01',
+        title: 'Reclaiming the Case Manager’s Day',
+        subtitle: 'From Admin Burnout to Dedicated 1-on-1 Coaching',
+        badge: '🌱 Staff Freedom & Capacity',
+        badgeColor: 'bg-amber-100 text-amber-900 border-amber-200',
+        legacyPain: 'Case Managers spend up to 35% of their week chasing receipts and manually logging PBAS points, leading to staff burnout and lost coaching time.',
+        platformSolution: 'Candidates submit proof via mobile. Case Managers approve evidence in 1 click or pass caseloads seamlessly with Roster Coverage Mode.',
+        keyTakeaway: 'Reclaims 6.5 hours/week per coach — converting paperwork overhead into 13+ direct coaching interactions.',
+        sandboxRole: 'coach' as const
+      },
+      {
+        step: '02',
+        title: 'Empowering Candidate Confidence',
+        subtitle: 'Mobile Mutual Obligation & AI Practice Studio',
+        badge: '✨ Candidate Empowerment',
+        badgeColor: 'bg-emerald-100 text-emerald-900 border-emerald-200',
+        legacyPain: 'Participants feel overwhelmed by complex point targets, freeze up during real job interviews, and face sudden payment suspensions.',
+        platformSolution: 'Candidates track PBAS progress in real-time on mobile and build interview confidence using the 24/7 AI STAR Practice Studio.',
+        keyTakeaway: 'Drives 100% mutual obligation compliance while building genuine, employer-ready candidate confidence.',
+        sandboxRole: 'participant' as const
+      },
+      {
+        step: '03',
+        title: 'Executive Governance & Peace of Mind',
+        subtitle: 'Timestamped Audit Vault & Claims Velocity',
+        badge: '🛡️ Sovereign Audit Protection',
+        badgeColor: 'bg-purple-100 text-purple-900 border-purple-200',
+        legacyPain: 'Executive directors worry about missing evidence during DEWR audits, payment clawbacks, and high staff turnover.',
+        platformSolution: 'Macro 5-Pillar diagnostics give leadership real-time SLA visibility, 90-day auto-archived evidence retention, and 1-click auditor CSV exports.',
+        keyTakeaway: '100% audit protection, zero clawback risk, and accelerated 12/26-week milestone claims.',
+        sandboxRole: 'owner' as const
+      }
+    ],
+    des: [
+      {
+        step: '01',
+        title: 'Compassionate Ongoing Support',
+        subtitle: 'High-Touch Participant Engagement & Retention',
+        badge: '🌱 Human Retention & Support',
+        badgeColor: 'bg-emerald-100 text-emerald-900 border-emerald-200',
+        legacyPain: 'Manual contact tracking distracts Case Managers from offering genuine workplace retention support to vulnerable participants.',
+        platformSolution: 'Automated contact logging and flexible digital check-in channels keep participants supported and engaged without friction.',
+        keyTakeaway: 'Prevents participant drop-offs and protects 26-week ongoing support outcome revenue.',
+        sandboxRole: 'coach' as const
+      },
+      {
+        step: '02',
+        title: 'DSS Audit Safeguards',
+        subtitle: 'Timestamped Contact & Retention Proof',
+        badge: '🛡️ DSS Compliance Vault',
+        badgeColor: 'bg-purple-100 text-purple-900 border-purple-200',
+        legacyPain: 'Inconsistent record-keeping across regional sites creates severe vulnerability during DSS compliance quality audits.',
+        platformSolution: 'All ongoing support interactions and candidate check-ins are automatically timestamped and archived for instant inspection.',
+        keyTakeaway: 'Bulletproof DSS audit readiness with centralized site-by-site compliance oversight.',
+        sandboxRole: 'owner' as const
+      }
+    ],
+    parentsnext_ttw: [
+      {
+        step: '01',
+        title: 'Youth-First Engagement Engine',
+        subtitle: 'Mobile Empowerment & Guided Workflows',
+        badge: '✨ Youth Confidence',
+        badgeColor: 'bg-emerald-100 text-emerald-900 border-emerald-200',
+        legacyPain: 'Young participants find traditional paperwork alienating, while new youth coaches take weeks to study complex policy manuals.',
+        platformSolution: 'Gamified mobile portal with AI STAR mock interview practice and guided 1-click action guardrails for new coaches.',
+        keyTakeaway: 'Boosts youth activity completion while cutting new staff onboarding time by 80%.',
+        sandboxRole: 'participant' as const
+      }
+    ],
+    rto_tafe: [
+      {
+        step: '01',
+        title: 'Proving Graduate Outcomes',
+        subtitle: 'ASQA Evidence & Employment Pathway Proof',
+        badge: '🎓 Vocational Excellence',
+        badgeColor: 'bg-purple-100 text-purple-900 border-purple-200',
+        legacyPain: 'RTOs struggle to gather timestamped proof showing that vocational training leads directly to real-world employment outcomes.',
+        platformSolution: 'Digital student resume lockers, AI STAR readiness reports, and automated post-training employment pathway tracking.',
+        keyTakeaway: 'Satisfies ASQA Standard 1.2 requirements while boosting student course completion and enrollment appeal.',
+        sandboxRole: 'owner' as const
+      }
+    ]
+  };
+
+  const pitchSlides = MARKET_SLIDES[selectedMarket] || MARKET_SLIDES.workforce_au;
 
   return (
     <div className="min-h-screen bg-slate-50 text-slate-900 font-sans">
@@ -201,9 +282,12 @@ export function SalesDemoDashboard() {
             <button
               onClick={() => {
                 resetSandboxState();
-                alert('↺ Demo state reset! Baseline points and mock interview runs restored for new presentation.');
+                localStorage.removeItem('star_practice_completed_count');
+                localStorage.removeItem('participant_points');
+                window.dispatchEvent(new Event('storage'));
+                alert('↺ Demo state reset! Baseline points, practice caps, and candidate states restored.');
               }}
-              className="px-3.5 py-1.5 bg-purple-800/80 hover:bg-purple-700 border border-purple-400/40 text-white text-xs font-extrabold rounded-xl transition-all flex items-center space-x-1.5 shadow-sm"
+              className="px-3.5 py-1.5 bg-purple-800/80 hover:bg-purple-700 border border-purple-400/40 text-white text-xs font-extrabold rounded-xl transition-all flex items-center space-x-1.5 shadow-sm cursor-pointer"
               title="Reset sandbox state back to pristine defaults for a new provider demonstration"
             >
               <RotateCcw className="w-3.5 h-3.5 text-amber-300" />
@@ -381,66 +465,110 @@ export function SalesDemoDashboard() {
 
                   <div>
                     <div className="flex justify-between font-bold text-slate-700 mb-1">
-                      <span>Current Milestone / Outcome Rate</span>
-                      <span className="text-purple-950">{currentPlacementRate}%</span>
+                      <span>Avg. Loaded Staff Hourly Cost</span>
+                      <span className="text-purple-950 font-black">${hourlyStaffCost}/hr</span>
                     </div>
                     <input 
                       type="range" 
-                      min="10" 
-                      max="60" 
+                      min="30" 
+                      max="85" 
                       step="5"
-                      value={currentPlacementRate}
-                      onChange={(e) => setCurrentPlacementRate(Number(e.target.value))}
+                      value={hourlyStaffCost}
+                      onChange={(e) => setHourlyStaffCost(Number(e.target.value))}
                       className="w-full accent-purple-600 cursor-pointer"
                     />
                   </div>
 
-                  <div>
-                    <div className="flex justify-between font-bold text-slate-700 mb-1">
-                      <span>{activePreset.feeLabel}</span>
-                      <span className="text-emerald-700 font-extrabold">${customOutcomeFee.toLocaleString()}</span>
-                    </div>
-                    <input 
-                      type="range" 
-                      min="1000" 
-                      max="8000" 
-                      step="100"
-                      value={customOutcomeFee}
-                      onChange={(e) => setCustomOutcomeFee(Number(e.target.value))}
-                      className="w-full accent-emerald-600 cursor-pointer"
-                    />
+                  <div className="p-3 bg-purple-50 rounded-xl border border-purple-200 space-y-1 text-[11px] text-purple-950 mt-2">
+                    <span className="font-extrabold uppercase tracking-wider text-[10px] text-purple-900 flex items-center gap-1">
+                      <Zap className="w-3.5 h-3.5 text-purple-600" /> Guided Workflow Impact
+                    </span>
+                    <p className="text-purple-800 font-medium">
+                      Reduces staff onboarding time by <strong>{activePreset.trainingTimeReducedPct}%</strong> through 1-click guided workflow guardrails.
+                    </p>
                   </div>
                 </div>
               </div>
 
               <div className="lg:col-span-2 bg-gradient-to-br from-purple-950 via-slate-900 to-purple-950 text-white rounded-2xl p-6 shadow-xl border border-purple-800/50 flex flex-col justify-between space-y-6">
-                <div>
-                  <span className="text-[10px] font-extrabold uppercase tracking-widest text-emerald-400 bg-emerald-500/20 border border-emerald-500/30 px-2.5 py-1 rounded-full">
-                    Projected Provider Financial ROI • {activePreset.name}
-                  </span>
-                  <h3 className="text-2xl font-extrabold text-white mt-2">Commercial Impact Summary</h3>
-                  <p className="text-xs text-purple-200/80">Estimated annual gains enabled by Straight Up Training integration.</p>
+                <div className="flex flex-col md:flex-row md:items-center justify-between gap-2 border-b border-purple-800/50 pb-4">
+                  <div>
+                    <span className="text-[10px] font-extrabold uppercase tracking-widest text-emerald-400 bg-emerald-500/20 border border-emerald-500/30 px-2.5 py-1 rounded-full">
+                      Projected Provider Financial ROI • {activePreset.framework}
+                    </span>
+                    <h3 className="text-2xl font-extrabold text-white mt-2">Commercial Impact Summary</h3>
+                    <p className="text-xs text-purple-200/80">Estimated capacity gains and cost savings enabled by Straight Up Training integration.</p>
+                  </div>
+
+                  <button
+                    onClick={() => setShowCalculationDrawer(true)}
+                    className="px-3.5 py-2 bg-white/10 hover:bg-white/20 text-white text-xs font-bold rounded-xl border border-white/20 transition-all flex items-center space-x-1.5 shrink-0"
+                  >
+                    <FileSpreadsheet className="w-3.5 h-3.5 text-amber-300" />
+                    <span>🔍 How is this calculated?</span>
+                  </button>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  <div className="bg-white/10 backdrop-blur-md border border-white/10 p-4 rounded-xl space-y-1">
-                    <span className="text-xs text-purple-200 font-bold">Estimated Revenue Unlocked</span>
-                    <div className="text-2xl font-extrabold text-emerald-400">+${estimatedRevenueGain.toLocaleString()}</div>
-                    <p className="text-[10px] text-purple-300">Based on +{additionalPlacements} additional outcomes</p>
-                  </div>
+                {/* METRIC CARDS GRID */}
+<div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+  {selectedMarket === 'rto_tafe' ? (
+    <>
+      <div className="bg-white/10 backdrop-blur-md border border-white/10 p-4 rounded-xl space-y-1">
+        <span className="text-xs text-purple-200 font-bold block">Graduate Job-Readiness</span>
+        <div className="text-2xl font-black text-amber-300 mt-1">85% Ready</div>
+        <p className="text-[10px] text-purple-300">
+          AI STAR interview practice & digital resume lockers
+        </p>
+      </div>
 
-                  <div className="bg-white/10 backdrop-blur-md border border-white/10 p-4 rounded-xl space-y-1">
-                    <span className="text-xs text-purple-200 font-bold">Staff Admin Hours Saved</span>
-                    <div className="text-2xl font-extrabold text-amber-300">{totalWeeklyHoursSaved} hrs/wk</div>
-                    <p className="text-[10px] text-purple-300">Directly reduces sign-off paperwork</p>
-                  </div>
+      <div className="bg-white/10 backdrop-blur-md border border-white/10 p-4 rounded-xl space-y-1">
+        <span className="text-xs text-purple-200 font-bold block">ASQA Audit Evidence Proof</span>
+        <div className="text-2xl font-black text-emerald-400 mt-1">100% Verified</div>
+        <p className="text-[10px] text-purple-300">
+          Timestamped graduate outcome & pathway logs
+        </p>
+      </div>
 
-                  <div className="bg-white/10 backdrop-blur-md border border-white/10 p-4 rounded-xl space-y-1">
-                    <span className="text-xs text-purple-200 font-bold">{activePreset.complianceLabel}</span>
-                    <div className="text-2xl font-extrabold text-white">{projectedPlacementRate}%</div>
-                    <p className="text-[10px] text-purple-300">Up from baseline {currentPlacementRate}%</p>
-                  </div>
-                </div>
+      <div className="bg-white/10 backdrop-blur-md border border-white/10 p-4 rounded-xl space-y-1">
+        <span className="text-xs text-purple-200 font-bold block">Enrollment & Appeal Gain</span>
+        <div className="text-2xl font-black text-purple-300 mt-1">+25% Outcomes</div>
+        <p className="text-[10px] text-purple-300">
+          Proves course training leads directly to employment
+        </p>
+      </div>
+    </>
+  ) : (
+    <>
+      <div className="bg-white/10 backdrop-blur-md border border-white/10 p-4 rounded-xl space-y-1">
+        <span className="text-xs text-purple-200 font-bold block">Staff Admin Hours Saved</span>
+        <div className="text-2xl font-black text-amber-300 mt-1">{totalWeeklyHoursSaved} hrs/wk</div>
+        <p className="text-[10px] text-purple-300">
+          Directly reduces sign-off paperwork ({activePreset.adminHoursSavedPerStaff} hrs/staff)
+        </p>
+      </div>
+
+      <div className="bg-white/10 backdrop-blur-md border border-white/10 p-4 rounded-xl space-y-1">
+        <span className="text-xs text-purple-200 font-bold block">Capacity Value Reclaimed</span>
+        <div className="text-2xl font-black text-emerald-400 mt-1">
+          +${annualCapacityValueReclaimed.toLocaleString()}
+        </div>
+        <p className="text-[10px] text-purple-300">
+          Annual payroll equivalent @ ${hourlyStaffCost}/hr
+        </p>
+      </div>
+
+      <div className="bg-white/10 backdrop-blur-md border border-white/10 p-4 rounded-xl space-y-1">
+        <span className="text-xs text-purple-200 font-bold block">Staff Onboarding Speed</span>
+        <div className="text-2xl font-black text-purple-300 mt-1">
+          {activePreset.trainingTimeReducedPct}% Faster
+        </div>
+        <p className="text-[10px] text-purple-300">
+          Cuts staff onboarding from weeks to days
+        </p>
+      </div>
+    </>
+  )}
+</div>
 
                 {/* SALES REP CHEAT SHEET BOX */}
                 <div className="p-4 bg-white/5 border border-white/10 rounded-xl space-y-2">
@@ -461,95 +589,122 @@ export function SalesDemoDashboard() {
           </div>
         )}
 
-        {/* TAB 2: EXECUTIVE PITCH & COMPETITIVE COMPARISON */}
+        {/* TAB 2: SINGLE EXECUTIVE OVERVIEW PAGE */}
         {activeDemoTab === 'presentation' && (
           <div className="space-y-6">
-            {/* SECTION 1: INTERACTIVE PITCH SLIDES */}
-            <div className="bg-gradient-to-br from-purple-950 via-slate-900 to-purple-950 text-white rounded-2xl p-6 shadow-xl border border-purple-800/50 space-y-6">
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-purple-800/50 pb-4">
-                <div>
-                  <span className="text-[10px] font-extrabold uppercase tracking-widest text-amber-300 bg-amber-400/20 border border-amber-400/30 px-2.5 py-0.5 rounded-full">
-                    Executive Presentation Deck
+            
+            {/* 1. STRATEGIC HEADER */}
+            <div className="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm space-y-2">
+              <span className="text-[10px] font-extrabold uppercase tracking-widest text-purple-900 bg-purple-100 border border-purple-200 px-2.5 py-0.5 rounded-full">
+                🌱 Human-Centered Platform Architecture
+              </span>
+              <h3 className="text-xl font-extrabold text-purple-950">WorkReady Operational Transformation</h3>
+              <p className="text-xs text-slate-500 font-medium">
+                How Straight Up Training empowers candidates, restores staff coaching capacity, and protects government contract funding.
+              </p>
+            </div>
+
+            {/* 2. THE 3 HUMAN TRANSFORMATION PILLARS */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              
+              {/* CANDIDATE PILLAR */}
+              <div className="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm space-y-3 flex flex-col justify-between">
+                <div className="space-y-2">
+                  <span className="text-[10px] font-extrabold uppercase tracking-wider text-emerald-800 bg-emerald-100 border border-emerald-200 px-2 py-0.5 rounded-md inline-block">
+                    ✨ Candidate Empowerment
                   </span>
-                  <h3 className="text-xl font-extrabold text-white mt-1">Live Presentation Slide Mode</h3>
-                  <p className="text-xs text-purple-200/80">Click through slides during live client calls to present the platform value proposition.</p>
+                  <h4 className="font-extrabold text-slate-900 text-sm">Mobile Confidence & AI Studio</h4>
+                  <p className="text-xs text-slate-600 leading-relaxed">
+                    Candidates track PBAS points in real time on mobile and build real interview readiness via the 24/7 AI STAR Practice Studio.
+                  </p>
                 </div>
-
-                {/* Slide Navigation Buttons */}
-                <div className="flex items-center gap-1">
-                  {pitchSlides.map((s, idx) => (
-                    <button
-                      key={idx}
-                      onClick={() => setActiveSlide(idx)}
-                      className={`w-8 h-8 rounded-xl font-extrabold text-xs transition-all border ${
-                        activeSlide === idx
-                          ? 'bg-amber-400 text-purple-950 border-amber-300 shadow-md scale-105'
-                          : 'bg-white/10 text-purple-200 border-white/10 hover:bg-white/20'
-                      }`}
-                    >
-                      {s.step}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              {/* ACTIVE SLIDE DISPLAY CARD */}
-              <div className="bg-white/5 border border-white/10 rounded-2xl p-6 space-y-4 backdrop-blur-md">
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-                  <span className={`text-[10px] font-bold px-3 py-0.5 rounded-full border w-max ${pitchSlides[activeSlide].badgeColor}`}>
-                    {pitchSlides[activeSlide].badge}
-                  </span>
-                  <span className="text-xs font-mono text-purple-300">Slide {activeSlide + 1} of 5</span>
-                </div>
-
-                <div className="space-y-1">
-                  <h2 className="text-2xl font-black text-white">{pitchSlides[activeSlide].title}</h2>
-                  <h4 className="text-sm font-bold text-amber-300">{pitchSlides[activeSlide].subtitle}</h4>
-                </div>
-
-                <p className="text-xs text-purple-100/90 leading-relaxed font-medium max-w-3xl">
-                  {pitchSlides[activeSlide].description}
-                </p>
-
-                <div className="p-3.5 bg-purple-900/60 border border-purple-500/30 rounded-xl text-xs text-emerald-300 font-bold flex items-center gap-2">
-                  <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
-                  <span>{pitchSlides[activeSlide].keyTakeaway}</span>
-                </div>
-              </div>
-
-              {/* SLIDE NAVIGATION CONTROL BAR */}
-              <div className="flex items-center justify-between pt-2 text-xs font-bold">
                 <button
-                  disabled={activeSlide === 0}
-                  onClick={() => setActiveSlide((prev) => Math.max(0, prev - 1))}
-                  className="px-4 py-2 bg-white/10 hover:bg-white/20 disabled:opacity-30 rounded-xl transition-all"
+                  onClick={() => setActiveFullDemoRole('participant')}
+                  className="w-full py-2 bg-purple-950 hover:bg-purple-900 text-white text-xs font-bold rounded-xl transition-all flex items-center justify-center space-x-1.5 cursor-pointer shadow-sm"
                 >
-                  ← Previous Slide
+                  <Maximize2 className="w-3.5 h-3.5 text-amber-300" />
+                  <span>📱 View Candidate Portal</span>
                 </button>
+              </div>
 
-                <div className="flex items-center gap-2">
-                  <span className="text-purple-300">Next Step:</span>
-                  <button
-                    onClick={() => {
-                      if (activeSlide < pitchSlides.length - 1) {
-                        setActiveSlide(prev => prev + 1);
-                      } else {
-                        setActiveFullDemoRole('participant'); // Launch sandbox on final slide!
-                      }
-                    }}
-                    className="px-5 py-2 bg-amber-400 hover:bg-amber-300 text-purple-950 rounded-xl shadow-md transition-all flex items-center gap-1 font-extrabold"
-                  >
-                    {activeSlide < pitchSlides.length - 1 ? (
-                      <>Next Slide <ChevronRight className="w-4 h-4" /></>
-                    ) : (
-                      <>Launch Live Sandbox <Maximize2 className="w-4 h-4" /></>
-                    )}
-                  </button>
+              {/* CASE MANAGER PILLAR */}
+              <div className="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm space-y-3 flex flex-col justify-between">
+                <div className="space-y-2">
+                  <span className="text-[10px] font-extrabold uppercase tracking-wider text-amber-900 bg-amber-100 border border-amber-200 px-2 py-0.5 rounded-md inline-block">
+                    🌱 Staff Capacity & Freedom
+                  </span>
+                  <h4 className="font-extrabold text-slate-900 text-sm">1-Click Verification & Coverage</h4>
+                  <p className="text-xs text-slate-600 leading-relaxed">
+                    Reclaims 6.5 hours/week per Case Manager from paper-chasing, converting admin overhead into 13+ direct coaching interactions.
+                  </p>
+                </div>
+                <button
+                  onClick={() => setActiveFullDemoRole('coach')}
+                  className="w-full py-2 bg-purple-950 hover:bg-purple-900 text-white text-xs font-bold rounded-xl transition-all flex items-center justify-center space-x-1.5 cursor-pointer shadow-sm"
+                >
+                  <Maximize2 className="w-3.5 h-3.5 text-amber-300" />
+                  <span>⚡ View Case Manager Portal</span>
+                </button>
+              </div>
+
+              {/* EXECUTIVE GOVERNANCE PILLAR */}
+              <div className="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm space-y-3 flex flex-col justify-between">
+                <div className="space-y-2">
+                  <span className="text-[10px] font-extrabold uppercase tracking-wider text-purple-900 bg-purple-100 border border-purple-200 px-2 py-0.5 rounded-md inline-block">
+                    🛡️ Enterprise Risk Protection
+                  </span>
+                  <h4 className="font-extrabold text-slate-900 text-sm">Audit Vault & Macro Diagnostics</h4>
+                  <p className="text-xs text-slate-600 leading-relaxed">
+                    Provides 90-day timestamped evidence lockers, 1-click auditor CSV exports, and real-time operational SLA tracking.
+                  </p>
+                </div>
+                <button
+                  onClick={() => setActiveFullDemoRole('owner')}
+                  className="w-full py-2 bg-purple-950 hover:bg-purple-900 text-white text-xs font-bold rounded-xl transition-all flex items-center justify-center space-x-1.5 cursor-pointer shadow-sm"
+                >
+                  <Maximize2 className="w-3.5 h-3.5 text-amber-300" />
+                  <span>🛡️️ View Business Overview</span>
+                </button>
+              </div>
+            </div>
+
+            {/* 3. DATA SECURITY & SOVEREIGN VAULT CARD */}
+            <div className="p-5 bg-white border border-slate-200 text-slate-900 rounded-2xl shadow-sm space-y-3">
+              <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 border-b border-slate-100 pb-3">
+                <div className="flex items-center space-x-3">
+                  <div className="w-9 h-9 bg-emerald-100 border border-emerald-200 rounded-xl flex items-center justify-center shrink-0">
+                    <ShieldCheck className="w-5 h-5 text-emerald-700" />
+                  </div>
+                  <div>
+                    <h4 className="font-extrabold text-sm text-purple-950">Enterprise Data Sovereignty & Audit Guarantee</h4>
+                    <p className="text-xs text-slate-500">Engineered to meet Australian Privacy Principles and DEWR, DSS & ASQA audit standards.</p>
+                  </div>
+                </div>
+
+                <span className="text-[10px] font-extrabold uppercase tracking-widest text-emerald-800 bg-emerald-100 border border-emerald-200 px-3 py-1 rounded-full w-max">
+                  🔒 100% Onshore Australian Sovereignty
+                </span>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-3 text-xs pt-1">
+                <div className="bg-slate-50 border border-slate-200 p-3 rounded-xl space-y-1">
+                  <span className="font-extrabold text-purple-950 block">🇦🇺 Onshore Data Hosting</span>
+                  <p className="text-[11px] text-slate-600">Candidate PII remains strictly within Australian data centers under Privacy Act requirements.</p>
+                </div>
+
+                <div className="bg-slate-50 border border-slate-200 p-3 rounded-xl space-y-1">
+                  <span className="font-extrabold text-emerald-900 block">📜 Immutable Evidence Vault</span>
+                  <p className="text-[11px] text-slate-600">Every upload and sign-off is permanently archived for instant 1-click auditor CSV export.</p>
+                </div>
+
+                <div className="bg-slate-50 border border-slate-200 p-3 rounded-xl space-y-1">
+                  <span className="font-extrabold text-purple-900 block">🔐 Role-Based Access Controls</span>
+                  <p className="text-[11px] text-slate-600">Strict organizational permissions safeguard candidate privacy and maintain compliance continuity.</p>
                 </div>
               </div>
             </div>
 
-            {/* SECTION 2: COMPETITIVE COMPARISON MATRIX */}
+            {/* 4. COMPETITIVE COMPARISON MATRIX */}
             <div className="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm space-y-4">
               <div>
                 <span className="text-[10px] font-extrabold uppercase tracking-widest text-purple-900 bg-purple-100 border border-purple-200 px-2.5 py-0.5 rounded-full">
@@ -563,55 +718,80 @@ export function SalesDemoDashboard() {
                 <table className="w-full text-left text-xs border-collapse">
                   <thead>
                     <tr className="bg-slate-100 text-slate-700 font-extrabold border-b border-slate-200">
-                      <th className="p-3.5 rounded-tl-xl">Operational Feature / Capability</th>
-                      <th className="p-3.5 text-slate-500 bg-slate-100/80">Traditional Spreadsheets & Legacy LMS</th>
-                      <th className="p-3.5 text-purple-950 bg-purple-50/80 rounded-tr-xl">Straight Up Training Growth Hub</th>
+                      <th className="p-3.5 rounded-tl-xl w-1/3">Operational Feature / Capability</th>
+                      <th className="p-3.5 text-slate-500 bg-slate-100/80 w-1/3">Traditional Spreadsheets & Legacy LMS</th>
+                      <th className="p-3.5 text-purple-950 bg-purple-50/80 rounded-tr-xl w-1/3">Straight Up Training Growth Hub</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-100">
                     <tr className="hover:bg-slate-50 transition-all">
                       <td className="p-3.5 font-bold text-slate-800">Participant Evidence Logging</td>
-                      <td className="p-3.5 text-slate-500 bg-slate-50/50 flex items-center gap-1.5">
-                        <XCircle className="w-4 h-4 text-rose-500 shrink-0" /> Manual paper, emails, and back-and-forth chasing
+                      <td className="p-3.5 text-slate-500 bg-slate-50/50">
+                        <div className="flex items-center gap-1.5">
+                          <XCircle className="w-4 h-4 text-rose-500 shrink-0" />
+                          <span>Manual paper, emails, and back-and-forth chasing</span>
+                        </div>
                       </td>
-                      <td className="p-3.5 font-bold text-purple-950 bg-purple-50/30 flex items-center gap-1.5">
-                        <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" /> Mobile candidate portal with 1-click upload
+                      <td className="p-3.5 font-bold text-purple-950 bg-purple-50/30">
+                        <div className="flex items-center gap-1.5">
+                          <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+                          <span>Mobile candidate portal with 1-click upload</span>
+                        </div>
                       </td>
                     </tr>
 
                     <tr className="hover:bg-slate-50 transition-all">
                       <td className="p-3.5 font-bold text-slate-800">PBAS & Hours Sign-Off Time</td>
-                      <td className="p-3.5 text-slate-500 bg-slate-50/50 flex items-center gap-1.5">
-                        <XCircle className="w-4 h-4 text-rose-500 shrink-0" /> 15–20 minutes per candidate weekly
+                      <td className="p-3.5 text-slate-500 bg-slate-50/50">
+                        <div className="flex items-center gap-1.5">
+                          <XCircle className="w-4 h-4 text-rose-500 shrink-0" />
+                          <span>15–20 minutes per candidate weekly</span>
+                        </div>
                       </td>
-                      <td className="p-3.5 font-bold text-purple-950 bg-purple-50/30 flex items-center gap-1.5">
-                        <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" /> Under 2 minutes via automated verification queue
+                      <td className="p-3.5 font-bold text-purple-950 bg-purple-50/30">
+                        <div className="flex items-center gap-1.5">
+                          <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+                          <span>Under 2 minutes via automated verification queue</span>
+                        </div>
                       </td>
                     </tr>
 
                     <tr className="hover:bg-slate-50 transition-all">
                       <td className="p-3.5 font-bold text-slate-800">Staff Leave Coverage Gap</td>
-                      <td className="p-3.5 text-slate-500 bg-slate-50/50 flex items-center gap-1.5">
-                        <XCircle className="w-4 h-4 text-rose-500 shrink-0" /> Caseload stalls when Case Manager goes on leave
+                      <td className="p-3.5 text-slate-500 bg-slate-50/50">
+                        <div className="flex items-center gap-1.5">
+                          <XCircle className="w-4 h-4 text-rose-500 shrink-0" />
+                          <span>Caseload stalls when Case Manager goes on leave</span>
+                        </div>
                       </td>
-                      <td className="p-3.5 font-bold text-purple-950 bg-purple-50/30 flex items-center gap-1.5">
-                        <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" /> Coverage Mode reassigns caseload with zero gaps
+                      <td className="p-3.5 font-bold text-purple-950 bg-purple-50/30">
+                        <div className="flex items-center gap-1.5">
+                          <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+                          <span>Coverage Mode reassigns caseload with zero gaps</span>
+                        </div>
                       </td>
                     </tr>
 
                     <tr className="hover:bg-slate-50 transition-all">
                       <td className="p-3.5 font-bold text-slate-800">DEWR & Internal Audit Readiness</td>
-                      <td className="p-3.5 text-slate-500 bg-slate-50/50 flex items-center gap-1.5">
-                        <XCircle className="w-4 h-4 text-rose-500 shrink-0" /> High risk of missing evidence during compliance audits
+                      <td className="p-3.5 text-slate-500 bg-slate-50/50">
+                        <div className="flex items-center gap-1.5">
+                          <XCircle className="w-4 h-4 text-rose-500 shrink-0" />
+                          <span>High risk of missing evidence during compliance audits</span>
+                        </div>
                       </td>
-                      <td className="p-3.5 font-bold text-purple-950 bg-purple-50/30 flex items-center gap-1.5">
-                        <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" /> Instant auditor-ready CSV exports & 90-day locker
+                      <td className="p-3.5 font-bold text-purple-950 bg-purple-50/30">
+                        <div className="flex items-center gap-1.5">
+                          <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+                          <span>Instant auditor-ready CSV exports & 90-day locker</span>
+                        </div>
                       </td>
                     </tr>
                   </tbody>
                 </table>
               </div>
             </div>
+
           </div>
         )}
       </main>
@@ -639,7 +819,7 @@ export function SalesDemoDashboard() {
                 className="px-3 py-1 bg-rose-600 hover:bg-rose-700 text-white font-extrabold text-xs rounded-xl transition-all flex items-center space-x-1 shadow-sm"
               >
                 <X className="w-4 h-4" />
-                <span>Return to Sales Hub</span>
+                <span>← Back to Pitch Deck (Slide {activeSlide + 1})</span>
               </button>
             </div>
           </div>
@@ -696,6 +876,79 @@ export function SalesDemoDashboard() {
             >
               Close Guide
             </button>
+          </div>
+        </div>
+      )}
+      {/* CALCULATION LOGIC & AUDIT SHEET MODAL */}
+      {showCalculationDrawer && (
+        <div className="fixed inset-0 bg-slate-900/70 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-2xl max-w-2xl w-full p-6 space-y-5 shadow-2xl border border-slate-200 text-slate-900 max-h-[90vh] overflow-y-auto">
+            
+            {/* HEADER */}
+            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+              <div>
+                <h3 className="font-extrabold text-slate-900 text-base flex items-center gap-2">
+                  <FileSpreadsheet className="w-4 h-4 text-purple-600" />
+                  <span>Calculation Logic & Compliance Audit Sheet</span>
+                </h3>
+                <p className="text-xs text-slate-500 font-medium">Transparent financial formulas and operational assumptions.</p>
+              </div>
+              <button
+                onClick={() => setShowCalculationDrawer(false)}
+                className="text-slate-400 hover:text-slate-600 font-bold text-lg"
+              >
+                ✕
+              </button>
+            </div>
+
+            {/* STEP-BY-STEP FORMULAS */}
+            <div className="space-y-4 text-xs">
+              <div className="p-3.5 bg-slate-50 rounded-xl border border-slate-200 space-y-1.5">
+                <h4 className="font-extrabold text-purple-950 uppercase text-[10px] tracking-wider">1. Staff Admin Hours Saved Formula</h4>
+                <p className="font-mono text-slate-700 bg-white p-2 rounded-lg border border-slate-200">
+                  Weekly Hours Saved = {avgStaffCount} Staff × {activePreset.adminHoursSavedPerStaff} hrs/wk = <strong>{totalWeeklyHoursSaved} hrs/wk</strong>
+                </p>
+                <p className="text-slate-500 text-[11px]">
+                  Based on eliminating manual paper chasing, telephone verification follow-ups, and double-entry record keeping.
+                </p>
+              </div>
+
+              <div className="p-3.5 bg-slate-50 rounded-xl border border-slate-200 space-y-1.5">
+                <h4 className="font-extrabold text-purple-950 uppercase text-[10px] tracking-wider">2. Capacity Value Reclaimed Formula</h4>
+                <p className="font-mono text-slate-700 bg-white p-2 rounded-lg border border-slate-200">
+                  Annual Capacity Value = {totalWeeklyHoursSaved} hrs/wk × 52 weeks × ${hourlyStaffCost}/hr = <strong>+${annualCapacityValueReclaimed.toLocaleString()}/yr</strong>
+                </p>
+                <p className="text-slate-500 text-[11px]">
+                  Represents the dollar value of staff salary capacity reallocated from administrative overhead to direct participant engagement.
+                </p>
+              </div>
+
+              <div className="p-3.5 bg-slate-50 rounded-xl border border-slate-200 space-y-1.5">
+                <h4 className="font-extrabold text-purple-950 uppercase text-[10px] tracking-wider">3. Enabled Participant Coaching Capacity</h4>
+                <p className="font-mono text-slate-700 bg-white p-2 rounded-lg border border-slate-200">
+                  Additional 1-on-1 Sessions = {totalWeeklyHoursSaved} hrs/wk × 2 sessions/hr = <strong>+{extraCoachingSessionsPerWeek} Sessions / Week</strong>
+                </p>
+                <p className="text-slate-500 text-[11px]">
+                  Assumes an average of 30 minutes per 1-on-1 coaching interaction or student mentoring touchpoint.
+                </p>
+              </div>
+
+              <div className="p-3.5 bg-purple-50 rounded-xl border border-purple-200 space-y-1 text-[11px] text-purple-900">
+                <span className="font-extrabold block">Audit & Compliance References:</span>
+                <p>• <strong>DEWR Contracts (WFA/TtW):</strong> Replaces manual PBAS evidence collection with 1-click verification logs.</p>
+                <p>• <strong>ASQA / VET Guidelines (RTOs):</strong> Provides timestamped, audit-proof evidence of graduate work readiness and post-training support.</p>
+              </div>
+            </div>
+
+            {/* FOOTER */}
+            <div className="flex justify-end pt-3 border-t border-slate-100">
+              <button
+                onClick={() => setShowCalculationDrawer(false)}
+                className="px-4 py-2 bg-purple-950 text-white font-bold text-xs rounded-xl hover:bg-purple-900 transition-all"
+              >
+                Close Calculation Sheet
+              </button>
+            </div>
           </div>
         </div>
       )}
