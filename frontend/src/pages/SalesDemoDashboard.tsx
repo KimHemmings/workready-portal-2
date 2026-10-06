@@ -17,7 +17,8 @@ import {
   RotateCcw,
   CheckCircle2,
   XCircle,
-  Sparkles
+  Sparkles,
+  Layers
 } from 'lucide-react';
 
 export type MarketSegment = 'workforce_au' | 'des' | 'parentsnext_ttw' | 'rto_tafe';
@@ -476,6 +477,26 @@ export function SalesDemoDashboard() {
               </p>
             </div>
 
+            {/* SOFT COMPARISON: ZERO RIP-AND-REPLACE BANNER */}
+            <div className="bg-gradient-to-r from-purple-50 via-indigo-50/50 to-purple-50 border border-purple-200/80 rounded-2xl p-4 flex flex-col md:flex-row md:items-center justify-between gap-3 shadow-sm">
+              <div className="flex items-start space-x-3">
+                <div className="p-2 bg-purple-950 text-amber-300 rounded-xl shrink-0 mt-0.5">
+                  <Layers className="w-5 h-5" />
+                </div>
+                <div className="space-y-0.5">
+                  <div className="flex items-center space-x-2">
+                    <span className="font-extrabold text-xs text-purple-950">Non-Disruptive System Layering</span>
+                    <span className="text-[9px] bg-emerald-100 text-emerald-800 font-extrabold px-2 py-0.5 rounded-full uppercase tracking-wider">
+                      Zero Rip-and-Replace
+                    </span>
+                  </div>
+                  <p className="text-xs text-slate-600 leading-relaxed font-medium">
+                    Engineered to complement—not replace—your core database (ReadyTech, JobReady, ESSWeb, or RTO Student Management Systems). Operates as a lightweight, high-touch engagement engine that feeds verified evidence logs directly into your existing reporting workflow.
+                  </p>
+                </div>
+              </div>
+            </div>
+
             {/* 2. THE 3 HUMAN-FIRST OPERATIONAL PILLARS */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               
@@ -576,14 +597,14 @@ export function SalesDemoDashboard() {
               </div>
             </div>
 
-            {/* 4. HUMAN-FRIENDLY COMPARISON MATRIX */}
+            {/* 4. SOFT COMPARISON MATRIX */}
             <div className="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm space-y-4">
               <div>
                 <span className="text-[10px] font-extrabold uppercase tracking-widest text-purple-900 bg-purple-100 border border-purple-200 px-2.5 py-0.5 rounded-full">
                   OPERATIONAL COMPARISON
                 </span>
                 <h3 className="text-lg font-extrabold text-[#24083b] mt-1">The Difference in Everyday Practice</h3>
-                <p className="text-xs text-slate-500">See how moving from manual record-keeping to Straight Up Training transforms the daily experience for candidates, coaches, and leadership.</p>
+                <p className="text-xs text-slate-500">See how layering Straight Up Training onto your core database transforms the daily experience for candidates, coaches, and leadership.</p>
               </div>
 
               <div className="overflow-x-auto">
@@ -591,8 +612,8 @@ export function SalesDemoDashboard() {
                   <thead>
                     <tr className="bg-slate-100 text-slate-700 font-extrabold border-b border-slate-200">
                       <th className="p-3.5 rounded-tl-xl w-1/3">Daily Operational Task</th>
-                      <th className="p-3.5 text-slate-500 bg-slate-100/80 w-1/3">Traditional Manual Spreadsheets & Paper Paperwork</th>
-                      <th className="p-3.5 text-purple-950 bg-purple-50/80 rounded-tr-xl w-1/3">Straight Up Training Human Engine</th>
+                      <th className="p-3.5 text-slate-500 bg-slate-100/80 w-1/3">Traditional Record-Keeping Databases (SMS / Core Systems)</th>
+                      <th className="p-3.5 text-purple-950 bg-purple-50/80 rounded-tr-xl w-1/3">Straight Up Training Capacity Recovery Engine</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-100">
