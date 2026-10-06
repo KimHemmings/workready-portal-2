@@ -1,4 +1,6 @@
 import React, { useState } from 'react';
+import { useDemoParams } from '../useDemoParams';
+import { ProspectTourModal } from '../components/ProspectTourModal';
 import { usePortal } from '../context/PortalContext';
 import ParticipantHome from './ParticipantHome';
 import CoachDashboard from './CoachDashboard';
@@ -104,9 +106,13 @@ export const MARKET_PRESETS: Record<MarketSegment, {
 export function SalesDemoDashboard() {
   const { setActiveContract, resetSandboxState } = usePortal();
 
-  // Selected Market State
-  const [selectedMarket, setSelectedMarket] = useState<MarketSegment>('workforce_au');
-  const activePreset = MARKET_PRESETS[selectedMarket];
+  // URL Parameter Engine & Prospect State
+const urlParams = useDemoParams();
+const [showProspectTour, setShowProspectTour] = useState<boolean>(urlParams.isProspect);
+
+// Selected Market State (Initializes from URL if present)
+const [selectedMarket, setSelectedMarket] = useState<MarketSegment>(urlParams.market || 'workforce_au');
+const activePreset = MARKET_PRESETS[selectedMarket];
 
   // Calculator Inputs & Preserved State
   const [caseloadSize, setCaseloadSize] = useState<number>(150);
@@ -314,6 +320,37 @@ export function SalesDemoDashboard() {
       </header>
 
       <main className="max-w-7xl mx-auto p-6 space-y-6">
+
+        {/* PROSPECT PERSONALIZED WELCOME BANNER */}
+        {urlParams.isProspect && (
+          <div className="bg-purple-900 text-white p-4 rounded-2xl border border-purple-700 shadow-md flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div className="space-y-0.5">
+              <span className="text-[10px] font-extrabold uppercase tracking-widest text-amber-300 bg-amber-400/20 border border-amber-400/30 px-2 py-0.5 rounded-full">
+                Tailored Executive Assessment
+              </span>
+              <h2 className="text-base font-extrabold text-white">
+                Prepared for {urlParams.providerName} Leadership
+              </h2>
+            </div>
+
+            <button
+              onClick={() => setShowProspectTour(true)}
+              className="px-3.5 py-1.5 bg-amber-400 hover:bg-amber-300 text-purple-950 font-extrabold text-xs rounded-xl transition-all shadow-sm shrink-0 cursor-pointer"
+            >
+              ✨ Re-open Guided Tour
+            </button>
+          </div>
+        )}
+
+        {/* PROSPECT SELF-GUIDED TOUR MODAL */}
+        <ProspectTourModal
+          providerName={urlParams.providerName}
+          marketName={activePreset.name}
+          isOpen={showProspectTour}
+          onClose={() => setShowProspectTour(false)}
+          onSelectTab={(tab) => setActiveDemoTab(tab)}
+        />
+
         {/* INTERACTIVE PERSONA LAUNCHER */}
         <div className="bg-gradient-to-r from-purple-950 via-indigo-900 to-purple-950 text-white p-5 rounded-2xl shadow-lg border border-purple-800/50 space-y-3">
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
