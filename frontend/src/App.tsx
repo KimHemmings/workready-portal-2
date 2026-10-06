@@ -16,6 +16,8 @@ export function App() {
     return (params.get('role') as UserRole) || null;
   });
 
+  const isProspectMode = new URLSearchParams(window.location.search).get('mode') === 'prospect';
+
   useEffect(() => {
     const handleUrlChange = () => {
       const params = new URLSearchParams(window.location.search);
@@ -38,62 +40,18 @@ export function App() {
     setUserRole(role);
   };
 
-  if (!userRole) {
+  // Direct prospect magic link entry defaults to sales demo view
+  if (isProspectMode && (!userRole || userRole !== 'sales')) {
+    setUserRole('sales');
+  }
+
+  if (!userRole && !isProspectMode) {
     return <Login onLoginSuccess={changeRole} />;
   }
 
   return (
     <PortalProvider>
-      <div className="min-h-screen bg-slate-50 relative pb-16">
-        {/* DEMO PROFILE SWITCHER TOOLBAR */}
-        <div className="fixed bottom-3 left-1/2 -translate-x-1/2 z-50 bg-slate-900/95 text-white px-4 py-2 rounded-full shadow-2xl border border-slate-700 flex items-center space-x-2 text-xs font-bold backdrop-blur-md">
-          <span className="text-slate-400 mr-1">Switch View:</span>
-          
-          <button
-            onClick={() => changeRole('sales')}
-            className={`px-3 py-1 rounded-full transition-all ${
-              userRole === 'sales' ? 'bg-purple-600 text-white shadow' : 'text-slate-300 hover:text-white'
-            }`}
-          >
-            Sales Demo View
-          </button>
-
-          <button
-            onClick={() => changeRole('owner')}
-            className={`px-3 py-1 rounded-full transition-all ${
-              userRole === 'owner' ? 'bg-amber-600 text-white shadow' : 'text-slate-300 hover:text-white'
-            }`}
-          >
-            Business Manager
-          </button>
-
-          <button
-            onClick={() => changeRole('coach')}
-            className={`px-3 py-1 rounded-full transition-all ${
-              userRole === 'coach' || userRole === 'casey' ? 'bg-purple-600 text-white shadow' : 'text-slate-300 hover:text-white'
-            }`}
-          >
-            Coach Portal
-          </button>
-
-          <button
-            onClick={() => changeRole('candidate')}
-            className={`px-3 py-1 rounded-full transition-all ${
-              userRole === 'candidate' ? 'bg-emerald-600 text-white shadow' : 'text-slate-300 hover:text-white'
-            }`}
-          >
-            Candidate Portal
-          </button>
-
-          <button
-            onClick={() => changeRole(null)}
-            className="px-2 py-1 text-slate-400 hover:text-red-400 transition-colors ml-2"
-            title="Sign Out to Login Screen"
-          >
-            ✕ Exit
-          </button>
-        </div>
-
+      <div className="min-h-screen bg-slate-50 relative">
         {/* MAIN ROUTE RENDERING */}
         {userRole === 'candidate' && <ParticipantHome />}
         {(userRole === 'coach' || userRole === 'casey') && <CoachDashboard />}
