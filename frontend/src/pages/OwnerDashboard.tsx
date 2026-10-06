@@ -1,12 +1,13 @@
 import React, { useState } from 'react';
 import { usePortal } from '../context/PortalContext';
 import {
+  HelpCircle,
+  FileSpreadsheet,
   Users,
   Briefcase,
   Clock,
   Award,
   Building2,
-  FileSpreadsheet,
   Plus,
   TrendingUp,
   Sliders,
@@ -48,6 +49,12 @@ export function OwnerDashboard() {
   const [providerName, setProviderName] = useState<string>('Straight Up Training Partner');
   const [primaryBrandColor, setPrimaryBrandColor] = useState<string>('#4f46e5');
 
+// System Help & Issue Reporting State
+const [showSupportModal, setShowSupportModal] = useState<boolean>(false);
+const [ticketCategory, setTicketCategory] = useState<'Bug / Error' | 'Sync Issue' | 'PBAS Compliance Question' | 'Feature Request'>('Bug / Error');
+const [ticketPriority, setTicketPriority] = useState<'Normal' | 'High' | 'Critical SLA'>('Normal');
+const [ticketDescription, setTicketDescription] = useState<string>('');
+
   // Provision Modal Form State
   const [showAddStaffModal, setShowAddStaffModal] = useState<boolean>(false);
   const [showAddCandidateModal, setShowAddCandidateModal] = useState<boolean>(false);
@@ -61,6 +68,7 @@ export function OwnerDashboard() {
     { id: 'cm2', name: 'Jordan Smith', role: 'Coverage CM', caseload: 1, verifiedCount: 0, avgSlaDays: 1.8, status: 'Coverage Mode Active' },
     { id: 'cm3', name: 'Sam Taylor', role: 'Case Manager', caseload: 1, verifiedCount: 0, avgSlaDays: 0.9, status: 'Active On-Duty' },
   ]);
+  
   const [newStaffName, setNewStaffName] = useState<string>('');
   const [localCandidates, setLocalCandidates] = useState(candidates || []);
   const [candidateCmFilter, setCandidateCmFilter] = useState<string>('ALL');
@@ -208,39 +216,53 @@ const [promptCandidateName, setPromptCandidateName] = useState<string>('Alex Mer
             </div>
           </div>
 
-          <div className="flex items-center space-x-3 flex-wrap">
-            <button
-              onClick={() => setShowAddStaffModal(true)}
-              className="px-3.5 py-2 bg-purple-800/80 hover:bg-purple-700 border border-purple-400/40 text-white text-xs font-extrabold rounded-xl transition-all flex items-center space-x-1.5 shadow-sm"
-            >
-              <Users className="w-3.5 h-3.5 text-purple-300" />
-              <span>+ Provision Case Manager</span>
-            </button>
+          <div className="flex flex-col md:flex-row items-end md:items-center gap-2">
+  {/* PRIMARY ACTION BUTTONS */}
+  <div className="flex items-center space-x-2">
+    <button
+      onClick={() => setShowAddStaffModal(true)}
+      className="px-3 py-1.5 bg-purple-800/90 hover:bg-purple-700 border border-purple-400/30 text-white text-xs font-bold rounded-xl transition-all flex items-center space-x-1.5 shadow-sm"
+    >
+      <Users className="w-3.5 h-3.5 text-purple-300" />
+      <span>+ CM Seat</span>
+    </button>
 
-            <button
-              onClick={() => setShowAddCandidateModal(true)}
-              className="px-3.5 py-2 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-extrabold rounded-xl transition-all flex items-center space-x-1.5 shadow-sm"
-            >
-              <Plus className="w-3.5 h-3.5 text-emerald-200" />
-              <span>+ Add Candidate</span>
-            </button>
+    <button
+      onClick={() => setShowAddCandidateModal(true)}
+      className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold rounded-xl transition-all flex items-center space-x-1.5 shadow-sm"
+    >
+      <Plus className="w-3.5 h-3.5 text-emerald-200" />
+      <span>+ Candidate</span>
+    </button>
+  </div>
 
-            <button
-              onClick={handleExportAuditCSV}
-              className="px-3.5 py-2 bg-white/10 hover:bg-white/20 border border-white/20 text-white text-xs font-bold rounded-xl transition-all flex items-center space-x-1.5"
-            >
-              <Download className="w-3.5 h-3.5 text-amber-300" />
-              <span>Export Activity CSV</span>
-            </button>
+  {/* UTILITIES & HELP ROW */}
+  <div className="flex items-center space-x-2">
+    <button
+      onClick={() => setShowSupportModal(true)}
+      className="px-3 py-1.5 bg-amber-400/15 hover:bg-amber-400/25 border border-amber-400/40 text-amber-300 font-bold text-xs rounded-xl transition-all flex items-center space-x-1.5"
+    >
+      <HelpCircle className="w-3.5 h-3.5 text-amber-300" />
+      <span>Support</span>
+    </button>
 
-            <button
-              onClick={handleSignOut}
-              className="p-2 bg-white/10 hover:bg-rose-500/30 border border-white/20 text-white rounded-xl transition-all ml-1"
-              title="Sign Out"
-            >
-              <LogOut className="w-4 h-4 text-purple-200" />
-            </button>
-          </div>
+    <button
+      onClick={handleExportAuditCSV}
+      className="px-3 py-1.5 bg-white/10 hover:bg-white/20 border border-white/15 text-white text-xs font-bold rounded-xl transition-all flex items-center space-x-1.5"
+    >
+      <Download className="w-3.5 h-3.5 text-purple-200" />
+      <span>CSV</span>
+    </button>
+
+    <button
+      onClick={handleSignOut}
+      className="p-1.5 bg-white/10 hover:bg-rose-500/30 border border-white/15 text-white rounded-xl transition-all"
+      title="Sign Out"
+    >
+      <LogOut className="w-3.5 h-3.5 text-purple-200" />
+    </button>
+  </div>
+</div>
         </div>
       </header>
 
@@ -516,13 +538,23 @@ const [promptCandidateName, setPromptCandidateName] = useState<string>('Alex Mer
         </p>
       </div>
 
-      <button
-        onClick={() => setShowAddStaffModal(true)}
-        className="px-4 py-2 bg-purple-950 text-white font-extrabold text-xs rounded-xl shadow-md hover:bg-purple-900 transition-all flex items-center space-x-1.5 w-max"
-      >
-        <Plus className="w-4 h-4 text-amber-300" />
-        <span>+ Provision New Case Manager</span>
-      </button>
+      <div className="flex items-center space-x-2">
+        <button
+          onClick={() => setShowSupportModal(true)}
+          className="px-3.5 py-2 bg-slate-800 hover:bg-slate-700 text-slate-100 font-extrabold text-xs rounded-xl transition-all flex items-center space-x-2 shadow-sm border border-slate-700"
+        >
+          <HelpCircle className="w-4 h-4 text-amber-400" />
+          <span>System Help & Ticket Support</span>
+        </button>
+
+        <button
+          onClick={() => setShowAddStaffModal(true)}
+          className="px-4 py-2 bg-purple-950 text-white font-extrabold text-xs rounded-xl shadow-md hover:bg-purple-900 transition-all flex items-center space-x-1.5 w-max"
+        >
+          <Plus className="w-4 h-4 text-amber-300" />
+          <span>+ Provision New Case Manager</span>
+        </button>
+      </div>
     </div>
 
     {/* STAFF ROSTER FILTER BAR */}
@@ -1366,6 +1398,129 @@ const [promptCandidateName, setPromptCandidateName] = useState<string>('Alex Mer
           </div>
         </div>
       )}
+      {/* SYSTEM HELP & INCIDENT REPORTING MODAL */}
+{showSupportModal && (
+  <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+    <div className="bg-white rounded-2xl max-w-xl w-full p-6 space-y-5 shadow-2xl border border-slate-200">
+      
+      {/* MODAL HEADER */}
+      <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+        <div className="flex items-center space-x-2.5">
+          <div className="w-9 h-9 rounded-xl bg-purple-100 text-purple-950 font-black flex items-center justify-center">
+            <HelpCircle className="w-5 h-5 text-purple-900" />
+          </div>
+          <div>
+            <h3 className="font-extrabold text-slate-900 text-base">System Help & Incident Support</h3>
+            <p className="text-xs text-slate-500 font-medium">Enterprise assistance and platform issue escalation.</p>
+          </div>
+        </div>
+        <button
+          onClick={() => setShowSupportModal(false)}
+          className="text-slate-400 hover:text-slate-600 font-bold text-lg"
+        >
+          ✕
+        </button>
+      </div>
+
+      {/* QUICK HELP / FAQ SUMMARY */}
+      <div className="p-3.5 bg-purple-50/70 rounded-xl border border-purple-200 space-y-2 text-xs">
+        <span className="font-extrabold text-purple-950 uppercase tracking-wider text-[10px] block">
+          Quick Knowledge Base Guidance
+        </span>
+        <ul className="space-y-1.5 text-slate-700 font-medium">
+          <li>• <strong>RTO Pathway Mode:</strong> Switch contract dropdown to "RTO" to suppress PBAS obligations in favor of graduate readiness metrics.</li>
+          <li>• <strong>Coverage Mode:</strong> Toggle CM status to "Coverage Mode Active" to allow cross-site candidate reassignments.</li>
+          <li>• <strong>Executive SLA Nudges:</strong> Nudging a CM automatically logs an entry in Tab 5 Activity Audit for compliance reviews.</li>
+        </ul>
+      </div>
+
+      {/* INCIDENT REPORT FORM */}
+      <div className="space-y-3 text-xs">
+        <h4 className="font-extrabold text-slate-900 text-xs uppercase tracking-wider">Report an Issue / Submit Ticket</h4>
+        
+        <div className="grid grid-cols-2 gap-3">
+          <div>
+            <label className="font-bold text-slate-700 block mb-1">Issue Category</label>
+            <select
+              value={ticketCategory}
+              onChange={(e: any) => setTicketCategory(e.target.value)}
+              className="w-full p-2 bg-slate-50 border border-slate-200 rounded-lg font-bold text-slate-800 outline-none focus:border-purple-600"
+            >
+              <option value="Bug / Error">Bug / Interface Error</option>
+              <option value="Sync Issue">Caseload Data Sync Discrepancy</option>
+              <option value="PBAS Compliance Question">PBAS / Rules Engine Query</option>
+              <option value="Feature Request">Platform Improvement Request</option>
+            </select>
+          </div>
+
+          <div>
+            <label className="font-bold text-slate-700 block mb-1">Priority Level</label>
+            <select
+              value={ticketPriority}
+              onChange={(e: any) => setTicketPriority(e.target.value)}
+              className="w-full p-2 bg-slate-50 border border-slate-200 rounded-lg font-bold text-slate-800 outline-none focus:border-purple-600"
+            >
+              <option value="Normal">Normal Priority</option>
+              <option value="High">High Priority</option>
+              <option value="Critical SLA">Critical SLA Blocker</option>
+            </select>
+          </div>
+        </div>
+
+        <div>
+          <label className="font-bold text-slate-700 block mb-1">Issue Description & Diagnostics</label>
+          <textarea
+            rows={3}
+            value={ticketDescription}
+            onChange={(e) => setTicketDescription(e.target.value)}
+            placeholder="Describe the issue, step to reproduce, or requested operational change..."
+            className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl font-medium text-slate-800 outline-none focus:border-purple-600 resize-none"
+          />
+        </div>
+      </div>
+
+      {/* MODAL FOOTER */}
+      <div className="flex items-center justify-end space-x-2 pt-3 border-t border-slate-100">
+        <button
+          type="button"
+          onClick={() => setShowSupportModal(false)}
+          className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs rounded-xl transition-all"
+        >
+          Cancel
+        </button>
+        <button
+          type="button"
+          onClick={() => {
+            if (!ticketDescription.trim()) {
+              alert('Please enter an issue description before submitting.');
+              return;
+            }
+
+            if (typeof addVerificationItem === 'function') {
+              addVerificationItem({
+                candidateId: `ticket_${Date.now()}`,
+                candidateName: 'System / Help Desk',
+                type: 'STAR Interview',
+                title: `Support Ticket [${ticketPriority}]: ${ticketCategory}`,
+                points: 0,
+                status: 'Pending',
+                details: `Description: ${ticketDescription} | Submitter: Business Manager`
+              });
+            }
+
+            alert(`Support Ticket logged successfully! Priority: ${ticketPriority}.`);
+            setTicketDescription('');
+            setShowSupportModal(false);
+          }}
+          className="px-4 py-2 bg-purple-950 hover:bg-purple-900 text-white font-extrabold text-xs rounded-xl shadow-md transition-all"
+        >
+          Submit Support Ticket
+        </button>
+      </div>
+
+    </div>
+  </div>
+)}
     </div>
   );
 }
