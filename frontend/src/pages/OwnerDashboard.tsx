@@ -28,13 +28,12 @@ const SITE_LOCATIONS = [
 ];
 
 export function OwnerDashboard() {
-  const { candidates, verificationItems, activeContract, resetSandboxState, addCandidate } = usePortal();
-
+  const { candidates, verificationItems, activeContract, resetSandboxState, addCandidate, addVerificationItem } = usePortal();
   // Active Site Location State
   const [selectedSite, setSelectedSite] = useState<string>('ALL');
 
   // Active Tab State
-  const [activeTab, setActiveTab] = useState<'command' | 'roster' | 'slas' | 'branding' | 'audit'>('command');
+  const [activeTab, setActiveTab] = useState<'command' | 'roster' | 'candidates' | 'slas' | 'branding' | 'audit'>('command');
 
   // License & Capacity Management State
   const [candidateQuota, setCandidateQuota] = useState<number>(200);
@@ -52,8 +51,21 @@ export function OwnerDashboard() {
   // Provision Modal Form State
   const [showAddStaffModal, setShowAddStaffModal] = useState<boolean>(false);
   const [showAddCandidateModal, setShowAddCandidateModal] = useState<boolean>(false);
+  const [showCandidateListModal, setShowCandidateListModal] = useState<boolean>(false);
   const [newCandidateName, setNewCandidateName] = useState<string>('');
   const [assignedCm, setAssignedCm] = useState<string>('Casey Smith');
+
+  // Case Manager Roster State
+  const [caseManagers, setCaseManagers] = useState<Array<{ id: string; name: string; role: string; caseload: number; verifiedCount: number; avgSlaDays: number; status: string }>>([
+    { id: 'cm1', name: 'Casey Smith', role: 'Primary CM', caseload: 3, verifiedCount: 1, avgSlaDays: 1.1, status: 'Active On-Duty' },
+    { id: 'cm2', name: 'Jordan Smith', role: 'Coverage CM', caseload: 1, verifiedCount: 0, avgSlaDays: 1.8, status: 'Coverage Mode Active' },
+    { id: 'cm3', name: 'Sam Taylor', role: 'Case Manager', caseload: 1, verifiedCount: 0, avgSlaDays: 0.9, status: 'Active On-Duty' },
+  ]);
+  const [newStaffName, setNewStaffName] = useState<string>('');
+  const [localCandidates, setLocalCandidates] = useState(candidates || []);
+  const [candidateCmFilter, setCandidateCmFilter] = useState<string>('ALL');
+const [candidateStatusFilter, setCandidateStatusFilter] = useState<string>('ALL');
+const [rosterStatusFilter, setRosterStatusFilter] = useState<string>('ALL');
 
   // Send Prompt Modal State
 const [showPromptModal, setShowPromptModal] = useState<boolean>(false);
@@ -72,14 +84,18 @@ const [promptCandidateName, setPromptCandidateName] = useState<string>('Alex Mer
   // Dynamically retrieve quotas based on selected site
   const activeSiteConfig = SITE_LOCATIONS.find(s => s.id === selectedSite) || SITE_LOCATIONS[0];
 
-  // Derived Metrics & Site Filtering
-  const siteCandidates = candidates ? candidates.filter(c => 
-    selectedSite === 'ALL' || (c as any).siteId === selectedSite
-  ) : [];
+  // Derived Metrics & Site Filtering (Dynamic Array Sizing)
+  const siteCandidates = localCandidates.filter((c: any) => 
+    selectedSite === 'ALL' || c.siteId === selectedSite
+  );
 
   const activeCandidateCount = siteCandidates.length;
-  const activeStaffCount = 3; // Static active staff roster count for demo
+  const activeStaffCount = caseManagers.length; // Derived dynamically from state array
 
+  // Helper: Compute live caseload per CM from active local candidates
+  const getCmCaseload = (cmName: string) => {
+    return localCandidates.filter((c: any) => (c.assignedCm || 'Casey Smith') === cmName).length;
+  };
   // Quotas adjusted by selected site
   const currentCandidateQuota = activeSiteConfig.candidateQuota;
   const currentStaffQuota = activeSiteConfig.staffQuota;
@@ -112,10 +128,27 @@ const [promptCandidateName, setPromptCandidateName] = useState<string>('Alex Mer
   };
 
   const handleExportAuditCSV = () => {
+    // 1. Apply the active Tab 5 filters to the export data
+    const filteredExportData = (verificationItems || []).filter(item => {
+      const assignedCm = (item as any).assignedCm || 'Casey Smith';
+      const isNudged = !!nudgedItems[item.candidateName];
+      
+      if (auditCmFilter !== 'ALL' && assignedCm !== auditCmFilter) return false;
+      if (auditStatusFilter === 'Pending' && (item.status !== 'Pending' || isNudged)) return false;
+      if (auditStatusFilter === 'Verified' && item.status !== 'Verified') return false;
+      if (auditStatusFilter === 'Nudged' && !isNudged) return false;
+      return true;
+    });
+
+    // 2. Build CSV Content
     const csvContent = "data:text/csv;charset=utf-8," 
-      + "Candidate Name,Ref ID,Item Type,Status,Submitted Date\n"
-      + (verificationItems || []).map(i => `"${i.candidateName}","${i.id}","${i.type}","${i.status}","${i.submittedDate}"`).join("\n");
+      + "Candidate Name,Ref ID,Assigned CM,Item Type,Status,Submitted Date\n"
+      + filteredExportData.map(i => {
+          const cm = (i as any).assignedCm || 'Casey Smith';
+          return `"${i.candidateName}","${i.id}","${cm}","${i.type}","${i.status}","${i.submittedDate}"`;
+        }).join("\n");
     
+    // 3. Trigger Download
     const encodedUri = encodeURI(csvContent);
     const link = document.createElement("a");
     link.setAttribute("href", encodedUri);
@@ -215,10 +248,10 @@ const [promptCandidateName, setPromptCandidateName] = useState<string>('Alex Mer
         {/* 2. CAPACITY & SLA GAUGES (INTERACTIVE DRILL-DOWN) */}
         <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 items-center">
           <div 
-            onClick={() => setShowAddCandidateModal(true)}
-            className="p-3.5 bg-slate-50 hover:bg-slate-100/80 border border-slate-200 rounded-xl space-y-2 cursor-pointer transition-all group"
-            title="Click to provision candidate"
-          >
+  onClick={() => setShowCandidateListModal(true)}
+  className="p-3.5 bg-slate-50 hover:bg-slate-100/80 border border-slate-200 rounded-xl space-y-2 cursor-pointer transition-all group"
+  title="Click to view candidate roster"
+>
             <div className="flex justify-between items-center text-xs">
               <span className="font-bold text-slate-600 flex items-center space-x-1.5 group-hover:text-purple-900">
                 <Users className="w-4 h-4 text-purple-600" />
@@ -301,28 +334,28 @@ const [promptCandidateName, setPromptCandidateName] = useState<string>('Alex Mer
         {/* 3. NAVIGATION TAB CONTROLS */}
         <div className="flex bg-white p-1.5 rounded-2xl border border-slate-200 shadow-sm text-xs font-bold space-x-1 overflow-x-auto">
           <button
-            onClick={() => setActiveTab('command')}
-            className={`px-4 py-2.5 rounded-xl transition-all flex items-center space-x-2 shrink-0 ${
-              activeTab === 'command'
-                ? 'bg-purple-950 text-white shadow-sm'
-                : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
-            }`}
-          >
-            <TrendingUp className="w-4 h-4 text-emerald-400" />
-            <span>Command Center & Outcomes</span>
-          </button>
+  onClick={() => setActiveTab('roster')}
+  className={`px-4 py-2.5 rounded-xl transition-all flex items-center space-x-2 shrink-0 ${
+    activeTab === 'roster'
+      ? 'bg-purple-950 text-white shadow-sm'
+      : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
+  }`}
+>
+  <Users className="w-4 h-4 text-purple-400" />
+  <span>Staff Roster & SLA Speed</span>
+</button>
 
-          <button
-            onClick={() => setActiveTab('roster')}
-            className={`px-4 py-2.5 rounded-xl transition-all flex items-center space-x-2 shrink-0 ${
-              activeTab === 'roster'
-                ? 'bg-purple-950 text-white shadow-sm'
-                : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
-            }`}
-          >
-            <Users className="w-4 h-4 text-purple-400" />
-            <span>Staff Roster & SLA Speed</span>
-          </button>
+<button
+  onClick={() => setActiveTab('candidates')}
+  className={`px-4 py-2.5 rounded-xl transition-all flex items-center space-x-2 shrink-0 ${
+    activeTab === 'candidates'
+      ? 'bg-purple-950 text-white shadow-sm'
+      : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
+  }`}
+>
+  <Users className="w-4 h-4 text-emerald-400" />
+  <span>Participant Roster & PBAS</span>
+</button>
 
           <button
             onClick={() => setActiveTab('slas')}
@@ -473,118 +506,259 @@ const [promptCandidateName, setPromptCandidateName] = useState<string>('Alex Mer
         )}
 
         {/* TAB 2: STAFF ROSTER */}
-        {activeTab === 'roster' && (
-          <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 space-y-4">
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
-              <div>
-                <h3 className="text-lg font-extrabold text-purple-950">Active Case Manager Roster</h3>
-                <p className="text-xs text-slate-500 font-medium">
-                  Track CM staff licenses, caseload sizes, and average action SLA speed.
-                </p>
-              </div>
+{activeTab === 'roster' && (
+  <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 space-y-4">
+    <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
+      <div>
+        <h3 className="text-lg font-extrabold text-purple-950">Active Case Manager Roster</h3>
+        <p className="text-xs text-slate-500 font-medium">
+          Track CM staff licenses, caseload sizes, and average action SLA speed.
+        </p>
+      </div>
 
-              <button
-                onClick={() => setShowAddStaffModal(true)}
-                className="px-4 py-2 bg-purple-950 text-white font-extrabold text-xs rounded-xl shadow-md hover:bg-purple-900 transition-all flex items-center space-x-1.5 w-max"
-              >
-                <Plus className="w-4 h-4 text-amber-300" />
-                <span>+ Provision New Case Manager</span>
-              </button>
-            </div>
+      <button
+        onClick={() => setShowAddStaffModal(true)}
+        className="px-4 py-2 bg-purple-950 text-white font-extrabold text-xs rounded-xl shadow-md hover:bg-purple-900 transition-all flex items-center space-x-1.5 w-max"
+      >
+        <Plus className="w-4 h-4 text-amber-300" />
+        <span>+ Provision New Case Manager</span>
+      </button>
+    </div>
 
-            <div className="overflow-x-auto">
-              <table className="w-full text-left text-xs border-collapse">
-                <thead>
-                  <tr className="bg-slate-100 text-slate-700 font-extrabold border-b border-slate-200">
-                    <th className="p-3.5 rounded-tl-xl">Case Manager Name</th>
-                    <th className="p-3.5">Assigned Caseload</th>
-                    <th className="p-3.5">Verified Placements</th>
-                    <th className="p-3.5">Avg SLA Response</th>
-                    <th className="p-3.5">Status</th>
-                    <th className="p-3.5 text-right rounded-tr-xl">Action</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-100">
-                  <tr className="hover:bg-slate-50 transition-all">
-                    <td className="p-3.5 font-bold text-slate-900 flex items-center space-x-2">
-                      <div className="w-7 h-7 rounded-full bg-purple-100 text-purple-900 font-black flex items-center justify-center text-xs">
-                        CS
-                      </div>
-                      <span>Casey Smith (Primary)</span>
-                    </td>
-                    <td className="p-3.5 font-bold text-purple-950">3 Participants</td>
-                    <td className="p-3.5 font-extrabold text-emerald-600">1 Placed</td>
-                    <td className="p-3.5 font-bold text-slate-700">1.1 Business Days</td>
-                    <td className="p-3.5">
-                      <span className="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-emerald-100 text-emerald-800 border border-emerald-200">
-                        Active On-Duty
+    {/* STAFF ROSTER FILTER BAR */}
+    <div className="bg-slate-50 p-3 rounded-xl border border-slate-200 text-xs mb-2">
+      <div className="max-w-xs">
+        <label className="font-extrabold text-slate-700 block mb-1">Filter by Duty Status</label>
+        <select
+          value={rosterStatusFilter}
+          onChange={(e) => setRosterStatusFilter(e.target.value)}
+          className="w-full p-2 bg-white border border-slate-200 rounded-lg font-bold text-slate-800 cursor-pointer"
+        >
+          <option value="ALL">All Duty Statuses</option>
+          <option value="Active On-Duty">Active On-Duty Only</option>
+          <option value="Coverage Mode Active">Coverage Mode Only</option>
+        </select>
+      </div>
+    </div>
+
+    <div className="overflow-x-auto">
+      <table className="w-full text-left text-xs border-collapse">
+        <thead>
+          <tr className="bg-slate-100 text-slate-700 font-extrabold border-b border-slate-200">
+            <th className="p-3.5 rounded-tl-xl">Case Manager Name</th>
+            <th className="p-3.5">Assigned Caseload</th>
+            <th className="p-3.5">Verified Placements</th>
+            <th className="p-3.5">Avg SLA Response</th>
+            <th className="p-3.5">Status</th>
+            <th className="p-3.5 text-right rounded-tr-xl">Action</th>
+          </tr>
+        </thead>
+        <tbody className="divide-y divide-slate-100">
+          {caseManagers
+            .filter((cm) => {
+              if (rosterStatusFilter !== 'ALL' && cm.status !== rosterStatusFilter) return false;
+              return true;
+            })
+            .map((cm) => {
+              const liveCaseload = getCmCaseload(cm.name);
+              return (
+                <tr key={cm.id} className="hover:bg-slate-50 transition-all">
+                  <td className="p-3.5 font-bold text-slate-900 flex items-center space-x-2">
+                    <div className="w-7 h-7 rounded-full bg-purple-100 text-purple-900 font-black flex items-center justify-center text-xs uppercase">
+                      {cm.name.split(' ').map(n => n[0]).join('')}
+                    </div>
+                    <span>{cm.name}</span>
+                  </td>
+                  <td className="p-3.5 font-bold text-purple-950">{liveCaseload} Participants</td>
+                  <td className="p-3.5 font-extrabold text-emerald-600">{cm.verifiedCount} Placed</td>
+                  <td className="p-3.5 font-bold text-slate-700">{cm.avgSlaDays} Business Days</td>
+                  <td className="p-3.5">
+                    <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-extrabold border ${
+                      cm.status.includes('Coverage') || cm.status.includes('Away')
+                        ? 'bg-blue-100 text-blue-800 border-blue-200'
+                        : 'bg-emerald-100 text-emerald-800 border-emerald-200'
+                    }`}>
+                      {cm.status}
+                    </span>
+                  </td>
+                  <td className="p-3.5 text-right">
+                    <button 
+                      onClick={() => setSelectedCmForManage(cm.name)} 
+                      className="px-3 py-1 bg-slate-100 hover:bg-purple-900 hover:text-white text-slate-700 font-bold text-[11px] rounded-lg transition-all"
+                    >
+                      Manage Caseload
+                    </button>
+                  </td>
+                </tr>
+              );
+            })}
+        </tbody>
+      </table>
+    </div>
+  </div>
+)}
+       {/* TAB 2B: PARTICIPANT ROSTER & REASSIGNMENT */}
+{activeTab === 'candidates' && (
+  <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 space-y-4">
+    <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
+      <div>
+        <h3 className="text-lg font-extrabold text-purple-950">Active Participant Roster</h3>
+        <p className="text-xs text-slate-500 font-medium">
+          Manage site participants, track PBAS points compliance, and reassign Case Managers in real time.
+        </p>
+      </div>
+
+      <button
+        onClick={() => setShowAddCandidateModal(true)}
+        className="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white font-extrabold text-xs rounded-xl shadow-md transition-all flex items-center space-x-1.5 w-max"
+      >
+        <Plus className="w-4 h-4 text-emerald-100" />
+        <span>+ Provision New Candidate</span>
+      </button>
+    </div>
+
+    {/* PARTICIPANT ROSTER DEDICATED FILTER BAR */}
+    <div className="bg-slate-50 p-3 rounded-xl border border-slate-200 grid grid-cols-1 md:grid-cols-2 gap-3 text-xs mb-2">
+      <div>
+        <label className="font-extrabold text-slate-700 block mb-1">Filter by Case Manager</label>
+        <select
+          value={candidateCmFilter}
+          onChange={(e) => setCandidateCmFilter(e.target.value)}
+          className="w-full p-2 bg-white border border-slate-200 rounded-lg font-bold text-slate-800 cursor-pointer"
+        >
+          <option value="ALL">All Case Managers</option>
+          {caseManagers.map(cm => (
+            <option key={cm.id} value={cm.name}>{cm.name}</option>
+          ))}
+        </select>
+      </div>
+
+      <div>
+        <label className="font-extrabold text-slate-700 block mb-1">Filter by Status</label>
+        <select
+          value={candidateStatusFilter}
+          onChange={(e) => setCandidateStatusFilter(e.target.value)}
+          className="w-full p-2 bg-white border border-slate-200 rounded-lg font-bold text-slate-800 cursor-pointer"
+        >
+          <option value="ALL">All Statuses</option>
+          <option value="On Track">On Track Only</option>
+          <option value="High Risk">High Risk Only</option>
+        </select>
+      </div>
+    </div>
+
+    <div className="overflow-x-auto">
+      <table className="w-full text-left text-xs border-collapse">
+        <thead>
+          <tr className="bg-slate-100 text-slate-700 font-extrabold border-b border-slate-200">
+            <th className="p-3.5 rounded-tl-xl">Participant Name</th>
+            <th className="p-3.5">Assigned Case Manager</th>
+            <th className="p-3.5">PBAS Progress Target</th>
+            <th className="p-3.5">Status</th>
+            <th className="p-3.5 text-right rounded-tr-xl">Reassign / Governance Action</th>
+          </tr>
+        </thead>
+        <tbody className="divide-y divide-slate-100">
+          {localCandidates
+            .filter((c: any) => {
+              const currentCm = c.assignedCm || 'Casey Smith';
+              const currentStatus = c.status || 'On Track';
+              
+              if (selectedSite !== 'ALL' && c.siteId !== selectedSite) return false;
+              if (candidateCmFilter !== 'ALL' && currentCm !== candidateCmFilter) return false;
+              if (candidateStatusFilter !== 'ALL' && currentStatus !== candidateStatusFilter) return false;
+              return true;
+            })
+            .map((c: any, index: number) => {
+              const currentCm = c.assignedCm || 'Casey Smith';
+              const isRtoMode = activeContract === 'RTO' || c.contractFramework === 'RTO';
+
+              return (
+                <tr key={c.id || index} className="hover:bg-slate-50 transition-all">
+                  <td className="p-3.5 font-bold text-slate-900">{c.name}</td>
+                  <td className="p-3.5 font-bold text-purple-900">
+                    <div className="flex items-center space-x-2">
+                      <span className="w-2 h-2 rounded-full bg-purple-600"></span>
+                      <span>{currentCm}</span>
+                    </div>
+                  </td>
+
+                  {/* PBAS Progress Target / RTO Mode Column */}
+                  <td className="p-3.5 font-mono">
+                    {isRtoMode ? (
+                      <span className="px-2.5 py-1 bg-purple-100 text-purple-900 border border-purple-200 rounded-lg text-[10px] font-extrabold uppercase tracking-wide">
+                        Voluntary / Career Placement
                       </span>
-                    </td>
-                    <td className="p-3.5 text-right">
-                      <button 
-  onClick={() => setSelectedCmForManage('Casey Smith')} 
-  className="px-3 py-1 bg-slate-100 hover:bg-purple-900 hover:text-white text-slate-700 font-bold text-[11px] rounded-lg transition-all"
->
-  Manage Caseload
-</button>
-                    </td>
-                  </tr>
-
-                  <tr className="hover:bg-slate-50 transition-all">
-                    <td className="p-3.5 font-bold text-slate-900 flex items-center space-x-2">
-                      <div className="w-7 h-7 rounded-full bg-indigo-100 text-indigo-900 font-black flex items-center justify-center text-xs">
-                        JS
+                    ) : (
+                      <div className="flex items-center space-x-2">
+                        <div className="w-24 bg-slate-200 h-2 rounded-full overflow-hidden">
+                          <div 
+                            className="bg-emerald-500 h-full rounded-full" 
+                            style={{ width: `${Math.min(100, ((c.pbasVerified || 40) / (c.pbasTarget || 100)) * 100)}%` }} 
+                          />
+                        </div>
+                        <span className="font-bold text-slate-700">{c.pbasVerified || 40} / {c.pbasTarget || 100} PTS</span>
                       </div>
-                      <span>Jordan Smith (Coverage)</span>
-                    </td>
-                    <td className="p-3.5 font-bold text-purple-950">1 Participant</td>
-                    <td className="p-3.5 font-extrabold text-slate-500">0 Placed</td>
-                    <td className="p-3.5 font-bold text-slate-700">1.8 Business Days</td>
-                    <td className="p-3.5">
-                      <span className="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-blue-100 text-blue-800 border border-blue-200">
-                        Coverage Mode Active
-                      </span>
-                    </td>
-                    <td className="p-3.5 text-right">
-                      <button 
-  onClick={() => setSelectedCmForManage('Jordan Smith')} 
-  className="px-3 py-1 bg-slate-100 hover:bg-purple-900 hover:text-white text-slate-700 font-bold text-[11px] rounded-lg transition-all"
->
-  Manage Caseload
-</button>
-                    </td>
-                  </tr>
+                    )}
+                  </td>
 
-                  <tr className="hover:bg-slate-50 transition-all">
-                    <td className="p-3.5 font-bold text-slate-900 flex items-center space-x-2">
-                      <div className="w-7 h-7 rounded-full bg-slate-200 text-slate-700 font-black flex items-center justify-center text-xs">
-                        ST
-                      </div>
-                      <span>Sam Taylor</span>
-                    </td>
-                    <td className="p-3.5 font-bold text-purple-950">1 Participant</td>
-                    <td className="p-3.5 font-extrabold text-slate-500">0 Placed</td>
-                    <td className="p-3.5 font-bold text-slate-700">0.9 Business Days</td>
-                    <td className="p-3.5">
-                      <span className="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-emerald-100 text-emerald-800 border border-emerald-200">
-                        Active On-Duty
-                      </span>
-                    </td>
-                    <td className="p-3.5 text-right">
-                      <button 
-  onClick={() => setSelectedCmForManage('Jordan Smith')} 
-  className="px-3 py-1 bg-slate-100 hover:bg-purple-900 hover:text-white text-slate-700 font-bold text-[11px] rounded-lg transition-all"
->
-  Manage Caseload
-</button>
-                    </td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
-          </div>
-        )}
+                  {/* Status Column */}
+                  <td className="p-3.5">
+                    <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-extrabold border ${
+                      isRtoMode
+                        ? 'bg-blue-100 text-blue-800 border-blue-200'
+                        : c.status === 'High Risk'
+                        ? 'bg-rose-100 text-rose-800 border-rose-200'
+                        : c.status === 'Needs Attention'
+                        ? 'bg-amber-100 text-amber-800 border-amber-200'
+                        : 'bg-emerald-100 text-emerald-800 border-emerald-200'
+                    }`}>
+                      {isRtoMode ? 'Graduate Ready' : (c.status || 'On Track')}
+                    </span>
+                  </td>
 
+                  <td className="p-3.5 text-right">
+                    <div className="flex items-center justify-end space-x-2">
+                      <select
+                        value={currentCm}
+                        onChange={(e) => {
+                          const newCmName = e.target.value;
+                          setLocalCandidates(prev => 
+                            prev.map((item: any) => 
+                              (item.id === c.id || item.name === c.name) 
+                                ? { ...item, assignedCm: newCmName } 
+                                : item
+                            )
+                          );
+                          alert(`Reassigned ${c.name} to ${newCmName}!`);
+                        }}
+                        className="p-1.5 bg-slate-50 border border-slate-200 rounded-lg text-xs font-bold text-slate-800 cursor-pointer"
+                      >
+                        {caseManagers.map(cm => (
+                          <option key={cm.id} value={cm.name}>{cm.name}</option>
+                        ))}
+                      </select>
+
+                      <button
+                        onClick={() => {
+                          setPromptTargetCm(currentCm);
+                          setPromptCandidateName(c.name);
+                          setShowPromptModal(true);
+                        }}
+                        className="px-2.5 py-1 bg-amber-500 hover:bg-amber-600 text-purple-950 font-extrabold text-[11px] rounded-lg transition-all shadow-sm"
+                      >
+                        Nudge CM
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              );
+            })}
+        </tbody>
+      </table>
+    </div>
+  </div>
+)}
         {/* TAB 3: SLA TARGET RULES */}
         {activeTab === 'slas' && (
           <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 space-y-6">
@@ -732,93 +906,143 @@ const [promptCandidateName, setPromptCandidateName] = useState<string>('Alex Mer
         )}
 
         {/* TAB 5: AUDIT LOG & CRM EXPORT */}
-{activeTab === 'audit' && (
-  <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 space-y-4">
-    <div className="flex items-center justify-between">
-      <div>
-        <h3 className="text-lg font-extrabold text-purple-950">Activity Logs & Core CRM Export</h3>
-        <p className="text-xs text-slate-500 font-medium">
-          Auditor-ready verified records formatted for 1-click import into core CRM or ESSWeb.
-        </p>
-      </div>
+        {activeTab === 'audit' && (
+          <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 space-y-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <h3 className="text-lg font-extrabold text-purple-950">Activity Logs & Core CRM Export</h3>
+                <p className="text-xs text-slate-500 font-medium">
+                  Auditor-ready verified records formatted for 1-click import into core CRM or ESSWeb.
+                </p>
+              </div>
 
-      <button
-        onClick={handleExportAuditCSV}
-        className="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white font-extrabold text-xs rounded-xl shadow-md transition-all flex items-center space-x-1.5"
-      >
-        <Download className="w-4 h-4 text-emerald-100" />
-        <span>Export Official CSV Log</span>
-      </button>
-    </div>
+              <button
+                onClick={handleExportAuditCSV}
+                className="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white font-extrabold text-xs rounded-xl shadow-md transition-all flex items-center space-x-1.5"
+              >
+                <Download className="w-4 h-4 text-emerald-100" />
+                <span>Export Official CSV Log</span>
+              </button>
+            </div>
 
-    <div className="overflow-x-auto">
-      <table className="w-full text-left text-xs border-collapse">
-        <thead>
-          <tr className="bg-slate-100 text-slate-700 font-extrabold border-b border-slate-200">
-            <th className="p-3.5 rounded-tl-xl">Candidate Name</th>
-            <th className="p-3.5">Assigned CM</th>
-            <th className="p-3.5">Evidence / Claim Title</th>
-            <th className="p-3.5">Type</th>
-            <th className="p-3.5">Status</th>
-            <th className="p-3.5">Submitted Date</th>
-            <th className="p-3.5 text-right rounded-tr-xl">Governance Action</th>
-          </tr>
-        </thead>
-        <tbody className="divide-y divide-slate-100">
-          {(verificationItems || []).map((item) => {
-            const assignedCm = (item as any).assignedCm || 'Casey Smith';
-            const isNudged = !!nudgedItems[item.candidateName];
+            {/* 90-DAY AUDIT FILTER BAR */}
+            <div className="bg-slate-50 p-3 rounded-xl border border-slate-200 grid grid-cols-1 md:grid-cols-3 gap-3 text-xs mb-4">
+              <div>
+                <label className="font-extrabold text-slate-700 block mb-1">Status Filter</label>
+                <select
+                  value={auditStatusFilter}
+                  onChange={(e) => setAuditStatusFilter(e.target.value as any)}
+                  className="w-full p-2 bg-white border border-slate-200 rounded-lg font-bold text-slate-800 cursor-pointer"
+                >
+                  <option value="ALL">All Claim Statuses</option>
+                  <option value="Pending">Pending Review Only</option>
+                  <option value="Nudged">Nudged / Prompted Only</option>
+                  <option value="Verified">Verified Claims Only</option>
+                </select>
+              </div>
 
-            return (
-              <tr key={item.id} className="hover:bg-slate-50 transition-all">
-                <td className="p-3.5 font-bold text-slate-900">{item.candidateName}</td>
-                <td className="p-3.5 font-bold text-purple-900">{assignedCm}</td>
-                <td className="p-3.5 text-slate-700">{item.title}</td>
-                <td className="p-3.5 font-bold text-slate-800">{item.type}</td>
-                <td className="p-3.5">
-                  <span
-                    className={`px-2.5 py-0.5 rounded-full text-[10px] font-extrabold ${
-                      item.status === 'Verified'
-                        ? 'bg-emerald-100 text-emerald-800 border border-emerald-200'
-                        : isNudged
-                        ? 'bg-amber-100 text-amber-900 border border-amber-300'
-                        : 'bg-rose-100 text-rose-800 border border-rose-200'
-                    }`}
-                  >
-                    {item.status === 'Pending' && isNudged ? 'Nudge Sent' : item.status}
-                  </span>
-                </td>
-                <td className="p-3.5 text-slate-500 font-mono">{item.submittedDate}</td>
-                <td className="p-3.5 text-right">
-                  {item.status === 'Pending' ? (
-                    isNudged ? (
-                      <span className="px-2.5 py-1 bg-amber-100 border border-amber-300 text-amber-900 font-black text-[11px] rounded-lg inline-block">
-                        Nudged ({nudgedItems[item.candidateName]})
-                      </span>
-                    ) : (
-                      <button
-                        onClick={() => {
-                          setPromptTargetCm(assignedCm);
-                          setPromptCandidateName(item.candidateName);
-                          setShowPromptModal(true);
-                        }}
-                        className="px-2.5 py-1 bg-amber-500 hover:bg-amber-600 text-purple-950 font-extrabold text-[11px] rounded-lg transition-all shadow-sm flex items-center space-x-1 ml-auto"
-                      >
-                        <span>Nudge {assignedCm.split(' ')[0]}</span>
-                      </button>
-                    )
-                  ) : (
-                    <span className="text-[11px] text-emerald-600 font-bold">Verified by {assignedCm.split(' ')[0]}</span>
-                  )}
-                </td>
-              </tr>
-            );
-          })}
-        </tbody>
-      </table>
-    </div>
-  </div>
-)}
+              <div>
+                <label className="font-extrabold text-slate-700 block mb-1">Case Manager Filter</label>
+                <select
+                  value={auditCmFilter}
+                  onChange={(e) => setAuditCmFilter(e.target.value)}
+                  className="w-full p-2 bg-white border border-slate-200 rounded-lg font-bold text-slate-800 cursor-pointer"
+                >
+                  <option value="ALL">All Case Managers</option>
+                  {caseManagers.map(cm => (
+                    <option key={cm.id} value={cm.name}>{cm.name}</option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="font-extrabold text-slate-700 block mb-1">Audit Time Horizon</label>
+                <div className="p-2 bg-white border border-slate-200 rounded-lg font-bold text-purple-950 flex items-center justify-between">
+                  <span>Last 90 Days (Q4 Active)</span>
+                  <span className="text-[10px] bg-purple-100 text-purple-800 px-2 py-0.5 rounded-full font-black">Compliant</span>
+                </div>
+              </div>
+            </div>
+
+            <div className="overflow-x-auto">
+              <table className="w-full text-left text-xs border-collapse">
+                <thead>
+                  <tr className="bg-slate-100 text-slate-700 font-extrabold border-b border-slate-200">
+                    <th className="p-3.5 rounded-tl-xl">Candidate Name</th>
+                    <th className="p-3.5">Assigned CM</th>
+                    <th className="p-3.5">Evidence / Claim Title</th>
+                    <th className="p-3.5">Type</th>
+                    <th className="p-3.5">Status</th>
+                    <th className="p-3.5">Submitted Date</th>
+                    <th className="p-3.5 text-right rounded-tr-xl">Governance Action</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100">
+                  {(verificationItems || [])
+                    .filter(item => {
+                      const assignedCm = (item as any).assignedCm || 'Casey Smith';
+                      const isNudged = !!nudgedItems[item.candidateName];
+                      
+                      if (auditCmFilter !== 'ALL' && assignedCm !== auditCmFilter) return false;
+                      if (auditStatusFilter === 'Pending' && (item.status !== 'Pending' || isNudged)) return false;
+                      if (auditStatusFilter === 'Verified' && item.status !== 'Verified') return false;
+                      if (auditStatusFilter === 'Nudged' && !isNudged) return false;
+                      return true;
+                    })
+                    .map((item) => {
+                      const assignedCm = (item as any).assignedCm || 'Casey Smith';
+                      const isNudged = !!nudgedItems[item.candidateName];
+
+                      return (
+                        <tr key={item.id} className="hover:bg-slate-50 transition-all">
+                          <td className="p-3.5 font-bold text-slate-900">{item.candidateName}</td>
+                          <td className="p-3.5 font-bold text-purple-900">{assignedCm}</td>
+                          <td className="p-3.5 text-slate-700">{item.title}</td>
+                          <td className="p-3.5 font-bold text-slate-800">{item.type}</td>
+                          <td className="p-3.5">
+                            <span
+                              className={`px-2.5 py-0.5 rounded-full text-[10px] font-extrabold ${
+                                item.status === 'Verified'
+                                  ? 'bg-emerald-100 text-emerald-800 border border-emerald-200'
+                                  : isNudged
+                                  ? 'bg-amber-100 text-amber-900 border border-amber-300'
+                                  : 'bg-rose-100 text-rose-800 border border-rose-200'
+                              }`}
+                            >
+                              {item.status === 'Pending' && isNudged ? 'Nudge Sent' : item.status}
+                            </span>
+                          </td>
+                          <td className="p-3.5 text-slate-500 font-mono">{item.submittedDate}</td>
+                          <td className="p-3.5 text-right">
+                            {item.status === 'Pending' ? (
+                              isNudged ? (
+                                <span className="px-2.5 py-1 bg-amber-100 border border-amber-300 text-amber-900 font-black text-[11px] rounded-lg inline-block">
+                                  Nudged ({nudgedItems[item.candidateName]})
+                                </span>
+                              ) : (
+                                <button
+                                  onClick={() => {
+                                    setPromptTargetCm(assignedCm);
+                                    setPromptCandidateName(item.candidateName);
+                                    setShowPromptModal(true);
+                                  }}
+                                  className="px-2.5 py-1 bg-amber-500 hover:bg-amber-600 text-purple-950 font-extrabold text-[11px] rounded-lg transition-all shadow-sm flex items-center space-x-1 ml-auto"
+                                >
+                                  <span>Nudge {assignedCm.split(' ')[0]}</span>
+                                </button>
+                              )
+                            ) : (
+                              <span className="text-[11px] text-emerald-600 font-bold">Verified by {assignedCm.split(' ')[0]}</span>
+                            )}
+                          </td>
+                        </tr>
+                      );
+                    })}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )}
       </main>
 
       {/* MODAL: PROVISION CASE MANAGER */}
@@ -834,9 +1058,15 @@ const [promptCandidateName, setPromptCandidateName] = useState<string>('Alex Mer
 
             <div className="space-y-3 text-xs">
               <div>
-                <label className="font-bold text-slate-700 block mb-1">Full Name</label>
-                <input type="text" placeholder="e.g. Sarah Jenkins" className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl font-medium" />
-              </div>
+  <label className="font-bold text-slate-700 block mb-1">Full Name</label>
+  <input
+    type="text"
+    value={newStaffName}
+    onChange={(e) => setNewStaffName(e.target.value)}
+    placeholder="e.g. Sarah Jenkins"
+    className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl font-medium"
+  />
+</div>
 
               <div>
                 <label className="font-bold text-slate-700 block mb-1">Staff Email</label>
@@ -854,14 +1084,32 @@ const [promptCandidateName, setPromptCandidateName] = useState<string>('Alex Mer
                 Cancel
               </button>
               <button
-                onClick={() => {
-                  alert('Case Manager provisioned and license seat allocated!');
-                  setShowAddStaffModal(false);
-                }}
-                className="flex-1 py-2.5 bg-purple-950 hover:bg-purple-900 text-white font-extrabold rounded-xl text-xs"
-              >
-                Provision Seat
-              </button>
+  onClick={() => {
+    if (newStaffName.trim()) {
+      const name = newStaffName.trim();
+      setCaseManagers(prev => [
+        ...prev,
+        {
+          id: `cm_${Date.now()}`,
+          name: name,
+          role: 'Case Manager',
+          caseload: 0,
+          verifiedCount: 0,
+          avgSlaDays: 0.0,
+          status: 'Active On-Duty'
+        }
+      ]);
+      alert(`Case Manager ${name} provisioned and license seat allocated!`);
+      setNewStaffName('');
+      setShowAddStaffModal(false);
+    } else {
+      alert('Please enter a staff name.');
+    }
+  }}
+  className="flex-1 py-2.5 bg-purple-950 hover:bg-purple-900 text-white font-extrabold rounded-xl text-xs"
+>
+  Provision Seat
+</button>
             </div>
           </div>
         </div>
@@ -893,14 +1141,14 @@ const [promptCandidateName, setPromptCandidateName] = useState<string>('Alex Mer
               <div>
                 <label className="font-bold text-slate-700 block mb-1">Assigned Case Manager</label>
                 <select
-                  value={assignedCm}
-                  onChange={(e) => setAssignedCm(e.target.value)}
-                  className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl font-bold text-slate-800"
-                >
-                  <option value="Casey Smith">Casey Smith</option>
-                  <option value="Jordan Smith">Jordan Smith</option>
-                  <option value="Sam Taylor">Sam Taylor</option>
-                </select>
+  value={assignedCm}
+  onChange={(e) => setAssignedCm(e.target.value)}
+  className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl font-bold text-slate-800"
+>
+  {caseManagers.map(cm => (
+    <option key={cm.id} value={cm.name}>{cm.name}</option>
+  ))}
+</select>
               </div>
             </div>
 
@@ -912,23 +1160,42 @@ const [promptCandidateName, setPromptCandidateName] = useState<string>('Alex Mer
                 Cancel
               </button>
               <button
-                onClick={() => {
-                  if (addCandidate) {
-                    addCandidate({
-                      name: newCandidateName.trim() || 'Taylor Reed',
-                      pbasVerified: 0,
-                      pbasTarget: 100,
-                      status: 'On Track',
-                      assignedCm: assignedCm
-                    });
-                  }
-                  setNewCandidateName('');
-                  setShowAddCandidateModal(false);
-                }}
-                className="flex-1 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white font-extrabold rounded-xl text-xs"
-              >
-                Assign & Provision
-              </button>
+  onClick={() => {
+    const candidateName = newCandidateName.trim() || 'Taylor Reed';
+    const newCandidateObj = {
+      id: `cand_${Date.now()}`,
+      name: candidateName,
+      email: `${candidateName.toLowerCase().replace(/\s+/g, '.')}@example.com`,
+      phone: '0400 000 000',
+      assignedCm: assignedCm,
+      siteId: selectedSite === 'ALL' ? 'brisbane_north' : selectedSite,
+      status: 'On Track',
+      pbasVerified: 0,
+      pbasTarget: 100,
+      pbasEarned: 0,
+      pbasPending: 0,
+      phase: 'Stream A',
+      contractType: activeContract || 'Workforce Australia',
+      lastContactDate: new Date().toISOString().slice(0, 10),
+      riskLevel: 'Low'
+    };
+
+    // 1. Push to global PortalContext store
+    if (addCandidate) {
+      addCandidate(newCandidateObj as any);
+    }
+
+    // 2. Append directly to local state for immediate re-render across filters
+    setLocalCandidates(prev => [newCandidateObj as any, ...prev]);
+
+    setNewCandidateName('');
+    setShowAddCandidateModal(false);
+    alert(`Provisioned candidate ${candidateName} assigned to ${assignedCm}!`);
+  }}
+  className="flex-1 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white font-extrabold rounded-xl text-xs"
+>
+  Assign & Provision
+</button>
             </div>
           </div>
         </div>
@@ -954,25 +1221,36 @@ const [promptCandidateName, setPromptCandidateName] = useState<string>('Alex Mer
                 <p className="text-slate-500 text-[11px]">Shift participants to another active Case Manager on site.</p>
                 <div className="flex space-x-2">
                   <select
-                    value={targetReassignCm}
-                    onChange={(e) => setTargetReassignCm(e.target.value)}
-                    className="flex-1 p-2 bg-white border border-slate-200 rounded-lg font-bold text-slate-800"
-                  >
-                    {['Casey Smith', 'Jordan Smith', 'Sam Taylor']
-                      .filter(name => name !== selectedCmForManage)
-                      .map(name => (
-                        <option key={name} value={name}>{name}</option>
-                      ))}
-                  </select>
+  value={targetReassignCm}
+  onChange={(e) => setTargetReassignCm(e.target.value)}
+  className="flex-1 p-2 bg-white border border-slate-200 rounded-lg font-bold text-slate-800"
+>
+  {caseManagers
+    .map(cm => cm.name)
+    .filter(name => name !== selectedCmForManage)
+    .map(name => (
+      <option key={name} value={name}>{name}</option>
+    ))}
+</select>
                   <button
-                    onClick={() => {
-                      alert(`Caseload successfully transferred from ${selectedCmForManage} to ${targetReassignCm}!`);
-                      setSelectedCmForManage(null);
-                    }}
-                    className="px-3 py-2 bg-purple-950 hover:bg-purple-900 text-white font-extrabold rounded-lg text-xs"
-                  >
-                    Transfer
-                  </button>
+  onClick={() => {
+    if (selectedCmForManage && targetReassignCm) {
+      // Immutably reassign all candidates under selectedCmForManage to targetReassignCm
+      setLocalCandidates(prev =>
+        prev.map((c: any) =>
+          (c.assignedCm || 'Casey Smith') === selectedCmForManage
+            ? { ...c, assignedCm: targetReassignCm }
+            : c
+        )
+      );
+      alert(`Caseload successfully transferred from ${selectedCmForManage} to ${targetReassignCm}!`);
+      setSelectedCmForManage(null);
+    }
+  }}
+  className="px-3 py-2 bg-purple-950 hover:bg-purple-900 text-white font-extrabold rounded-lg text-xs"
+>
+  Transfer
+</button>
                 </div>
               </div>
 
@@ -983,14 +1261,25 @@ const [promptCandidateName, setPromptCandidateName] = useState<string>('Alex Mer
                   <p className="text-[11px] text-purple-800">Route incoming candidate alerts to team coverage.</p>
                 </div>
                 <button
-                  onClick={() => {
-                    alert(`Coverage mode toggled for ${selectedCmForManage}.`);
-                    setSelectedCmForManage(null);
-                  }}
-                  className="px-3 py-1.5 bg-amber-500 hover:bg-amber-600 text-purple-950 font-extrabold rounded-lg text-xs"
-                >
-                  Toggle Mode
-                </button>
+  onClick={() => {
+    if (selectedCmForManage) {
+      setCaseManagers(prev =>
+        prev.map(cm => {
+          if (cm.name === selectedCmForManage) {
+            const newStatus = cm.status.includes('Coverage') ? 'Active On-Duty' : 'Coverage Mode Active';
+            return { ...cm, status: newStatus };
+          }
+          return cm;
+        })
+      );
+      alert(`Coverage mode toggled for ${selectedCmForManage}.`);
+      setSelectedCmForManage(null);
+    }
+  }}
+  className="px-3 py-1.5 bg-amber-500 hover:bg-amber-600 text-purple-950 font-extrabold rounded-lg text-xs"
+>
+  Toggle Mode
+</button>
               </div>
             </div>
 
@@ -1044,14 +1333,28 @@ const [promptCandidateName, setPromptCandidateName] = useState<string>('Alex Mer
               >
                 Cancel
               </button>
-              <button
+             <button
   onClick={() => {
     // 1. Record the nudge timestamp for this candidate/item
     setNudgedItems(prev => ({
       ...prev,
       [promptCandidateName]: 'Just Now'
     }));
-    // 2. Alert and close
+
+    // 2. Add an auditor-ready record to the verification queue if method exists
+    if (typeof addVerificationItem === 'function') {
+      addVerificationItem({
+        candidateId: `cand_nudge_${Date.now()}`,
+        candidateName: promptCandidateName,
+        type: 'STAR Interview',
+        title: `SLA Prompt Sent: Pending Verification Review`,
+        points: 15,
+        status: 'Pending',
+        details: `Executive SLA Nudge dispatched to ${promptTargetCm}. Action pending review.`
+      });
+    }
+
+    // 3. Alert and close
     alert(`SLA Nudge notification sent to ${promptTargetCm}!`);
     setShowPromptModal(false);
   }}

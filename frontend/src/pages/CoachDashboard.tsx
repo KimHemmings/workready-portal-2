@@ -187,10 +187,11 @@ const itemsPerPage = 15;
       (c.waId && c.waId.toLowerCase().includes(searchTerm.toLowerCase()));
 
     const candidateCoach =
-      (c as { caseManager?: string; coach?: string; coachName?: string }).caseManager ||
-      (c as { caseManager?: string; coach?: string; coachName?: string }).coach ||
-      (c as { caseManager?: string; coach?: string; coachName?: string }).coachName ||
-      '';
+  (c as any).assignedCm ||
+  (c as { caseManager?: string; coach?: string; coachName?: string }).caseManager ||
+  (c as { caseManager?: string; coach?: string; coachName?: string }).coach ||
+  (c as { caseManager?: string; coach?: string; coachName?: string }).coachName ||
+  '';
 
     let matchesCaseload = true;
     if (selectedCaseload === 'casey') {
