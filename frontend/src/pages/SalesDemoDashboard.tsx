@@ -8,15 +8,6 @@ import OwnerDashboard from './OwnerDashboard';
 import {
   Calculator,
   Presentation,
-  TrendingUp,
-  Clock,
-  Users,
-  Award,
-  Sparkles,
-  CheckCircle2,
-  HelpCircle,
-  Building2,
-  ChevronRight,
   LogOut,
   Maximize2,
   X,
@@ -24,9 +15,9 @@ import {
   Zap,
   ShieldCheck,
   RotateCcw,
-  Briefcase,
-  Lightbulb,
-  XCircle
+  CheckCircle2,
+  XCircle,
+  Sparkles
 } from 'lucide-react';
 
 export type MarketSegment = 'workforce_au' | 'des' | 'parentsnext_ttw' | 'rto_tafe';
@@ -37,10 +28,6 @@ export const MARKET_PRESETS: Record<MarketSegment, {
   framework: string;
   avgOutcomeFee: number;
   adminHoursSavedPerStaff: number;
-  pitchHook: string;
-  repHook?: string;
-  objectionHandling: string;
-  objectionTip?: string;
   trainingTimeReducedPct: number;
   feeLabel?: string;
   complianceLabel?: string;
@@ -53,11 +40,7 @@ export const MARKET_PRESETS: Record<MarketSegment, {
     adminHoursSavedPerStaff: 6.5,
     trainingTimeReducedPct: 75,
     feeLabel: 'Avg. 12/26-Week Outcome Fee',
-    complianceLabel: 'PBAS Points Target Compliance',
-    pitchHook: "Reclaiming 6.5 hrs/week per Case Manager converts directly into 13 additional 1-on-1 coaching sessions per staff member. Automating PBAS sign-offs transforms staff from paperwork clerks into high-impact employment coaches.",
-    repHook: "Eliminate manual PBAS evidence collection and keep participants 100% compliant with automated sign-offs.",
-    objectionHandling: "Focus on how 1-click evidence approvals eliminate manual PBAS chasing and safeguard against DEWR audit demerits and payment clawbacks.",
-    objectionTip: "WFA outcome fees average $2,800–$3,500. Focus on how 1-click approvals free up Case Managers to focus on job placement."
+    complianceLabel: 'PBAS Points Target Compliance'
   },
   des: {
     name: 'Inclusive Employment Australia (IEA / DES)',
@@ -67,11 +50,7 @@ export const MARKET_PRESETS: Record<MarketSegment, {
     adminHoursSavedPerStaff: 5.5,
     trainingTimeReducedPct: 70,
     feeLabel: 'Avg. Ongoing Support Outcome Fee',
-    complianceLabel: 'Ongoing Support & Retention Rate',
-    pitchHook: "Frees Case Managers to focus on high-touch participant retention and workplace support rather than tracking contact documentation. Prevents participant drop-offs.",
-    repHook: "Automate ongoing support tracking and timestamped participant contact proof.",
-    objectionHandling: "Emphasize how timestamped contact logs and flexible obligation tracking create bulletproof compliance proof for DSS audits.",
-    objectionTip: "DES outcomes rely on retention. Show how automated check-ins prevent participant drop-offs."
+    complianceLabel: 'Ongoing Support & Retention Rate'
   },
   parentsnext_ttw: {
     name: 'Transition to Work (TtW) / ParentsNext',
@@ -81,11 +60,7 @@ export const MARKET_PRESETS: Record<MarketSegment, {
     adminHoursSavedPerStaff: 5.0,
     trainingTimeReducedPct: 80,
     feeLabel: 'Avg. Education / Outcome Fee',
-    complianceLabel: 'Participation & Education Rate',
-    pitchHook: "Accelerates youth engagement through instant AI STAR interview practice runs and rapid digital evidence validation, keeping participants active and compliant.",
-    repHook: "Engage youth candidates on mobile while automating activity sign-offs.",
-    objectionHandling: "Demonstrate how guided workflows allow new youth coaches to onboard in days without deep policy training.",
-    objectionTip: "TtW targets youth engagement. Highlight the AI STAR interview feature for candidate readiness."
+    complianceLabel: 'Participation & Education Rate'
   },
   rto_tafe: {
     name: 'RTOs, TAFEs & Higher Education',
@@ -95,11 +70,7 @@ export const MARKET_PRESETS: Record<MarketSegment, {
     adminHoursSavedPerStaff: 0,
     trainingTimeReducedPct: 85,
     feeLabel: 'Est. Value per Placed Graduate',
-    complianceLabel: 'ASQA Graduate Placement Proof',
-    pitchHook: "Proves that vocational training directly translates into real-world job readiness and employment pathways. Timestamped STAR reports and digital resume lockers give RTOs bulletproof ASQA evidence while driving higher graduate placement rates and student enrollment appeal.",
-    repHook: "Centralize graduate resumes, STAR interview practice logs, and verified employment pathway evidence for ASQA compliance.",
-    objectionHandling: "Highlight that this platform does not replace vocational training—it provides the missing job-readiness & outcome tracking layer to prove student employment pathways to ASQA auditors and funding bodies.",
-    objectionTip: "RTOs care about graduate outcomes and ASQA compliance. Position this as an outcome booster that drives course completion and student enrollment appeal."
+    complianceLabel: 'ASQA Graduate Placement Proof'
   }
 };
 
@@ -117,21 +88,16 @@ export function SalesDemoDashboard() {
   // Calculator Inputs
   const [caseloadSize, setCaseloadSize] = useState<number>(150);
   const [avgStaffCount, setAvgStaffCount] = useState<number>(5);
-  const [currentPlacementRate, setCurrentPlacementRate] = useState<number>(35);
-  const [customOutcomeFee, setCustomOutcomeFee] = useState<number>(activePreset.avgOutcomeFee);
   const [hourlyStaffCost, setHourlyStaffCost] = useState<number>(45);
 
   // Viewports & Tabs
   const [activeDemoTab, setActiveDemoTab] = useState<'calculator' | 'presentation'>('calculator');
-  const [showDemoDrawer, setShowDemoDrawer] = useState<boolean>(false);
   const [showCalculationDrawer, setShowCalculationDrawer] = useState<boolean>(false);
   const [activeFullDemoRole, setActiveFullDemoRole] = useState<'participant' | 'coach' | 'owner' | null>(null);
 
   // Sync Market Changes
   const handleMarketChange = (market: MarketSegment) => {
     setSelectedMarket(market);
-    setCustomOutcomeFee(MARKET_PRESETS[market].avgOutcomeFee);
-
     if (market === 'workforce_au') setActiveContract('Workforce Australia');
     else if (market === 'des') setActiveContract('Inclusive Employment Australia (IEA)' as any);
     else if (market === 'parentsnext_ttw') setActiveContract('TtW');
@@ -139,13 +105,10 @@ export function SalesDemoDashboard() {
   };
 
   // Formulas
-  const projectedPlacementRate = Math.min(85, currentPlacementRate + 25);
-  const additionalPlacements = Math.round((caseloadSize * (projectedPlacementRate - currentPlacementRate)) / 100);
   const hoursSavedPerStaff = activePreset.adminHoursSavedPerStaff;
   const totalWeeklyHoursSaved = Math.round(hoursSavedPerStaff * avgStaffCount);
   const totalAnnualHoursSaved = totalWeeklyHoursSaved * 52;
   const annualCapacityValueReclaimed = Math.round(totalAnnualHoursSaved * hourlyStaffCost);
-  const extraCoachingSessionsPerWeek = Math.round(totalWeeklyHoursSaved * 2);
 
   const handleSignOut = () => {
     resetSandboxState();
@@ -158,6 +121,7 @@ export function SalesDemoDashboard() {
 
   return (
     <div className="min-h-screen bg-slate-50 text-slate-900 font-sans pb-12">
+      {/* HUMANIZED HEADER BAR */}
       <header className="bg-gradient-to-r from-[#1e1b4b] via-[#24083b] to-[#1e1b4b] text-white px-6 py-4 border-b border-purple-900/50 shadow-md">
         <div className="max-w-7xl mx-auto flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div className="flex items-center space-x-4">
@@ -180,12 +144,12 @@ export function SalesDemoDashboard() {
             <div>
               <div className="flex items-center space-x-2">
                 <h1 className="font-extrabold text-xl tracking-tight text-white">Straight Up Training</h1>
-                <span className="bg-amber-500/20 text-amber-300 border border-amber-500/30 text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider">
-                  Executive Evaluation Portal
+                <span className="bg-amber-500/20 text-amber-300 border border-amber-500/30 text-[10px] font-bold px-2.5 py-0.5 rounded-full uppercase tracking-wider">
+                  Executive Portal
                 </span>
               </div>
               <p className="text-xs text-purple-200/80">
-                WorkReady Platform Demonstration & Operational Capacity Suite
+                Empowering Job Seekers & Unburdening Case Management Teams
               </p>
             </div>
           </div>
@@ -207,22 +171,12 @@ export function SalesDemoDashboard() {
               </button>
             )}
 
-            {!urlParams.isProspect && (
-              <button
-                onClick={() => setShowDemoDrawer(true)}
-                className="px-3.5 py-1.5 bg-amber-500 hover:bg-amber-600 border border-amber-400/40 text-purple-950 text-xs font-extrabold rounded-xl transition-all flex items-center space-x-1.5 shadow-sm"
-              >
-                <Presentation className="w-3.5 h-3.5" />
-                <span>Sales Script Guide</span>
-              </button>
-            )}
-
             <button
               onClick={handleSignOut}
-              className="px-3.5 py-1.5 bg-white/10 hover:bg-white/20 border border-white/20 text-white text-xs font-bold rounded-xl transition-all flex items-center space-x-1.5"
+              className="px-3.5 py-1.5 bg-white/10 hover:bg-white/20 border border-white/20 text-white text-xs font-bold rounded-xl transition-all flex items-center space-x-1.5 cursor-pointer"
             >
               <LogOut className="w-3.5 h-3.5" />
-              <span>Close View</span>
+              <span>Exit Portal</span>
             </button>
           </div>
         </div>
@@ -260,7 +214,7 @@ export function SalesDemoDashboard() {
           onSelectTab={(tab) => setActiveDemoTab(tab)}
         />
 
-        {/* 3. GLOBAL TARGET MARKET & FRAMEWORK SELECTOR WITH INSTRUCTIONS */}
+        {/* 3. GLOBAL TARGET MARKET & FRAMEWORK SELECTOR */}
         <div className="bg-white rounded-2xl p-5 border border-slate-200 shadow-sm space-y-2">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1 border-b border-slate-100 pb-2">
             <div>
@@ -301,7 +255,7 @@ export function SalesDemoDashboard() {
           </div>
         </div>
 
-        {/* 4. EXECUTIVE TAB NAVIGATION WITH INSTRUCTIONS */}
+        {/* 4. EXECUTIVE TAB NAVIGATION */}
         <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-3">
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
             <div>
@@ -323,8 +277,8 @@ export function SalesDemoDashboard() {
                     : 'text-slate-600 hover:text-slate-900'
                 }`}
               >
-                <Calculator className="w-4 h-4 text-emerald-400" />
-                <span>📊 Financial & Capacity Model</span>
+                <Calculator className="w-4 h-4 text-emerald-400 shrink-0" />
+                <span>Financial Model</span>
               </button>
 
               <button
@@ -335,8 +289,8 @@ export function SalesDemoDashboard() {
                     : 'text-slate-600 hover:text-slate-900'
                 }`}
               >
-                <Presentation className="w-4 h-4 text-amber-400" />
-                <span>🌱 Strategic Vision & Operational Pillars</span>
+                <Presentation className="w-4 h-4 text-amber-400 shrink-0" />
+                <span>Operational Strategy</span>
               </button>
             </div>
           </div>
@@ -413,7 +367,8 @@ export function SalesDemoDashboard() {
                 </div>
               </div>
 
-              <div className="lg:col-span-2 bg-gradient-to-br from-purple-950 via-slate-900 to-purple-950 text-white rounded-2xl p-6 shadow-xl border border-purple-800/50 flex flex-col justify-between space-y-6">
+              {/* COMMERCIAL IMPACT CARD WITH NO VERTICAL VOID */}
+              <div className="lg:col-span-2 bg-gradient-to-br from-purple-950 via-slate-900 to-purple-950 text-white rounded-2xl p-6 shadow-xl border border-purple-800/50 space-y-5">
                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-2 border-b border-purple-800/50 pb-4">
                   <div>
                     <span className="text-[10px] font-extrabold uppercase tracking-widest text-emerald-400 bg-emerald-500/20 border border-emerald-500/30 px-2.5 py-1 rounded-full">
@@ -425,11 +380,21 @@ export function SalesDemoDashboard() {
 
                   <button
                     onClick={() => setShowCalculationDrawer(true)}
-                    className="px-3.5 py-2 bg-white/10 hover:bg-white/20 text-white text-xs font-bold rounded-xl border border-white/20 transition-all flex items-center space-x-1.5 shrink-0"
+                    className="px-3.5 py-2 bg-white/10 hover:bg-white/20 text-white text-xs font-bold rounded-xl border border-white/20 transition-all flex items-center space-x-1.5 shrink-0 cursor-pointer"
                   >
                     <FileSpreadsheet className="w-3.5 h-3.5 text-amber-300" />
                     <span>🔍 How is this calculated?</span>
                   </button>
+                </div>
+
+                {/* EXECUTIVE STRATEGIC IMPACT BAR */}
+                <div className="p-3.5 bg-white/5 border border-white/10 rounded-xl flex items-center space-x-3 text-xs">
+                  <Sparkles className="w-5 h-5 text-amber-300 shrink-0" />
+                  <p className="text-purple-100 font-medium leading-relaxed">
+                    {selectedMarket === 'rto_tafe'
+                      ? "Empowers students with 24/7 AI interview simulations and digital resume lockers, proving clear graduate employment pathways for ASQA compliance."
+                      : "Automates routine participant evidence collection and sign-offs, converting administrative overhead into direct 1-on-1 coaching time."}
+                  </p>
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -491,19 +456,6 @@ export function SalesDemoDashboard() {
                     </>
                   )}
                 </div>
-
-                {!urlParams.isProspect && (
-                  <div className="p-4 bg-white/5 border border-white/10 rounded-xl space-y-2">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center space-x-2">
-                        <Lightbulb className="w-4 h-4 text-amber-300" />
-                        <span className="text-xs font-bold text-amber-300">Sales Pitch Hook ({activePreset.badge}):</span>
-                      </div>
-                      <span className="text-[10px] text-purple-300 font-mono">Est. {activePreset.adminHoursSavedPerStaff} hrs/wk saved/staff</span>
-                    </div>
-                    <p className="text-xs text-purple-100 italic">"{activePreset.repHook}"</p>
-                  </div>
-                )}
               </div>
             </div>
           </div>
@@ -513,7 +465,7 @@ export function SalesDemoDashboard() {
         {activeDemoTab === 'presentation' && (
           <div className="space-y-6">
             
-            {/* 1. HUMANIZED STRATEGIC HEADER */}
+            {/* 1. STRATEGIC HEADER */}
             <div className="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm space-y-2">
               <span className="text-[10px] font-extrabold uppercase tracking-widest text-purple-900 bg-purple-100 border border-purple-200 px-2.5 py-0.5 rounded-full">
                 OPERATIONAL ARCHITECTURE
@@ -716,7 +668,7 @@ export function SalesDemoDashboard() {
         )}
       </main>
 
-      {/* FULL-SCREEN INTERACTIVE SANDBOX MODAL */}
+      {/* FULL-SCREEN INTERACTIVE SANDBOX MODAL - LAUNCHES AUDIT TAB DIRECTLY FOR GOVERNANCE */}
       {activeFullDemoRole && (
         <div className="fixed inset-0 bg-slate-950/90 backdrop-blur-md z-50 flex flex-col overflow-hidden animate-fadeIn">
           <div className="bg-purple-950 text-white px-6 py-2.5 flex items-center justify-between border-b border-purple-800 shadow-lg shrink-0">
@@ -746,54 +698,8 @@ export function SalesDemoDashboard() {
           <div className="flex-1 overflow-y-auto bg-slate-50">
             {activeFullDemoRole === 'participant' && <ParticipantHome />}
             {activeFullDemoRole === 'coach' && <CoachDashboard />}
-            {activeFullDemoRole === 'owner' && <OwnerDashboard />}
-          </div>
-        </div>
-      )}
-
-      {/* DEMO GUIDE DRAWER */}
-      {showDemoDrawer && (
-        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex justify-end z-50">
-          <div className="bg-white max-w-md w-full h-full p-6 flex flex-col justify-between shadow-2xl space-y-4 overflow-y-auto">
-            <div className="space-y-4">
-              <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-                <div>
-                  <h3 className="font-extrabold text-slate-900 text-base">Internal Sales Presentation Guide</h3>
-                  <p className="text-xs text-purple-900 font-semibold">{activePreset.name} Script</p>
-                </div>
-                <button onClick={() => setShowDemoDrawer(false)} className="text-slate-400 hover:text-slate-600 font-bold text-lg">
-                  ×
-                </button>
-              </div>
-
-              <div className="space-y-3 text-xs">
-                <div className="p-3 bg-purple-50 border border-purple-200 rounded-xl space-y-1">
-                  <span className="font-bold text-purple-950">1. Opening Hook ({activePreset.badge})</span>
-                  <p className="text-slate-700">"{activePreset.repHook}"</p>
-                </div>
-
-                <div className="p-3 bg-emerald-50 border border-emerald-200 rounded-xl space-y-1">
-                  <span className="font-bold text-emerald-950">2. Address Candidate Tech Fear</span>
-                  <p className="text-slate-700">
-                    "Launch Candidate Portal to show how simple voice inputs and AI STAR interview practice build candidate confidence without tech anxiety."
-                  </p>
-                </div>
-
-                <div className="p-3 bg-amber-50 border border-amber-200 rounded-xl space-y-1">
-                  <span className="font-bold text-amber-950">3. Showcase Coach Time Recovery</span>
-                  <p className="text-slate-700">
-                    "Show 1-click verification queue and Coverage Mode in Coach Dashboard. Est. {activePreset.adminHoursSavedPerStaff} hours saved weekly per coach."
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            <button
-              onClick={() => setShowDemoDrawer(false)}
-              className="w-full py-2 bg-purple-950 text-white font-bold rounded-xl text-xs"
-            >
-              Close Guide
-            </button>
+            {/* UPDATED: Passes defaultTab="audit" to load Activity Logs & CRM Export directly */}
+            {activeFullDemoRole === 'owner' && <OwnerDashboard defaultTab="audit" />}
           </div>
         </div>
       )}
@@ -806,38 +712,70 @@ export function SalesDemoDashboard() {
               <div>
                 <h3 className="font-extrabold text-slate-900 text-base flex items-center gap-2">
                   <FileSpreadsheet className="w-4 h-4 text-purple-600" />
-                  <span>Calculation Logic & Audit Sheet</span>
+                  <span>Calculation Logic & Operational Assumptions</span>
                 </h3>
-                <p className="text-xs text-slate-500 font-medium">Transparent financial formulas and operational assumptions.</p>
+                <p className="text-xs text-slate-500 font-medium">Transparent model formulas for {activePreset.name}.</p>
               </div>
               <button
                 onClick={() => setShowCalculationDrawer(false)}
-                className="text-slate-400 hover:text-slate-600 font-bold text-lg"
+                className="text-slate-400 hover:text-slate-600 font-bold text-lg cursor-pointer"
               >
                 ✕
               </button>
             </div>
 
             <div className="space-y-4 text-xs">
-              <div className="p-3.5 bg-slate-50 rounded-xl border border-slate-200 space-y-1.5">
-                <h4 className="font-extrabold text-purple-950 uppercase text-[10px] tracking-wider">1. Staff Admin Hours Saved Formula</h4>
-                <p className="font-mono text-slate-700 bg-white p-2 rounded-lg border border-slate-200">
-                  Weekly Hours Saved = {avgStaffCount} Staff × {activePreset.adminHoursSavedPerStaff} hrs/wk = <strong>{totalWeeklyHoursSaved} hrs/wk</strong>
-                </p>
-              </div>
+              {selectedMarket === 'rto_tafe' ? (
+                <>
+                  <div className="p-3.5 bg-purple-50 rounded-xl border border-purple-200 space-y-1.5">
+                    <h4 className="font-extrabold text-purple-950 uppercase text-[10px] tracking-wider">1. Graduate Outcome & Placement Rate Impact</h4>
+                    <p className="font-mono text-purple-950 bg-white p-2 rounded-lg border border-purple-200">
+                      Target Job Readiness Rate = <strong>85% Employer Ready</strong>
+                    </p>
+                    <p className="text-slate-600 text-[11px]">
+                      Combining AI STAR interview simulations and digital resume lockers accelerates graduate job placements, directly boosting vocational course completion and student enrollment appeal.
+                    </p>
+                  </div>
 
-              <div className="p-3.5 bg-slate-50 rounded-xl border border-slate-200 space-y-1.5">
-                <h4 className="font-extrabold text-purple-950 uppercase text-[10px] tracking-wider">2. Capacity Value Reclaimed Formula</h4>
-                <p className="font-mono text-slate-700 bg-white p-2 rounded-lg border border-slate-200">
-                  Annual Capacity Value = {totalWeeklyHoursSaved} hrs/wk × 52 weeks × ${hourlyStaffCost}/hr = <strong>+${annualCapacityValueReclaimed.toLocaleString()}/yr</strong>
-                </p>
-              </div>
+                  <div className="p-3.5 bg-emerald-50 rounded-xl border border-emerald-200 space-y-1.5">
+                    <h4 className="font-extrabold text-emerald-950 uppercase text-[10px] tracking-wider">2. ASQA Compliance Evidence Vault</h4>
+                    <p className="font-mono text-emerald-950 bg-white p-2 rounded-lg border border-emerald-200">
+                      ASQA Standard 1.2 Verification = <strong>100% Timestamped Audit Proof</strong>
+                    </p>
+                    <p className="text-slate-600 text-[11px]">
+                      Automates student employment pathway tracking with immutable evidence lockers and 1-click auditor export files.
+                    </p>
+                  </div>
+                </>
+              ) : (
+                <>
+                  <div className="p-3.5 bg-slate-50 rounded-xl border border-slate-200 space-y-1.5">
+                    <h4 className="font-extrabold text-purple-950 uppercase text-[10px] tracking-wider">1. Staff Admin Hours Saved Formula</h4>
+                    <p className="font-mono text-slate-700 bg-white p-2 rounded-lg border border-slate-200">
+                      Weekly Hours Saved = {avgStaffCount} Staff × {activePreset.adminHoursSavedPerStaff} hrs/wk = <strong>{totalWeeklyHoursSaved} hrs/wk</strong>
+                    </p>
+                    <p className="text-slate-500 text-[11px]">
+                      Calculated by replacing manual paper-chasing and phone calls with automated candidate evidence uploads.
+                    </p>
+                  </div>
+
+                  <div className="p-3.5 bg-slate-50 rounded-xl border border-slate-200 space-y-1.5">
+                    <h4 className="font-extrabold text-purple-950 uppercase text-[10px] tracking-wider">2. Capacity Value Reclaimed Formula</h4>
+                    <p className="font-mono text-slate-700 bg-white p-2 rounded-lg border border-slate-200">
+                      Annual Capacity Value = {totalWeeklyHoursSaved} hrs/wk × 52 weeks × ${hourlyStaffCost}/hr = <strong>+${annualCapacityValueReclaimed.toLocaleString()}/yr</strong>
+                    </p>
+                    <p className="text-slate-500 text-[11px]">
+                      Represents the payroll value of case manager time reallocated from paperwork to 1-on-1 participant coaching.
+                    </p>
+                  </div>
+                </>
+              )}
             </div>
 
             <div className="flex justify-end pt-3 border-t border-slate-100">
               <button
                 onClick={() => setShowCalculationDrawer(false)}
-                className="px-4 py-2 bg-purple-950 text-white font-bold text-xs rounded-xl hover:bg-purple-900 transition-all"
+                className="px-4 py-2 bg-purple-950 text-white font-bold text-xs rounded-xl hover:bg-purple-900 transition-all cursor-pointer"
               >
                 Close Calculation Sheet
               </button>
@@ -848,4 +786,5 @@ export function SalesDemoDashboard() {
     </div>
   );
 }
+
 export default SalesDemoDashboard;

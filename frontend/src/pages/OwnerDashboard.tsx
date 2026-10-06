@@ -28,13 +28,13 @@ const SITE_LOCATIONS = [
   { id: 'sydney_cbd', name: 'Sydney CBD Hub', candidateQuota: 50, staffQuota: 1 },
 ];
 
-export function OwnerDashboard() {
+export function OwnerDashboard({ defaultTab = 'audit' }: { defaultTab?: 'command' | 'roster' | 'candidates' | 'slas' | 'branding' | 'audit' }) {
   const { candidates, verificationItems, activeContract, resetSandboxState, addCandidate, addVerificationItem } = usePortal();
   // Active Site Location State
   const [selectedSite, setSelectedSite] = useState<string>('ALL');
 
   // Active Tab State
-  const [activeTab, setActiveTab] = useState<'command' | 'roster' | 'candidates' | 'slas' | 'branding' | 'audit'>('command');
+ const [activeTab, setActiveTab] = useState<'command' | 'roster' | 'candidates' | 'slas' | 'branding' | 'audit'>(defaultTab);
 
   // License & Capacity Management State
   const [candidateQuota, setCandidateQuota] = useState<number>(200);
