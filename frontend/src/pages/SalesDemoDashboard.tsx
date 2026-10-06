@@ -92,8 +92,8 @@ export const MARKET_PRESETS: Record<MarketSegment, {
     badge: 'Vocational & Higher Ed',
     framework: 'ASQA & Graduate Outcome Standards',
     avgOutcomeFee: 1800,
-    adminHoursSavedPerStaff: 0, // No admin pitch
-    trainingTimeReducedPct: 85, // Job-readiness velocity
+    adminHoursSavedPerStaff: 0,
+    trainingTimeReducedPct: 85,
     feeLabel: 'Est. Value per Placed Graduate',
     complianceLabel: 'ASQA Graduate Placement Proof',
     pitchHook: "Proves that vocational training directly translates into real-world job readiness and employment pathways. Timestamped STAR reports and digital resume lockers give RTOs bulletproof ASQA evidence while driving higher graduate placement rates and student enrollment appeal.",
@@ -107,12 +107,12 @@ export function SalesDemoDashboard() {
   const { setActiveContract, resetSandboxState } = usePortal();
 
   // URL Parameter Engine & Prospect State
-const urlParams = useDemoParams();
-const [showProspectTour, setShowProspectTour] = useState<boolean>(urlParams.isProspect);
+  const urlParams = useDemoParams();
+  const [showProspectTour, setShowProspectTour] = useState<boolean>(urlParams.isProspect);
 
-// Selected Market State (Initializes from URL if present)
-const [selectedMarket, setSelectedMarket] = useState<MarketSegment>(urlParams.market || 'workforce_au');
-const activePreset = MARKET_PRESETS[selectedMarket];
+  // Selected Market State (Initializes from URL if present)
+  const [selectedMarket, setSelectedMarket] = useState<MarketSegment>(urlParams.market || 'workforce_au');
+  const activePreset = MARKET_PRESETS[selectedMarket];
 
   // Calculator Inputs & Preserved State
   const [caseloadSize, setCaseloadSize] = useState<number>(150);
@@ -158,99 +158,8 @@ const activePreset = MARKET_PRESETS[selectedMarket];
     window.dispatchEvent(new Event('popstate'));
   };
 
-  // Human-Centered Market Story Engine
-  const MARKET_SLIDES = {
-    workforce_au: [
-      {
-        step: '01',
-        title: 'Reclaiming the Case Manager’s Day',
-        subtitle: 'From Admin Burnout to Dedicated 1-on-1 Coaching',
-        badge: '🌱 Staff Freedom & Capacity',
-        badgeColor: 'bg-amber-100 text-amber-900 border-amber-200',
-        legacyPain: 'Case Managers spend up to 35% of their week chasing receipts and manually logging PBAS points, leading to staff burnout and lost coaching time.',
-        platformSolution: 'Candidates submit proof via mobile. Case Managers approve evidence in 1 click or pass caseloads seamlessly with Roster Coverage Mode.',
-        keyTakeaway: 'Reclaims 6.5 hours/week per coach — converting paperwork overhead into 13+ direct coaching interactions.',
-        sandboxRole: 'coach' as const
-      },
-      {
-        step: '02',
-        title: 'Empowering Candidate Confidence',
-        subtitle: 'Mobile Mutual Obligation & AI Practice Studio',
-        badge: '✨ Candidate Empowerment',
-        badgeColor: 'bg-emerald-100 text-emerald-900 border-emerald-200',
-        legacyPain: 'Participants feel overwhelmed by complex point targets, freeze up during real job interviews, and face sudden payment suspensions.',
-        platformSolution: 'Candidates track PBAS progress in real-time on mobile and build interview confidence using the 24/7 AI STAR Practice Studio.',
-        keyTakeaway: 'Drives 100% mutual obligation compliance while building genuine, employer-ready candidate confidence.',
-        sandboxRole: 'participant' as const
-      },
-      {
-        step: '03',
-        title: 'Executive Governance & Peace of Mind',
-        subtitle: 'Timestamped Audit Vault & Claims Velocity',
-        badge: '🛡️ Sovereign Audit Protection',
-        badgeColor: 'bg-purple-100 text-purple-900 border-purple-200',
-        legacyPain: 'Executive directors worry about missing evidence during DEWR audits, payment clawbacks, and high staff turnover.',
-        platformSolution: 'Macro 5-Pillar diagnostics give leadership real-time SLA visibility, 90-day auto-archived evidence retention, and 1-click auditor CSV exports.',
-        keyTakeaway: '100% audit protection, zero clawback risk, and accelerated 12/26-week milestone claims.',
-        sandboxRole: 'owner' as const
-      }
-    ],
-    des: [
-      {
-        step: '01',
-        title: 'Compassionate Ongoing Support',
-        subtitle: 'High-Touch Participant Engagement & Retention',
-        badge: '🌱 Human Retention & Support',
-        badgeColor: 'bg-emerald-100 text-emerald-900 border-emerald-200',
-        legacyPain: 'Manual contact tracking distracts Case Managers from offering genuine workplace retention support to vulnerable participants.',
-        platformSolution: 'Automated contact logging and flexible digital check-in channels keep participants supported and engaged without friction.',
-        keyTakeaway: 'Prevents participant drop-offs and protects 26-week ongoing support outcome revenue.',
-        sandboxRole: 'coach' as const
-      },
-      {
-        step: '02',
-        title: 'DSS Audit Safeguards',
-        subtitle: 'Timestamped Contact & Retention Proof',
-        badge: '🛡️ DSS Compliance Vault',
-        badgeColor: 'bg-purple-100 text-purple-900 border-purple-200',
-        legacyPain: 'Inconsistent record-keeping across regional sites creates severe vulnerability during DSS compliance quality audits.',
-        platformSolution: 'All ongoing support interactions and candidate check-ins are automatically timestamped and archived for instant inspection.',
-        keyTakeaway: 'Bulletproof DSS audit readiness with centralized site-by-site compliance oversight.',
-        sandboxRole: 'owner' as const
-      }
-    ],
-    parentsnext_ttw: [
-      {
-        step: '01',
-        title: 'Youth-First Engagement Engine',
-        subtitle: 'Mobile Empowerment & Guided Workflows',
-        badge: '✨ Youth Confidence',
-        badgeColor: 'bg-emerald-100 text-emerald-900 border-emerald-200',
-        legacyPain: 'Young participants find traditional paperwork alienating, while new youth coaches take weeks to study complex policy manuals.',
-        platformSolution: 'Gamified mobile portal with AI STAR mock interview practice and guided 1-click action guardrails for new coaches.',
-        keyTakeaway: 'Boosts youth activity completion while cutting new staff onboarding time by 80%.',
-        sandboxRole: 'participant' as const
-      }
-    ],
-    rto_tafe: [
-      {
-        step: '01',
-        title: 'Proving Graduate Outcomes',
-        subtitle: 'ASQA Evidence & Employment Pathway Proof',
-        badge: '🎓 Vocational Excellence',
-        badgeColor: 'bg-purple-100 text-purple-900 border-purple-200',
-        legacyPain: 'RTOs struggle to gather timestamped proof showing that vocational training leads directly to real-world employment outcomes.',
-        platformSolution: 'Digital student resume lockers, AI STAR readiness reports, and automated post-training employment pathway tracking.',
-        keyTakeaway: 'Satisfies ASQA Standard 1.2 requirements while boosting student course completion and enrollment appeal.',
-        sandboxRole: 'owner' as const
-      }
-    ]
-  };
-
-  const pitchSlides = MARKET_SLIDES[selectedMarket] || MARKET_SLIDES.workforce_au;
-
   return (
-    <div className="min-h-screen bg-slate-50 text-slate-900 font-sans">
+    <div className="min-h-screen bg-slate-50 text-slate-900 font-sans pb-12">
       <header className="bg-gradient-to-r from-[#1e1b4b] via-[#24083b] to-[#1e1b4b] text-white px-6 py-4 border-b border-purple-900/50 shadow-md">
         <div className="max-w-7xl mx-auto flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div className="flex items-center space-x-4">
@@ -284,7 +193,6 @@ const activePreset = MARKET_PRESETS[selectedMarket];
           </div>
 
           <div className="flex items-center space-x-3 flex-wrap">
-            {/* RESET DEMO STATE BUTTON (EXCLUSIVELY FOR SALES PAGE) */}
             <button
               onClick={() => {
                 resetSandboxState();
@@ -321,7 +229,7 @@ const activePreset = MARKET_PRESETS[selectedMarket];
 
       <main className="max-w-7xl mx-auto p-6 space-y-6">
 
-        {/* PROSPECT PERSONALIZED WELCOME BANNER */}
+        {/* 1. PROSPECT PERSONALIZED WELCOME BANNER */}
         {urlParams.isProspect && (
           <div className="bg-purple-900 text-white p-4 rounded-2xl border border-purple-700 shadow-md flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <div className="space-y-0.5">
@@ -342,7 +250,7 @@ const activePreset = MARKET_PRESETS[selectedMarket];
           </div>
         )}
 
-        {/* PROSPECT SELF-GUIDED TOUR MODAL */}
+        {/* 2. PROSPECT SELF-GUIDED TOUR MODAL */}
         <ProspectTourModal
           providerName={urlParams.providerName}
           marketName={activePreset.name}
@@ -351,49 +259,42 @@ const activePreset = MARKET_PRESETS[selectedMarket];
           onSelectTab={(tab) => setActiveDemoTab(tab)}
         />
 
-        {/* INTERACTIVE PERSONA LAUNCHER */}
-        <div className="bg-gradient-to-r from-purple-950 via-indigo-900 to-purple-950 text-white p-5 rounded-2xl shadow-lg border border-purple-800/50 space-y-3">
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
-            <div>
-              <span className="text-[10px] font-extrabold uppercase tracking-widest text-amber-300 bg-amber-400/20 border border-amber-400/30 px-2 py-0.5 rounded-full">
-                Interactive Profile Sandbox
-              </span>
-              <h2 className="text-lg font-extrabold text-white mt-1">Launch Full Interactive Live Dashboards</h2>
-              <p className="text-xs text-purple-200/80">Launch full-screen operational profiles to test real workflows live in presentation mode.</p>
-            </div>
-
-            <div className="flex flex-wrap gap-2">
-              <button
-                onClick={() => setActiveFullDemoRole('participant')}
-                className="px-3 py-2 bg-emerald-500/20 hover:bg-emerald-500/30 border border-emerald-400/40 text-emerald-200 font-extrabold text-xs rounded-xl transition-all flex items-center space-x-1.5 shadow-sm"
-              >
-                <Users className="w-4 h-4 text-emerald-300" />
-                <span>Launch Candidate Portal</span>
-              </button>
-
-              <button
-                onClick={() => setActiveFullDemoRole('coach')}
-                className="px-3 py-2 bg-purple-500/20 hover:bg-purple-500/30 border border-purple-400/40 text-purple-200 font-extrabold text-xs rounded-xl transition-all flex items-center space-x-1.5 shadow-sm"
-              >
-                <Briefcase className="w-4 h-4 text-purple-300" />
-                <span>Launch Case Manager Dashboard</span>
-              </button>
-
-              <button
-                onClick={() => setActiveFullDemoRole('owner')}
-                className="px-3 py-2 bg-amber-500/20 hover:bg-amber-500/30 border border-amber-400/40 text-amber-200 font-extrabold text-xs rounded-xl transition-all flex items-center space-x-1.5 shadow-sm"
-              >
-                <ShieldCheck className="w-4 h-4 text-amber-300" />
-                <span>Launch Business Manager Overview</span>
-              </button>
-            </div>
+        {/* 3. GLOBAL TARGET MARKET & CONTRACT FRAMEWORK SELECTOR */}
+        <div className="bg-white rounded-2xl p-5 border border-slate-200 shadow-sm space-y-3">
+          <label className="text-xs font-bold text-slate-500 uppercase tracking-wider block">
+            Target Market & Contract Framework:
+          </label>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+            {(Object.keys(MARKET_PRESETS) as MarketSegment[]).map((key) => {
+              const preset = MARKET_PRESETS[key];
+              const isSelected = selectedMarket === key;
+              return (
+                <button
+                  key={key}
+                  type="button"
+                  onClick={() => handleMarketChange(key)}
+                  className={`p-3.5 rounded-xl border text-left transition-all flex flex-col justify-between ${
+                    isSelected
+                      ? 'bg-purple-950 text-white border-purple-900 shadow-md'
+                      : 'bg-slate-50 border-slate-200 text-slate-700 hover:bg-slate-100'
+                  }`}
+                >
+                  <span className="font-extrabold text-xs block">{preset.name}</span>
+                  <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full mt-2 w-max ${
+                    isSelected ? 'bg-amber-400 text-purple-950' : 'bg-slate-200 text-slate-600'
+                  }`}>
+                    {preset.badge}
+                  </span>
+                </button>
+              );
+            })}
           </div>
         </div>
 
-        {/* TAB CONTROLS */}
+        {/* 4. EXECUTIVE TAB CONTROLS */}
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white p-4 rounded-2xl border border-slate-200 shadow-sm">
           <div>
-            <h3 className="text-lg font-extrabold text-purple-950">Provider Partnership & Growth Toolkit</h3>
+            <h3 className="text-lg font-extrabold text-purple-950">Executive Decision Deck</h3>
             <p className="text-xs text-slate-500 font-medium">Commercial projections, executive pitch slides, and competitive analysis.</p>
           </div>
 
@@ -427,38 +328,6 @@ const activePreset = MARKET_PRESETS[selectedMarket];
         {/* TAB 1: PROVIDER ROI CALCULATOR */}
         {activeDemoTab === 'calculator' && (
           <div className="space-y-6">
-            {/* MARKET PRESET SELECTOR */}
-            <div className="bg-white rounded-2xl p-5 border border-slate-200 shadow-sm space-y-3">
-              <label className="text-xs font-bold text-slate-500 uppercase tracking-wider block">
-                Target Market & Contract Framework:
-              </label>
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                {(Object.keys(MARKET_PRESETS) as MarketSegment[]).map((key) => {
-                  const preset = MARKET_PRESETS[key];
-                  const isSelected = selectedMarket === key;
-                  return (
-                    <button
-                      key={key}
-                      type="button"
-                      onClick={() => handleMarketChange(key)}
-                      className={`p-3.5 rounded-xl border text-left transition-all flex flex-col justify-between ${
-                        isSelected
-                          ? 'bg-purple-950 text-white border-purple-900 shadow-md'
-                          : 'bg-slate-50 border-slate-200 text-slate-700 hover:bg-slate-100'
-                      }`}
-                    >
-                      <span className="font-extrabold text-xs block">{preset.name}</span>
-                      <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full mt-2 w-max ${
-                        isSelected ? 'bg-amber-400 text-purple-950' : 'bg-slate-200 text-slate-600'
-                      }`}>
-                        {preset.badge}
-                      </span>
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
               <div className="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm space-y-4">
                 <h4 className="font-extrabold text-slate-900 text-base flex items-center space-x-2">
@@ -547,65 +416,65 @@ const activePreset = MARKET_PRESETS[selectedMarket];
                 </div>
 
                 {/* METRIC CARDS GRID */}
-<div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-  {selectedMarket === 'rto_tafe' ? (
-    <>
-      <div className="bg-white/10 backdrop-blur-md border border-white/10 p-4 rounded-xl space-y-1">
-        <span className="text-xs text-purple-200 font-bold block">Graduate Job-Readiness</span>
-        <div className="text-2xl font-black text-amber-300 mt-1">85% Ready</div>
-        <p className="text-[10px] text-purple-300">
-          AI STAR interview practice & digital resume lockers
-        </p>
-      </div>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  {selectedMarket === 'rto_tafe' ? (
+                    <>
+                      <div className="bg-white/10 backdrop-blur-md border border-white/10 p-4 rounded-xl space-y-1">
+                        <span className="text-xs text-purple-200 font-bold block">Graduate Job-Readiness</span>
+                        <div className="text-2xl font-black text-amber-300 mt-1">85% Ready</div>
+                        <p className="text-[10px] text-purple-300">
+                          AI STAR interview practice & digital resume lockers
+                        </p>
+                      </div>
 
-      <div className="bg-white/10 backdrop-blur-md border border-white/10 p-4 rounded-xl space-y-1">
-        <span className="text-xs text-purple-200 font-bold block">ASQA Audit Evidence Proof</span>
-        <div className="text-2xl font-black text-emerald-400 mt-1">100% Verified</div>
-        <p className="text-[10px] text-purple-300">
-          Timestamped graduate outcome & pathway logs
-        </p>
-      </div>
+                      <div className="bg-white/10 backdrop-blur-md border border-white/10 p-4 rounded-xl space-y-1">
+                        <span className="text-xs text-purple-200 font-bold block">ASQA Audit Evidence Proof</span>
+                        <div className="text-2xl font-black text-emerald-400 mt-1">100% Verified</div>
+                        <p className="text-[10px] text-purple-300">
+                          Timestamped graduate outcome & pathway logs
+                        </p>
+                      </div>
 
-      <div className="bg-white/10 backdrop-blur-md border border-white/10 p-4 rounded-xl space-y-1">
-        <span className="text-xs text-purple-200 font-bold block">Enrollment & Appeal Gain</span>
-        <div className="text-2xl font-black text-purple-300 mt-1">+25% Outcomes</div>
-        <p className="text-[10px] text-purple-300">
-          Proves course training leads directly to employment
-        </p>
-      </div>
-    </>
-  ) : (
-    <>
-      <div className="bg-white/10 backdrop-blur-md border border-white/10 p-4 rounded-xl space-y-1">
-        <span className="text-xs text-purple-200 font-bold block">Staff Admin Hours Saved</span>
-        <div className="text-2xl font-black text-amber-300 mt-1">{totalWeeklyHoursSaved} hrs/wk</div>
-        <p className="text-[10px] text-purple-300">
-          Directly reduces sign-off paperwork ({activePreset.adminHoursSavedPerStaff} hrs/staff)
-        </p>
-      </div>
+                      <div className="bg-white/10 backdrop-blur-md border border-white/10 p-4 rounded-xl space-y-1">
+                        <span className="text-xs text-purple-200 font-bold block">Enrollment & Appeal Gain</span>
+                        <div className="text-2xl font-black text-purple-300 mt-1">+25% Outcomes</div>
+                        <p className="text-[10px] text-purple-300">
+                          Proves course training leads directly to employment
+                        </p>
+                      </div>
+                    </>
+                  ) : (
+                    <>
+                      <div className="bg-white/10 backdrop-blur-md border border-white/10 p-4 rounded-xl space-y-1">
+                        <span className="text-xs text-purple-200 font-bold block">Staff Admin Hours Saved</span>
+                        <div className="text-2xl font-black text-amber-300 mt-1">{totalWeeklyHoursSaved} hrs/wk</div>
+                        <p className="text-[10px] text-purple-300">
+                          Directly reduces sign-off paperwork ({activePreset.adminHoursSavedPerStaff} hrs/staff)
+                        </p>
+                      </div>
 
-      <div className="bg-white/10 backdrop-blur-md border border-white/10 p-4 rounded-xl space-y-1">
-        <span className="text-xs text-purple-200 font-bold block">Capacity Value Reclaimed</span>
-        <div className="text-2xl font-black text-emerald-400 mt-1">
-          +${annualCapacityValueReclaimed.toLocaleString()}
-        </div>
-        <p className="text-[10px] text-purple-300">
-          Annual payroll equivalent @ ${hourlyStaffCost}/hr
-        </p>
-      </div>
+                      <div className="bg-white/10 backdrop-blur-md border border-white/10 p-4 rounded-xl space-y-1">
+                        <span className="text-xs text-purple-200 font-bold block">Capacity Value Reclaimed</span>
+                        <div className="text-2xl font-black text-emerald-400 mt-1">
+                          +${annualCapacityValueReclaimed.toLocaleString()}
+                        </div>
+                        <p className="text-[10px] text-purple-300">
+                          Annual payroll equivalent @ ${hourlyStaffCost}/hr
+                        </p>
+                      </div>
 
-      <div className="bg-white/10 backdrop-blur-md border border-white/10 p-4 rounded-xl space-y-1">
-        <span className="text-xs text-purple-200 font-bold block">Staff Onboarding Speed</span>
-        <div className="text-2xl font-black text-purple-300 mt-1">
-          {activePreset.trainingTimeReducedPct}% Faster
-        </div>
-        <p className="text-[10px] text-purple-300">
-          Cuts staff onboarding from weeks to days
-        </p>
-      </div>
-    </>
-  )}
-</div>
+                      <div className="bg-white/10 backdrop-blur-md border border-white/10 p-4 rounded-xl space-y-1">
+                        <span className="text-xs text-purple-200 font-bold block">Staff Onboarding Speed</span>
+                        <div className="text-2xl font-black text-purple-300 mt-1">
+                          {activePreset.trainingTimeReducedPct}% Faster
+                        </div>
+                        <p className="text-[10px] text-purple-300">
+                          Cuts staff onboarding from weeks to days
+                        </p>
+                      </div>
+                    </>
+                  )}
+                </div>
 
                 {/* SALES REP CHEAT SHEET BOX */}
                 <div className="p-4 bg-white/5 border border-white/10 rounded-xl space-y-2">
@@ -630,29 +499,54 @@ const activePreset = MARKET_PRESETS[selectedMarket];
         {activeDemoTab === 'presentation' && (
           <div className="space-y-6">
             
+            {/* SALES REP INTERNAL PLAYBOOK ORIENTATION CARD */}
+            {!urlParams.isProspect && (
+              <div className="bg-amber-50 border border-amber-200 rounded-2xl p-4 text-xs text-amber-950 space-y-2">
+                <div className="flex items-center justify-between">
+                  <span className="font-extrabold uppercase tracking-wider text-[10px] text-amber-900 bg-amber-200/60 px-2 py-0.5 rounded-md">
+                    💡 Internal Pitch Playbook
+                  </span>
+                  <span className="text-[11px] font-semibold text-amber-800">
+                    3-Minute Executive Meeting Flow
+                  </span>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-3 pt-1 text-amber-900">
+                  <div>
+                    <strong>1. Framework Alignment:</strong> Select WFA, DES, TtW, or RTO at the top to auto-adjust messaging.
+                  </div>
+                  <div>
+                    <strong>2. Address Digital Fear:</strong> Walk through low-friction candidate tools & AI Studio.
+                  </div>
+                  <div>
+                    <strong>3. Launch Live Sandbox:</strong> Click any pillar button below to jump into interactive dashboards.
+                  </div>
+                </div>
+              </div>
+            )}
+
             {/* 1. STRATEGIC HEADER */}
             <div className="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm space-y-2">
               <span className="text-[10px] font-extrabold uppercase tracking-widest text-purple-900 bg-purple-100 border border-purple-200 px-2.5 py-0.5 rounded-full">
-                🌱 Human-Centered Platform Architecture
+                🌱 Executive Strategy & Operational Impact
               </span>
-              <h3 className="text-xl font-extrabold text-purple-950">WorkReady Operational Transformation</h3>
+              <h3 className="text-xl font-extrabold text-purple-950">Automated Compliance & Capacity Engine</h3>
               <p className="text-xs text-slate-500 font-medium">
-                How Straight Up Training empowers candidates, restores staff coaching capacity, and protects government contract funding.
+                How Straight Up Training empowers candidates, eliminates staff administrative burn, and guarantees audit compliance.
               </p>
             </div>
 
             {/* 2. THE 3 HUMAN TRANSFORMATION PILLARS */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               
-              {/* CANDIDATE PILLAR */}
+              {/* CANDIDATE PILLAR (UPGRADED WITH DIGITAL INCLUSION) */}
               <div className="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm space-y-3 flex flex-col justify-between">
                 <div className="space-y-2">
                   <span className="text-[10px] font-extrabold uppercase tracking-wider text-emerald-800 bg-emerald-100 border border-emerald-200 px-2 py-0.5 rounded-md inline-block">
-                    ✨ Candidate Empowerment
+                    ✨ Candidate Empowerment & Digital Inclusion
                   </span>
-                  <h4 className="font-extrabold text-slate-900 text-sm">Mobile Confidence & AI Studio</h4>
+                  <h4 className="font-extrabold text-slate-900 text-sm">Low-Friction Mobile Experience & AI Studio</h4>
                   <p className="text-xs text-slate-600 leading-relaxed">
-                    Candidates track PBAS points in real time on mobile and build real interview readiness via the 24/7 AI STAR Practice Studio.
+                    Designed for all digital literacy levels. Voice-assisted uploads, bite-sized mobile workflows, and a judgment-free AI Practice Studio build candidate confidence and eliminate tech fear.
                   </p>
                 </div>
                 <button
@@ -700,7 +594,7 @@ const activePreset = MARKET_PRESETS[selectedMarket];
                   className="w-full py-2 bg-purple-950 hover:bg-purple-900 text-white text-xs font-bold rounded-xl transition-all flex items-center justify-center space-x-1.5 cursor-pointer shadow-sm"
                 >
                   <Maximize2 className="w-3.5 h-3.5 text-amber-300" />
-                  <span>🛡️️ View Business Overview</span>
+                  <span>🛡 View Business Overview</span>
                 </button>
               </div>
             </div>
@@ -856,7 +750,7 @@ const activePreset = MARKET_PRESETS[selectedMarket];
                 className="px-3 py-1 bg-rose-600 hover:bg-rose-700 text-white font-extrabold text-xs rounded-xl transition-all flex items-center space-x-1 shadow-sm"
               >
                 <X className="w-4 h-4" />
-                <span>← Back to Pitch Deck (Slide {activeSlide + 1})</span>
+                <span>← Back to Pitch Deck</span>
               </button>
             </div>
           </div>
@@ -916,6 +810,7 @@ const activePreset = MARKET_PRESETS[selectedMarket];
           </div>
         </div>
       )}
+
       {/* CALCULATION LOGIC & AUDIT SHEET MODAL */}
       {showCalculationDrawer && (
         <div className="fixed inset-0 bg-slate-900/70 backdrop-blur-sm flex items-center justify-center p-4 z-50">
@@ -992,5 +887,4 @@ const activePreset = MARKET_PRESETS[selectedMarket];
     </div>
   );
 }
-
 export default SalesDemoDashboard;
