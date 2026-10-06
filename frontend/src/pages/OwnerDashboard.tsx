@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { usePortal } from '../context/PortalContext';
 import {
-  ShieldCheck,
   Users,
   Briefcase,
   Clock,
@@ -16,7 +15,8 @@ import {
   LogOut,
   Palette,
   Download,
-  Sparkles
+  Sparkles,
+  ArrowUpRight
 } from 'lucide-react';
 
 // Site Locations Configuration Data
@@ -29,10 +29,6 @@ const SITE_LOCATIONS = [
 
 export function OwnerDashboard() {
   const { candidates, verificationItems, activeContract, resetSandboxState, addCandidate } = usePortal();
-
-// Provision Modal Form State
-const [newCandidateName, setNewCandidateName] = useState<string>('');
-const [assignedCm, setAssignedCm] = useState<string>('Casey Smith');
 
   // Active Site Location State
   const [selectedSite, setSelectedSite] = useState<string>('ALL');
@@ -53,9 +49,25 @@ const [assignedCm, setAssignedCm] = useState<string>('Casey Smith');
   const [providerName, setProviderName] = useState<string>('Straight Up Training Partner');
   const [primaryBrandColor, setPrimaryBrandColor] = useState<string>('#4f46e5');
 
-  // Modals / Actions
+  // Provision Modal Form State
   const [showAddStaffModal, setShowAddStaffModal] = useState<boolean>(false);
   const [showAddCandidateModal, setShowAddCandidateModal] = useState<boolean>(false);
+  const [newCandidateName, setNewCandidateName] = useState<string>('');
+  const [assignedCm, setAssignedCm] = useState<string>('Casey Smith');
+
+  // Send Prompt Modal State
+const [showPromptModal, setShowPromptModal] = useState<boolean>(false);
+const [promptTargetCm, setPromptTargetCm] = useState<string>('Casey Smith');
+const [promptCandidateName, setPromptCandidateName] = useState<string>('Alex Mercer');
+
+// Activity Log Filter & Nudge Tracking State
+  const [auditStatusFilter, setAuditStatusFilter] = useState<'ALL' | 'Pending' | 'Nudged' | 'Verified'>('ALL');
+  const [auditCmFilter, setAuditCmFilter] = useState<string>('ALL');
+  const [nudgedItems, setNudgedItems] = useState<Record<string, string>>({}); // Tracks nudged item IDs -> timestamp
+
+// Manage Caseload Modal State
+  const [selectedCmForManage, setSelectedCmForManage] = useState<string | null>(null);
+  const [targetReassignCm, setTargetReassignCm] = useState<string>('Jordan Smith');
 
   // Dynamically retrieve quotas based on selected site
   const activeSiteConfig = SITE_LOCATIONS.find(s => s.id === selectedSite) || SITE_LOCATIONS[0];
@@ -75,11 +87,21 @@ const [assignedCm, setAssignedCm] = useState<string>('Casey Smith');
   const candidateQuotaPercent = Math.round((activeCandidateCount / currentCandidateQuota) * 100);
   const staffQuotaPercent = Math.round((activeStaffCount / currentStaffQuota) * 100);
 
-  // Verification SLA Health Calculation
+  // Verification Pipeline Metrics (Strictly verified items)
+  const verifiedPlacements = verificationItems
+    ? verificationItems.filter(v => v.type === 'Job Placement' && v.status === 'Verified').length
+    : 1;
+
+  const verifiedInterviews = verificationItems
+    ? verificationItems.filter(v => v.type === 'Interview Claim' && v.status === 'Verified').length
+    : 3;
+
   const pendingCount = verificationItems ? verificationItems.filter(v => v.status === 'Pending').length : 0;
-  const placementsPending = verificationItems
-    ? verificationItems.filter(v => v.status === 'Pending' && (v.type === 'Interview Claim' || v.type === 'Job Placement' || v.title.toLowerCase().includes('job'))).length
-    : 0;
+  
+  // Operational Conversion Rate
+  const conversionRate = verifiedInterviews > 0 
+    ? Math.round((verifiedPlacements / verifiedInterviews) * 100) 
+    : 33;
 
   const handleSignOut = () => {
     resetSandboxState();
@@ -97,7 +119,7 @@ const [assignedCm, setAssignedCm] = useState<string>('Casey Smith');
     const encodedUri = encodeURI(csvContent);
     const link = document.createElement("a");
     link.setAttribute("href", encodedUri);
-    link.setAttribute("download", `DEWR_Audit_Report_${new Date().toISOString().slice(0,10)}.csv`);
+    link.setAttribute("download", `Activity_Log_Export_${new Date().toISOString().slice(0,10)}.csv`);
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -148,7 +170,7 @@ const [assignedCm, setAssignedCm] = useState<string>('Casey Smith');
               </div>
 
               <p className="text-xs text-purple-200/80 font-medium">
-                Business Manager Hub • Governance, License Quotas & SLA Controls
+                Business Manager Hub • Operational Oversight, SLAs & Verification Analytics
               </p>
             </div>
           </div>
@@ -175,7 +197,7 @@ const [assignedCm, setAssignedCm] = useState<string>('Casey Smith');
               className="px-3.5 py-2 bg-white/10 hover:bg-white/20 border border-white/20 text-white text-xs font-bold rounded-xl transition-all flex items-center space-x-1.5"
             >
               <Download className="w-3.5 h-3.5 text-amber-300" />
-              <span>Export Audit CSV</span>
+              <span>Export Activity CSV</span>
             </button>
 
             <button
@@ -190,13 +212,17 @@ const [assignedCm, setAssignedCm] = useState<string>('Casey Smith');
       </header>
 
       <main className="max-w-7xl mx-auto p-6 space-y-6">
-        {/* 2. GLOBAL LICENSE QUOTA & CAPACITY GAUGE BAR */}
+        {/* 2. CAPACITY & SLA GAUGES (INTERACTIVE DRILL-DOWN) */}
         <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 items-center">
-          <div className="p-3.5 bg-slate-50 border border-slate-200 rounded-xl space-y-2">
+          <div 
+            onClick={() => setShowAddCandidateModal(true)}
+            className="p-3.5 bg-slate-50 hover:bg-slate-100/80 border border-slate-200 rounded-xl space-y-2 cursor-pointer transition-all group"
+            title="Click to provision candidate"
+          >
             <div className="flex justify-between items-center text-xs">
-              <span className="font-bold text-slate-600 flex items-center space-x-1.5">
+              <span className="font-bold text-slate-600 flex items-center space-x-1.5 group-hover:text-purple-900">
                 <Users className="w-4 h-4 text-purple-600" />
-                <span>Candidate Licenses</span>
+                <span>Candidate Capacity</span>
               </span>
               <span className="font-extrabold text-purple-950">
                 {activeCandidateCount} / {currentCandidateQuota}
@@ -210,14 +236,18 @@ const [assignedCm, setAssignedCm] = useState<string>('Casey Smith');
                 style={{ width: `${Math.min(100, candidateQuotaPercent)}%` }}
               />
             </div>
-            <p className="text-[10px] text-slate-400 font-medium">
-              {currentCandidateQuota - activeCandidateCount} Seats Available ({candidateQuotaPercent}% used)
+            <p className="text-[10px] text-slate-400 font-medium group-hover:text-slate-600">
+              {currentCandidateQuota - activeCandidateCount} Seats Available ({candidateQuotaPercent}% used) • <span className="underline font-bold">Manage</span>
             </p>
           </div>
 
-          <div className="p-3.5 bg-slate-50 border border-slate-200 rounded-xl space-y-2">
+          <div 
+            onClick={() => setActiveTab('roster')}
+            className="p-3.5 bg-slate-50 hover:bg-slate-100/80 border border-slate-200 rounded-xl space-y-2 cursor-pointer transition-all group"
+            title="Click to view Staff Roster"
+          >
             <div className="flex justify-between items-center text-xs">
-              <span className="font-bold text-slate-600 flex items-center space-x-1.5">
+              <span className="font-bold text-slate-600 flex items-center space-x-1.5 group-hover:text-purple-900">
                 <Briefcase className="w-4 h-4 text-emerald-600" />
                 <span>Case Manager Seats</span>
               </span>
@@ -231,31 +261,39 @@ const [assignedCm, setAssignedCm] = useState<string>('Casey Smith');
                 style={{ width: `${Math.min(100, staffQuotaPercent)}%` }}
               />
             </div>
-            <p className="text-[10px] text-slate-400 font-medium">
-              {currentStaffQuota - activeStaffCount} Staff Licenses Available ({staffQuotaPercent}% used)
+            <p className="text-[10px] text-slate-400 font-medium group-hover:text-slate-600">
+              {currentStaffQuota - activeStaffCount} Staff Licenses Available ({staffQuotaPercent}% used) • <span className="underline font-bold">View Roster</span>
             </p>
           </div>
 
-          <div className="p-3.5 bg-slate-50 border border-slate-200 rounded-xl space-y-1">
-            <span className="text-xs font-bold text-slate-600 flex items-center space-x-1.5">
+          <div 
+            onClick={() => setActiveTab('roster')}
+            className="p-3.5 bg-slate-50 hover:bg-slate-100/80 border border-slate-200 rounded-xl space-y-1 cursor-pointer transition-all group"
+            title="Click to inspect CM performance"
+          >
+            <span className="text-xs font-bold text-slate-600 flex items-center space-x-1.5 group-hover:text-purple-900">
               <Clock className="w-4 h-4 text-amber-500" />
-              <span>Operational Placement SLA</span>
+              <span>CM Response Velocity</span>
             </span>
-            <div className="text-lg font-black text-purple-950">{placementSlaDays} Business Days</div>
+            <div className="text-lg font-black text-purple-950">1.1 Business Days</div>
             <p className="text-[10px] text-emerald-600 font-bold flex items-center space-x-1">
               <CheckCircle2 className="w-3 h-3" />
-              <span>Target Enforcement Active</span>
+              <span>Exceeding {placementSlaDays}-Day Target • <span className="underline">View CM Speeds</span></span>
             </p>
           </div>
 
-          <div className="p-3.5 bg-slate-50 border border-slate-200 rounded-xl space-y-1">
-            <span className="text-xs font-bold text-slate-600 flex items-center space-x-1.5">
+          <div 
+            onClick={() => setActiveTab('audit')}
+            className="p-3.5 bg-slate-50 hover:bg-rose-50/50 border border-slate-200 hover:border-rose-300 rounded-xl space-y-1 cursor-pointer transition-all group"
+            title="Click to view pending items"
+          >
+            <span className="text-xs font-bold text-slate-600 flex items-center space-x-1.5 group-hover:text-rose-900">
               <AlertTriangle className="w-4 h-4 text-rose-500" />
-              <span>Unverified Queue Backlog</span>
+              <span>Pending Action Backlog</span>
             </span>
-            <div className="text-lg font-black text-rose-600">{pendingCount} Items Total</div>
-            <p className="text-[10px] text-slate-500 font-medium">
-              {placementsPending} High-Priority Job/Interview Claims
+            <div className="text-lg font-black text-rose-600">{pendingCount} Items Awaiting Review</div>
+            <p className="text-[10px] text-slate-500 font-medium group-hover:text-rose-700">
+              Action required by assigned Case Manager • <span className="underline font-bold">Inspect Backlog</span>
             </p>
           </div>
         </div>
@@ -283,7 +321,7 @@ const [assignedCm, setAssignedCm] = useState<string>('Casey Smith');
             }`}
           >
             <Users className="w-4 h-4 text-purple-400" />
-            <span>Staff Roster & Leave Coverage</span>
+            <span>Staff Roster & SLA Speed</span>
           </button>
 
           <button
@@ -319,7 +357,7 @@ const [assignedCm, setAssignedCm] = useState<string>('Casey Smith');
             }`}
           >
             <FileSpreadsheet className="w-4 h-4 text-blue-400" />
-            <span>DEWR Audit & Governance</span>
+            <span>Activity Logs & CRM Export</span>
           </button>
         </div>
 
@@ -330,33 +368,35 @@ const [assignedCm, setAssignedCm] = useState<string>('Casey Smith');
               <div className="lg:col-span-2 bg-gradient-to-br from-purple-950 via-slate-900 to-purple-950 text-white p-6 rounded-2xl shadow-xl border border-purple-800/50 space-y-6">
                 <div>
                   <span className="text-[10px] font-extrabold uppercase tracking-widest text-emerald-400 bg-emerald-500/20 border border-emerald-500/30 px-2.5 py-1 rounded-full">
-                    Site Claim Pipeline Readiness
+                    Site Verification Analytics
                   </span>
-                  <h3 className="text-2xl font-extrabold text-white mt-2">Verified Milestone Claims</h3>
+                  <h3 className="text-2xl font-extrabold text-white mt-2">Verified Engagement Pipeline</h3>
                   <p className="text-xs text-purple-200/80">
-                    Department outcome claim eligibility ready for submission.
+                    Real-time count of Case Manager verified candidate milestones on site file.
                   </p>
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <div className="bg-white/10 backdrop-blur-md border border-white/10 p-4 rounded-xl">
-                    <span className="text-xs text-purple-200 font-bold block">12-Week Placements</span>
+                    <span className="text-xs text-purple-200 font-bold block">Verified Placements</span>
                     <div className="text-2xl font-black text-emerald-400 mt-1">
-                      {candidates ? candidates.filter(c => (c.pbasVerified ?? 45) >= 50).length : 0} Candidates
+                      {verifiedPlacements} Confirmed
                     </div>
-                    <span className="text-[10px] text-purple-300">Verified & Ready to Claim</span>
+                    <span className="text-[10px] text-purple-300">Start Date & Hours Verified</span>
                   </div>
 
                   <div className="bg-white/10 backdrop-blur-md border border-white/10 p-4 rounded-xl">
-                    <span className="text-xs text-purple-200 font-bold block">26-Week Sustained Placements</span>
-                    <div className="text-2xl font-black text-amber-300 mt-1">1 Candidate</div>
-                    <span className="text-[10px] text-purple-300">Ongoing Support Active</span>
+                    <span className="text-xs text-purple-200 font-bold block">Verified Interviews</span>
+                    <div className="text-2xl font-black text-amber-300 mt-1">
+                      {verifiedInterviews} Attended
+                    </div>
+                    <span className="text-[10px] text-purple-300">Employer Attendance Verified</span>
                   </div>
 
                   <div className="bg-white/10 backdrop-blur-md border border-white/10 p-4 rounded-xl">
-                    <span className="text-xs text-purple-200 font-bold block">Avg. Site Turnaround</span>
-                    <div className="text-2xl font-black text-white mt-1">1.4 Days</div>
-                    <span className="text-[10px] text-emerald-400">Exceeding {placementSlaDays}-day target</span>
+                    <span className="text-xs text-purple-200 font-bold block">Interview Conversion</span>
+                    <div className="text-2xl font-black text-white mt-1">{conversionRate}%</div>
+                    <span className="text-[10px] text-emerald-400">Interview to Job Placement</span>
                   </div>
                 </div>
 
@@ -364,13 +404,19 @@ const [assignedCm, setAssignedCm] = useState<string>('Casey Smith');
                   <div className="flex items-center space-x-3">
                     <Sparkles className="w-5 h-5 text-amber-300 shrink-0" />
                     <div>
-                      <h4 className="text-xs font-bold text-white">Estimated Unclaimed Outcome Value</h4>
+                      <h4 className="text-xs font-bold text-white">System Integration Readiness</h4>
                       <p className="text-[11px] text-purple-200">
-                        Based on verified candidate placement documentation on site file.
+                        All verified placements and interview logs are prepared for 1-click CRM/ESSWeb export.
                       </p>
                     </div>
                   </div>
-                  <div className="text-xl font-black text-emerald-400">$12,800 AUD</div>
+                  <button
+                    onClick={handleExportAuditCSV}
+                    className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white font-extrabold text-xs rounded-lg transition-all flex items-center space-x-1"
+                  >
+                    <span>Download Log</span>
+                    <ArrowUpRight className="w-3.5 h-3.5" />
+                  </button>
                 </div>
               </div>
 
@@ -433,7 +479,7 @@ const [assignedCm, setAssignedCm] = useState<string>('Casey Smith');
               <div>
                 <h3 className="text-lg font-extrabold text-purple-950">Active Case Manager Roster</h3>
                 <p className="text-xs text-slate-500 font-medium">
-                  Manage CM staff licenses, caseload assignments, and Leave Coverage Mode.
+                  Track CM staff licenses, caseload sizes, and average action SLA speed.
                 </p>
               </div>
 
@@ -452,9 +498,9 @@ const [assignedCm, setAssignedCm] = useState<string>('Casey Smith');
                   <tr className="bg-slate-100 text-slate-700 font-extrabold border-b border-slate-200">
                     <th className="p-3.5 rounded-tl-xl">Case Manager Name</th>
                     <th className="p-3.5">Assigned Caseload</th>
-                    <th className="p-3.5">PBAS Compliance</th>
-                    <th className="p-3.5">Avg Turnaround SLA</th>
-                    <th className="p-3.5">Coverage Status</th>
+                    <th className="p-3.5">Verified Placements</th>
+                    <th className="p-3.5">Avg SLA Response</th>
+                    <th className="p-3.5">Status</th>
                     <th className="p-3.5 text-right rounded-tr-xl">Action</th>
                   </tr>
                 </thead>
@@ -467,17 +513,20 @@ const [assignedCm, setAssignedCm] = useState<string>('Casey Smith');
                       <span>Casey Smith (Primary)</span>
                     </td>
                     <td className="p-3.5 font-bold text-purple-950">3 Participants</td>
-                    <td className="p-3.5 font-extrabold text-emerald-600">88% Compliant</td>
-                    <td className="p-3.5 font-bold text-slate-700">1.2 Business Days</td>
+                    <td className="p-3.5 font-extrabold text-emerald-600">1 Placed</td>
+                    <td className="p-3.5 font-bold text-slate-700">1.1 Business Days</td>
                     <td className="p-3.5">
                       <span className="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-emerald-100 text-emerald-800 border border-emerald-200">
                         Active On-Duty
                       </span>
                     </td>
                     <td className="p-3.5 text-right">
-                      <button className="px-3 py-1 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-[11px] rounded-lg transition-all">
-                        Toggle Leave Mode
-                      </button>
+                      <button 
+  onClick={() => setSelectedCmForManage('Casey Smith')} 
+  className="px-3 py-1 bg-slate-100 hover:bg-purple-900 hover:text-white text-slate-700 font-bold text-[11px] rounded-lg transition-all"
+>
+  Manage Caseload
+</button>
                     </td>
                   </tr>
 
@@ -489,7 +538,7 @@ const [assignedCm, setAssignedCm] = useState<string>('Casey Smith');
                       <span>Jordan Smith (Coverage)</span>
                     </td>
                     <td className="p-3.5 font-bold text-purple-950">1 Participant</td>
-                    <td className="p-3.5 font-extrabold text-amber-600">75% Compliant</td>
+                    <td className="p-3.5 font-extrabold text-slate-500">0 Placed</td>
                     <td className="p-3.5 font-bold text-slate-700">1.8 Business Days</td>
                     <td className="p-3.5">
                       <span className="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-blue-100 text-blue-800 border border-blue-200">
@@ -497,9 +546,12 @@ const [assignedCm, setAssignedCm] = useState<string>('Casey Smith');
                       </span>
                     </td>
                     <td className="p-3.5 text-right">
-                      <button className="px-3 py-1 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-[11px] rounded-lg transition-all">
-                        Manage Caseload
-                      </button>
+                      <button 
+  onClick={() => setSelectedCmForManage('Jordan Smith')} 
+  className="px-3 py-1 bg-slate-100 hover:bg-purple-900 hover:text-white text-slate-700 font-bold text-[11px] rounded-lg transition-all"
+>
+  Manage Caseload
+</button>
                     </td>
                   </tr>
 
@@ -511,7 +563,7 @@ const [assignedCm, setAssignedCm] = useState<string>('Casey Smith');
                       <span>Sam Taylor</span>
                     </td>
                     <td className="p-3.5 font-bold text-purple-950">1 Participant</td>
-                    <td className="p-3.5 font-extrabold text-emerald-600">100% Compliant</td>
+                    <td className="p-3.5 font-extrabold text-slate-500">0 Placed</td>
                     <td className="p-3.5 font-bold text-slate-700">0.9 Business Days</td>
                     <td className="p-3.5">
                       <span className="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-emerald-100 text-emerald-800 border border-emerald-200">
@@ -519,9 +571,12 @@ const [assignedCm, setAssignedCm] = useState<string>('Casey Smith');
                       </span>
                     </td>
                     <td className="p-3.5 text-right">
-                      <button className="px-3 py-1 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-[11px] rounded-lg transition-all">
-                        Manage Caseload
-                      </button>
+                      <button 
+  onClick={() => setSelectedCmForManage('Jordan Smith')} 
+  className="px-3 py-1 bg-slate-100 hover:bg-purple-900 hover:text-white text-slate-700 font-bold text-[11px] rounded-lg transition-all"
+>
+  Manage Caseload
+</button>
                     </td>
                   </tr>
                 </tbody>
@@ -536,7 +591,7 @@ const [assignedCm, setAssignedCm] = useState<string>('Casey Smith');
             <div>
               <h3 className="text-lg font-extrabold text-purple-950">Operational SLA Policy Rules</h3>
               <p className="text-xs text-slate-500 font-medium">
-                Set max business day verification windows for Case Manager sign-off compliance.
+                Set max business day action windows for Case Manager verification response.
               </p>
             </div>
 
@@ -544,10 +599,10 @@ const [assignedCm, setAssignedCm] = useState<string>('Casey Smith');
               <div className="p-5 bg-slate-50 border border-slate-200 rounded-2xl space-y-4">
                 <div className="flex items-center space-x-2 text-purple-950 font-extrabold text-sm">
                   <Award className="w-5 h-5 text-emerald-600" />
-                  <span>Job Placement Claims</span>
+                  <span>Job Placement Verification</span>
                 </div>
                 <p className="text-xs text-slate-500">
-                  Target window for verifying "I Got a Job!" candidate submissions.
+                  Target window for actioning candidate "I Got a Job!" reports.
                 </p>
 
                 <div>
@@ -570,10 +625,10 @@ const [assignedCm, setAssignedCm] = useState<string>('Casey Smith');
               <div className="p-5 bg-slate-50 border border-slate-200 rounded-2xl space-y-4">
                 <div className="flex items-center space-x-2 text-purple-950 font-extrabold text-sm">
                   <Clock className="w-5 h-5 text-amber-500" />
-                  <span>Interview Milestone Claims</span>
+                  <span>Interview Verification</span>
                 </div>
                 <p className="text-xs text-slate-500">
-                  Target window for verifying interview confirmations and prep logs.
+                  Target window for confirming interview attendance & outcome.
                 </p>
 
                 <div>
@@ -596,10 +651,10 @@ const [assignedCm, setAssignedCm] = useState<string>('Casey Smith');
               <div className="p-5 bg-slate-50 border border-slate-200 rounded-2xl space-y-4">
                 <div className="flex items-center space-x-2 text-purple-950 font-extrabold text-sm">
                   <FileSpreadsheet className="w-5 h-5 text-indigo-600" />
-                  <span>PBAS Evidence & STAR Runs</span>
+                  <span>PBAS Activity Proof</span>
                 </div>
                 <p className="text-xs text-slate-500">
-                  Target window for general activity proof and LMS micro-credentials.
+                  Target window for signing off general activity logs and study proof.
                 </p>
 
                 <div>
@@ -676,62 +731,94 @@ const [assignedCm, setAssignedCm] = useState<string>('Casey Smith');
           </div>
         )}
 
-        {/* TAB 5: AUDIT LOG */}
-        {activeTab === 'audit' && (
-          <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 space-y-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <h3 className="text-lg font-extrabold text-purple-950">Site-Wide Audit Log & Governance</h3>
-                <p className="text-xs text-slate-500 font-medium">
-                  Auditor-ready compliance records and verification history.
-                </p>
-              </div>
+        {/* TAB 5: AUDIT LOG & CRM EXPORT */}
+{activeTab === 'audit' && (
+  <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 space-y-4">
+    <div className="flex items-center justify-between">
+      <div>
+        <h3 className="text-lg font-extrabold text-purple-950">Activity Logs & Core CRM Export</h3>
+        <p className="text-xs text-slate-500 font-medium">
+          Auditor-ready verified records formatted for 1-click import into core CRM or ESSWeb.
+        </p>
+      </div>
 
-              <button
-                onClick={handleExportAuditCSV}
-                className="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white font-extrabold text-xs rounded-xl shadow-md transition-all flex items-center space-x-1.5"
-              >
-                <Download className="w-4 h-4 text-emerald-100" />
-                <span>Export Official Audit CSV</span>
-              </button>
-            </div>
+      <button
+        onClick={handleExportAuditCSV}
+        className="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white font-extrabold text-xs rounded-xl shadow-md transition-all flex items-center space-x-1.5"
+      >
+        <Download className="w-4 h-4 text-emerald-100" />
+        <span>Export Official CSV Log</span>
+      </button>
+    </div>
 
-            <div className="overflow-x-auto">
-              <table className="w-full text-left text-xs border-collapse">
-                <thead>
-                  <tr className="bg-slate-100 text-slate-700 font-extrabold border-b border-slate-200">
-                    <th className="p-3.5 rounded-tl-xl">Candidate Name</th>
-                    <th className="p-3.5">Evidence / Claim Title</th>
-                    <th className="p-3.5">Type</th>
-                    <th className="p-3.5">Status</th>
-                    <th className="p-3.5 text-right rounded-tr-xl">Submitted Date</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-100">
-                  {(verificationItems || []).map((item) => (
-                    <tr key={item.id} className="hover:bg-slate-50 transition-all">
-                      <td className="p-3.5 font-bold text-slate-900">{item.candidateName}</td>
-                      <td className="p-3.5 text-slate-700">{item.title}</td>
-                      <td className="p-3.5 font-bold text-purple-950">{item.type}</td>
-                      <td className="p-3.5">
-                        <span
-                          className={`px-2 py-0.5 rounded-full text-[10px] font-extrabold ${
-                            item.status === 'Verified'
-                              ? 'bg-emerald-100 text-emerald-800 border border-emerald-200'
-                              : 'bg-amber-100 text-amber-800 border border-amber-200'
-                          }`}
-                        >
-                          {item.status}
-                        </span>
-                      </td>
-                      <td className="p-3.5 text-right text-slate-500 font-mono">{item.submittedDate}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </div>
-        )}
+    <div className="overflow-x-auto">
+      <table className="w-full text-left text-xs border-collapse">
+        <thead>
+          <tr className="bg-slate-100 text-slate-700 font-extrabold border-b border-slate-200">
+            <th className="p-3.5 rounded-tl-xl">Candidate Name</th>
+            <th className="p-3.5">Assigned CM</th>
+            <th className="p-3.5">Evidence / Claim Title</th>
+            <th className="p-3.5">Type</th>
+            <th className="p-3.5">Status</th>
+            <th className="p-3.5">Submitted Date</th>
+            <th className="p-3.5 text-right rounded-tr-xl">Governance Action</th>
+          </tr>
+        </thead>
+        <tbody className="divide-y divide-slate-100">
+          {(verificationItems || []).map((item) => {
+            const assignedCm = (item as any).assignedCm || 'Casey Smith';
+            const isNudged = !!nudgedItems[item.candidateName];
+
+            return (
+              <tr key={item.id} className="hover:bg-slate-50 transition-all">
+                <td className="p-3.5 font-bold text-slate-900">{item.candidateName}</td>
+                <td className="p-3.5 font-bold text-purple-900">{assignedCm}</td>
+                <td className="p-3.5 text-slate-700">{item.title}</td>
+                <td className="p-3.5 font-bold text-slate-800">{item.type}</td>
+                <td className="p-3.5">
+                  <span
+                    className={`px-2.5 py-0.5 rounded-full text-[10px] font-extrabold ${
+                      item.status === 'Verified'
+                        ? 'bg-emerald-100 text-emerald-800 border border-emerald-200'
+                        : isNudged
+                        ? 'bg-amber-100 text-amber-900 border border-amber-300'
+                        : 'bg-rose-100 text-rose-800 border border-rose-200'
+                    }`}
+                  >
+                    {item.status === 'Pending' && isNudged ? 'Nudge Sent' : item.status}
+                  </span>
+                </td>
+                <td className="p-3.5 text-slate-500 font-mono">{item.submittedDate}</td>
+                <td className="p-3.5 text-right">
+                  {item.status === 'Pending' ? (
+                    isNudged ? (
+                      <span className="px-2.5 py-1 bg-amber-100 border border-amber-300 text-amber-900 font-black text-[11px] rounded-lg inline-block">
+                        Nudged ({nudgedItems[item.candidateName]})
+                      </span>
+                    ) : (
+                      <button
+                        onClick={() => {
+                          setPromptTargetCm(assignedCm);
+                          setPromptCandidateName(item.candidateName);
+                          setShowPromptModal(true);
+                        }}
+                        className="px-2.5 py-1 bg-amber-500 hover:bg-amber-600 text-purple-950 font-extrabold text-[11px] rounded-lg transition-all shadow-sm flex items-center space-x-1 ml-auto"
+                      >
+                        <span>Nudge {assignedCm.split(' ')[0]}</span>
+                      </button>
+                    )
+                  ) : (
+                    <span className="text-[11px] text-emerald-600 font-bold">Verified by {assignedCm.split(' ')[0]}</span>
+                  )}
+                </td>
+              </tr>
+            );
+          })}
+        </tbody>
+      </table>
+    </div>
+  </div>
+)}
       </main>
 
       {/* MODAL: PROVISION CASE MANAGER */}
@@ -842,6 +929,136 @@ const [assignedCm, setAssignedCm] = useState<string>('Casey Smith');
               >
                 Assign & Provision
               </button>
+            </div>
+          </div>
+        </div>
+      )}
+      {/* MODAL: MANAGE CASELOAD & COVERAGE */}
+      {selectedCmForManage && (
+        <div className="fixed inset-0 bg-slate-950/70 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl space-y-4 border border-slate-200">
+            <div className="flex justify-between items-center border-b border-slate-100 pb-3">
+              <div>
+                <h4 className="font-extrabold text-slate-900 text-base">Manage Caseload & Coverage</h4>
+                <p className="text-xs text-purple-900 font-bold">{selectedCmForManage}</p>
+              </div>
+              <button onClick={() => setSelectedCmForManage(null)} className="text-slate-400 hover:text-slate-600 font-bold">
+                ✕
+              </button>
+            </div>
+
+            <div className="space-y-4 text-xs">
+              {/* ACTION 1: REASSIGN CASELOAD */}
+              <div className="p-3 bg-slate-50 border border-slate-200 rounded-xl space-y-2">
+                <label className="font-extrabold text-slate-800 block">Bulk Reassign Participants</label>
+                <p className="text-slate-500 text-[11px]">Shift participants to another active Case Manager on site.</p>
+                <div className="flex space-x-2">
+                  <select
+                    value={targetReassignCm}
+                    onChange={(e) => setTargetReassignCm(e.target.value)}
+                    className="flex-1 p-2 bg-white border border-slate-200 rounded-lg font-bold text-slate-800"
+                  >
+                    {['Casey Smith', 'Jordan Smith', 'Sam Taylor']
+                      .filter(name => name !== selectedCmForManage)
+                      .map(name => (
+                        <option key={name} value={name}>{name}</option>
+                      ))}
+                  </select>
+                  <button
+                    onClick={() => {
+                      alert(`Caseload successfully transferred from ${selectedCmForManage} to ${targetReassignCm}!`);
+                      setSelectedCmForManage(null);
+                    }}
+                    className="px-3 py-2 bg-purple-950 hover:bg-purple-900 text-white font-extrabold rounded-lg text-xs"
+                  >
+                    Transfer
+                  </button>
+                </div>
+              </div>
+
+              {/* ACTION 2: TOGGLE LEAVE / COVERAGE MODE */}
+              <div className="p-3 bg-purple-50/60 border border-purple-200 rounded-xl flex items-center justify-between">
+                <div>
+                  <span className="font-extrabold text-purple-950 block">Leave / Coverage Mode</span>
+                  <p className="text-[11px] text-purple-800">Route incoming candidate alerts to team coverage.</p>
+                </div>
+                <button
+                  onClick={() => {
+                    alert(`Coverage mode toggled for ${selectedCmForManage}.`);
+                    setSelectedCmForManage(null);
+                  }}
+                  className="px-3 py-1.5 bg-amber-500 hover:bg-amber-600 text-purple-950 font-extrabold rounded-lg text-xs"
+                >
+                  Toggle Mode
+                </button>
+              </div>
+            </div>
+
+            <div className="pt-2">
+              <button
+                onClick={() => setSelectedCmForManage(null)}
+                className="w-full py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-xl text-xs"
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+       {/* MODAL: PROMPT / NUDGE CASE MANAGER */}
+      {showPromptModal && (
+        <div className="fixed inset-0 bg-slate-950/70 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl space-y-4 border border-slate-200">
+            <div className="flex justify-between items-center border-b border-slate-100 pb-3">
+              <div>
+                <h4 className="font-extrabold text-slate-900 text-base">Send Urgent SLA Nudge</h4>
+                <p className="text-xs text-purple-950 font-bold">Recipient: {promptTargetCm}</p>
+              </div>
+              <button onClick={() => setShowPromptModal(false)} className="text-slate-400 hover:text-slate-600 font-bold">
+                ✕
+              </button>
+            </div>
+
+            <div className="space-y-3 text-xs">
+              <div className="p-3 bg-amber-50 border border-amber-200 rounded-xl space-y-1">
+                <span className="font-extrabold text-amber-900 block">Pending Evidence Action Required:</span>
+                <p className="text-amber-800 text-[11px]">
+                  Candidate <strong className="font-bold">{promptCandidateName}</strong> has an unverified item exceeding SLA response target.
+                </p>
+              </div>
+
+              <div>
+                <label className="font-bold text-slate-700 block mb-1">Notification Message</label>
+                <textarea
+                  rows={3}
+                  defaultValue={`Hi ${promptTargetCm.split(' ')[0]}, please review and action the pending verification evidence for ${promptCandidateName} as soon as possible to keep site SLAs compliant.`}
+                  className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl font-medium text-slate-800 focus:outline-none focus:border-purple-600 text-xs"
+                />
+              </div>
+            </div>
+
+            <div className="flex space-x-2 pt-2">
+              <button
+                onClick={() => setShowPromptModal(false)}
+                className="flex-1 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-xl text-xs"
+              >
+                Cancel
+              </button>
+              <button
+  onClick={() => {
+    // 1. Record the nudge timestamp for this candidate/item
+    setNudgedItems(prev => ({
+      ...prev,
+      [promptCandidateName]: 'Just Now'
+    }));
+    // 2. Alert and close
+    alert(`SLA Nudge notification sent to ${promptTargetCm}!`);
+    setShowPromptModal(false);
+  }}
+  className="flex-1 py-2.5 bg-amber-500 hover:bg-amber-600 text-purple-950 font-extrabold rounded-xl text-xs"
+>
+  Send Prompt Notification
+</button>
             </div>
           </div>
         </div>
