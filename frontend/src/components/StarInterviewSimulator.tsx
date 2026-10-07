@@ -477,7 +477,7 @@ export const StarInterviewSimulator: React.FC = () => {
 
         <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 relative z-10">
           <div>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 flex-wrap">
               <span className="p-2 bg-amber-400 text-slate-950 rounded-xl font-black shadow-md">
                 <Trophy className="w-5 h-5" />
               </span>
@@ -486,6 +486,9 @@ export const StarInterviewSimulator: React.FC = () => {
               </h2>
               <span className="px-2.5 py-0.5 bg-emerald-400/20 text-emerald-300 text-[10px] font-black rounded-full border border-emerald-400/30">
                 Confidence Builder
+              </span>
+              <span className="bg-slate-900/90 text-amber-300 border border-purple-700/60 text-[10px] font-extrabold px-2.5 py-0.5 rounded-full uppercase flex items-center gap-1">
+                🛡️ Azure OpenAI Protected
               </span>
             </div>
             <p className="text-xs text-purple-200 mt-1.5 max-w-xl leading-relaxed font-medium">

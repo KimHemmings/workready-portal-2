@@ -386,6 +386,25 @@ const itemsPerPage = 15;
 
       <main className="max-w-7xl mx-auto p-6 space-y-6">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white p-4 rounded-2xl border border-slate-200 shadow-sm">
+          {/* 🛡️ AZURE OPENAI / COPILOT SECURITY & PRIVACY BADGE */}
+          <div className="bg-slate-900 text-white p-3 rounded-xl border border-slate-800 flex items-center justify-between gap-3 text-xs shadow-sm my-2">
+            <div className="flex items-center space-x-2.5">
+              <div className="w-8 h-8 bg-purple-950 border border-purple-700/80 rounded-lg flex items-center justify-center font-black text-amber-300 shrink-0">
+                🛡️
+              </div>
+              <div>
+                <div className="flex items-center space-x-2">
+                  <span className="font-extrabold text-white">Enterprise Azure OpenAI Service (Microsoft Copilot Infrastructure)</span>
+                  <span className="bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 text-[9px] font-bold px-2 py-0.5 rounded-full uppercase">
+                    Sydney/Melbourne Sovereignty
+                  </span>
+                </div>
+                <p className="text-[11px] text-slate-400 mt-0.5">
+                  DEWR Privacy Compliant • 256-Bit AES Encrypted • Zero Model Training on Candidate AI Logs
+                </p>
+              </div>
+            </div>
+          </div>
           <div>
             <div className="flex items-center space-x-2">
               <h2 className="text-xl font-extrabold text-purple-950">
@@ -536,8 +555,8 @@ const itemsPerPage = 15;
                         <span className="px-2.5 py-0.5 bg-purple-100 text-purple-800 font-bold text-xs rounded-full">
                           {item.candidateName}
                         </span>
-                        <span className="px-2 py-0.5 bg-emerald-100 text-emerald-800 font-extrabold text-xs rounded-md">
-                          +{item.points} PBAS Pts
+                        <span className="px-2 py-0.5 bg-amber-100 text-amber-900 border border-amber-300 font-extrabold text-[10px] rounded-md">
+                          ⏳ Pending CM Verification
                         </span>
                         <span className="text-xs text-slate-400">{item.submittedDate}</span>
                       </div>
@@ -545,24 +564,42 @@ const itemsPerPage = 15;
                       <p className="text-xs text-slate-600">{item.details || 'Submitted for verification.'}</p>
                     </div>
 
-                    <div className="flex items-center space-x-2">
+                    <div className="flex items-center space-x-2 flex-wrap gap-y-2">
                       <button
                         onClick={() => setSelectedEvidence(item)}
-                        className="px-3 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold rounded-xl transition-all flex items-center space-x-1"
+                        className="px-3 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold rounded-xl transition-all flex items-center space-x-1 cursor-pointer"
                       >
                         <Eye className="w-3.5 h-3.5" />
-                        <span>Inspect Evidence</span>
+                        <span>Inspect</span>
                       </button>
+
+                      <div className="flex items-center space-x-1.5 bg-slate-100 px-2.5 py-1.5 rounded-xl border border-slate-200">
+                        <span className="text-[10px] font-black text-slate-600 uppercase">Pts:</span>
+                        <input
+                          type="number"
+                          min="0"
+                          max="100"
+                          defaultValue={item.points || 10}
+                          id={`pts-input-${item.id}`}
+                          className="w-14 p-1 text-xs font-black text-center bg-white border border-slate-300 rounded-lg outline-none focus:ring-2 focus:ring-purple-500"
+                        />
+                      </div>
+
                       <button
-                        onClick={() => handleApprove(item)}
-                        className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-xl shadow-sm transition-all flex items-center space-x-1"
+                        onClick={() => {
+                          const inputEl = document.getElementById(`pts-input-${item.id}`) as HTMLInputElement;
+                          const assignedPts = inputEl ? Number(inputEl.value) : item.points;
+                          handleApprove(item, assignedPts);
+                        }}
+                        className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-black rounded-xl shadow-sm transition-all flex items-center space-x-1 cursor-pointer"
                       >
                         <Check className="w-4 h-4" />
-                        <span>Approve (+{item.points} Pts)</span>
+                        <span>Approve & Grant Pts</span>
                       </button>
+
                       <button
                         onClick={() => handleDecline(item)}
-                        className="px-3 py-2 bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 text-xs font-bold rounded-xl transition-all"
+                        className="px-3 py-2 bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 text-xs font-bold rounded-xl transition-all cursor-pointer"
                       >
                         Decline
                       </button>
@@ -1192,10 +1229,15 @@ const itemsPerPage = 15;
 
               {/* AI STAR MOCK REPORTS */}
               <div className="space-y-3">
-                <h4 className="font-extrabold text-xs text-purple-950 uppercase tracking-wider flex items-center space-x-1.5">
-                  <Sparkles className="w-4 h-4 text-purple-600" />
-                  <span>AI STAR Practice Coaching Reports (+25 Pts Each)</span>
-                </h4>
+                <div className="flex items-center justify-between">
+                  <h4 className="font-extrabold text-xs text-purple-950 uppercase tracking-wider flex items-center space-x-1.5">
+                    <Sparkles className="w-4 h-4 text-purple-600" />
+                    <span>Azure OpenAI STAR Practice Coaching Reports</span>
+                  </h4>
+                  <span className="text-[10px] font-bold text-slate-500 bg-slate-100 px-2 py-0.5 rounded border border-slate-200">
+                    🔒 Copilot Encrypted Log
+                  </span>
+                </div>
 
                 {starHistory.length === 0 ? (
                   <div className="p-4 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-500 text-center">

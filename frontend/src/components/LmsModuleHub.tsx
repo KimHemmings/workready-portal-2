@@ -242,8 +242,8 @@ export const LmsModuleHub: React.FC<LmsModuleHubProps> = ({ onModuleCompleted, c
                 </>
               ) : isWfa ? (
   <>
-    <span className="block text-xl font-black text-emerald-300">+{monthlyCappedPoints} / {MONTHLY_LMS_POINTS_CAP} Pts</span>
-    <span className="text-[10px] font-bold uppercase text-purple-200 tracking-wider">Monthly Cap</span>
+    <span className="block text-xl font-black text-emerald-300">{completedCount} / {totalModules}</span>
+    <span className="text-[10px] font-bold uppercase text-purple-200 tracking-wider">Modules Done</span>
   </>
 ) : (
   <>
@@ -374,20 +374,7 @@ export const LmsModuleHub: React.FC<LmsModuleHubProps> = ({ onModuleCompleted, c
                 {/* Footer Metadata & Lock/Review States */}
                 <div className="pt-3 border-t border-slate-100 flex items-center justify-between text-xs font-bold">
                   <div className="flex items-center gap-3 text-slate-500">
-                    <span className="flex items-center gap-1">
-                      <Clock className="w-3.5 h-3.5 text-slate-400" /> {mod.estimatedMins}m
-                    </span>
-                    
-                    {!isRtoGraduate && (
-  <span className={`flex items-center gap-1 font-extrabold ${
-    isLocked ? 'text-slate-400 line-through' : 'text-emerald-700'
-  }`}>
-    <Zap className="w-3.5 h-3.5 fill-current" /> 
-    {isWfa ? `+${mod.pbasPoints} Pts` : `${mod.estimatedMins || 20}m Credit`}
-  </span>
-)}
                   </div>
-
                   {isCompleted ? (
                     <span className="inline-flex items-center gap-1 font-extrabold text-emerald-700">
                       Review <ArrowRight className="w-3.5 h-3.5" />

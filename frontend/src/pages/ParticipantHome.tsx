@@ -34,7 +34,9 @@ import {
   MessageSquare,
   ShieldCheck,
   Calendar,
-  Lock
+  Lock,
+  AlertTriangle,
+  ArrowRight
 } from 'lucide-react';
 
 interface ActivityLog {
@@ -89,7 +91,7 @@ const isIea = isDes;
 
   const [selectedReport, setSelectedReport] = useState<any | null>(null);
 
-  const [activities, setActivities] = useState<ActivityLog[]>([
+ const [activities, setActivities] = useState<ActivityLog[]>([
     {
       id: 'act-1',
       type: 'LMS Module',
@@ -117,7 +119,7 @@ const isIea = isDes;
       type: 'Job Search',
       title: 'Warehouse Assistant — Logistics Co',
       reference: 'JOB-98231',
-      points: 5,
+      points: 0,
       hours: 1.0,
       status: 'Pending Verification',
       date: '14/09/2026',
@@ -129,7 +131,7 @@ const isIea = isDes;
         dateApplied: '14/09/2026',
         contact: 'Receipt #JOB-98231'
       }
-    },
+    }
   ]);
 
   useEffect(() => {
@@ -196,13 +198,30 @@ const [showOtherActivityModal, setShowOtherActivityModal] = useState<boolean>(fa
   const [jsRole, setJsRole] = useState('');
   const [jsRef, setJsRef] = useState('');
 
+  // Outcome Milestone & Payslip Upload State
+  const [showPayslipModal, setShowPayslipModal] = useState<boolean>(false);
+  const [payslipMilestone, setPayslipMilestone] = useState<'4-Week' | '12-Week' | '26-Week'>('4-Week');
+  const [payslipHours, setPayslipHours] = useState<string>('');
+
+  // PBAS Deadline Popup State & Countdown
+  const [showPbasDeadlineModal, setShowPbasDeadlineModal] = useState<boolean>(true);
+  const daysLeftForPbas = (() => {
+    const today = new Date();
+    let deadline = new Date(today.getFullYear(), today.getMonth(), 28);
+    if (today.getDate() > 28) deadline = new Date(today.getFullYear(), today.getMonth() + 1, 28);
+    return Math.ceil((deadline.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+  })();
+  const isPbasDeadlineUrgent = daysLeftForPbas <= 5;
+
   const [jobEmployer, setJobEmployer] = useState('');
   const [jobRole, setJobRole] = useState('');
   const [jobRef, setJobRef] = useState('');
+  const [jobStartDate, setJobStartDate] = useState('');
 
   const [intEmployer, setIntEmployer] = useState('');
   const [intRole, setIntRole] = useState('');
   const [intRef, setIntRef] = useState('');
+  const [intDateTime, setIntDateTime] = useState('');
 
   const handleModuleCompleted = (moduleId: string, points: number) => {
     const newAct: ActivityLog = {
@@ -415,7 +434,7 @@ const [showOtherActivityModal, setShowOtherActivityModal] = useState<boolean>(fa
       className="flex-1 md:flex-none px-5 py-2.5 bg-gradient-to-r from-amber-400 to-orange-500 text-slate-950 font-black text-xs rounded-2xl shadow-lg flex items-center justify-center gap-2 border-2 border-amber-300"
     >
       <Briefcase className="w-4 h-4" />
-      <span>I Got an Interview! {isWfa ? '(+25 Pts)' : ''}</span>
+      <span>I Got an Interview!</span>
     </button>
 
     <button
@@ -424,7 +443,7 @@ const [showOtherActivityModal, setShowOtherActivityModal] = useState<boolean>(fa
       className="flex-1 md:flex-none px-5 py-2.5 bg-gradient-to-r from-emerald-500 to-cyan-600 text-white font-black text-xs rounded-2xl shadow-lg flex items-center justify-center gap-2 border-2 border-emerald-300/80"
     >
       <PartyPopper className="w-4 h-4 text-amber-300" />
-      <span>I Got the Job! {isWfa ? '(+50 Pts)' : ''}</span>
+      <span>I Got the Job!</span>
     </button>
   </div>
 )}
@@ -494,9 +513,11 @@ const [showOtherActivityModal, setShowOtherActivityModal] = useState<boolean>(fa
                   </div>
                 </div>
 
-                <span className="text-[11px] font-black bg-amber-300 text-slate-950 px-3 py-1 rounded-full shadow-sm shrink-0">
-  {isWfa ? 'Earns +10 PBAS Points' : isRto ? 'Voluntary Portfolio Activity' : 'Logs 1.0 Hour Credit'}
-</span>
+                {reviewSubmitted && (
+                  <span className="text-[11px] font-black bg-amber-300 text-slate-950 px-3 py-1 rounded-full shadow-sm shrink-0">
+                    Submitted for CM Point Sign-off
+                  </span>
+                )}
               </div>
 
               {/* Wizard Step Stepper Badges */}
@@ -864,6 +885,53 @@ const [showOtherActivityModal, setShowOtherActivityModal] = useState<boolean>(fa
 
           {activeTab === 3 && (
             <div className="space-y-6">
+              {/* 💼 DEWR EMPLOYMENT RETENTION & PAYSLIP TRACKER */}
+      <div className="bg-white border-2 border-slate-200 rounded-2xl p-5 space-y-4 shadow-sm my-6">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-3">
+          <div>
+            <div className="flex items-center gap-2">
+              <h3 className="font-extrabold text-base text-[#24083b]">Employment Outcome & Retention Milestones</h3>
+            </div>
+            <p className="text-xs text-slate-500 mt-0.5">Submit verified payslip evidence for 4-week, 12-week, and 26-week employment milestones.</p>
+          </div>
+
+          <button
+            type="button"
+            onClick={() => setShowPayslipModal(true)}
+            className="px-4 py-2 bg-purple-950 hover:bg-purple-900 text-white font-extrabold text-xs rounded-xl shadow-sm transition-all cursor-pointer flex items-center gap-1.5 shrink-0"
+          >
+            <Download className="w-3.5 h-3.5 text-amber-300" />
+            <span>Upload Milestone Payslip</span>
+          </button>
+        </div>
+
+        {/* Milestone Cards Grid */}
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
+          <div className="p-3.5 bg-slate-50 border border-slate-200 rounded-xl space-y-1">
+            <div className="flex justify-between items-center">
+              <span className="font-extrabold text-slate-900">4-Week Outcome</span>
+              <span className="text-[10px] font-bold text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded">Active Focus</span>
+            </div>
+            <p className="text-[11px] text-slate-500">Requires verified payslips totaling minimum obligation hours.</p>
+          </div>
+
+          <div className="p-3.5 bg-slate-50 border border-slate-200 rounded-xl space-y-1 opacity-75">
+            <div className="flex justify-between items-center">
+              <span className="font-extrabold text-slate-900">12-Week Outcome</span>
+              <span className="text-[10px] font-bold text-slate-500 bg-slate-200 px-2 py-0.5 rounded">Upcoming</span>
+            </div>
+            <p className="text-[11px] text-slate-500">Continuous employment verification & outcome sign-off.</p>
+          </div>
+
+          <div className="p-3.5 bg-slate-50 border border-slate-200 rounded-xl space-y-1 opacity-75">
+            <div className="flex justify-between items-center">
+              <span className="font-extrabold text-slate-900">26-Week Outcome</span>
+              <span className="text-[10px] font-bold text-slate-500 bg-slate-200 px-2 py-0.5 rounded">Upcoming</span>
+            </div>
+            <p className="text-[11px] text-slate-500">Full employment sustainability milestone claim.</p>
+          </div>
+        </div>
+      </div>
               
               {/* SECTION 1: APPOINTMENTS CONTAINER */}
               <div className="bg-[#f8fafc] border border-slate-200/90 rounded-2xl p-6 shadow-sm space-y-4">
@@ -1043,15 +1111,17 @@ const [showOtherActivityModal, setShowOtherActivityModal] = useState<boolean>(fa
                             <td className="p-3 font-mono text-slate-500 bg-slate-100 px-2 py-1 rounded w-max text-[11px]">{act.reference}</td>
                             <td className="p-3 font-bold text-purple-950">{act.hours ? `${act.hours} hrs` : '1.0 hr'}</td>
                             {isWfa && (
-                              <td className="p-3 font-bold">
-                                {act.points > 0 ? (
-                                  <span className="text-emerald-600">+{act.points} Pts</span>
+                              <td className="p-3 font-bold whitespace-nowrap">
+                                {act.status === 'Verified' ? (
+                                  <span className="text-emerald-600 text-xs font-extrabold">+{act.points} Pts</span>
                                 ) : (
-                                  <span className="text-slate-400">0 Pts</span>
+                                  <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[11px] font-bold bg-amber-50 text-amber-900 border border-amber-300">
+                                    ⏳ Pending CM Verification
+                                  </span>
                                 )}
                               </td>
                             )}
-                            <td className="p-3">
+                            <td className="p-3 whitespace-nowrap">
                               {act.status === 'Verified' ? (
                                 <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
                                   <CheckCircle2 className="w-3.5 h-3.5" /> Verified
@@ -1325,7 +1395,7 @@ const [showOtherActivityModal, setShowOtherActivityModal] = useState<boolean>(fa
           <form onSubmit={handleReportJob} className="bg-white rounded-2xl p-6 max-w-md w-full space-y-4 shadow-xl border border-slate-200">
             <div className="border-b border-slate-100 pb-3 flex justify-between items-center">
               <h3 className="font-bold text-base text-[#24083b]">Report New Employment 🎉</h3>
-              <button type="button" onClick={() => setShowJobModal(false)} className="text-slate-400 hover:text-slate-600 font-bold">✕</button>
+              <button type="button" onClick={() => setShowJobModal(false)} className="text-slate-400 hover:text-slate-600 font-bold cursor-pointer">✕</button>
             </div>
             <div className="space-y-3 text-xs">
               <div>
@@ -1337,13 +1407,17 @@ const [showOtherActivityModal, setShowOtherActivityModal] = useState<boolean>(fa
                 <input required type="text" value={jobRole} onChange={(e) => setJobRole(e.target.value)} placeholder="e.g. Forklift Driver" className="w-full p-2.5 border rounded-xl" />
               </div>
               <div>
+                <label className="block font-bold text-slate-700 mb-1">Job Start Date *</label>
+                <input required type="date" value={jobStartDate} onChange={(e) => setJobStartDate(e.target.value)} className="w-full p-2.5 border rounded-xl font-bold text-slate-800" />
+              </div>
+              <div>
                 <label className="block font-bold text-slate-700 mb-1">Verification / Contract Ref *</label>
                 <input required type="text" value={jobRef} onChange={(e) => setJobRef(e.target.value)} placeholder="e.g. Contract ID #4920" className="w-full p-2.5 border rounded-xl" />
               </div>
             </div>
             <div className="flex justify-end gap-2 pt-2 border-t border-slate-100">
-              <button type="button" onClick={() => setShowJobModal(false)} className="px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100 rounded-xl">Cancel</button>
-              <button type="submit" className="px-4 py-2 text-xs bg-[#16a34a] text-white font-bold rounded-xl shadow-sm">
+              <button type="button" onClick={() => setShowJobModal(false)} className="px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100 rounded-xl cursor-pointer">Cancel</button>
+              <button type="submit" className="px-4 py-2 text-xs bg-[#16a34a] text-white font-bold rounded-xl shadow-sm cursor-pointer">
                 Submit Placement
               </button>
             </div>
@@ -1357,7 +1431,7 @@ const [showOtherActivityModal, setShowOtherActivityModal] = useState<boolean>(fa
           <form onSubmit={handleReportInterview} className="bg-white rounded-2xl p-6 max-w-md w-full space-y-4 shadow-xl border border-slate-200">
             <div className="border-b border-slate-100 pb-3 flex justify-between items-center">
               <h3 className="font-bold text-base text-[#24083b]">Report Upcoming Employer Interview 💼</h3>
-              <button type="button" onClick={() => setShowInterviewModal(false)} className="text-slate-400 hover:text-slate-600 font-bold">✕</button>
+              <button type="button" onClick={() => setShowInterviewModal(false)} className="text-slate-400 hover:text-slate-600 font-bold cursor-pointer">✕</button>
             </div>
             <div className="space-y-3 text-xs">
               <div>
@@ -1369,13 +1443,17 @@ const [showOtherActivityModal, setShowOtherActivityModal] = useState<boolean>(fa
                 <input required type="text" value={intRole} onChange={(e) => setIntRole(e.target.value)} placeholder="e.g. Barista / All-Rounder" className="w-full p-2.5 border rounded-xl" />
               </div>
               <div>
+                <label className="block font-bold text-slate-700 mb-1">Interview Date & Time *</label>
+                <input required type="datetime-local" value={intDateTime} onChange={(e) => setIntDateTime(e.target.value)} className="w-full p-2.5 border rounded-xl font-bold text-slate-800" />
+              </div>
+              <div>
                 <label className="block font-bold text-slate-700 mb-1">Interview Invite Ref / Confirmation *</label>
                 <input required type="text" value={intRef} onChange={(e) => setIntRef(e.target.value)} placeholder="e.g. Email Invite Ref #8821" className="w-full p-2.5 border rounded-xl" />
               </div>
             </div>
             <div className="flex justify-end gap-2 pt-2 border-t border-slate-100">
-              <button type="button" onClick={() => setShowInterviewModal(false)} className="px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100 rounded-xl">Cancel</button>
-              <button type="submit" className="px-4 py-2 text-xs bg-purple-600 text-white font-bold rounded-xl shadow-sm">
+              <button type="button" onClick={() => setShowInterviewModal(false)} className="px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100 rounded-xl cursor-pointer">Cancel</button>
+              <button type="submit" className="px-4 py-2 text-xs bg-purple-600 text-white font-bold rounded-xl shadow-sm cursor-pointer">
                 Submit Interview
               </button>
             </div>
@@ -1522,6 +1600,142 @@ const [showOtherActivityModal, setShowOtherActivityModal] = useState<boolean>(fa
                   className="px-6 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-black rounded-xl shadow-lg shadow-emerald-600/20"
                 >
                   Submit for Verification
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+{/* ⚠️ 5-DAY PBAS DEADLINE BLOCKING POPUP MODAL */}
+      {showPbasDeadlineModal && isPbasDeadlineUrgent && (
+        <div className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-4">
+          <div className="bg-white max-w-lg w-full rounded-2xl border-2 border-amber-400 shadow-2xl p-6 space-y-5 animate-in fade-in zoom-in duration-200">
+            
+            {/* Modal Header */}
+            <div className="flex items-start justify-between">
+              <div className="flex items-center space-x-3">
+                <div className="w-12 h-12 bg-amber-100 border border-amber-300 rounded-2xl flex items-center justify-center shrink-0">
+                  <AlertTriangle className="w-6 h-6 text-amber-900 animate-pulse" />
+                </div>
+                <div>
+                  <span className="text-[10px] font-black uppercase tracking-wider text-amber-900 bg-amber-100 border border-amber-300 px-2.5 py-0.5 rounded-full">
+                    DEWR Compliance Alert
+                  </span>
+                  <h3 className="text-lg font-black text-purple-950 mt-1">
+                    PBAS Reporting Points Due Soon!
+                  </h3>
+                </div>
+              </div>
+            </div>
+
+            {/* Countdown Badge Box */}
+            <div className="bg-slate-50 border border-slate-200 rounded-xl p-4 flex items-center justify-between">
+              <div>
+                <p className="text-xs font-bold text-slate-700">Days Remaining in Reporting Period</p>
+                <p className="text-xs text-slate-500 font-medium">Monthly Points Target Deadline</p>
+              </div>
+              <div className="text-right">
+                <span className="text-2xl font-black text-amber-600 font-mono">
+                  {daysLeftForPbas} {daysLeftForPbas === 1 ? 'Day' : 'Days'}
+                </span>
+              </div>
+            </div>
+
+            {/* Explanation & Action Notice */}
+            <p className="text-xs text-slate-700 font-medium leading-relaxed">
+              Your monthly Points Based Activation System (PBAS) evidence must be submitted for Case Manager review before your cut-off date to maintain full mutual obligation compliance under Workforce Australia guidelines.
+            </p>
+
+            {/* Acknowledgment Action Button */}
+            <div className="pt-2">
+              <button
+                onClick={() => setShowPbasDeadlineModal(false)}
+                className="w-full py-3 bg-amber-400 hover:bg-amber-300 text-purple-950 font-black text-sm rounded-xl transition-all cursor-pointer shadow-md flex items-center justify-center space-x-2"
+              >
+                <span>I Understand & Review My PBAS Target</span>
+                <ArrowRight className="w-4 h-4" />
+              </button>
+            </div>
+
+          </div>
+        </div>
+      )}
+
+      {/* 📄 PAYSLIP & MILESTONE EVIDENCE UPLOAD MODAL */}
+      {showPayslipModal && (
+        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-2xl p-6 max-w-md w-full space-y-4 shadow-xl border border-slate-200">
+            <div className="border-b border-slate-100 pb-3 flex justify-between items-center">
+              <div>
+                <h3 className="font-extrabold text-base text-[#24083b]">Upload Outcome Payslip Proof 📄</h3>
+                <p className="text-[11px] text-slate-500">Encrypted transmission to Case Manager Document Locker</p>
+              </div>
+              <button 
+                type="button" 
+                onClick={() => setShowPayslipModal(false)} 
+                className="text-slate-400 hover:text-slate-600 font-bold cursor-pointer"
+              >
+                ✕
+              </button>
+            </div>
+
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                alert(`✅ Payslip for ${payslipMilestone} Milestone submitted successfully!\n\nYour Case Manager will verify hours worked (${payslipHours || 'Standard Shift'}) for DEWR outcome compliance.`);
+                setShowPayslipModal(false);
+                setPayslipHours('');
+              }}
+              className="space-y-3 text-xs"
+            >
+              <div>
+                <label className="block font-bold text-slate-700 mb-1">Select Outcome Milestone *</label>
+                <select
+                  value={payslipMilestone}
+                  onChange={(e) => setPayslipMilestone(e.target.value as any)}
+                  className="w-full p-2.5 border rounded-xl font-bold text-slate-800 bg-slate-50 outline-none focus:border-purple-600"
+                >
+                  <option value="4-Week">4-Week Employment Outcome</option>
+                  <option value="12-Week">12-Week Employment Outcome</option>
+                  <option value="26-Week">26-Week Sustainable Outcome</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block font-bold text-slate-700 mb-1">Total Hours Logged on Payslip *</label>
+                <input
+                  required
+                  type="number"
+                  placeholder="e.g. 38"
+                  value={payslipHours}
+                  onChange={(e) => setPayslipHours(e.target.value)}
+                  className="w-full p-2.5 border rounded-xl font-bold text-slate-800"
+                />
+              </div>
+
+              <div>
+                <label className="block font-bold text-slate-700 mb-1">Attach PDF / Photo of Payslip *</label>
+                <input
+                  required
+                  type="file"
+                  accept="image/*,.pdf"
+                  className="w-full p-2 border rounded-xl text-xs bg-slate-50 text-slate-600 cursor-pointer"
+                />
+              </div>
+
+              <div className="flex justify-end gap-2 pt-3 border-t border-slate-100">
+                <button
+                  type="button"
+                  onClick={() => setShowPayslipModal(false)}
+                  className="px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100 rounded-xl cursor-pointer"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="px-4 py-2 text-xs bg-purple-950 hover:bg-purple-900 text-white font-extrabold rounded-xl shadow-sm cursor-pointer"
+                >
+                  Submit Payslip for Audit
                 </button>
               </div>
             </form>
