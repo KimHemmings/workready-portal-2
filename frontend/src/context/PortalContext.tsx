@@ -1,5 +1,11 @@
 import React, { createContext, useContext, useState } from 'react';
 import type { ReactNode } from 'react';
+import type {
+  ContractFramework,
+  PendingSubmission,
+  CandidatePPSRecord,
+  SubmissionType,
+} from '../lib/types';
 
 // ==========================================
 // 1. COMPREHENSIVE INTERFACES & EXPORTS
@@ -142,6 +148,14 @@ interface PortalContextType {
   submitCandidateClaim: (claim: Omit<OutcomeClaim, 'id' | 'date' | 'status'>) => void;
   verifyOutcomeClaim: (id: string) => void;
   rejectOutcomeClaim: (id: string) => void;
+
+  // DEWR Sign-Off Locker & PPS Retention
+  pendingSubmissions: PendingSubmission[];
+  ppsRecords: CandidatePPSRecord[];
+  verifySubmission: (id: string, notes?: string) => void;
+  rejectSubmission: (id: string, reason: string) => void;
+  undoSubmission: (id: string) => void;
+  claimPPSOutcome: (candidateId: string, milestoneKey: '4-week' | '12-week' | '26-week') => void;
 }
 
 // ==========================================
@@ -152,6 +166,12 @@ const getThreeYearRetentionDate = (): string => {
   const d = new Date();
   d.setMonth(d.getMonth() + 36);
   return d.toISOString().split('T')[0];
+};
+
+// Helper for cryptographic audit codes
+const generateAuditCode = (): string => {
+  const randomHex = Math.random().toString(16).substring(2, 8).toUpperCase();
+  return `SUT-AUDIT-${randomHex}`;
 };
 
 // ==========================================
@@ -348,6 +368,98 @@ const initialVerificationItems: VerificationItem[] = [
   },
 ];
 
+const initialPendingSubmissions: PendingSubmission[] = [
+  {
+    id: 'sub-101',
+    candidateId: 'c1',
+    candidateName: 'Alex Mercer',
+    contractFramework: 'WfA',
+    type: 'Payslip',
+    title: 'Milestone Payslip - 4-Week Retention',
+    description: 'Submitted 2x fortnightly payslips confirming 62 total hours worked.',
+    submittedAt: new Date(Date.now() - 3600000 * 4).toISOString(),
+    status: 'Pending',
+    hoursLogged: 62,
+    grossPay: 1860,
+    periodLabel: '4-Week Milestone',
+    evidenceUrl: '#',
+  },
+  {
+    id: 'sub-102',
+    candidateId: 'c2',
+    candidateName: 'Jordan Smith',
+    contractFramework: 'TtW',
+    type: 'STAR_Session',
+    title: 'Warehouse Operations Conflict Resolution',
+    description: 'AI STAR Simulation passed with 88% confidence score.',
+    submittedAt: new Date(Date.now() - 3600000 * 12).toISOString(),
+    status: 'Pending',
+    evidenceUrl: '#',
+  },
+  {
+    id: 'sub-103',
+    candidateId: 'c3',
+    candidateName: 'Sam Taylor',
+    contractFramework: 'IEA_DES',
+    type: 'Goal_Plan',
+    title: 'Monthly Goal & Confidence Pathway',
+    description: 'Participant submitted 3-step action plan & White Card funding request.',
+    submittedAt: new Date(Date.now() - 3600000 * 24).toISOString(),
+    status: 'Pending',
+  },
+  {
+    id: 'sub-104',
+    candidateId: 'c1',
+    candidateName: 'Alex Mercer',
+    contractFramework: 'WfA',
+    type: 'LMS_Module',
+    title: 'WHS & Workplace Hazard Identification (20m)',
+    description: '100% assessment score achieved on refresher module.',
+    submittedAt: new Date(Date.now() - 3600000 * 48).toISOString(),
+    status: 'Pending',
+  },
+];
+
+const initialPPSRecords: CandidatePPSRecord[] = [
+  {
+    candidateId: 'c1',
+    candidateName: 'Alex Mercer',
+    contractFramework: 'WfA',
+    employerName: 'Apex Logistics Group',
+    startDate: '2026-09-01',
+    hourlyRate: 30.00,
+    milestones: {
+      '4-week': {
+        milestoneKey: '4-week',
+        label: '4-Week Outcome',
+        targetHours: 60,
+        accumulatedHours: 62,
+        requiredWeeks: 4,
+        status: 'Claim_Ready',
+        verifiedPayslipCount: 2,
+      },
+      '12-week': {
+        milestoneKey: '12-week',
+        label: '12-Week Outcome',
+        targetHours: 180,
+        accumulatedHours: 62,
+        requiredWeeks: 12,
+        status: 'In_Progress',
+        verifiedPayslipCount: 2,
+      },
+      '26-week': {
+        milestoneKey: '26-week',
+        label: '26-Week Retention',
+        targetHours: 390,
+        accumulatedHours: 62,
+        requiredWeeks: 26,
+        status: 'In_Progress',
+        verifiedPayslipCount: 2,
+      },
+    },
+  },
+];
+
 // ==========================================
 // 4. CONTEXT PROVIDER COMPONENT
 // ==========================================
@@ -363,6 +475,9 @@ export const PortalProvider: React.FC<{ children: ReactNode }> = ({ children }) 
   const [activeCandidate, setActiveCandidate] = useState<Candidate | null>(initialCandidates[0]);
 
   const [verificationItems, setVerificationItems] = useState<VerificationItem[]>(initialVerificationItems);
+  const [pendingSubmissions, setPendingSubmissions] = useState<PendingSubmission[]>(initialPendingSubmissions);
+  const [ppsRecords, setPpsRecords] = useState<CandidatePPSRecord[]>(initialPPSRecords);
+
   const [supportMessages, setSupportMessages] = useState<SupportMessage[]>([
     {
       id: 'msg-1',
@@ -378,13 +493,13 @@ export const PortalProvider: React.FC<{ children: ReactNode }> = ({ children }) 
 
   // Demo State Reset Handler (Purges local storage & restores baseline seed data)
   const resetSandboxState = () => {
-    // 1. Purge component local storage keys
     localStorage.removeItem('workready_star_history');
     localStorage.removeItem('workready_resume_draft');
     window.dispatchEvent(new Event('starHistoryUpdated'));
 
-    // 2. Reset context queues and candidates to baseline
     setVerificationItems(initialVerificationItems);
+    setPendingSubmissions(initialPendingSubmissions);
+    setPpsRecords(initialPPSRecords);
     setOutcomeClaims([]);
     setSupportMessages([
       {
@@ -515,6 +630,69 @@ export const PortalProvider: React.FC<{ children: ReactNode }> = ({ children }) 
     );
   };
 
+  // Sign-Off Locker & DEWR Verification Handlers
+  const verifySubmission = (id: string, notes?: string) => {
+    const auditCode = generateAuditCode();
+    const verifiedTimestamp = new Date().toISOString();
+
+    setPendingSubmissions((prev) =>
+      prev.map((sub) => {
+        if (sub.id === id) {
+          return {
+            ...sub,
+            status: 'Verified',
+            auditCode,
+            verifiedAt: verifiedTimestamp,
+            verifiedBy: 'Case Manager (Coach)',
+          };
+        }
+        return sub;
+      })
+    );
+  };
+
+  const rejectSubmission = (id: string, reason: string) => {
+    setPendingSubmissions((prev) =>
+      prev.map((sub) => (sub.id === id ? { ...sub, status: 'Rejected' } : sub))
+    );
+  };
+const undoSubmission = (id: string) => {
+    setPendingSubmissions((prev) =>
+      prev.map((sub) => {
+        if (sub.id === id) {
+          return {
+            ...sub,
+            status: 'Pending',
+            auditCode: undefined,
+            verifiedAt: undefined,
+            verifiedBy: undefined,
+          };
+        }
+        return sub;
+      })
+    );
+  };
+  const claimPPSOutcome = (candidateId: string, milestoneKey: '4-week' | '12-week' | '26-week') => {
+    setPpsRecords((prev) =>
+      prev.map((record) => {
+        if (record.candidateId === candidateId) {
+          return {
+            ...record,
+            milestones: {
+              ...record.milestones,
+              [milestoneKey]: {
+                ...record.milestones[milestoneKey],
+                status: 'Claimed',
+                claimedAt: new Date().toISOString(),
+              },
+            },
+          };
+        }
+        return record;
+      })
+    );
+  };
+
   // Support Messages Handlers
   const addSupportMessage = (msg: Omit<SupportMessage, 'id' | 'date' | 'status'>) => {
     const newMsg: SupportMessage = {
@@ -542,7 +720,6 @@ export const PortalProvider: React.FC<{ children: ReactNode }> = ({ children }) 
     };
     setOutcomeClaims((prev) => [newClaim, ...prev]);
 
-    // Push into verification queue for Case Manager 1-click verification
     addVerificationItem({
       candidateId: claim.candidateId,
       candidateName: claim.candidateName,
@@ -599,6 +776,12 @@ export const PortalProvider: React.FC<{ children: ReactNode }> = ({ children }) 
         submitCandidateClaim: addOutcomeClaim,
         verifyOutcomeClaim,
         rejectOutcomeClaim,
+        pendingSubmissions,
+        ppsRecords,
+        verifySubmission,
+        rejectSubmission,
+        undoSubmission,
+        claimPPSOutcome,
       }}
     >
       {children}

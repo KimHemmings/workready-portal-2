@@ -4,7 +4,7 @@ import type { Candidate, VerificationItem } from '../context/PortalContext';
 import { 
   Users, CheckCircle2, Search, Filter, History, LogOut, Check, ChevronRight, Eye,
   Award, Calendar, Sparkles, MessageSquare, X, Send,
-  ChevronDown, ChevronUp, UserCheck, UserX
+  ChevronDown, ChevronUp, UserCheck, UserX, Building2, ShieldCheck  
 } from 'lucide-react';
 
 interface AuditLogEntry {
@@ -29,11 +29,19 @@ export default function CoachDashboard() {
     candidates,
     verificationItems,
     updateVerificationStatus,
+    activeContract,
+    setActiveContract,
+    pendingSubmissions,
+    ppsRecords,
+    verifySubmission,
+    rejectSubmission,
+    undoSubmission, 
+    claimPPSOutcome
   } = usePortal();
 
   const [currentCoachName] = useState('Casey Smith');
   const [selectedCaseload, setSelectedCaseload] = useState<string>('casey');
-  const [activeTab, setActiveTab] = useState<'pending' | 'roster' | 'audit'>('roster');
+  const [activeTab, setActiveTab] = useState<'pending' | 'roster' | 'pps' | 'audit'>('roster');
   const [searchTerm, setSearchTerm] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
 const itemsPerPage = 15;
@@ -159,9 +167,16 @@ const itemsPerPage = 15;
   };
 
   const handleSignOut = () => {
+    // 1. Clear testing query parameter from URL
     const url = new URL(window.location.href);
     url.searchParams.delete('role');
     window.history.pushState({}, '', url.pathname);
+
+    // 2. Clear role storage overrides
+    localStorage.removeItem('workready_active_role');
+    localStorage.removeItem('workready_admin_impersonating');
+
+    // 3. Trigger navigation re-render
     window.dispatchEvent(new Event('popstate'));
   };
 
@@ -292,7 +307,7 @@ const itemsPerPage = 15;
 
   return (
     <div className="min-h-screen bg-slate-50 text-slate-900 font-sans">
-<header className="bg-gradient-to-r from-[#1e1b4b] via-[#24083b] to-[#1e1b4b] text-white px-6 py-4 border-b border-purple-900/50 shadow-md">
+<header className="bg-linear-to-r from-[#1e1b4b] via-[#24083b] to-[#1e1b4b] text-white px-6 py-4 border-b border-purple-900/50 shadow-md">
         <div className="max-w-7xl mx-auto flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div className="flex items-center space-x-4">
             {/* PROMINENT HIGH-VISIBILITY LOGO BADGE */}
@@ -385,124 +400,122 @@ const itemsPerPage = 15;
       </header>
 
       <main className="max-w-7xl mx-auto p-6 space-y-6">
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white p-4 rounded-2xl border border-slate-200 shadow-sm">
-          {/* 🛡️ AZURE OPENAI / COPILOT SECURITY & PRIVACY BADGE */}
-          <div className="bg-slate-900 text-white p-3 rounded-xl border border-slate-800 flex items-center justify-between gap-3 text-xs shadow-sm my-2">
-            <div className="flex items-center space-x-2.5">
-              <div className="w-8 h-8 bg-purple-950 border border-purple-700/80 rounded-lg flex items-center justify-center font-black text-amber-300 shrink-0">
-                🛡️
-              </div>
-              <div>
-                <div className="flex items-center space-x-2">
-                  <span className="font-extrabold text-white">Enterprise Azure OpenAI Service (Microsoft Copilot Infrastructure)</span>
-                  <span className="bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 text-[9px] font-bold px-2 py-0.5 rounded-full uppercase">
-                    Sydney/Melbourne Sovereignty
-                  </span>
-                </div>
-                <p className="text-[11px] text-slate-400 mt-0.5">
-                  DEWR Privacy Compliant • 256-Bit AES Encrypted • Zero Model Training on Candidate AI Logs
-                </p>
-              </div>
-            </div>
-          </div>
-          <div>
-            <div className="flex items-center space-x-2">
-              <h2 className="text-xl font-extrabold text-purple-950">
-                Welcome back, {currentCoachName}!
-              </h2>
-              {isAway && (
-                <span className="px-2 py-0.5 bg-amber-100 text-amber-800 border border-amber-300 text-[10px] font-extrabold rounded-full uppercase">
-                  Away Mode Active
-                </span>
-              )}
-            </div>
-            {/* EXECUTIVE KPI SUMMARY CARDS */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3.5 my-4">
-          <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex items-center space-x-3">
-            <div className="p-3 bg-purple-50 text-purple-900 rounded-xl font-bold text-xs">
-              TOTAL
-            </div>
-            <div>
-              <div className="text-[11px] font-extrabold uppercase text-slate-400 tracking-wider">Active Roster</div>
-              <div className="text-xl font-black text-slate-900">{totalCaseloadCount}</div>
-            </div>
-          </div>
+        {/* SECTION 1: WELCOME & KPI SUMMARY CARDS */}
+<div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-4">
+  <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+    <div>
+      <div className="flex items-center space-x-2">
+        <h2 className="text-xl font-extrabold text-purple-950">
+          Welcome back, {currentCoachName}!
+        </h2>
+        {isAway && (
+          <span className="px-2 py-0.5 bg-amber-100 text-amber-800 border border-amber-300 text-[10px] font-extrabold rounded-full uppercase">
+            Away Mode Active
+          </span>
+        )}
+      </div>
+      <p className="text-xs text-slate-500 mt-0.5">
+        {selectedCaseload === 'casey' 
+          ? "Managing your direct candidate caseload." 
+          : `Active Coverage Mode: Staff caseload view set to [${selectedCaseload.toUpperCase()}].`}
+      </p>
+    </div>
 
-          <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex items-center space-x-3">
-            <div className="p-3 bg-emerald-50 text-emerald-700 rounded-xl font-bold text-xs">
-              TRACK
-            </div>
-            <div>
-              <div className="text-[11px] font-extrabold uppercase text-slate-400 tracking-wider">On Track</div>
-              <div className="text-xl font-black text-emerald-700">{onTrackCount}</div>
-            </div>
-          </div>
+    {/* Security Badge */}
+    <div className="bg-slate-900 text-white p-2.5 rounded-xl border border-slate-800 flex items-center gap-2.5 text-xs shadow-sm">
+      <span className="font-extrabold text-white">Enterprise Azure OpenAI</span>
+      <span className="bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 text-[9px] font-bold px-2 py-0.5 rounded-full uppercase">
+        Sydney/Melbourne Sovereignty
+      </span>
+    </div>
+  </div>
 
-          <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex items-center space-x-3">
-            <div className="p-3 bg-rose-50 text-rose-700 rounded-xl font-bold text-xs">
-              RISK
-            </div>
-            <div>
-              <div className="text-[11px] font-extrabold uppercase text-slate-400 tracking-wider">At Risk</div>
-              <div className="text-xl font-black text-rose-700">{atRiskCount}</div>
-            </div>
-          </div>
+  {/* KPI Grid - Full Width */}
+  <div className="grid grid-cols-2 md:grid-cols-4 gap-3.5 pt-2">
+    <div className="bg-slate-50 p-3.5 rounded-xl border border-slate-200 flex items-center space-x-3">
+      <div className="p-2.5 bg-purple-100 text-purple-900 rounded-lg font-bold text-xs">TOTAL</div>
+      <div>
+        <div className="text-[10px] font-extrabold uppercase text-slate-400">Active Roster</div>
+        <div className="text-lg font-black text-slate-900">{totalCaseloadCount}</div>
+      </div>
+    </div>
 
-          <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex items-center space-x-3">
-            <div className="p-3 bg-amber-50 text-amber-700 rounded-xl font-bold text-xs">
-              PROOFS
-            </div>
-            <div>
-              <div className="text-[11px] font-extrabold uppercase text-slate-400 tracking-wider">Pending Claims</div>
-              <div className="text-xl font-black text-amber-700">{pendingItems.length}</div>
-            </div>
-          </div>
-        </div>
-            <p className="text-xs text-slate-500 mt-0.5">
-              {selectedCaseload === 'casey' 
-                ? "Managing your direct candidate caseload." 
-                : `Active Coverage Mode: Staff caseload view set to [${selectedCaseload.toUpperCase()}].`}
-            </p>
-          </div>
+    <div className="bg-slate-50 p-3.5 rounded-xl border border-slate-200 flex items-center space-x-3">
+      <div className="p-2.5 bg-emerald-100 text-emerald-800 rounded-lg font-bold text-xs">TRACK</div>
+      <div>
+        <div className="text-[10px] font-extrabold uppercase text-slate-400">On Track</div>
+        <div className="text-lg font-black text-emerald-700">{onTrackCount}</div>
+      </div>
+    </div>
 
-          <div className="flex bg-slate-100 p-1 rounded-xl border border-slate-200 text-xs font-bold space-x-1">
-            <button
-              onClick={() => setActiveTab('pending')}
-              className={`px-4 py-2 rounded-lg transition-all flex items-center space-x-2 ${
-                activeTab === 'pending'
-                  ? 'bg-purple-950 text-white shadow-sm'
-                  : 'text-slate-600 hover:text-slate-900'
-              }`}
-            >
-              <CheckCircle2 className="w-4 h-4 text-emerald-400" />
-              <span>Pending Approvals ({pendingItems.length})</span>
-            </button>
+    <div className="bg-slate-50 p-3.5 rounded-xl border border-slate-200 flex items-center space-x-3">
+      <div className="p-2.5 bg-rose-100 text-rose-800 rounded-lg font-bold text-xs">RISK</div>
+      <div>
+        <div className="text-[10px] font-extrabold uppercase text-slate-400">At Risk</div>
+        <div className="text-lg font-black text-rose-700">{atRiskCount}</div>
+      </div>
+    </div>
 
-            <button
-              onClick={() => setActiveTab('roster')}
-              className={`px-4 py-2 rounded-lg transition-all flex items-center space-x-2 ${
-                activeTab === 'roster'
-                  ? 'bg-purple-950 text-white shadow-sm'
-                  : 'text-slate-600 hover:text-slate-900'
-              }`}
-            >
-              <Users className="w-4 h-4 text-purple-400" />
-              <span>Candidate Roster</span>
-            </button>
+    <div className="bg-slate-50 p-3.5 rounded-xl border border-slate-200 flex items-center space-x-3">
+      <div className="p-2.5 bg-amber-100 text-amber-800 rounded-lg font-bold text-xs">PROOFS</div>
+      <div>
+        <div className="text-[10px] font-extrabold uppercase text-slate-400">Pending Claims</div>
+        <div className="text-lg font-black text-amber-700">{pendingItems.length}</div>
+      </div>
+    </div>
+  </div>
+</div>
 
-            <button
-              onClick={() => setActiveTab('audit')}
-              className={`px-4 py-2 rounded-lg transition-all flex items-center space-x-2 ${
-                activeTab === 'audit'
-                  ? 'bg-purple-950 text-white shadow-sm'
-                  : 'text-slate-600 hover:text-slate-900'
-              }`}
-            >
-              <History className="w-4 h-4 text-amber-400" />
-              <span>90-Day Audit Log</span>
-            </button>
-          </div>
-        </div>
+{/* SECTION 2: CLEAN TAB NAVIGATION BAR (STANDALONE) */}
+<div className="flex bg-slate-200/80 p-1.5 rounded-2xl border border-slate-300 text-xs font-bold space-x-1.5 shadow-inner">
+  <button
+    onClick={() => setActiveTab('pending')}
+    className={`flex-1 py-2.5 rounded-xl transition-all flex items-center justify-center space-x-2 ${
+      activeTab === 'pending'
+        ? 'bg-purple-950 text-white shadow-md'
+        : 'text-slate-700 hover:text-slate-900 hover:bg-slate-100'
+    }`}
+  >
+    <CheckCircle2 className="w-4 h-4 text-emerald-400" />
+    <span>Pending Approvals ({pendingItems.length})</span>
+  </button>
+
+  <button
+    onClick={() => setActiveTab('roster')}
+    className={`flex-1 py-2.5 rounded-xl transition-all flex items-center justify-center space-x-2 ${
+      activeTab === 'roster'
+        ? 'bg-purple-950 text-white shadow-md'
+        : 'text-slate-700 hover:text-slate-900 hover:bg-slate-100'
+    }`}
+  >
+    <Users className="w-4 h-4 text-purple-400" />
+    <span>Candidate Roster</span>
+  </button>
+
+  <button
+    onClick={() => setActiveTab('pps')}
+    className={`flex-1 py-2.5 rounded-xl transition-all flex items-center justify-center space-x-2 ${
+      activeTab === 'pps'
+        ? 'bg-purple-950 text-white shadow-md'
+        : 'text-slate-700 hover:text-slate-900 hover:bg-slate-100'
+    }`}
+  >
+    <UserCheck className="w-4 h-4 text-emerald-400" />
+    <span>PPS Retention Locker</span>
+  </button>
+
+  <button
+    onClick={() => setActiveTab('audit')}
+    className={`flex-1 py-2.5 rounded-xl transition-all flex items-center justify-center space-x-2 ${
+      activeTab === 'audit'
+        ? 'bg-purple-950 text-white shadow-md'
+        : 'text-slate-700 hover:text-slate-900 hover:bg-slate-100'
+    }`}
+  >
+    <History className="w-4 h-4 text-amber-400" />
+    <span>90-Day Audit Log</span>
+  </button>
+</div>
 
         {/* COMPACT PRIORITY VICTORY BANNER (Job & Interview Claims Only) */}
         {victoryItems.length > 0 && (
@@ -603,6 +616,25 @@ const itemsPerPage = 15;
                       >
                         Decline
                       </button>
+                      <button
+  type="button"
+  onClick={() => {
+    if (undoSubmission) {
+      undoSubmission(item.id);
+    } else {
+      updateVerificationStatus(item.id, 'Pending' as any);
+    }
+    addAuditEntry(
+      item.candidateName,
+      `Reverted verification action for "${item.title}" back to Pending`
+    );
+    alert(`Reverted "${item.title}" back to Pending status.`);
+  }}
+  className="px-3 py-2 bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-300 text-xs font-bold rounded-xl transition-all flex items-center space-x-1 cursor-pointer"
+>
+  <History className="w-3.5 h-3.5 text-amber-700" />
+  <span>Undo Action</span>
+</button>
                     </div>
                   </div>
                 ))}
@@ -766,8 +798,8 @@ const itemsPerPage = 15;
                             <div 
                               className={`h-full ${
                                 isAtRisk 
-                                  ? 'bg-gradient-to-r from-rose-500 to-amber-500' 
-                                  : 'bg-gradient-to-r from-purple-600 to-emerald-500'
+                                  ? 'bg-linear-to-r from-rose-500 to-amber-500' 
+                                  : 'bg-linear-to-r from-purple-600 to-emerald-500'
                               }`}
                               style={{ width: `${progressPct}%` }}
                             />
@@ -878,7 +910,119 @@ const itemsPerPage = 15;
             )}
           </div>
         )}
+{/* POST-PLACEMENT SUPPORT (PPS) RETENTION LOCKER */}
+        {activeTab === 'pps' && (
+          <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <h2 className="text-lg font-bold text-slate-900">Post-Placement Support (PPS) Retention Countdown</h2>
+                <p className="text-xs text-slate-500 mt-0.5">
+                  Automated milestone outcome calculations backed by verified payslip evidence.
+                </p>
+              </div>
+              <span className="text-xs font-semibold bg-emerald-50 text-emerald-700 px-3 py-1 rounded-full border border-emerald-200">
+                Active Framework: {activeContract}
+              </span>
+            </div>
 
+            {ppsRecords.length === 0 ? (
+              <p className="text-sm text-slate-500 py-8 text-center">No active post-placement support candidates found.</p>
+            ) : (
+              ppsRecords.map((record) => (
+                <div key={record.candidateId} className="border border-slate-200 rounded-xl p-5 space-y-4 bg-slate-50/40">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-200 pb-3">
+                    <div>
+                      <h3 className="text-base font-bold text-slate-900">{record.candidateName}</h3>
+                      <div className="flex items-center gap-4 text-xs text-slate-500 mt-1">
+                        <span className="flex items-center gap-1">
+                          <Building2 className="w-3.5 h-3.5" /> {record.employerName}
+                        </span>
+                        <span className="flex items-center gap-1">
+                          <Calendar className="w-3.5 h-3.5" /> Placed: {record.startDate}
+                        </span>
+                      </div>
+                    </div>
+                    <span className="text-xs font-mono bg-white px-2.5 py-1 rounded border border-slate-200 text-slate-700">
+                      Rate: ${record.hourlyRate.toFixed(2)}/hr
+                    </span>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    {(['4-week', '12-week', '26-week'] as const).map((mKey) => {
+                      const m = record.milestones[mKey];
+                      const progressPct = Math.min(100, Math.round((m.accumulatedHours / m.targetHours) * 100));
+
+                      return (
+                        <div key={mKey} className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm space-y-3">
+                          <div className="flex justify-between items-center">
+                            <span className="text-xs font-bold text-slate-800">{m.label}</span>
+                            <span className={`text-[11px] font-semibold px-2 py-0.5 rounded-full ${
+                              m.status === 'Claimed'
+                                ? 'bg-blue-100 text-blue-800'
+                                : m.status === 'Claim_Ready'
+                                ? 'bg-emerald-100 text-emerald-800'
+                                : 'bg-slate-100 text-slate-600'
+                            }`}>
+                              {m.status.replace('_', ' ')}
+                            </span>
+                          </div>
+
+                          <div className="space-y-1">
+                            <div className="flex justify-between text-xs text-slate-500 font-medium">
+                              <span>Hours Worked</span>
+                              <span>{m.accumulatedHours} / {m.targetHours} hrs</span>
+                            </div>
+                            <div className="w-full h-2 bg-slate-100 rounded-full overflow-hidden">
+                              <div
+                                className={`h-full transition-all duration-500 ${
+                                  progressPct >= 100 ? 'bg-emerald-500' : 'bg-purple-600'
+                                }`}
+                                style={{ width: `${progressPct}%` }}
+                              />
+                            </div>
+                          </div>
+
+                          <div className="text-[11px] text-slate-500 flex justify-between items-center pt-1 border-t border-slate-100">
+                            <span>Payslips: {m.verifiedPayslipCount} verified</span>
+                            <span>Target: {m.requiredWeeks} Weeks</span>
+                          </div>
+
+                          {m.status === 'Claim_Ready' && (
+                            <button
+                              onClick={() => claimPPSOutcome(record.candidateId, mKey)}
+                              className="w-full mt-2 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-bold flex items-center justify-center gap-1.5 transition-colors shadow-sm"
+                            >
+                              <ShieldCheck className="w-4 h-4" />
+                              Generate DEWR Outcome Claim
+                            </button>
+                          )}
+                          {m.status === 'Claimed' && (
+                            <button
+                              type="button"
+                              onClick={() => {
+                                // Revert claim back to Claim_Ready in state
+                                m.status = 'Claim_Ready';
+                                addAuditEntry(
+                                  record.candidateName,
+                                  `Reverted DEWR outcome claim for ${m.label} back to Claim Ready`
+                                );
+                                alert(`Reverted ${m.label} claim for ${record.candidateName}. It is now back in Claim Ready status.`);
+                              }}
+                              className="w-full mt-2 py-1.5 bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-300 rounded-lg text-xs font-bold flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
+                            >
+                              <History className="w-3.5 h-3.5 text-amber-700" />
+                              <span>Undo / Revert Claim</span>
+                            </button>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+        )}
         {activeTab === 'audit' && (
           <div className="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm space-y-4">
             <div className="flex items-center justify-between border-b border-slate-100 pb-4">

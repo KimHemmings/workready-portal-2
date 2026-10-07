@@ -281,3 +281,52 @@ export interface DocumentCredential {
   status: 'Verified' | 'Pending Review';
   downloadUrl: string;
 }
+// ==========================================
+// SPRINT 2: DEWR VERIFICATION & PPS TYPES
+// ==========================================
+
+export type ContractFramework = 'WfA' | 'TtW' | 'IEA_DES' | 'RTO';
+
+export type SubmissionType = 'Payslip' | 'STAR_Session' | 'Goal_Plan' | 'LMS_Module';
+
+export type VerificationStatus = 'Pending' | 'Verified' | 'Rejected';
+
+export interface PendingSubmission {
+  id: string;
+  candidateId: string;
+  candidateName: string;
+  contractFramework: ContractFramework;
+  type: SubmissionType;
+  title: string;
+  description: string;
+  submittedAt: string;
+  status: VerificationStatus;
+  auditCode?: string; // Generated: SUT-AUDIT-XXXXXX
+  verifiedAt?: string;
+  verifiedBy?: string;
+  evidenceUrl?: string;
+  hoursLogged?: number;
+  grossPay?: number;
+  periodLabel?: string;
+}
+
+export interface PPSMilestone {
+  milestoneKey: '4-week' | '12-week' | '26-week';
+  label: string;
+  targetHours: number;
+  accumulatedHours: number;
+  requiredWeeks: number;
+  status: 'In_Progress' | 'Pending_Audit' | 'Claim_Ready' | 'Claimed';
+  claimedAt?: string;
+  verifiedPayslipCount: number;
+}
+
+export interface CandidatePPSRecord {
+  candidateId: string;
+  candidateName: string;
+  contractFramework: ContractFramework;
+  employerName: string;
+  startDate: string;
+  hourlyRate: number;
+  milestones: Record<'4-week' | '12-week' | '26-week', PPSMilestone>;
+}
