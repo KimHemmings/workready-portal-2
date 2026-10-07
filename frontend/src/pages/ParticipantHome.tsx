@@ -81,6 +81,13 @@ const isIea = isDes;
   const [supportTag, setSupportTag] = useState<string>('');
   const [supportNote, setSupportNote] = useState<string>('');
 
+  // 5-Day PBAS Expiry Alert Modal State
+  const [showPbasExpiryModal, setShowPbasExpiryModal] = useState<boolean>(() => {
+    const daysRemaining = 4; // Mock 4 days left in active monthly cycle
+    const pointsShort = 100 - 45; // Target 100, current 45
+    return daysRemaining <= 5 && pointsShort > 0;
+  });
+
   const [pillarScores, setPillarScores] = useState<Record<string, number>>({
     'Job Applications': 3,
     'Interview Readiness': 3,
@@ -146,12 +153,6 @@ const isIea = isDes;
           if (parsedRecords.length === 0) return;
           recordToSync = parsedRecords[0];
         }
-        useEffect(() => {
-    // Reset stored STAR history & resume drafts whenever candidate or contract changes
-    localStorage.removeItem('workready_star_history');
-    localStorage.removeItem('workready_resume_draft');
-    window.dispatchEvent(new Event('starHistoryUpdated'));
-  }, [activeCandidate?.id, activeContract]);
 
         setActivities((prev) => {
           const exists = prev.some((act) => act.id === recordToSync.id);
@@ -188,6 +189,8 @@ const [showOtherActivityModal, setShowOtherActivityModal] = useState<boolean>(fa
   const [otherActivityTitle, setOtherActivityTitle] = useState<string>('');
   const [otherActivityHours, setOtherActivityHours] = useState<string>('');
   const [otherActivityNotes, setOtherActivityNotes] = useState<string>('');
+  const [otherActivityBarrier, setOtherActivityBarrier] = useState<string>('');
+  
 
   const [showJobModal, setShowJobModal] = useState<boolean>(false);
   const [showInterviewModal, setShowInterviewModal] = useState<boolean>(false);
@@ -394,7 +397,7 @@ const [showOtherActivityModal, setShowOtherActivityModal] = useState<boolean>(fa
     <div className="min-h-screen bg-slate-100/80 text-slate-900 pb-16 font-sans">
       
      {/* HEADER BANNER */}
-      <header className="bg-gradient-to-r from-[#1c0630] via-[#2a0945] to-[#1c0630] text-white shadow-xl border-b border-purple-900/60 sticky top-0 z-40">
+      <header className="bg-linear-to-r from-[#1c0630] via-[#2a0945] to-[#1c0630] text-white shadow-xl border-b border-purple-900/60 sticky top-0 z-40">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3.5">
           <div className="flex flex-col md:flex-row items-center justify-between gap-4">
             
@@ -431,7 +434,7 @@ const [showOtherActivityModal, setShowOtherActivityModal] = useState<boolean>(fa
     <button
       type="button"
       onClick={() => setShowInterviewModal(true)}
-      className="flex-1 md:flex-none px-5 py-2.5 bg-gradient-to-r from-amber-400 to-orange-500 text-slate-950 font-black text-xs rounded-2xl shadow-lg flex items-center justify-center gap-2 border-2 border-amber-300"
+      className="flex-1 md:flex-none px-5 py-2.5 bg-linear-to-r from-amber-400 to-orange-500 text-slate-950 font-black text-xs rounded-2xl shadow-lg flex items-center justify-center gap-2 border-2 border-amber-300"
     >
       <Briefcase className="w-4 h-4" />
       <span>I Got an Interview!</span>
@@ -440,7 +443,7 @@ const [showOtherActivityModal, setShowOtherActivityModal] = useState<boolean>(fa
     <button
       type="button"
       onClick={() => setShowJobModal(true)}
-      className="flex-1 md:flex-none px-5 py-2.5 bg-gradient-to-r from-emerald-500 to-cyan-600 text-white font-black text-xs rounded-2xl shadow-lg flex items-center justify-center gap-2 border-2 border-emerald-300/80"
+      className="flex-1 md:flex-none px-5 py-2.5 bg-linear-to-r from-emerald-500 to-cyan-600 text-white font-black text-xs rounded-2xl shadow-lg flex items-center justify-center gap-2 border-2 border-emerald-300/80"
     >
       <PartyPopper className="w-4 h-4 text-amber-300" />
       <span>I Got the Job!</span>
@@ -495,7 +498,7 @@ const [showOtherActivityModal, setShowOtherActivityModal] = useState<boolean>(fa
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6 space-y-6">
         
         {/* GUIDED FEAR-FREE GOAL & MOTIVATION STUDIO */}
-        <section className="bg-gradient-to-r from-purple-950 via-[#24083b] to-purple-900 text-white rounded-2xl p-6 shadow-xl border border-purple-800 relative overflow-hidden">
+        <section className="bg-linear-to-r from-purple-950 via-[#24083b] to-purple-900 text-white rounded-2xl p-6 shadow-xl border border-purple-800 relative overflow-hidden">
           {!reviewSubmitted ? (
             <div className="space-y-5 relative z-10 text-xs">
               
@@ -545,7 +548,7 @@ const [showOtherActivityModal, setShowOtherActivityModal] = useState<boolean>(fa
               {/* STEP 1: MOTIVATION SEEDS */}
               {wizardStep === 1 && (
                 <div className="space-y-3 bg-purple-900/40 p-4 rounded-xl border border-purple-700/50">
-                  <label className="block text-xs font-bold text-amber-300 flex items-center gap-1.5">
+                  <label className="text-xs font-bold text-amber-300 flex items-center gap-1.5">
                     <Heart className="w-4 h-4 fill-amber-300" /> What is your main personal reason for wanting to find the right job?
                   </label>
 
@@ -600,7 +603,7 @@ const [showOtherActivityModal, setShowOtherActivityModal] = useState<boolean>(fa
               {/* STEP 2: MONTHLY ACTION PATHWAY */}
               {wizardStep === 2 && (
                 <div className="space-y-3 bg-purple-900/40 p-4 rounded-xl border border-purple-700/50">
-                  <label className="block text-xs font-bold text-amber-300 flex items-center gap-1.5">
+                  <label className="text-xs font-bold text-amber-300 flex items-center gap-1.5">
                     <Target className="w-4 h-4" /> How would you prefer to structure your efforts this month?
                   </label>
 
@@ -652,7 +655,7 @@ const [showOtherActivityModal, setShowOtherActivityModal] = useState<boolean>(fa
               {wizardStep === 3 && (
                 <div className="space-y-4 bg-purple-900/40 p-4 rounded-xl border border-purple-700/50">
                   <div>
-                    <label className="block text-xs font-bold text-amber-300 mb-2 flex items-center gap-1.5">
+                    <label className="text-xs font-bold text-amber-300 mb-2 flex items-center gap-1.5">
                       <Smile className="w-4 h-4" /> 1. Rate your current confidence across key pillars (1 = Would like support, 5 = Confident):
                     </label>
 
@@ -685,7 +688,7 @@ const [showOtherActivityModal, setShowOtherActivityModal] = useState<boolean>(fa
 
                   {/* DIRECT CASE MANAGER SUPPORT REQUEST */}
                   <div className="pt-2 border-t border-purple-800/80 space-y-3">
-                    <label className="block text-xs font-bold text-amber-300 flex items-center gap-1.5">
+                    <label className="text-xs font-bold text-amber-300 flex items-center gap-1.5">
                       <MessageSquare className="w-4 h-4" /> 2. Do you need direct assistance or funding support from Casey (Case Manager)?
                     </label>
 
@@ -1555,7 +1558,28 @@ const [showOtherActivityModal, setShowOtherActivityModal] = useState<boolean>(fa
                   className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl font-medium focus:ring-2 focus:ring-purple-500"
                 />
               </div>
-
+{/* DEWR BARRIER ALIGNMENT FIELD */}
+<div>
+  <label className="block font-bold text-slate-700 mb-1">
+    Addressed Barrier (DEWR Compliance Evidence) *
+  </label>
+  <select
+    required
+    value={otherActivityBarrier}
+    onChange={(e) => setOtherActivityBarrier(e.target.value)}
+    className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium focus:ring-2 focus:ring-purple-500 focus:outline-none"
+  >
+    <option value="">-- Select Barrier Addressed --</option>
+    <option value="Resume">Resume / Application Skill Gap</option>
+    <option value="Interview">Interview & Communication Anxiety</option>
+    <option value="Digital">Digital Literacy & Online Systems</option>
+    <option value="WHS">WHS & Safety Credential Requirement</option>
+    <option value="Career">Career Direction & Transport Access</option>
+  </select>
+  <p className="text-[10px] text-slate-500 mt-1">
+    Tagging this activity proves targeted barrier resolution for DEWR compliance.
+  </p>
+</div>
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <label className="block font-bold text-slate-700 mb-1">Completed Hours *</label>
@@ -1742,7 +1766,45 @@ const [showOtherActivityModal, setShowOtherActivityModal] = useState<boolean>(fa
           </div>
         </div>
       )}
+{/* MANDATORY 5-DAY PBAS CYCLE EXPIRY POP-UP */}
+      {showPbasExpiryModal && (
+        <div className="fixed inset-0 z-50 bg-slate-900/80 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl border-2 border-rose-500">
+            <div className="flex items-center space-x-3 text-rose-600 mb-4">
+              <div className="p-3 bg-rose-100 rounded-xl">
+                <AlertTriangle className="w-8 h-8" />
+              </div>
+              <div>
+                <h3 className="text-lg font-black text-slate-900">Mandatory PBAS Cycle Alert</h3>
+                <p className="text-xs font-semibold text-rose-600 uppercase tracking-wider">Action Required — 4 Days Remaining</p>
+              </div>
+            </div>
 
+            <p className="text-sm text-slate-600 mb-4 leading-relaxed">
+              Your monthly Workforce Australia obligation cycle ends in <strong className="text-slate-900">4 days</strong>. You are currently <strong className="text-rose-600">55 points short</strong> of your 100-point target.
+            </p>
+
+            <div className="bg-slate-50 border border-slate-200 rounded-xl p-4 mb-5 space-y-2">
+              <span className="text-xs font-bold text-slate-700 block uppercase">Quick Ways to Earn Points Today:</span>
+              <ul className="text-xs text-slate-600 space-y-1.5 list-disc list-inside">
+                <li>Complete 1 LMS Core Module (+10 PBAS Points)</li>
+                <li>Run 1 STAR Practice Interview (+25 PBAS Points)</li>
+                <li>Log Verified Job Search Effort (+5 Points per application)</li>
+              </ul>
+            </div>
+
+            <div className="flex items-center space-x-3">
+              <button
+                type="button"
+                onClick={() => setShowPbasExpiryModal(false)}
+                className="w-full py-3 bg-rose-600 hover:bg-rose-700 text-white font-bold text-xs rounded-xl transition-all shadow-md cursor-pointer"
+              >
+                I Understand — Take Me to Activities
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
