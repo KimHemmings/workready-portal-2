@@ -52,13 +52,28 @@ export function App() {
   return (
     <PortalProvider>
       <div className="min-h-screen bg-slate-50 relative">
+        {/* JUMP VIEW RETURN BAR */}
+        {userRole && userRole !== 'system_admin' && userRole !== 'admin' && !isProspectMode && (
+          <div className="bg-purple-950 text-white px-4 py-2 text-xs font-bold flex items-center justify-between border-b border-amber-400 z-50 sticky top-0 shadow-md">
+            <div className="flex items-center space-x-2">
+              <span className="w-2 h-2 rounded-full bg-amber-400 animate-pulse"></span>
+              <span>Testing Live View: <strong className="text-amber-300 uppercase">{userRole}</strong></span>
+            </div>
+            <button
+              onClick={() => changeRole('system_admin')}
+              className="px-3 py-1 bg-amber-400 hover:bg-amber-300 text-purple-950 font-black text-[11px] rounded-lg transition-all shadow-sm cursor-pointer"
+            >
+              ← Return to System Admin Console
+            </button>
+          </div>
+        )}
+
         {/* MAIN ROUTE RENDERING */}
         {userRole === 'candidate' && <ParticipantHome />}
         {(userRole === 'coach' || userRole === 'casey') && <CoachDashboard />}
         {userRole === 'owner' && <OwnerDashboard />}
         {userRole === 'sales' && <SalesDemoDashboard />}
-        {userRole === 'admin' && <AdminDashboard />}
-        {userRole === 'system_admin' && <SystemAdminDashboard />}
+        {(userRole === 'admin' || userRole === 'system_admin') && <SystemAdminDashboard />}
       </div>
     </PortalProvider>
   );
