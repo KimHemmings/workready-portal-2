@@ -1,4 +1,4 @@
-ï»¿import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   Briefcase, 
   Sparkles, 
@@ -41,7 +41,7 @@ interface LocalReferee {
 
 const MONTHLY_LIMIT = 1;
 
-export const ResumeBuilder: React.FC<{ maxAttempts?: number }> = () => {
+const ResumeBuilder: React.FC<{ maxAttempts?: number }> = () => {
   const { candidates } = usePortal();
   const activeCandidate = candidates[0];
 
@@ -78,7 +78,7 @@ export const ResumeBuilder: React.FC<{ maxAttempts?: number }> = () => {
       id: 'pos-1',
       jobTitle: 'Storeperson / Freight Handler',
       company: 'Apex Logistics',
-      dates: '2022 â€“ 2024',
+      dates: '2022 – 2024',
       description: 'Handled daily stock receiving, packed pallet orders under tight delivery deadlines, and completed WHS safety checks.'
     }
   ]);
@@ -167,7 +167,7 @@ CRITICAL INSTRUCTIONS:
       updatePosition(id, 'description', response.trim());
     } catch (err) {
       console.error('Failed to enhance position description:', err);
-      const fallback = `â€¢ Operated as a key ${pos.jobTitle} at ${pos.company || 'workplace'}, managing daily operational routines and customer needs.\nâ€¢ Followed standard operating procedures and strictly adhered to WHS safety guidelines.\nâ€¢ Collaborated closely with team members and supervisors to maintain high daily output and workplace standards.`;
+      const fallback = `• Operated as a key ${pos.jobTitle} at ${pos.company || 'workplace'}, managing daily operational routines and customer needs.\n• Followed standard operating procedures and strictly adhered to WHS safety guidelines.\n• Collaborated closely with team members and supervisors to maintain high daily output and workplace standards.`;
       updatePosition(id, 'description', fallback);
     } finally {
       setIsEnhancingDuty(null);
@@ -235,7 +235,7 @@ ${textContent.slice(0, 3000)}`;
 
   // Gap Statement Generator
   const handleGenerateGapEntry = () => {
-    if (!gapDates.trim()) return alert('Please enter the dates for your employment gap (e.g. March 2023 â€“ Jan 2025).');
+    if (!gapDates.trim()) return alert('Please enter the dates for your employment gap (e.g. March 2023 – Jan 2025).');
 
     setIsGeneratingGap(true);
     setTimeout(() => {
@@ -301,8 +301,8 @@ ${textContent.slice(0, 3000)}`;
           docCss = 'body { font-family: "Segoe UI", sans-serif; line-height: 1.5; padding: 30px; color: #0f172a; } h1 { color: #24083b; font-size: 26pt; font-weight: bold; } .sub-head { background: #f1f5f9; padding: 8px; font-weight: bold; font-size: 11pt; margin-bottom: 20px; } h2 { color: #ffffff; background: #24083b; font-size: 12pt; padding: 6px 10px; margin-top: 20pt; text-transform: uppercase; } .job { margin-bottom: 14px; }';
         }
 
-        const posHtml = positions.map(p => '<div class="job"><strong>' + (p.jobTitle || 'Position') + '</strong> â€” ' + (p.company || 'Company') + ' (' + (p.dates || 'Dates') + ')<br/>' + (p.description || '') + '</div>').join('');
-        const refHtml = refereesOnRequest ? '<p>Professional references available upon request.</p>' : referees.map(r => '<p><strong>' + r.name + '</strong> â€” ' + r.title + ', ' + r.company + '<br/>Ph: ' + r.phone + ' (' + r.relationship + ')</p>').join('');
+        const posHtml = positions.map(p => '<div class="job"><strong>' + (p.jobTitle || 'Position') + '</strong> — ' + (p.company || 'Company') + ' (' + (p.dates || 'Dates') + ')<br/>' + (p.description || '') + '</div>').join('');
+        const refHtml = refereesOnRequest ? '<p>Professional references available upon request.</p>' : referees.map(r => '<p><strong>' + r.name + '</strong> — ' + r.title + ', ' + r.company + '<br/>Ph: ' + r.phone + ' (' + r.relationship + ')</p>').join('');
 
         const content = '<html><head><title>Resume - ' + fullName + '</title><style>' + docCss + '</style></head><body><h1>' + fullName + '</h1><div class="sub-head">' + phone + ' | ' + email + ' | ' + location + '</div><h2>TARGET POSITION</h2><p><strong>' + targetRole + '</strong></p><h2>WORK HISTORY & EXPERIENCE</h2>' + posHtml + '<h2>REFEREES</h2>' + refHtml + '</body></html>';
 
@@ -327,12 +327,12 @@ ${textContent.slice(0, 3000)}`;
           printCss = '@page{size:A4;margin:12mm 15mm;} body{font-family:"Segoe UI",Helvetica,sans-serif;color:#0f172a;padding:25px;font-size:10.5pt;line-height:1.5;} .header-card{background:#24083b;color:#ffffff;padding:16px 20px;border-radius:8px;margin-bottom:18px;} h1{font-size:24pt;margin:0;color:#ffffff;font-weight:900;letter-spacing:-0.5px;} .contact-banner{font-size:10pt;color:#e9d5ff;margin-top:6px;font-weight:700;} .section-head{font-size:11pt;font-weight:900;text-transform:uppercase;color:#24083b;background:#f1f5f9;border-left:5px solid #24083b;padding:5px 10px;margin-top:20px;margin-bottom:10px;letter-spacing:0.5px;} .job-box{margin-bottom:14px;padding-left:6px;} .job-title{font-weight:900;font-size:11pt;color:#24083b;} .job-sub{color:#475569;font-weight:700;}';
         }
 
-        const posPrint = positions.map(p => '<div class="job-box"><div className="job-title">' + (p.jobTitle || 'Position') + ' â€” <span class="job-sub">' + (p.company || 'Company') + ' (' + (p.dates || 'Dates') + ')</span></div><div style="margin-top:4px;font-size:10.5pt;">' + (p.description || '') + '</div></div>').join('');
-        const refPrint = refereesOnRequest ? '<p>Available upon request.</p>' : referees.map(r => '<div style="margin-bottom:8px;"><strong>' + r.name + '</strong> â€” ' + r.title + ' (' + r.company + ')<br/>Ph: ' + r.phone + ' | Relationship: ' + r.relationship + '</div>').join('');
+        const posPrint = positions.map(p => '<div class="job-box"><div className="job-title">' + (p.jobTitle || 'Position') + ' — <span class="job-sub">' + (p.company || 'Company') + ' (' + (p.dates || 'Dates') + ')</span></div><div style="margin-top:4px;font-size:10.5pt;">' + (p.description || '') + '</div></div>').join('');
+        const refPrint = refereesOnRequest ? '<p>Available upon request.</p>' : referees.map(r => '<div style="margin-bottom:8px;"><strong>' + r.name + '</strong> — ' + r.title + ' (' + r.company + ')<br/>Ph: ' + r.phone + ' | Relationship: ' + r.relationship + '</div>').join('');
 
         const headerBlock = selectedTemplate === 'trades' 
-          ? '<div class="header-card"><h1>' + fullName + '</h1><div class="contact-banner">' + phone + ' â€¢ ' + email + ' â€¢ ' + location + '</div></div>'
-          : '<h1>' + fullName + '</h1><div class="contact-banner"><span>' + phone + '</span> â€¢ <span>' + email + '</span> â€¢ <span>' + location + '</span></div>';
+          ? '<div class="header-card"><h1>' + fullName + '</h1><div class="contact-banner">' + phone + ' • ' + email + ' • ' + location + '</div></div>'
+          : '<h1>' + fullName + '</h1><div class="contact-banner"><span>' + phone + '</span> • <span>' + email + '</span> • <span>' + location + '</span></div>';
 
         const html = '<!DOCTYPE html><html><head><title>Resume - ' + fullName + '</title><style>' + printCss + '</style></head><body>' + headerBlock + '<div class="section-head">Target Position & Career Summary</div><p style="margin-top:6px;font-weight:600;">Target Role: <strong style="color:#0f172a;">' + targetRole + '</strong></p><div class="section-head">Work History & Experience</div>' + posPrint + '<div class="section-head">Referees</div>' + refPrint + '<script>window.onload=function(){window.print();};</script></body></html>';
 
@@ -400,7 +400,7 @@ ${textContent.slice(0, 3000)}`;
     // Broadcast event to ParticipantHome Activity Log Listener
     window.dispatchEvent(new CustomEvent('starHistoryUpdated', { detail: record }));
 
-    alert('ðŸŽ‰ Application package saved to Activity Verification Log and submitted for Case Manager Review!');
+    alert('?? Application package saved to Activity Verification Log and submitted for Case Manager Review!');
   };
 
   const isCapReached = !isRtoGraduate && monthlyUsed >= MONTHLY_LIMIT;
@@ -573,7 +573,7 @@ ${textContent.slice(0, 3000)}`;
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
               <div>
                 <label className="block font-bold text-purple-900 mb-1">Gap Dates:</label>
-                <input type="text" value={gapDates} onChange={(e) => setGapDates(e.target.value)} placeholder="e.g. March 2023 â€“ January 2025" className="w-full p-2.5 border rounded-xl bg-white font-medium" />
+                <input type="text" value={gapDates} onChange={(e) => setGapDates(e.target.value)} placeholder="e.g. March 2023 – January 2025" className="w-full p-2.5 border rounded-xl bg-white font-medium" />
               </div>
 
               <div>
@@ -729,7 +729,7 @@ ${textContent.slice(0, 3000)}`;
                   {positions.map((p, idx) => (
                     <div key={p.id} className={selectedTemplate === 'modern' ? 'border-l-2 border-[#0f766e] pl-2.5' : 'bg-slate-50/80 p-2.5 rounded-lg border border-slate-100'}>
                       <div className="font-black text-slate-900">
-                        {p.jobTitle || 'Position Title'} <span className="font-medium text-slate-500">â€” {p.company || 'Company'} ({p.dates || 'Dates'})</span>
+                        {p.jobTitle || 'Position Title'} <span className="font-medium text-slate-500">— {p.company || 'Company'} ({p.dates || 'Dates'})</span>
                       </div>
                       <p className="text-[11px] text-slate-600 mt-0.5 leading-normal">{p.description || 'Duties description...'}</p>
                     </div>
