@@ -677,6 +677,32 @@ Instructions:
             </div>
           </div>
 
+          {/* Question Card with Read Aloud Trigger */}
+          <div className="p-6 bg-linear-to-r from-purple-950 via-[#24083b] to-purple-900 text-white rounded-2xl space-y-4 shadow-lg border border-purple-800 relative">
+            <div className="flex items-center justify-between gap-2">
+              <span className="text-xs font-black uppercase tracking-wider text-purple-200 bg-white/10 px-3 py-1 rounded-lg">
+                Scenario #{currentIndex + 1}
+              </span>
+
+              <button
+                type="button"
+                onClick={() => isSpeakingQuestion ? stopSpeech() : speakQuestion(currentQ.question)}
+                className={`inline-flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-black transition-all border cursor-pointer ${
+                  isSpeakingQuestion 
+                    ? 'bg-amber-400 text-slate-950 border-amber-300 animate-pulse' 
+                    : 'bg-emerald-500 hover:bg-emerald-600 text-white shadow-md'
+                }`}
+              >
+                {isSpeakingQuestion ? <VolumeX className="w-4 h-4" /> : <Volume2 className="w-4 h-4" />}
+                {isSpeakingQuestion ? 'Stop Reading' : 'Listen to Question 🔊'}
+              </button>
+            </div>
+
+            <h3 className="text-lg md:text-xl font-black text-white leading-snug">
+              "{currentQ?.question}"
+            </h3>
+          </div>
+
           {/* Live Conversational Transcript Thread */}
           {chatTranscript.length > 0 && (
             <div className="p-4 bg-purple-50/60 border-2 border-purple-200 rounded-2xl space-y-3 max-h-60 overflow-y-auto">

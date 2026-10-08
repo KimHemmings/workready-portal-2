@@ -283,25 +283,22 @@ export const ResumeBuilder: React.FC<{ maxAttempts?: number }> = () => {
     const now = new Date();
     const timeStamp = `${now.toLocaleDateString('en-AU')} at ${now.toLocaleTimeString('en-AU', { hour: '2-digit', minute: '2-digit' })}`;
 
-    const isCapReached = !isRtoGraduate && monthlyUsed >= MONTHLY_LIMIT;
-    const pointsClaimed = isCapReached || isRtoGraduate ? 0 : 20;
-
     const record = {
-      id: `res-${Date.now()}`,
-      type: 'Job Search',
-      jobRole: targetRole,
-      fullName,
-      email,
-      phone,
-      positions,
-      coverLetterText,
-      referees: refereesOnRequest ? 'Available upon request' : referees,
-      timestamp: timeStamp,
-      date: now.toLocaleDateString('en-AU'),
-      points: pointsClaimed,
-      rubricScore: 'Tailored Resume & Cover Letter Completed',
-      status: pointsClaimed > 0 ? 'Pending Verification' : 'Verified'
-    };
+  id: `res-${Date.now()}`,
+  type: 'Job Search',
+  jobRole: targetRole,
+  fullName,
+  email,
+  phone,
+  positions,
+  coverLetterText,
+  referees: refereesOnRequest ? 'Available upon request' : referees,
+  timestamp: timeStamp,
+  date: now.toLocaleDateString('en-AU'),
+  points: 0,
+  rubricScore: 'Tailored Resume & Cover Letter Completed',
+  status: 'Pending Verification'
+};
 
     try {
       const stored = localStorage.getItem('workready_resume_monthly_attempts');
@@ -316,9 +313,7 @@ export const ResumeBuilder: React.FC<{ maxAttempts?: number }> = () => {
     // Broadcast event to ParticipantHome Activity Log Listener
     window.dispatchEvent(new CustomEvent('starHistoryUpdated', { detail: record }));
 
-    alert(pointsClaimed > 0 
-      ? '🎉 Application package saved to Activity Verification Log (+20 PBAS Points Submitted for Case Manager Verification)!' 
-      : '✨ Application package saved to your candidate portfolio!');
+    alert('🎉 Application package saved to Activity Verification Log and submitted for Case Manager Review!');
   };
 
   const isCapReached = !isRtoGraduate && monthlyUsed >= MONTHLY_LIMIT;
@@ -327,7 +322,7 @@ export const ResumeBuilder: React.FC<{ maxAttempts?: number }> = () => {
     <div className="bg-white border-2 border-slate-200 rounded-2xl p-6 space-y-6 shadow-sm font-sans my-6">
       
       {/* Header Banner */}
-      <div className="bg-gradient-to-r from-[#24083b] via-[#320b52] to-[#1c0630] text-white rounded-2xl p-6 shadow-lg border border-purple-900/60 flex flex-col md:flex-row md:items-center justify-between gap-4">
+      <div className="bg-linear-to-r from-[#24083b] via-[#320b52] to-[#1c0630] text-white rounded-2xl p-6 shadow-lg border border-purple-900/60 flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <div className="flex items-center gap-2">
             <h2 className="text-xl font-black text-white">ATS Resume & Cover Letter Studio</h2>
@@ -342,7 +337,7 @@ export const ResumeBuilder: React.FC<{ maxAttempts?: number }> = () => {
             <span className="block text-xs font-black text-amber-300">
               {monthlyUsed} / {MONTHLY_LIMIT} Monthly Application Claim Used
             </span>
-            <span className="text-[10px] text-purple-200 font-bold">Earns +20 PBAS Points</span>
+            <span className="text-[10px] text-purple-200 font-bold">Submitted for CM Verification</span>
           </div>
         )}
       </div>
@@ -699,8 +694,8 @@ export const ResumeBuilder: React.FC<{ maxAttempts?: number }> = () => {
               </div>
 
               <button type="button" onClick={submitToActivityLog} disabled={isCapReached} className="w-full sm:w-auto px-6 py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-black rounded-xl shadow-md flex items-center justify-center gap-2 disabled:opacity-50">
-                <Award className="w-5 h-5 text-amber-300" /> Submit Application Package (+20 PBAS Points)
-              </button>
+  <Award className="w-5 h-5 text-amber-300" /> Submit Application Package for CM Review
+</button>
             </div>
           </div>
 
