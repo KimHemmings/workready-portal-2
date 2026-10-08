@@ -1,4 +1,4 @@
-import { useState } from "react";
+﻿import { useState } from "react";
 import { useMutation } from "@tanstack/react-query";
 import { Mail, Copy, ExternalLink, Send } from "lucide-react";
 import { toast } from "sonner";
@@ -17,7 +17,7 @@ function copy(value: string, message: string) {
   navigator.clipboard
     .writeText(value)
     .then(() => toast.success(message))
-    .catch(() => toast.error("Copy failed — please select and copy manually."));
+    .catch(() => toast.error("Copy failed â€” please select and copy manually."));
 }
 
 /**
@@ -43,8 +43,8 @@ export default function SendInviteButton({
       setResult(res);
       if (res.status === "sent") toast.success(`Invitation emailed to ${res.recipient}.`);
       else if (res.status === "unavailable")
-        toast.info("Email is not configured — use the mailto draft or copy the link.");
-      else toast.error("Email could not be sent — use the mailto draft or copy the link.");
+        toast.info("Email is not configured â€” use the mailto draft or copy the link.");
+      else toast.error("Email could not be sent â€” use the mailto draft or copy the link.");
     },
     onError: (err) => {
       const detail = err instanceof ApiError ? (err.body as { detail?: string } | null)?.detail : null;
@@ -62,7 +62,7 @@ export default function SendInviteButton({
         data-testid={testId}
       >
         <Send className="h-4 w-4 mr-1.5" aria-hidden="true" />
-        {send.isPending ? "Sending…" : "Send Invite"}
+        {send.isPending ? "Sendingâ€¦" : "Send Invite"}
       </Button>
 
       <Dialog open={Boolean(result)} onOpenChange={(open: boolean) => !open && setResult(null)}>

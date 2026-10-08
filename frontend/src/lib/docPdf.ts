@@ -1,4 +1,4 @@
-// Vector PDF export for saved resumes and cover letters (jsPDF text drawing — no DOM
+﻿// Vector PDF export for saved resumes and cover letters (jsPDF text drawing â€” no DOM
 // rasterisation, which cannot parse Tailwind v4 colour functions).
 import jsPDF from "jspdf";
 
@@ -54,7 +54,7 @@ export function downloadMarkdownPdf(filename: string, title: string, markdown: s
     pdf.setFont("helvetica", "normal");
     pdf.setFontSize(10.5);
     pdf.setTextColor(DARK);
-    const text = bullet ? `•  ${bullet[1]}` : line;
+    const text = bullet ? `â€¢  ${bullet[1]}` : line;
     const indent = bullet ? margin + 10 : margin;
     const wrapped = pdf.splitTextToSize(text, maxWidth - (bullet ? 10 : 0)) as string[];
     for (const w of wrapped) {

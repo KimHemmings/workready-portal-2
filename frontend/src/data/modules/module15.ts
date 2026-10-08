@@ -1,4 +1,4 @@
-import type { ModuleData } from '../modulesData';
+﻿import type { ModuleData } from '../modulesData';
 
 export const module15: ModuleData = {
   id: 'M15',
@@ -12,18 +12,18 @@ export const module15: ModuleData = {
   lesson1Title: 'Understanding Work Trials & Fair Work Legal Protections',
   lesson1Content: [
     'Workplace skill assessments and practical trials are common across Australian hospitality, retail, trades, automotive, and care sectors. However, candidates must understand their legal protections under the *Fair Work Act*. A **Unpaid Skill Demonstration** is only lawful if: 1) It is strictly for the purpose of evaluating your practical skills, 2) It lasts only for the duration necessary to demonstrate those skills (typically 1 to 4 hours depending on the industry), and 3) You are directly supervised throughout the evaluation.',
-    'If an employer asks you to perform actual productive work beyond a brief skills evaluation—such as working an entire 8-hour operational shift, covering for an absent staff member, or working unsupervised—the trial **must be paid** at the appropriate Modern Award hourly rate. Knowing the difference between a legitimate skills assessment and unlawful unpaid work protects your rights while demonstrating professional industry awareness.'
+    'If an employer asks you to perform actual productive work beyond a brief skills evaluationâ€”such as working an entire 8-hour operational shift, covering for an absent staff member, or working unsupervisedâ€”the trial **must be paid** at the appropriate Modern Award hourly rate. Knowing the difference between a legitimate skills assessment and unlawful unpaid work protects your rights while demonstrating professional industry awareness.'
   ],
 
   graphicCard1: {
     title: 'Workplace Trial Rules: Pro Move vs. Rookie Mistake',
     bullets: [
-      '❌ ROOKIE MISTAKE: Agreeing to work a full 5-day "unpaid trial" doing regular productive shifts without pay or contract.',
-      '✅ PRO MOVE: Participating enthusiastically in brief, supervised 2-hour skill evaluations while knowing Fair Work pay rules.',
-      '❌ ROOKIE MISTAKE: Arriving at a practical work trial without correct safety gear or standing around waiting to be told what to do.',
-      '✅ PRO MOVE: Bringing mandatory PPE, listening carefully to site safety briefings, and showing proactive work ethic.',
-      'MATCHING CHALLENGE: Hospitality/Retail ➔ Demonstrate POS operation, customer engagement, and clean workstation upkeep.',
-      'MATCHING CHALLENGE: Trades & Care ➔ Demonstrate pre-start checks, proper manual handling technique, and WH&S awareness.'
+      'âŒ ROOKIE MISTAKE: Agreeing to work a full 5-day "unpaid trial" doing regular productive shifts without pay or contract.',
+      'âœ… PRO MOVE: Participating enthusiastically in brief, supervised 2-hour skill evaluations while knowing Fair Work pay rules.',
+      'âŒ ROOKIE MISTAKE: Arriving at a practical work trial without correct safety gear or standing around waiting to be told what to do.',
+      'âœ… PRO MOVE: Bringing mandatory PPE, listening carefully to site safety briefings, and showing proactive work ethic.',
+      'MATCHING CHALLENGE: Hospitality/Retail âž” Demonstrate POS operation, customer engagement, and clean workstation upkeep.',
+      'MATCHING CHALLENGE: Trades & Care âž” Demonstrate pre-start checks, proper manual handling technique, and WH&S awareness.'
     ]
   },
 
@@ -67,7 +67,7 @@ export const module15: ModuleData = {
       id: 'Q1',
       question: 'Under Fair Work Ombudsman guidelines, what condition makes a brief unpaid job trial lawful in Australia?',
       options: [
-        'It is strictly limited to the time necessary to demonstrate practical skills (typically 1–4 hours) and is directly supervised',
+        'It is strictly limited to the time necessary to demonstrate practical skills (typically 1â€“4 hours) and is directly supervised',
         'The employer can keep you on unpaid trial for up to 3 months as long as they provide lunch',
         'Unpaid trials are mandatory for all workers for the first 30 days of employment'
       ],

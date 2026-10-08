@@ -1,4 +1,4 @@
-import path from "node:path";
+﻿import path from "node:path";
 import { defineConfig, type UserConfig } from "vite";
 import react from "@vitejs/plugin-react";
 import tailwindcss from "@tailwindcss/vite";

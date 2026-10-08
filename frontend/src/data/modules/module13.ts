@@ -1,4 +1,4 @@
-import type { ModuleData } from '../modulesData';
+﻿import type { ModuleData } from '../modulesData';
 
 export const module13: ModuleData = {
   id: 'M13',
@@ -18,12 +18,12 @@ export const module13: ModuleData = {
   graphicCard1: {
     title: 'Job Search Discipline: Pro Move vs. Rookie Mistake',
     bullets: [
-      '❌ ROOKIE MISTAKE: Searching for jobs sporadically for 30 minutes once a week right before your Workforce Australia report is due.',
-      '✅ PRO MOVE: Working a disciplined daily 3-hour job search routine (Monday to Friday) with structured target quotas.',
-      '❌ ROOKIE MISTAKE: Failing to record job search details, resulting in missing PBAS points and compliance penalties.',
-      '✅ PRO MOVE: Logging every job application, interview, and module completion immediately in your job search tracking log.',
-      'MATCHING CHALLENGE: SMART Goal ➔ "Complete 1 learning module and log 3 tailored applications every Tuesday and Thursday."',
-      'MATCHING CHALLENGE: PBAS Target ➔ Earn mandatory monthly PBAS points by combining job search tasks, study, and module completions.'
+      'âŒ ROOKIE MISTAKE: Searching for jobs sporadically for 30 minutes once a week right before your Workforce Australia report is due.',
+      'âœ… PRO MOVE: Working a disciplined daily 3-hour job search routine (Monday to Friday) with structured target quotas.',
+      'âŒ ROOKIE MISTAKE: Failing to record job search details, resulting in missing PBAS points and compliance penalties.',
+      'âœ… PRO MOVE: Logging every job application, interview, and module completion immediately in your job search tracking log.',
+      'MATCHING CHALLENGE: SMART Goal âž” "Complete 1 learning module and log 3 tailored applications every Tuesday and Thursday."',
+      'MATCHING CHALLENGE: PBAS Target âž” Earn mandatory monthly PBAS points by combining job search tasks, study, and module completions.'
     ]
   },
 
@@ -54,8 +54,8 @@ export const module13: ModuleData = {
 
   lesson2Title: 'Managing PBAS Points, Compliance & Maintaining Resilience',
   lesson2Content: [
-    'Under Australia’s **Points Based Activation System (PBAS)** overseen by the Department of Employment and Workplace Relations (DEWR), jobseekers complete a customized monthly points target (typically 100 points per reporting period). Points are earned through diverse job-seeking activities: submitting job applications, attending interviews, participating in provider appointments, completing accredited training, and completing certified vocational learning modules (such as these 24 modules, earning **+5 PBAS points** per completed module with audit verification).',
-    'Job search resilience is a critical mindset skill. Facing rejections or slow response times is a natural part of the recruitment process, not a reflection of your worth. Maintain momentum by tracking your progress visually in a job search logbook or spreadsheet. Celebrate small wins—such as completing an updated master resume, tailoring a cover letter, or finishing a learning module. Maintaining physical health, structured routines, and positive community connections keeps your energy high until you land your ideal position.'
+    'Under Australiaâ€™s **Points Based Activation System (PBAS)** overseen by the Department of Employment and Workplace Relations (DEWR), jobseekers complete a customized monthly points target (typically 100 points per reporting period). Points are earned through diverse job-seeking activities: submitting job applications, attending interviews, participating in provider appointments, completing accredited training, and completing certified vocational learning modules (such as these 24 modules, earning **+5 PBAS points** per completed module with audit verification).',
+    'Job search resilience is a critical mindset skill. Facing rejections or slow response times is a natural part of the recruitment process, not a reflection of your worth. Maintain momentum by tracking your progress visually in a job search logbook or spreadsheet. Celebrate small winsâ€”such as completing an updated master resume, tailoring a cover letter, or finishing a learning module. Maintaining physical health, structured routines, and positive community connections keeps your energy high until you land your ideal position.'
   ],
 
   practicalReflection: 'Look at your weekly routine. What specific 2-hour daily time block can you lock in exclusively for job search tasks, application tailoring, and module learning?',
@@ -72,7 +72,7 @@ export const module13: ModuleData = {
         'Speed, Money, Ambition, Results, Talent'
       ],
       correctAnswerIndex: 0,
-      explanation: 'Detailed feedback explaining why option 1 is correct: SMART stands for Specific, Measurable, Achievable, Relevant, and Time-bound—the proven formula for effective goal setting.'
+      explanation: 'Detailed feedback explaining why option 1 is correct: SMART stands for Specific, Measurable, Achievable, Relevant, and Time-boundâ€”the proven formula for effective goal setting.'
     },
     {
       id: 'Q2',

@@ -1,4 +1,4 @@
-import type { ModuleData } from '../modulesData';
+﻿import type { ModuleData } from '../modulesData';
 
 export const module1: ModuleData = {
   id: 'M01',
@@ -7,23 +7,23 @@ export const module1: ModuleData = {
   category: 'Workplace Expectations',
   estimatedMins: 20,
   pbasPoints: 5,
-  videoScript: "Welcome to Module 1: Understanding Employer Expectations & Workplace Culture. Succeeding in any Australian job requires more than technical skill—it requires mastering professional punctuality, understanding implicit site culture, knowing your Fair Work rights, and receiving feedback like a pro. Let's get you job-ready across every industry.",
+  videoScript: "Welcome to Module 1: Understanding Employer Expectations & Workplace Culture. Succeeding in any Australian job requires more than technical skillâ€”it requires mastering professional punctuality, understanding implicit site culture, knowing your Fair Work rights, and receiving feedback like a pro. Let's get you job-ready across every industry.",
 
   lesson1Title: 'Punctuality, Site Readiness & Explicit vs. Implicit Workplace Culture',
   lesson1Content: [
-    'In Australian workplaces—whether on a civil construction site, inside an aged care facility, behind a busy retail counter, or in a corporate office—punctuality is viewed as a direct measurement of your professional integrity and respect for your team. Arriving 10 minutes prior to your scheduled shift is an industry operational standard. This buffer window ensures you can complete mandatory sign-ins, put on required Personal Protective Equipment (PPE), undergo shift briefings or clinical handovers, and be 100% operational at your start time.',
+    'In Australian workplacesâ€”whether on a civil construction site, inside an aged care facility, behind a busy retail counter, or in a corporate officeâ€”punctuality is viewed as a direct measurement of your professional integrity and respect for your team. Arriving 10 minutes prior to your scheduled shift is an industry operational standard. This buffer window ensures you can complete mandatory sign-ins, put on required Personal Protective Equipment (PPE), undergo shift briefings or clinical handovers, and be 100% operational at your start time.',
     'Every organization functions on a combination of **Explicit Rules** (written policies, employment contracts, SWMS, and safety manuals) and **Implicit Cultural Norms** (unwritten expectations regarding team dynamics, break etiquette, communication channels, and mobile phone usage). Recognizing and adapting to these cultural nuances during your first 14 days builds strong professional trust with supervisors and peers alike.'
   ],
 
   graphicCard1: {
     title: 'Workplace Standards: Pro Move vs. Rookie Mistake',
     bullets: [
-      '❌ ROOKIE MISTAKE: Arriving right on shift time or 5 minutes late, forcing teammates to cover your duties while you get ready.',
-      '✅ PRO MOVE: Arriving 10 minutes early on site to sign in, set up PPE, and review shift notes so you hit the floor running.',
-      '❌ ROOKIE MISTAKE: Checking personal social media or texting on your phone while on duty in customer, clinical, or active work zones.',
-      '✅ PRO MOVE: Keeping personal mobile devices stored in your locker/bag, accessing them strictly during designated meal breaks.',
-      '❌ ROOKIE MISTAKE: Assuming unwritten rules don\'t matter because they aren\'t explicitly printed in the employee handbook.',
-      '✅ PRO MOVE: Observing how experienced team members handle shift handovers, tea room etiquette, and supervisor updates during week one.'
+      'âŒ ROOKIE MISTAKE: Arriving right on shift time or 5 minutes late, forcing teammates to cover your duties while you get ready.',
+      'âœ… PRO MOVE: Arriving 10 minutes early on site to sign in, set up PPE, and review shift notes so you hit the floor running.',
+      'âŒ ROOKIE MISTAKE: Checking personal social media or texting on your phone while on duty in customer, clinical, or active work zones.',
+      'âœ… PRO MOVE: Keeping personal mobile devices stored in your locker/bag, accessing them strictly during designated meal breaks.',
+      'âŒ ROOKIE MISTAKE: Assuming unwritten rules don\'t matter because they aren\'t explicitly printed in the employee handbook.',
+      'âœ… PRO MOVE: Observing how experienced team members handle shift handovers, tea room etiquette, and supervisor updates during week one.'
     ]
   },
 
@@ -55,7 +55,7 @@ export const module1: ModuleData = {
   lesson2Title: 'National Employment Standards, Duty of Care & The Feedback Loop',
   lesson2Content: [
     'Workplace expectations are a balanced, two-way relationship. Under the **National Employment Standards (NES)** enforced by the **Fair Work Ombudsman**, every Australian worker is entitled to minimum conditions, safe working environments under Work Health and Safety (WH&S) legislation, fair remuneration under modern awards, protection against unlawful discrimination, and transparent workplace policies.',
-    'A critical factor in job retention is your capacity to receive, process, and apply constructive feedback. Supervisors evaluate new employees on their adaptability, coachability, and willingness to learn. When receiving constructive advice, view it as professional coaching rather than personal criticism. Practicing **Active Listening**—maintaining eye contact, taking notes, asking clarifying questions, and adjusting your performance—signals high professional maturity.'
+    'A critical factor in job retention is your capacity to receive, process, and apply constructive feedback. Supervisors evaluate new employees on their adaptability, coachability, and willingness to learn. When receiving constructive advice, view it as professional coaching rather than personal criticism. Practicing **Active Listening**â€”maintaining eye contact, taking notes, asking clarifying questions, and adjusting your performanceâ€”signals high professional maturity.'
   ],
 
   practicalReflection: 'Reflect on a past employment, educational, or team experience where miscommunication occurred. What specific active listening or confirmation technique could have eliminated the error?',

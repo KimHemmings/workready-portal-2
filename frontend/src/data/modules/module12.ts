@@ -1,4 +1,4 @@
-import type { ModuleData } from '../modulesData';
+﻿import type { ModuleData } from '../modulesData';
 
 export const module12: ModuleData = {
   id: 'M12',
@@ -18,12 +18,12 @@ export const module12: ModuleData = {
   graphicCard1: {
     title: 'Job Search Execution: Pro Move vs. Rookie Mistake',
     bullets: [
-      '❌ ROOKIE MISTAKE: Applying to 50 public job board ads per week with a generic resume and waiting passively for phone calls.',
-      '✅ PRO MOVE: Combining online applications with direct employer cold outreach, recruiter registration, and local industry networking.',
-      '❌ ROOKIE MISTAKE: Walking onto an active construction site, care facility, or office unannounced without neat attire or physical ticket copies.',
-      '✅ PRO MOVE: Arriving neatly dressed, asking for the hiring manager, and leaving a clean resume with a printed list of current tickets.',
-      'MATCHING CHALLENGE: Trades & Civil ➔ Cold-approach site offices directly; register with specialized labor-hire recruitment agencies.',
-      'MATCHING CHALLENGE: Care & Community ➔ Attend local disability/aged care provider expos; connect with facility coordinators on LinkedIn.'
+      'âŒ ROOKIE MISTAKE: Applying to 50 public job board ads per week with a generic resume and waiting passively for phone calls.',
+      'âœ… PRO MOVE: Combining online applications with direct employer cold outreach, recruiter registration, and local industry networking.',
+      'âŒ ROOKIE MISTAKE: Walking onto an active construction site, care facility, or office unannounced without neat attire or physical ticket copies.',
+      'âœ… PRO MOVE: Arriving neatly dressed, asking for the hiring manager, and leaving a clean resume with a printed list of current tickets.',
+      'MATCHING CHALLENGE: Trades & Civil âž” Cold-approach site offices directly; register with specialized labor-hire recruitment agencies.',
+      'MATCHING CHALLENGE: Care & Community âž” Attend local disability/aged care provider expos; connect with facility coordinators on LinkedIn.'
     ]
   },
 
@@ -55,7 +55,7 @@ export const module12: ModuleData = {
   lesson2Title: 'Leveraging Recruitment Agencies & Professional Networking',
   lesson2Content: [
     'Recruitment agencies and labor-hire firms play a massive role in the Australian workforce, particularly across civil trades, warehousing, healthcare, administration, and hospitality. Working with recruitment consultants gives you an insider advocate who actively matches your skill profile to commercial client vacancies. When contacting labor-hire agencies, treat your initial phone interview with the recruiter as a formal job interview: maintain high professionalism, state your ticket availability clearly, and confirm your reliable transport status.',
-    'Networking is simply building mutually beneficial professional relationships. Inform your existing personal network—former colleagues, TAFE trainers, sporting coaches, neighbors, and community leaders—that you are actively seeking work in a specific sector. Personal word-of-mouth recommendations carry immense weight with Australian small-to-medium business owners, often skipping initial screening hurdles entirely.'
+    'Networking is simply building mutually beneficial professional relationships. Inform your existing personal networkâ€”former colleagues, TAFE trainers, sporting coaches, neighbors, and community leadersâ€”that you are actively seeking work in a specific sector. Personal word-of-mouth recommendations carry immense weight with Australian small-to-medium business owners, often skipping initial screening hurdles entirely.'
   ],
 
   practicalReflection: 'Identify 3 people in your existing personal or community network (former supervisors, TAFE instructors, family friends in business). How can you contact them this week to let them know you are job-ready?',

@@ -1,4 +1,4 @@
-import type { ModuleData } from '../modulesData';
+﻿import type { ModuleData } from '../modulesData';
 
 export const module6: ModuleData = {
   id: 'M06',
@@ -18,12 +18,12 @@ export const module6: ModuleData = {
   graphicCard1: {
     title: 'Digital Presence Standards: Pro Move vs. Rookie Mistake',
     bullets: [
-      '❌ ROOKIE MISTAKE: Using an unprofessional or casual email address (e.g., party_animal99@email.com) for job applications.',
-      '✅ PRO MOVE: Creating a dedicated, professional email address using your name (e.g., firstname.lastname@email.com).',
-      '❌ ROOKIE MISTAKE: Leaving personal social media accounts public with inappropriate photos, offensive comments, or public workplace complaints.',
-      '✅ PRO MOVE: Setting personal social media profiles to private and building a clean, professional LinkedIn profile.',
-      'MATCHING CHALLENGE: Corporate/Admin ➔ Optimize LinkedIn headline, upload clean professional headshot, and connect with local recruiters.',
-      'MATCHING CHALLENGE: Trades/Care/Retail ➔ Ensure online application form fields match your uploaded PDF tickets and licences exactly.'
+      'âŒ ROOKIE MISTAKE: Using an unprofessional or casual email address (e.g., party_animal99@email.com) for job applications.',
+      'âœ… PRO MOVE: Creating a dedicated, professional email address using your name (e.g., firstname.lastname@email.com).',
+      'âŒ ROOKIE MISTAKE: Leaving personal social media accounts public with inappropriate photos, offensive comments, or public workplace complaints.',
+      'âœ… PRO MOVE: Setting personal social media profiles to private and building a clean, professional LinkedIn profile.',
+      'MATCHING CHALLENGE: Corporate/Admin âž” Optimize LinkedIn headline, upload clean professional headshot, and connect with local recruiters.',
+      'MATCHING CHALLENGE: Trades/Care/Retail âž” Ensure online application form fields match your uploaded PDF tickets and licences exactly.'
     ]
   },
 
@@ -55,7 +55,7 @@ export const module6: ModuleData = {
   lesson2Title: 'Building a LinkedIn Profile & Protecting Your Digital Reputation',
   lesson2Content: [
     'A professional LinkedIn profile serves as a digital version of your resume that is accessible 24/7 to Australian recruiters, talent acquisition specialists, and business owners. To build an effective LinkedIn presence: 1) Upload a clear, professional headshot photo with a neutral background, 2) Write a compelling Headline that includes your target job role and key tickets (e.g., *"Warehouse Specialist | LF Forklift Ticket | Logistics & Inventory Management"*), 3) Draft an engaging Summary detailing your background and career goals, and 4) Turn on the **"Open to Work"** setting to alert local hiring managers.',
-    'Digital reputation management requires conducting a regular self-audit. Search your full name on major search engines to see what publicly accessible images, comments, or old forum posts appear. Lock down privacy settings on personal platforms (Instagram, Facebook, TikTok) to "Friends Only", and ensure all professional digital correspondence—including messages sent via Seek or LinkedIn—uses formal language, correct grammar, and polite salutations.'
+    'Digital reputation management requires conducting a regular self-audit. Search your full name on major search engines to see what publicly accessible images, comments, or old forum posts appear. Lock down privacy settings on personal platforms (Instagram, Facebook, TikTok) to "Friends Only", and ensure all professional digital correspondenceâ€”including messages sent via Seek or LinkedInâ€”uses formal language, correct grammar, and polite salutations.'
   ],
 
   practicalReflection: 'Conduct a quick mental or search audit of your current online footprint. What is one public profile setting or email address you need to update today to ensure 100% professional presentation?',

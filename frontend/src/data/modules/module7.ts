@@ -1,4 +1,4 @@
-import type { ModuleData } from '../modulesData';
+﻿import type { ModuleData } from '../modulesData';
 
 export const module7: ModuleData = {
   id: 'M07',
@@ -11,19 +11,19 @@ export const module7: ModuleData = {
 
   lesson1Title: 'Company Research, Core Values & Industry Intelligence',
   lesson1Content: [
-    'Walking into an Australian workplace interview without researching the business is one of the fastest ways to get disqualified. Employers want to see that you are genuinely interested in their specific organization, not just any job. Spend at least 20–30 minutes before your interview exploring the company’s official website, social media pages, and recent news articles. Focus on three core areas: 1) **What they do** (their primary products, services, or care models), 2) **Who they serve** (their main customer base, clients, or community sectors), and 3) **Their company culture or values** (such as safety, innovation, sustainability, or community care).',
+    'Walking into an Australian workplace interview without researching the business is one of the fastest ways to get disqualified. Employers want to see that you are genuinely interested in their specific organization, not just any job. Spend at least 20â€“30 minutes before your interview exploring the companyâ€™s official website, social media pages, and recent news articles. Focus on three core areas: 1) **What they do** (their primary products, services, or care models), 2) **Who they serve** (their main customer base, clients, or community sectors), and 3) **Their company culture or values** (such as safety, innovation, sustainability, or community care).',
     'Integrating your company research naturally into interview answers immediately sets you apart from other candidates. For example, in an aged care interview, mentioning *"I noticed on your website that you emphasize person-centered care and community engagement, which aligns directly with my support philosophy"* proves you are proactive, detail-oriented, and serious about joining their team.'
   ],
 
   graphicCard1: {
     title: 'Interview Prep Standards: Pro Move vs. Rookie Mistake',
     bullets: [
-      '❌ ROOKIE MISTAKE: Arriving at an interview without knowing what the company does or asking "So, what does this business actually do?"',
-      '✅ PRO MOVE: Reviewing the company website beforehand and mentioning 2-3 specific facts about their services or values during your interview.',
-      '❌ ROOKIE MISTAKE: Dressing in casual streetwear (hoodies, thongs, ripped jeans) for any job interview, regardless of the industry.',
-      '✅ PRO MOVE: Dressing one step above the daily job uniform (e.g., neat hi-vis/boots for trades, smart business casual for retail/admin/care).',
-      'MATCHING CHALLENGE: Civil & Trades ➔ Research major active site projects, WH&S policies, and client asset types.',
-      'MATCHING CHALLENGE: Health & Care ➔ Research accreditation standards, service philosophy, and client demographic focus.'
+      'âŒ ROOKIE MISTAKE: Arriving at an interview without knowing what the company does or asking "So, what does this business actually do?"',
+      'âœ… PRO MOVE: Reviewing the company website beforehand and mentioning 2-3 specific facts about their services or values during your interview.',
+      'âŒ ROOKIE MISTAKE: Dressing in casual streetwear (hoodies, thongs, ripped jeans) for any job interview, regardless of the industry.',
+      'âœ… PRO MOVE: Dressing one step above the daily job uniform (e.g., neat hi-vis/boots for trades, smart business casual for retail/admin/care).',
+      'MATCHING CHALLENGE: Civil & Trades âž” Research major active site projects, WH&S policies, and client asset types.',
+      'MATCHING CHALLENGE: Health & Care âž” Research accreditation standards, service philosophy, and client demographic focus.'
     ]
   },
 

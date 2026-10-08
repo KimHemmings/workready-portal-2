@@ -1,4 +1,4 @@
-// Minimal typed wrapper over the browser Web Speech API (webkitSpeechRecognition).
+﻿// Minimal typed wrapper over the browser Web Speech API (webkitSpeechRecognition).
 // The API is not in TS's DOM lib, so the shapes we use are declared by hand here.
 import { useCallback, useEffect, useRef, useState } from "react";
 

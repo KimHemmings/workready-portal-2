@@ -1,4 +1,4 @@
-import { useState } from "react";
+﻿import { useState } from "react";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { KeyRound, ShieldCheck } from "lucide-react";
@@ -76,7 +76,7 @@ export default function Register() {
           </div>
         ) : preview.isLoading ? (
           <p className="text-sm text-muted-foreground" data-testid="invite-loading">
-            Checking your invite…
+            Checking your inviteâ€¦
           </p>
         ) : preview.data?.already_completed ? (
           <div className="rounded-2xl border bg-card p-6 shadow-sm" data-testid="invite-already-completed">
@@ -153,7 +153,7 @@ export default function Register() {
                 data-testid="register-submit-button"
               >
                 <KeyRound className="h-4 w-4 mr-1.5" aria-hidden="true" />
-                {complete.isPending ? "Setting up…" : "Set password and sign in"}
+                {complete.isPending ? "Setting upâ€¦" : "Set password and sign in"}
               </Button>
             </form>
 

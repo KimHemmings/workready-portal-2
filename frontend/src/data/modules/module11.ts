@@ -1,4 +1,4 @@
-import type { ModuleData } from '../modulesData';
+﻿import type { ModuleData } from '../modulesData';
 
 export const module11: ModuleData = {
   id: 'M11',
@@ -18,12 +18,12 @@ export const module11: ModuleData = {
   graphicCard1: {
     title: 'WH&S Safety Standards: Pro Move vs. Rookie Mistake',
     bullets: [
-      '❌ ROOKIE MISTAKE: Ignoring a visible slip hazard or damaged electrical cable because "it\'s not my job to fix it."',
-      '✅ PRO MOVE: Reporting the hazard immediately to your supervisor, placing temporary warning signs, and logging the incident.',
-      '❌ ROOKIE MISTAKE: Removing or modifying Personal Protective Equipment (PPE) because it feels hot or uncomfortable.',
-      '✅ PRO MOVE: Wearing all mandatory PPE correctly at all times and requesting replacement gear if equipment is damaged.',
-      'MATCHING CHALLENGE: Construction/Trades ➔ Steel-cap boots, hi-vis, hard hat, safety glasses, and White Card compliance.',
-      'MATCHING CHALLENGE: Care & Health ➔ Non-slip shoes, proper manual handling lifts, gloves/aprons, and sharp disposal procedures.'
+      'âŒ ROOKIE MISTAKE: Ignoring a visible slip hazard or damaged electrical cable because "it\'s not my job to fix it."',
+      'âœ… PRO MOVE: Reporting the hazard immediately to your supervisor, placing temporary warning signs, and logging the incident.',
+      'âŒ ROOKIE MISTAKE: Removing or modifying Personal Protective Equipment (PPE) because it feels hot or uncomfortable.',
+      'âœ… PRO MOVE: Wearing all mandatory PPE correctly at all times and requesting replacement gear if equipment is damaged.',
+      'MATCHING CHALLENGE: Construction/Trades âž” Steel-cap boots, hi-vis, hard hat, safety glasses, and White Card compliance.',
+      'MATCHING CHALLENGE: Care & Health âž” Non-slip shoes, proper manual handling lifts, gloves/aprons, and sharp disposal procedures.'
     ]
   },
 
@@ -72,7 +72,7 @@ export const module11: ModuleData = {
         'Only external SafeWork inspectors are responsible for safety on job sites'
       ],
       correctAnswerIndex: 0,
-      explanation: 'Detailed feedback explaining why option 1 is correct: Australian WH&S law mandates shared duty of care—employers must provide safe systems, and workers must follow safety procedures and protect themselves and peers.'
+      explanation: 'Detailed feedback explaining why option 1 is correct: Australian WH&S law mandates shared duty of careâ€”employers must provide safe systems, and workers must follow safety procedures and protect themselves and peers.'
     },
     {
       id: 'Q2',

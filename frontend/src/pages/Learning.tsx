@@ -1,4 +1,4 @@
-import { useQuery } from "@tanstack/react-query";
+﻿import { useQuery } from "@tanstack/react-query";
 import { Link } from "react-router-dom";
 import { BookOpen, CheckCircle2, Clock } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
@@ -81,7 +81,7 @@ export default function Learning() {
                             {module.estimated_minutes} min
                           </Badge>
                           <Badge variant={done ? "default" : p ? "secondary" : "outline"}>
-                            {done ? `Completed · ${p?.quiz_score ?? 0}%` : p ? "In progress" : "Not started"}
+                            {done ? `Completed Â· ${p?.quiz_score ?? 0}%` : p ? "In progress" : "Not started"}
                           </Badge>
                         </div>
                         <Link to={`/participant/modules/${module.id}`}>

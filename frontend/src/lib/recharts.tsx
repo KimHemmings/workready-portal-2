@@ -1,4 +1,4 @@
-// recharts 3 turned Tooltip from a generic class, `Tooltip<TValue, TName>`, into a plain function fixed
+﻿// recharts 3 turned Tooltip from a generic class, `Tooltip<TValue, TName>`, into a plain function fixed
 // to `TooltipProps<ValueType, NameType>`, and its formatter now receives `TValue | undefined`. On
 // recharts 2 (what every tutorial and model learned) the `(v: number) =>` formatter and
 // `(label: string) =>` labelFormatter an agent writes inferred their type parameters; on 3.x they fail

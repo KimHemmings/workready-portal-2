@@ -1,4 +1,4 @@
-import { useLocation, useNavigate } from "react-router-dom";
+﻿import { useLocation, useNavigate } from "react-router-dom";
 import { ArrowLeft, FileText, ShieldCheck } from "lucide-react";
 import { BRAND_LOGO } from "@/lib/brand";
 import { Button } from "@/components/ui/button";
@@ -30,7 +30,7 @@ const CONTENT = {
       },
       {
         heading: "5. Notification of collection (APP 5)",
-        body: "You are told at the point of collection why information is required — for example, the job search logger states that entries may be used for Mutual Obligation reporting, and voice input for AI interview practice only begins after you give explicit consent and can be declined in favour of typing.",
+        body: "You are told at the point of collection why information is required â€” for example, the job search logger states that entries may be used for Mutual Obligation reporting, and voice input for AI interview practice only begins after you give explicit consent and can be declined in favour of typing.",
       },
       {
         heading: "6. Use and disclosure (APP 6)",
@@ -38,11 +38,11 @@ const CONTENT = {
       },
       {
         heading: "7. Direct marketing (APP 7)",
-        body: "We do not use your information for direct marketing. Emails you receive from the platform are transactional — account invitations, password resets and training notifications.",
+        body: "We do not use your information for direct marketing. Emails you receive from the platform are transactional â€” account invitations, password resets and training notifications.",
       },
       {
         heading: "8. Cross-border disclosure (APP 8)",
-        body: "Platform data is stored in Australian-hosted infrastructure. Some AI features (interview practice, resume drafting) send the text you enter to an overseas processing provider under contractual terms restricting its use to generating your result. Do not enter sensitive information you would not want processed this way — the feature is optional.",
+        body: "Platform data is stored in Australian-hosted infrastructure. Some AI features (interview practice, resume drafting) send the text you enter to an overseas processing provider under contractual terms restricting its use to generating your result. Do not enter sensitive information you would not want processed this way â€” the feature is optional.",
       },
       {
         heading: "9. Government related identifiers (APP 9)",
@@ -50,7 +50,7 @@ const CONTENT = {
       },
       {
         heading: "10. Quality of information (APP 10)",
-        body: "You can review and correct your profile, resumes and job search entries from your dashboard at any time. Ask your case manager if a record you cannot edit — such as an approved evidence review — needs correcting.",
+        body: "You can review and correct your profile, resumes and job search entries from your dashboard at any time. Ask your case manager if a record you cannot edit â€” such as an approved evidence review â€” needs correcting.",
       },
       {
         heading: "11. Security of information (APP 11)",
@@ -99,7 +99,7 @@ const CONTENT = {
       },
       {
         heading: "7. Uploads and storage limits",
-        body: "Evidence files must be 5MB or smaller and provider logos 2MB or smaller. We may remove files that exceed limits, cannot be scanned, or breach these terms. Keep your own copy of anything important — the platform is not a document archive.",
+        body: "Evidence files must be 5MB or smaller and provider logos 2MB or smaller. We may remove files that exceed limits, cannot be scanned, or breach these terms. Keep your own copy of anything important â€” the platform is not a document archive.",
       },
       {
         heading: "8. Availability and changes",
@@ -111,7 +111,7 @@ const CONTENT = {
       },
       {
         heading: "10. Intellectual property",
-        body: "Training modules, quizzes, templates and platform software remain the property of Straight Up Training or its licensors. Content you create — your resumes, cover letters and job search records — remains yours, and you grant us the licence needed to store it, generate your documents and make it available to your provider for compliance purposes.",
+        body: "Training modules, quizzes, templates and platform software remain the property of Straight Up Training or its licensors. Content you create â€” your resumes, cover letters and job search records â€” remains yours, and you grant us the licence needed to store it, generate your documents and make it available to your provider for compliance purposes.",
       },
       {
         heading: "11. Liability",

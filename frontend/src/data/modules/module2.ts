@@ -1,4 +1,4 @@
-import type { ModuleData } from '../modulesData';
+﻿import type { ModuleData } from '../modulesData';
 
 export const module2: ModuleData = {
   id: 'M02',
@@ -7,7 +7,7 @@ export const module2: ModuleData = {
   category: 'Workplace Expectations',
   estimatedMins: 20,
   pbasPoints: 5,
-  videoScript: "Welcome to Module 2: Professional Communication Across Industries. Professional communication is the cornerstone of every successful Australian workplace—whether on a civil construction site, in an aged care facility, behind a retail counter, or in a corporate office. In this module, we examine how to master verbal protocols, written standards, active listening, and conflict resolution across multiple sectors.",
+  videoScript: "Welcome to Module 2: Professional Communication Across Industries. Professional communication is the cornerstone of every successful Australian workplaceâ€”whether on a civil construction site, in an aged care facility, behind a retail counter, or in a corporate office. In this module, we examine how to master verbal protocols, written standards, active listening, and conflict resolution across multiple sectors.",
 
   lesson1Title: 'Communication Channels, Workplace Etiquette & Industry Protocols',
   lesson1Content: [
@@ -18,12 +18,12 @@ export const module2: ModuleData = {
   graphicCard1: {
     title: 'Industry Communication Matrix & Matching Self-Check',
     bullets: [
-      'MATCHING CHALLENGE: Urgent Shift Absence (All Sectors) ➔ Call or text supervisor directly at least 30 mins prior.',
-      'MATCHING CHALLENGE: Clinical / Care Updates (Aged Care/Health) ➔ Complete mandatory shift handover logs & inform RN on duty.',
-      'MATCHING CHALLENGE: Site Hazards / Equipment Failure (Trades/Civil) ➔ Use UHF radio immediately & report at Toolbox Talk.',
-      'MATCHING CHALLENGE: Leave / Shift Swaps (Retail/Hospitality) ➔ Submit formal request via roster app (Deputy/Tanda) 2 weeks out.',
-      '❌ ROOKIE MISTAKE: Sending a vague text like "can\'t come in" 5 minutes after your shift started.',
-      '✅ PRO MOVE: "Hi Sarah, my train is delayed due to a signal fault. My revised ETA is 8:20 AM. I will clock in immediately upon arrival."'
+      'MATCHING CHALLENGE: Urgent Shift Absence (All Sectors) âž” Call or text supervisor directly at least 30 mins prior.',
+      'MATCHING CHALLENGE: Clinical / Care Updates (Aged Care/Health) âž” Complete mandatory shift handover logs & inform RN on duty.',
+      'MATCHING CHALLENGE: Site Hazards / Equipment Failure (Trades/Civil) âž” Use UHF radio immediately & report at Toolbox Talk.',
+      'MATCHING CHALLENGE: Leave / Shift Swaps (Retail/Hospitality) âž” Submit formal request via roster app (Deputy/Tanda) 2 weeks out.',
+      'âŒ ROOKIE MISTAKE: Sending a vague text like "can\'t come in" 5 minutes after your shift started.',
+      'âœ… PRO MOVE: "Hi Sarah, my train is delayed due to a signal fault. My revised ETA is 8:20 AM. I will clock in immediately upon arrival."'
     ]
   },
 
@@ -54,7 +54,7 @@ export const module2: ModuleData = {
 
   lesson2Title: 'Active Listening, Closed-Loop Communication & De-escalating Workplace Misunderstandings',
   lesson2Content: [
-    'Miscommunication is one of the leading causes of workplace errors, rework, and safety incidents across Australian industries. Active listening requires full concentration on the speaker, avoiding interruptions, observing non-verbal cues, and validating understanding. In high-risk or fast-paced sectors—such as administering medication in care settings, operating machinery in trades, or processing high-volume customer orders in retail—using **Closed-Loop Communication** (repeating instructions back) is an essential error-prevention tool.',
+    'Miscommunication is one of the leading causes of workplace errors, rework, and safety incidents across Australian industries. Active listening requires full concentration on the speaker, avoiding interruptions, observing non-verbal cues, and validating understanding. In high-risk or fast-paced sectorsâ€”such as administering medication in care settings, operating machinery in trades, or processing high-volume customer orders in retailâ€”using **Closed-Loop Communication** (repeating instructions back) is an essential error-prevention tool.',
     'When workplace misunderstandings or performance feedback occur, handling them professionally requires emotional maturity and structured dialogue. Under **Fair Work guidelines** and standard dispute resolution policies, grievances or instructions should be addressed directly, calmly, and privately at the lowest possible organizational level. If an instruction is unclear, ask targeted clarifying questions (e.g., *"To confirm, do you want me to complete the safety check before or after unloading?"*). Accepting constructive feedback positively demonstrates adaptability and a commitment to professional growth.'
   ],
 

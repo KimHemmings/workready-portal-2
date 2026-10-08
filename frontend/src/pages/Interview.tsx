@@ -1,4 +1,4 @@
-import { useState } from "react";
+﻿import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   Accessibility,
@@ -55,7 +55,7 @@ const MODES: {
     value: "llnd",
     label: "LLND / Accessible mode",
     blurb:
-      "Simpler words, shorter questions and extra encouragement — built for Language, Literacy, Numeracy and Digital support needs.",
+      "Simpler words, shorter questions and extra encouragement â€” built for Language, Literacy, Numeracy and Digital support needs.",
     icon: Accessibility,
   },
 ];
@@ -85,7 +85,7 @@ function speak(text: string) {
   return true;
 }
 
-/** PDF scorecard generator — streams the server-rendered PDF and saves it locally. */
+/** PDF scorecard generator â€” streams the server-rendered PDF and saves it locally. */
 async function downloadScorecardPdf(session: InterviewSession) {
   const targetName = session.job_target || "interview";
   const res = await fetch(`${API_BASE}/interviews/${session.id}/scorecard.pdf`);
@@ -102,7 +102,7 @@ async function downloadScorecardPdf(session: InterviewSession) {
 function downloadScorecard(session: InterviewSession) {
   const fb = session.feedback_summary_json;
   const lines = [
-    "Straight Up Training — Interview Feedback Scorecard",
+    "Straight Up Training â€” Interview Feedback Scorecard",
     "==============================================",
     `Role target : ${session.job_target || 'N/A'}`,
     `Industry    : ${session.industry || 'N/A'}`,
@@ -113,7 +113,7 @@ function downloadScorecard(session: InterviewSession) {
     fb?.summary ?? "",
     "",
     "Core Skills for Work",
-    ...(fb?.skills ?? []).map((s: any) => `- ${s.skill}: ${s.score}/100 — ${s.comment}`),
+    ...(fb?.skills ?? []).map((s: any) => `- ${s.skill}: ${s.score}/100 â€” ${s.comment}`),
     "",
     "Strengths",
     ...(fb?.strengths ?? []).map((s: any) => `- ${s}`),
@@ -167,7 +167,7 @@ export default function Interview() {
       toast.error("Speech to text is not supported in this browser. Please type instead.");
       return;
     }
-    toast.success("Listening — speak your answer, then press the mic again to stop.");
+    toast.success("Listening â€” speak your answer, then press the mic again to stop.");
   };
 
   const historyData = history.data || [];
@@ -193,7 +193,7 @@ export default function Interview() {
       }),
     onSuccess: (data: InterviewSession) => {
       setSession(data);
-      toast.success("Your practice interview has started — good luck!");
+      toast.success("Your practice interview has started â€” good luck!");
       if (readAloud && data.questions && data.questions[0]) speak(data.questions[0]);
     },
     onError: (err: unknown) => {
@@ -226,7 +226,7 @@ export default function Interview() {
     candidateId: user.id || 'CAN-101',
     candidateName: user.name || 'Alex Mercer',
     type: 'STAR Interview', // Updated to exact union literal expected by VerificationItem
-    title: `AI Mock Interview Assessment – ${data.job_target || 'Entry Level Role'}`,
+    title: `AI Mock Interview Assessment â€“ ${data.job_target || 'Entry Level Role'}`,
     points: 25,
     status: 'Pending',
     details: `Completed 8-question mock interview for ${data.job_target || 'target role'}.`,
@@ -237,7 +237,7 @@ export default function Interview() {
         qc.invalidateQueries({ queryKey: ["participant-dashboard"] });
         qc.invalidateQueries({ queryKey: ["certificates"] });
         qc.invalidateQueries({ queryKey: ["usage"] });
-        toast.success("Interview complete — report generated & evidence submitted to Casey!");
+        toast.success("Interview complete â€” report generated & evidence submitted to Casey!");
         if (calibratedScore > 70) {
           toast.success("Certificate earned! Find it under Certificates.", { duration: 6000 });
         }
@@ -397,7 +397,7 @@ export default function Interview() {
                 data-testid="start-interview-button"
               >
                 <Sparkles className="h-4 w-4 mr-1.5" aria-hidden="true" />
-                {start.isPending ? "Preparing your interviewer…" : "Start practice interview"}
+                {start.isPending ? "Preparing your interviewerâ€¦" : "Start practice interview"}
               </Button>
             </CardContent>
           </Card>
@@ -423,7 +423,7 @@ export default function Interview() {
                           <span>{formatDateTime(s.created_at)}</span>
                         </div>
                         <p className="text-[11px] text-slate-500 mt-0.5">
-                          {s.industry} {s.mode === "llnd" ? " · LLND mode" : ""}
+                          {s.industry} {s.mode === "llnd" ? " Â· LLND mode" : ""}
                         </p>
                       </div>
                       <div className="flex items-center gap-2">
@@ -457,7 +457,7 @@ export default function Interview() {
             <CardHeader>
               <div className="flex flex-wrap items-center justify-between gap-3">
                 <CardTitle className="text-lg">
-                  Interview — {session.job_target} ({session.industry})
+                  Interview â€” {session.job_target} ({session.industry})
                 </CardTitle>
                 <div className="flex items-center gap-2">
                   {session.mode === "llnd" && (
@@ -533,13 +533,13 @@ export default function Interview() {
                     rows={4}
                     value={answer}
                     onChange={(e) => setAnswer(e.target.value)}
-                    placeholder="Use the STAR approach: Situation, Task, Action, Result…"
+                    placeholder="Use the STAR approach: Situation, Task, Action, Resultâ€¦"
                     data-testid="interview-answer-input"
                   />
                   <div className="flex flex-wrap items-center gap-2">
                     <Button type="submit" disabled={reply.isPending || !answer.trim()} data-testid="send-answer-button">
                       <Send className="h-4 w-4 mr-1.5" aria-hidden="true" />
-                      {reply.isPending ? "Sending…" : "Send answer"}
+                      {reply.isPending ? "Sendingâ€¦" : "Send answer"}
                     </Button>
                     <Button
                       type="button"
@@ -569,7 +569,7 @@ export default function Interview() {
                     </Button>
                     <span className="text-xs text-muted-foreground" data-testid="dictation-hint">
                       {dictation.listening
-                        ? "Your words appear in the box — you can edit them before sending."
+                        ? "Your words appear in the box â€” you can edit them before sending."
                         : "Prefer talking? Use the microphone and edit the text afterwards."}
                     </span>
                   </div>
@@ -656,10 +656,10 @@ export default function Interview() {
                   <CardTitle className="text-lg">Tips while you answer</CardTitle>
                 </CardHeader>
                 <CardContent className="text-sm text-muted-foreground space-y-2">
-                  <p>• Give a real example, not a general statement.</p>
-                  <p>• Say what <em>you</em> did, not just the team.</p>
-                  <p>• Finish with the result or what you learnt.</p>
-                  <p>• Keep it to 30–60 seconds of speaking.</p>
+                  <p>â€¢ Give a real example, not a general statement.</p>
+                  <p>â€¢ Say what <em>you</em> did, not just the team.</p>
+                  <p>â€¢ Finish with the result or what you learnt.</p>
+                  <p>â€¢ Keep it to 30â€“60 seconds of speaking.</p>
                 </CardContent>
               </Card>
             )}

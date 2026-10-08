@@ -1,4 +1,4 @@
-import type { ModuleData } from '../modulesData';
+﻿import type { ModuleData } from '../modulesData';
 
 export const module22: ModuleData = {
   id: 'M22',
@@ -11,19 +11,19 @@ export const module22: ModuleData = {
 
   lesson1Title: 'The Growth Mindset & Adapting to New Workplace Technology',
   lesson1Content: [
-    'Workplaces across civil construction, health and care, retail logistics, and corporate administration are continuously transformed by technology—such as digital roster apps (Deputy, Tanda), electronic health records, RF inventory scanners, automated machinery, and AI-driven management software. Employees who demonstrate a Growth Mindset—viewing new tools as opportunities to upskill rather than threats—are highly valued by employers.',
+    'Workplaces across civil construction, health and care, retail logistics, and corporate administration are continuously transformed by technologyâ€”such as digital roster apps (Deputy, Tanda), electronic health records, RF inventory scanners, automated machinery, and AI-driven management software. Employees who demonstrate a Growth Mindsetâ€”viewing new tools as opportunities to upskill rather than threatsâ€”are highly valued by employers.',
     'When your employer introduces new software, operational procedures, or equipment, avoid resisting or complaining. Instead, approach the change with curiosity: participate fully in training sessions, take written notes, practice using the system, and ask experienced colleagues for tips. Adaptable workers who master new systems quickly become indispensable team members.'
   ],
 
   graphicCard1: {
     title: 'Workplace Adaptability: Pro Move vs. Rookie Mistake',
     bullets: [
-      '❌ ROOKIE MISTAKE: Complaining about new software or processes and insisting on doing things the old way.',
-      '✅ PRO MOVE: Embracing new systems, attending training sessions enthusiastically, and helping co-workers adapt.',
-      '❌ ROOKIE MISTAKE: Panicking or spreading negative rumors during company restructures or shift changes.',
-      '✅ PRO MOVE: Remaining calm, seeking clear information from supervisors, and focusing on high personal performance.',
-      'MATCHING CHALLENGE: Healthcare & Care ➔ Adapt quickly to updated digital care logs, telehealth tools, and medication systems.',
-      'MATCHING CHALLENGE: Retail & Trades ➔ Master digital POS terminals, automated dispatch software, and electronic SWMS logs.'
+      'âŒ ROOKIE MISTAKE: Complaining about new software or processes and insisting on doing things the old way.',
+      'âœ… PRO MOVE: Embracing new systems, attending training sessions enthusiastically, and helping co-workers adapt.',
+      'âŒ ROOKIE MISTAKE: Panicking or spreading negative rumors during company restructures or shift changes.',
+      'âœ… PRO MOVE: Remaining calm, seeking clear information from supervisors, and focusing on high personal performance.',
+      'MATCHING CHALLENGE: Healthcare & Care âž” Adapt quickly to updated digital care logs, telehealth tools, and medication systems.',
+      'MATCHING CHALLENGE: Retail & Trades âž” Master digital POS terminals, automated dispatch software, and electronic SWMS logs.'
     ]
   },
 
@@ -54,7 +54,7 @@ export const module22: ModuleData = {
 
   lesson2Title: 'Managing Operational Restructuring & Shift Flexibility',
   lesson2Content: [
-    'Operational changes—such as roster reallocations, team restructuring, or supervisor changes—occur frequently in fast-paced industries. Demonstrating flexibility regarding shift rotations, site locations, or task assignments makes you a flexible asset to your team.',
+    'Operational changesâ€”such as roster reallocations, team restructuring, or supervisor changesâ€”occur frequently in fast-paced industries. Demonstrating flexibility regarding shift rotations, site locations, or task assignments makes you a flexible asset to your team.',
     'If a workplace change impacts your duties or personal schedule, manage the transition professionally. Request a brief meeting with your team leader to seek clarification, understand the operational reasons behind the decision, and discuss how you can align your work with the updated goals.'
   ],
 

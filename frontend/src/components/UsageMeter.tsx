@@ -1,4 +1,4 @@
-import { Sparkles } from "lucide-react";
+﻿import { Sparkles } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import type { UsageMetric } from "@/lib/types";
 

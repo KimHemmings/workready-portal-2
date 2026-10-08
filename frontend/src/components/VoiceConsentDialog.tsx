@@ -1,4 +1,4 @@
-import { Mic, ShieldCheck } from "lucide-react";
+﻿import { Mic, ShieldCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -40,7 +40,7 @@ export default function VoiceConsentDialog({
         <ul className="space-y-1.5 text-sm text-muted-foreground">
           <li className="flex gap-2">
             <ShieldCheck className="h-4 w-4 shrink-0 text-emerald-600" aria-hidden="true" />
-            Speech is converted by your browser — no audio file is stored by us.
+            Speech is converted by your browser â€” no audio file is stored by us.
           </li>
           <li className="flex gap-2">
             <ShieldCheck className="h-4 w-4 shrink-0 text-emerald-600" aria-hidden="true" />

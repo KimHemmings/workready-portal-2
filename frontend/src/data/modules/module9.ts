@@ -1,4 +1,4 @@
-import type { ModuleData } from '../modulesData';
+﻿import type { ModuleData } from '../modulesData';
 
 export const module9: ModuleData = {
   id: 'M09',
@@ -11,19 +11,19 @@ export const module9: ModuleData = {
 
   lesson1Title: 'The 24-Hour Follow-Up & Professional Email Courtesy',
   lesson1Content: [
-    'Sending a professional thank-you email within 24 hours of an interview is a simple yet powerful strategy that sets high-performing jobseekers apart in Australia. It reinforces your interest in the position, demonstrates exceptional business etiquette, and keeps your name fresh in the hiring manager’s mind while they evaluate candidates. Your message should be concise (3 to 4 sentences), thanking the interviewer for their time, referencing a specific topic discussed during the interview, and reiterating your enthusiasm for the role.',
-    'Timing and professional etiquette are critical when following up on a pending recruitment decision. Always respect the recruiter’s stated hiring timeline. If an interviewer mentions they will make a decision by Friday, wait until the following Monday or Tuesday before sending a polite check-in email or making a brief phone call. This demonstrates patience, respect for their operational workload, and strong professional self-awareness.'
+    'Sending a professional thank-you email within 24 hours of an interview is a simple yet powerful strategy that sets high-performing jobseekers apart in Australia. It reinforces your interest in the position, demonstrates exceptional business etiquette, and keeps your name fresh in the hiring managerâ€™s mind while they evaluate candidates. Your message should be concise (3 to 4 sentences), thanking the interviewer for their time, referencing a specific topic discussed during the interview, and reiterating your enthusiasm for the role.',
+    'Timing and professional etiquette are critical when following up on a pending recruitment decision. Always respect the recruiterâ€™s stated hiring timeline. If an interviewer mentions they will make a decision by Friday, wait until the following Monday or Tuesday before sending a polite check-in email or making a brief phone call. This demonstrates patience, respect for their operational workload, and strong professional self-awareness.'
   ],
 
   graphicCard1: {
     title: 'Post-Interview Etiquette: Pro Move vs. Rookie Mistake',
     bullets: [
-      '❌ ROOKIE MISTAKE: Calling or emailing the hiring manager daily demanding to know if you got the job.',
-      '✅ PRO MOVE: Sending a polished thank-you email within 24 hours, then waiting until the agreed decision date passes before checking in.',
-      '❌ ROOKIE MISTAKE: Ghosting or sending an angry reply if you receive a polite rejection email.',
-      '✅ PRO MOVE: Replying professionally to thank them for the opportunity and politely requesting constructive feedback for future growth.',
-      'MATCHING CHALLENGE: All Sectors ➔ A 24-hour thank-you note reiterates key licences (e.g., White Card, NDIS, LF Ticket) and enthusiasm.',
-      'MATCHING CHALLENGE: Agency/Recruiter ➔ Check in via phone 5 days post-interview to ask if the client requires additional documentation.'
+      'âŒ ROOKIE MISTAKE: Calling or emailing the hiring manager daily demanding to know if you got the job.',
+      'âœ… PRO MOVE: Sending a polished thank-you email within 24 hours, then waiting until the agreed decision date passes before checking in.',
+      'âŒ ROOKIE MISTAKE: Ghosting or sending an angry reply if you receive a polite rejection email.',
+      'âœ… PRO MOVE: Replying professionally to thank them for the opportunity and politely requesting constructive feedback for future growth.',
+      'MATCHING CHALLENGE: All Sectors âž” A 24-hour thank-you note reiterates key licences (e.g., White Card, NDIS, LF Ticket) and enthusiasm.',
+      'MATCHING CHALLENGE: Agency/Recruiter âž” Check in via phone 5 days post-interview to ask if the client requires additional documentation.'
     ]
   },
 
@@ -41,7 +41,7 @@ export const module9: ModuleData = {
         id: 'opt2',
         choice: 'Option B: Send a polite, concise follow-up email to the interviewer referencing the job title, stating your continued interest, and politely asking if they have an updated recruitment timeline.',
         isCorrect: true,
-        feedback: 'Positive reinforcement detailing why this is the correct approach: A concise, structured email demonstrates professional initiative, respects the hiring manager’s schedule, and keeps your application top-of-mind.'
+        feedback: 'Positive reinforcement detailing why this is the correct approach: A concise, structured email demonstrates professional initiative, respects the hiring managerâ€™s schedule, and keeps your application top-of-mind.'
       },
       {
         id: 'opt3',
@@ -76,7 +76,7 @@ export const module9: ModuleData = {
     },
     {
       id: 'Q2',
-      question: 'What is the correct protocol if an employer’s stated decision deadline passes without any update on your application?',
+      question: 'What is the correct protocol if an employerâ€™s stated decision deadline passes without any update on your application?',
       options: [
         'Send a concise, polite follow-up email or call 1 to 2 business days after the deadline has passed',
         'Call the company phone line continuously every 15 minutes until someone answers',
@@ -91,7 +91,7 @@ export const module9: ModuleData = {
       options: [
         'Respond politely, thank them for the opportunity, and ask for constructive feedback to improve future applications',
         'Send an angry email arguing that the interview panel made a terrible mistake',
-        'Ignore the email completely and block the company’s phone number'
+        'Ignore the email completely and block the companyâ€™s phone number'
       ],
       correctAnswerIndex: 0,
       explanation: 'Detailed feedback explaining why this protocol matters: Remaining professional and requesting constructive feedback builds rapport with recruiters, who often re-contact strong secondary candidates for future roles.'
@@ -101,7 +101,7 @@ export const module9: ModuleData = {
       question: 'Which key details should you verify in an Australian employment contract before signing a formal job offer?',
       options: [
         'Employment type (casual, permanent), pay rate/award classification, rostered hours, and superannuation terms',
-        'The manager’s personal home address and personal hobbies',
+        'The managerâ€™s personal home address and personal hobbies',
         'Only the company logo design on the front page'
       ],
       correctAnswerIndex: 0,

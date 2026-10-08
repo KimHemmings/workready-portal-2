@@ -1,4 +1,4 @@
-import type { ModuleData } from '../modulesData';
+﻿import type { ModuleData } from '../modulesData';
 
 export const module23: ModuleData = {
   id: 'M23',
@@ -11,17 +11,17 @@ export const module23: ModuleData = {
 
   lesson1Title: 'Cultural Safety, Indigenous Respect & Australian Diversity',
   lesson1Content: [
-    'Australia’s workforce brings together people from hundreds of diverse cultural, linguistic, religious, and social backgrounds—including First Nations (Aboriginal and Torres Strait Islander) peoples, migrant communities, and individuals of all gender identities and abilities. Cultural Safety means creating a workplace environment where everyone feels respected, valued, and safe to express their identity without fear of judgment, bias, or discrimination.',
+    'Australiaâ€™s workforce brings together people from hundreds of diverse cultural, linguistic, religious, and social backgroundsâ€”including First Nations (Aboriginal and Torres Strait Islander) peoples, migrant communities, and individuals of all gender identities and abilities. Cultural Safety means creating a workplace environment where everyone feels respected, valued, and safe to express their identity without fear of judgment, bias, or discrimination.',
     'Demonstrating cultural respect involves acknowledging Aboriginal and Torres Strait Islander traditional ownership of land (through Welcome to Country or Acknowledgement of Country protocols), using respectful language, and valuing diverse perspectives. In sectors like healthcare, community services, education, and civil construction, cultural competence is vital for providing quality services and building strong team harmony.'
   ],
 
   graphicCard1: {
     title: 'Workplace Inclusion: Pro Move vs. Rookie Mistake',
     bullets: [
-      '❌ ROOKIE MISTAKE: Making stereotypical assumptions, insensitive jokes, or using derogatory language about co-workers or clients.',
-      '✅ PRO MOVE: Using respectful, inclusive language, listening actively, and treating all colleagues with dignity.',
-      '❌ ROOKIE MISTAKE: Excluding team members from discussions or social interactions based on background, age, or background.',
-      '✅ PRO MOVE: Actively inviting input from diverse team members and celebrating inclusive workplace achievements.',
+      'âŒ ROOKIE MISTAKE: Making stereotypical assumptions, insensitive jokes, or using derogatory language about co-workers or clients.',
+      'âœ… PRO MOVE: Using respectful, inclusive language, listening actively, and treating all colleagues with dignity.',
+      'âŒ ROOKIE MISTAKE: Excluding team members from discussions or social interactions based on background, age, or background.',
+      'âœ… PRO MOVE: Actively inviting input from diverse team members and celebrating inclusive workplace achievements.',
       'LEGAL FRAMEWORK: Sex Discrimination Act, Racial Discrimination Act, Disability Discrimination Act, Age Discrimination Act.',
       'COMPLIANCE STANDARD: Zero tolerance for harassment, vilification, or discriminatory exclusion across all industries.'
     ]

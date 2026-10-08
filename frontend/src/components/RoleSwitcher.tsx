@@ -1,4 +1,4 @@
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+﻿import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
 import { Eye, Undo2 } from "lucide-react";
 import { toast } from "sonner";
@@ -63,7 +63,7 @@ export default function RoleSwitcher() {
           }
           if (target.user.id === user.id) return;
           startImpersonation(target.user, qc);
-          toast.success(`Now viewing as ${target.label} — ${target.user.name}`);
+          toast.success(`Now viewing as ${target.label} â€” ${target.user.name}`);
           navigate(homePathFor(target.role));
         }}
       >
@@ -75,7 +75,7 @@ export default function RoleSwitcher() {
         <SelectContent>
           {rows.map((r) => (
             <SelectItem key={r.role} value={r.role} data-testid={`role-switch-${r.role}`}>
-              {r.label} — {r.user.name}
+              {r.label} â€” {r.user.name}
             </SelectItem>
           ))}
         </SelectContent>

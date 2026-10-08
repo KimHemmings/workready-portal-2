@@ -1,4 +1,4 @@
-import type { ModuleData } from '../modulesData';
+﻿import type { ModuleData } from '../modulesData';
 
 export const module17: ModuleData = {
   id: 'M17',
@@ -11,19 +11,19 @@ export const module17: ModuleData = {
 
   lesson1Title: 'Navigating Probationary Periods & Fair Work Standards',
   lesson1Content: [
-    'In Australia, new employment contracts typically include an initial **Probationary Period** lasting between 3 to 6 months. Under the *Fair Work Act 2009*, probation is a formal timeframe allowing both employer and employee to evaluate whether the working relationship, job fit, skill performance, and team culture are mutually aligned. It is important to note that full employment rights—including minimum award pay rates, superannuation, and health and safety protections—apply from your very first day of employment, regardless of probation status.',
+    'In Australia, new employment contracts typically include an initial **Probationary Period** lasting between 3 to 6 months. Under the *Fair Work Act 2009*, probation is a formal timeframe allowing both employer and employee to evaluate whether the working relationship, job fit, skill performance, and team culture are mutually aligned. It is important to note that full employment rightsâ€”including minimum award pay rates, superannuation, and health and safety protectionsâ€”apply from your very first day of employment, regardless of probation status.',
     'During probation, supervisors monitor key performance indicators: punctuality, site safety compliance, accuracy, peer collaboration, and coachability. Passing probation smoothly requires establishing a track record of reliability, asking for clarification when needed, and taking immediate accountability for learning from minor mistakes.'
   ],
 
   graphicCard1: {
     title: 'Probation Standards: Pro Move vs. Rookie Mistake',
     bullets: [
-      '❌ ROOKIE MISTAKE: Assuming probation doesn\'t matter because you\'ve already signed your employment contract.',
-      '✅ PRO MOVE: Setting a self-review checkpoint at 30, 60, and 90 days to evaluate your own performance against expectations.',
-      '❌ ROOKIE MISTAKE: Becoming defensive or argumentative when a manager points out an area for performance improvement.',
-      '✅ PRO MOVE: Listening actively, thanking the manager for feedback, and demonstrating immediate practical adjustments.',
-      'MATCHING CHALLENGE: All Sectors ➔ Schedule a proactive 30-day check-in with your leader to ask: "Where can I improve?"',
-      'MATCHING CHALLENGE: Care & Trades ➔ Focus heavily on zero safety breaches, compliance logging, and site reliability.'
+      'âŒ ROOKIE MISTAKE: Assuming probation doesn\'t matter because you\'ve already signed your employment contract.',
+      'âœ… PRO MOVE: Setting a self-review checkpoint at 30, 60, and 90 days to evaluate your own performance against expectations.',
+      'âŒ ROOKIE MISTAKE: Becoming defensive or argumentative when a manager points out an area for performance improvement.',
+      'âœ… PRO MOVE: Listening actively, thanking the manager for feedback, and demonstrating immediate practical adjustments.',
+      'MATCHING CHALLENGE: All Sectors âž” Schedule a proactive 30-day check-in with your leader to ask: "Where can I improve?"',
+      'MATCHING CHALLENGE: Care & Trades âž” Focus heavily on zero safety breaches, compliance logging, and site reliability.'
     ]
   },
 

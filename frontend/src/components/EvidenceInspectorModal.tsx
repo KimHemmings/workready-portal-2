@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+﻿import React, { useEffect } from 'react';
 import { ShieldCheck, Printer, Download, CheckCircle2, XCircle, RotateCcw, X, FileText, Award, Building2, Briefcase } from 'lucide-react';
 
 interface EvidenceInspectorProps {
@@ -211,7 +211,7 @@ export const EvidenceInspectorModal: React.FC<EvidenceInspectorProps> = ({
             </div>
 
             <div className="inline-block px-3.5 py-1 bg-purple-950 text-white font-black text-[11px] rounded-full uppercase tracking-wider shadow-xs">
-              🏆 Official Certificate of Achievement
+              ðŸ† Official Certificate of Achievement
             </div>
 
             <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1">

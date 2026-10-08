@@ -1,4 +1,4 @@
-import { useState } from "react";
+﻿import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { CheckCircle2, Flag, Paperclip, Plus, Upload } from "lucide-react";
 import { toast } from "sonner";
@@ -88,7 +88,7 @@ export default function JobLogs() {
       setFileMime("");
       setFileSize(0);
       setNotes("");
-      toast.success(`Activity logged — ${data.points ?? 0} PBAS points added.`);
+      toast.success(`Activity logged â€” ${data.points ?? 0} PBAS points added.`);
     },
     onError: (err: unknown) => {
       const detail = err instanceof ApiError ? (err.body as { detail?: string } | null)?.detail : null;
@@ -216,7 +216,7 @@ export default function JobLogs() {
               </div>
               <Button type="submit" className="w-full bg-cta text-cta-foreground hover:bg-cta/90" disabled={create.isPending || remainingLogs <= 0} data-testid="pbas-submit-button">
                 <Plus className="h-4 w-4 mr-1.5" aria-hidden="true" />
-                {create.isPending ? "Saving…" : `Log activity (${TYPES[type]} pts)`}
+                {create.isPending ? "Savingâ€¦" : `Log activity (${TYPES[type]} pts)`}
               </Button>
               {remainingLogs <= 0 && (
                 <p className="text-sm text-destructive" data-testid="job-logs-limit-notice">
@@ -238,7 +238,7 @@ export default function JobLogs() {
           <CardContent>
             {rows.length === 0 ? (
               <p className="text-muted-foreground text-sm" data-testid="job-logs-empty">
-                Nothing logged yet — add your first activity on the left.
+                Nothing logged yet â€” add your first activity on the left.
               </p>
             ) : (
               <Table data-testid="job-logs-table">

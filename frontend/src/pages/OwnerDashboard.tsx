@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+﻿import React, { useState } from 'react';
 import { usePortal } from '../context/PortalContext';
 import {
   HelpCircle,
@@ -211,7 +211,7 @@ const [promptCandidateName, setPromptCandidateName] = useState<string>('Alex Mer
               </div>
 
               <p className="text-xs text-purple-200/80 font-medium">
-                Business Manager Hub • Operational Oversight, SLAs & Verification Analytics
+                Business Manager Hub â€¢ Operational Oversight, SLAs & Verification Analytics
               </p>
             </div>
           </div>
@@ -292,7 +292,7 @@ const [promptCandidateName, setPromptCandidateName] = useState<string>('Alex Mer
               />
             </div>
             <p className="text-[10px] text-slate-400 font-medium group-hover:text-slate-600">
-              {currentCandidateQuota - activeCandidateCount} Seats Available ({candidateQuotaPercent}% used) • <span className="underline font-bold">Manage</span>
+              {currentCandidateQuota - activeCandidateCount} Seats Available ({candidateQuotaPercent}% used) â€¢ <span className="underline font-bold">Manage</span>
             </p>
           </div>
 
@@ -317,7 +317,7 @@ const [promptCandidateName, setPromptCandidateName] = useState<string>('Alex Mer
               />
             </div>
             <p className="text-[10px] text-slate-400 font-medium group-hover:text-slate-600">
-              {currentStaffQuota - activeStaffCount} Staff Licenses Available ({staffQuotaPercent}% used) • <span className="underline font-bold">View Roster</span>
+              {currentStaffQuota - activeStaffCount} Staff Licenses Available ({staffQuotaPercent}% used) â€¢ <span className="underline font-bold">View Roster</span>
             </p>
           </div>
 
@@ -333,7 +333,7 @@ const [promptCandidateName, setPromptCandidateName] = useState<string>('Alex Mer
             <div className="text-lg font-black text-purple-950">1.1 Business Days</div>
             <p className="text-[10px] text-emerald-600 font-bold flex items-center space-x-1">
               <CheckCircle2 className="w-3 h-3" />
-              <span>Exceeding {placementSlaDays}-Day Target • <span className="underline">View CM Speeds</span></span>
+              <span>Exceeding {placementSlaDays}-Day Target â€¢ <span className="underline">View CM Speeds</span></span>
             </p>
           </div>
 
@@ -348,7 +348,7 @@ const [promptCandidateName, setPromptCandidateName] = useState<string>('Alex Mer
             </span>
             <div className="text-lg font-black text-rose-600">{pendingCount} Items Awaiting Review</div>
             <p className="text-[10px] text-slate-500 font-medium group-hover:text-rose-700">
-              Action required by assigned Case Manager • <span className="underline font-bold">Inspect Backlog</span>
+              Action required by assigned Case Manager â€¢ <span className="underline font-bold">Inspect Backlog</span>
             </p>
           </div>
         </div>
@@ -1084,7 +1084,7 @@ const [promptCandidateName, setPromptCandidateName] = useState<string>('Alex Mer
             <div className="flex justify-between items-center border-b border-slate-100 pb-3">
               <h4 className="font-extrabold text-slate-900 text-base">Provision New Case Manager</h4>
               <button onClick={() => setShowAddStaffModal(false)} className="text-slate-400 hover:text-slate-600 font-bold">
-                ✕
+                âœ•
               </button>
             </div>
 
@@ -1154,7 +1154,7 @@ const [promptCandidateName, setPromptCandidateName] = useState<string>('Alex Mer
             <div className="flex justify-between items-center border-b border-slate-100 pb-3">
               <h4 className="font-extrabold text-slate-900 text-base">Provision New Candidate</h4>
               <button onClick={() => setShowAddCandidateModal(false)} className="text-slate-400 hover:text-slate-600 font-bold">
-                ✕
+                âœ•
               </button>
             </div>
 
@@ -1242,7 +1242,7 @@ const [promptCandidateName, setPromptCandidateName] = useState<string>('Alex Mer
                 <p className="text-xs text-purple-900 font-bold">{selectedCmForManage}</p>
               </div>
               <button onClick={() => setSelectedCmForManage(null)} className="text-slate-400 hover:text-slate-600 font-bold">
-                ✕
+                âœ•
               </button>
             </div>
 
@@ -1336,7 +1336,7 @@ const [promptCandidateName, setPromptCandidateName] = useState<string>('Alex Mer
                 <p className="text-xs text-purple-950 font-bold">Recipient: {promptTargetCm}</p>
               </div>
               <button onClick={() => setShowPromptModal(false)} className="text-slate-400 hover:text-slate-600 font-bold">
-                ✕
+                âœ•
               </button>
             </div>
 
@@ -1418,7 +1418,7 @@ const [promptCandidateName, setPromptCandidateName] = useState<string>('Alex Mer
           onClick={() => setShowSupportModal(false)}
           className="text-slate-400 hover:text-slate-600 font-bold text-lg"
         >
-          ✕
+          âœ•
         </button>
       </div>
 
@@ -1428,9 +1428,9 @@ const [promptCandidateName, setPromptCandidateName] = useState<string>('Alex Mer
           Quick Knowledge Base Guidance
         </span>
         <ul className="space-y-1.5 text-slate-700 font-medium">
-          <li>• <strong>RTO Pathway Mode:</strong> Switch contract dropdown to "RTO" to suppress PBAS obligations in favor of graduate readiness metrics.</li>
-          <li>• <strong>Coverage Mode:</strong> Toggle CM status to "Coverage Mode Active" to allow cross-site candidate reassignments.</li>
-          <li>• <strong>Executive SLA Nudges:</strong> Nudging a CM automatically logs an entry in Tab 5 Activity Audit for compliance reviews.</li>
+          <li>â€¢ <strong>RTO Pathway Mode:</strong> Switch contract dropdown to "RTO" to suppress PBAS obligations in favor of graduate readiness metrics.</li>
+          <li>â€¢ <strong>Coverage Mode:</strong> Toggle CM status to "Coverage Mode Active" to allow cross-site candidate reassignments.</li>
+          <li>â€¢ <strong>Executive SLA Nudges:</strong> Nudging a CM automatically logs an entry in Tab 5 Activity Audit for compliance reviews.</li>
         </ul>
       </div>
 

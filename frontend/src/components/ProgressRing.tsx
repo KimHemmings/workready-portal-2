@@ -1,4 +1,4 @@
-type Props = {
+﻿type Props = {
   percent: number;
   size?: number;
   label?: string;

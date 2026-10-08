@@ -1,4 +1,4 @@
-// lucide-react 1.x removed brand logos (lucide-icons/lucide#670: "use Simple Icons"), yet
+﻿// lucide-react 1.x removed brand logos (lucide-icons/lucide#670: "use Simple Icons"), yet
 // `import { Instagram } from "lucide-react"` is what most code, and every model, still writes.
 // Vite and tsconfig alias "lucide-react" here: everything from the real package, plus the removed
 // names backed by Simple Icons, or lucide's own 0.x glyph (ISC) where Simple Icons has no mark.

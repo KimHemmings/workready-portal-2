@@ -1,4 +1,4 @@
-import type { ModuleData } from '../modulesData';
+﻿import type { ModuleData } from '../modulesData';
 
 export const module3: ModuleData = {
   id: 'M03',
@@ -18,12 +18,12 @@ export const module3: ModuleData = {
   graphicCard1: {
     title: 'Teamwork Standards: Pro Move vs. Rookie Mistake',
     bullets: [
-      '❌ ROOKIE MISTAKE: Stopping work or taking an unscheduled break the moment your personal task list is finished while colleagues are swamped.',
-      '✅ PRO MOVE: Checking in with your shift leader or peers: "My section is prepped and clean—where can I jump in to help?"',
-      '❌ ROOKIE MISTAKE: Complaining openly about a teammate\'s working speed or style to others in the staff tearoom.',
-      '✅ PRO MOVE: Offering direct, practical assistance or speaking privately to your team leader if a workflow delay creates a safety hazard.',
-      'MATCHING CHALLENGE: Civil/Trades ➔ Sharing tool setups and maintaining clean access ways for trailing trades.',
-      'MATCHING CHALLENGE: Retail/Care ➔ Covering peer break times promptly so customer service or client care remains seamless.'
+      'âŒ ROOKIE MISTAKE: Stopping work or taking an unscheduled break the moment your personal task list is finished while colleagues are swamped.',
+      'âœ… PRO MOVE: Checking in with your shift leader or peers: "My section is prepped and cleanâ€”where can I jump in to help?"',
+      'âŒ ROOKIE MISTAKE: Complaining openly about a teammate\'s working speed or style to others in the staff tearoom.',
+      'âœ… PRO MOVE: Offering direct, practical assistance or speaking privately to your team leader if a workflow delay creates a safety hazard.',
+      'MATCHING CHALLENGE: Civil/Trades âž” Sharing tool setups and maintaining clean access ways for trailing trades.',
+      'MATCHING CHALLENGE: Retail/Care âž” Covering peer break times promptly so customer service or client care remains seamless.'
     ]
   },
 
@@ -54,7 +54,7 @@ export const module3: ModuleData = {
 
   lesson2Title: 'Structured Problem Solving & The "Solution-First" Framework',
   lesson2Content: [
-    'Unforeseen problems—such as missing stock, broken equipment, roster gaps, or difficult client interactions—occur daily across all industries. The difference between an average worker and a valuable employee is how they respond to these disruptions. Instead of panicking or bringing problems to a supervisor without context, high-performing employees use the **3-Step Solution-First Framework**.',
+    'Unforeseen problemsâ€”such as missing stock, broken equipment, roster gaps, or difficult client interactionsâ€”occur daily across all industries. The difference between an average worker and a valuable employee is how they respond to these disruptions. Instead of panicking or bringing problems to a supervisor without context, high-performing employees use the **3-Step Solution-First Framework**.',
     'The Solution-First approach involves: 1) **Identifying the core root problem** clearly (e.g., *"We are out of size M safety gloves in Bay 2"*), 2) **Formulating 1 or 2 practical, safe options** (e.g., *"I checked the central store and there is an unopened box we can unpack, or we can borrow from Bay 4"*), and 3) **Presenting the issue AND recommendations** to your supervisor (e.g., *"Hey Sarah, Bay 2 is out of size M gloves. I can grab the unopened box from central store now if you approve?"*). This approach saves supervisor time and demonstrates high-level operational leadership.'
   ],
 

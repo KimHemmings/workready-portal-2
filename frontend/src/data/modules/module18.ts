@@ -1,4 +1,4 @@
-import type { ModuleData } from '../modulesData';
+﻿import type { ModuleData } from '../modulesData';
 
 export const module18: ModuleData = {
   id: 'M18',
@@ -18,12 +18,12 @@ export const module18: ModuleData = {
   graphicCard1: {
     title: 'Career Progression: Pro Move vs. Rookie Mistake',
     bullets: [
-      '❌ ROOKIE MISTAKE: Working in the same entry-level role for 5 years without adding a single new ticket or skill to your resume.',
-      '✅ PRO MOVE: Investing in 1 new accredited ticket or short course every 6 to 12 months to unlock higher pay tiers.',
-      '❌ ROOKIE MISTAKE: Expecting promotions based purely on time served rather than demonstrated skill and leadership.',
-      '✅ PRO MOVE: Volunteering for new site responsibilities, mentoring new staff, and maintaining zero safety incidents.',
-      'MATCHING CHALLENGE: Trades & Civil ➔ Add White Card ➔ Forklift (LF) ➔ Rigging/EWP ➔ Cert IV in Building & Construction.',
-      'MATCHING CHALLENGE: Health & Care ➔ Add First Aid/CPR ➔ Cert III Care ➔ Med Endorsement ➔ Diploma / Nursing Degree.'
+      'âŒ ROOKIE MISTAKE: Working in the same entry-level role for 5 years without adding a single new ticket or skill to your resume.',
+      'âœ… PRO MOVE: Investing in 1 new accredited ticket or short course every 6 to 12 months to unlock higher pay tiers.',
+      'âŒ ROOKIE MISTAKE: Expecting promotions based purely on time served rather than demonstrated skill and leadership.',
+      'âœ… PRO MOVE: Volunteering for new site responsibilities, mentoring new staff, and maintaining zero safety incidents.',
+      'MATCHING CHALLENGE: Trades & Civil âž” Add White Card âž” Forklift (LF) âž” Rigging/EWP âž” Cert IV in Building & Construction.',
+      'MATCHING CHALLENGE: Health & Care âž” Add First Aid/CPR âž” Cert III Care âž” Med Endorsement âž” Diploma / Nursing Degree.'
     ]
   },
 
@@ -54,7 +54,7 @@ export const module18: ModuleData = {
 
   lesson2Title: 'Developing Leadership & Mentorship Qualities',
   lesson2Content: [
-    'Advancing into leadership positions requires more than technical competency—it requires **Emotional Intelligence and Peer Mentorship**. Supervisors look for employees who step up during challenging shifts, maintain high morale, follow safety protocols consistently, and assist newer team members during onboarding.',
+    'Advancing into leadership positions requires more than technical competencyâ€”it requires **Emotional Intelligence and Peer Mentorship**. Supervisors look for employees who step up during challenging shifts, maintain high morale, follow safety protocols consistently, and assist newer team members during onboarding.',
     'When requesting a formal promotion or pay review, present a professional business case. Outline your reliable attendance record, your added skills and tickets, any additional responsibilities you have absorbed, and your commitment to company growth. Frame the conversation around mutual value: *"By taking on shift coordination, I can free up management time and keep site productivity high."*'
   ],
 

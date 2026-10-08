@@ -1,4 +1,4 @@
-import type { ModuleData } from '../modulesData';
+﻿import type { ModuleData } from '../modulesData';
 
 export const module19: ModuleData = {
   id: 'M19',
@@ -12,18 +12,18 @@ export const module19: ModuleData = {
   lesson1Title: 'Psychological Safety & Managing Workplace Stress',
   lesson1Content: [
     'Workplace health encompasses both physical safety and **Psychological Safety**. Under updated Australian Work Health and Safety (WH&S) regulations, employers have a statutory duty of care to manage psychosocial hazards in the workplace (such as workplace bullying, excessive workload pressure, lack of role clarity, or harassment). Every employee has the right to perform their duties in an environment free from psychological harm.',
-    'Experiencing stress during busy operational periods—such as handling complex care clients, managing high customer volume in retail, meeting tight pour deadlines in construction, or processing urgent data in administration—is common. Developing healthy personal resilience strategies (such as structured sleep routines, regular exercise, setting clear work-life boundaries, and practicing mindfulness) helps prevent burnout and keeps your operational performance high.'
+    'Experiencing stress during busy operational periodsâ€”such as handling complex care clients, managing high customer volume in retail, meeting tight pour deadlines in construction, or processing urgent data in administrationâ€”is common. Developing healthy personal resilience strategies (such as structured sleep routines, regular exercise, setting clear work-life boundaries, and practicing mindfulness) helps prevent burnout and keeps your operational performance high.'
   ],
 
   graphicCard1: {
     title: 'Workplace Wellbeing: Pro Move vs. Rookie Mistake',
     bullets: [
-      '❌ ROOKIE MISTAKE: Bottling up severe mental health stress or interpersonal conflict until it leads to an explosive workplace outburst.',
-      '✅ PRO MOVE: Recognizing early signs of burnout and accessing confidential workplace support services like your Employee Assistance Program (EAP).',
-      '❌ ROOKIE MISTAKE: Engaging in workplace gossip, exclusion, or aggressive behavior that breaches anti-bullying policies.',
-      '✅ PRO MOVE: Fostering a supportive team culture where colleagues treat each other with respect, dignity, and empathy.',
-      'SUPPORT RESOURCE: Employee Assistance Program (EAP) ➔ Free, confidential professional counseling provided by many employers.',
-      'SUPPORT RESOURCE: Beyond Blue / Lifeline ➔ 24/7 national mental health support services (Call 13 11 14).'
+      'âŒ ROOKIE MISTAKE: Bottling up severe mental health stress or interpersonal conflict until it leads to an explosive workplace outburst.',
+      'âœ… PRO MOVE: Recognizing early signs of burnout and accessing confidential workplace support services like your Employee Assistance Program (EAP).',
+      'âŒ ROOKIE MISTAKE: Engaging in workplace gossip, exclusion, or aggressive behavior that breaches anti-bullying policies.',
+      'âœ… PRO MOVE: Fostering a supportive team culture where colleagues treat each other with respect, dignity, and empathy.',
+      'SUPPORT RESOURCE: Employee Assistance Program (EAP) âž” Free, confidential professional counseling provided by many employers.',
+      'SUPPORT RESOURCE: Beyond Blue / Lifeline âž” 24/7 national mental health support services (Call 13 11 14).'
     ]
   },
 
@@ -54,7 +54,7 @@ export const module19: ModuleData = {
 
   lesson2Title: 'Employee Assistance Programs (EAP) & Anti-Bullying Protections',
   lesson2Content: [
-    'Many medium-to-large Australian companies provide access to an **Employee Assistance Program (EAP)**. An EAP is a free, confidential professional counseling service funded by the employer to assist staff with personal or work-related issues (including stress, financial anxiety, family challenges, or grief). EAP consultations are completely independent—your employer receives no information regarding who accesses the service or what is discussed.',
+    'Many medium-to-large Australian companies provide access to an **Employee Assistance Program (EAP)**. An EAP is a free, confidential professional counseling service funded by the employer to assist staff with personal or work-related issues (including stress, financial anxiety, family challenges, or grief). EAP consultations are completely independentâ€”your employer receives no information regarding who accesses the service or what is discussed.',
     'Australian workplace law strictly prohibits workplace bullying, harassment, and discrimination under the *Fair Work Act* and state WH&S legislation. If you experience or witness unreasonable repeated behavior directed toward a worker that creates a risk to health and safety, address it through official workplace channels: 1) Speak directly to the person if safe to do so, 2) Report the conduct to your supervisor, HR, or Health & Safety Representative (HSR), and 3) Keep factual written records of incidents.'
   ],
 

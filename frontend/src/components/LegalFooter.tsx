@@ -1,4 +1,4 @@
-import { Link } from "react-router-dom";
+﻿import { Link } from "react-router-dom";
 
 /** Privacy / Terms links, shown on every screen in the app shell and on the auth screens. */
 export default function LegalFooter({ className = "" }: { className?: string }) {
@@ -14,7 +14,7 @@ export default function LegalFooter({ className = "" }: { className?: string }) 
       >
         Privacy Policy
       </Link>
-      <span aria-hidden="true">·</span>
+      <span aria-hidden="true">Â·</span>
       <Link
         to="/terms"
         className="underline-offset-4 transition-colors hover:text-foreground hover:underline"
@@ -22,8 +22,8 @@ export default function LegalFooter({ className = "" }: { className?: string }) 
       >
         Terms of Use
       </Link>
-      <span aria-hidden="true">·</span>
-      <span>© {new Date().getFullYear()} Straight Up Training</span>
+      <span aria-hidden="true">Â·</span>
+      <span>Â© {new Date().getFullYear()} Straight Up Training</span>
     </footer>
   );
 }

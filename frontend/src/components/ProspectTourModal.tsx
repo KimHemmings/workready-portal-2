@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+﻿import React, { useState } from 'react';
 import { 
   Sparkles, 
   ChevronRight, 
@@ -45,7 +45,7 @@ export const ProspectTourModal: React.FC<ProspectTourModalProps> = ({
         {/* STEP HEADER */}
         <div className="space-y-1">
           <span className="text-[10px] font-extrabold uppercase tracking-widest text-purple-900 bg-purple-100 border border-purple-200 px-2.5 py-0.5 rounded-full inline-flex items-center gap-1">
-            <Sparkles className="w-3 h-3 text-purple-600" /> Executive Interactive Tour • Step {currentStep} of 3
+            <Sparkles className="w-3 h-3 text-purple-600" /> Executive Interactive Tour â€¢ Step {currentStep} of 3
           </span>
           <h3 className="text-xl font-extrabold text-purple-950 mt-1">
             {currentStep === 1 && `Welcome, ${providerName} Executive Team`}
@@ -91,7 +91,7 @@ export const ProspectTourModal: React.FC<ProspectTourModalProps> = ({
                 Use the interactive controls to set your <strong>Caseload Size</strong>, <strong>Active Staff Count</strong>, and <strong>Loaded Hourly Costs</strong>.
               </p>
               <p className="text-[11px] text-slate-500 italic bg-white p-2 rounded-lg border border-slate-200">
-                💡 Reclaiming ~6.5 hours/week per Case Manager converts directly into 13+ additional 1-on-1 participant coaching sessions weekly.
+                ðŸ’¡ Reclaiming ~6.5 hours/week per Case Manager converts directly into 13+ additional 1-on-1 participant coaching sessions weekly.
               </p>
             </div>
           )}
@@ -106,9 +106,9 @@ export const ProspectTourModal: React.FC<ProspectTourModalProps> = ({
                 Click any of the role buttons on the main screen to test drive operational workflows live:
               </p>
               <div className="grid grid-cols-3 gap-2 pt-1 font-bold text-[11px]">
-                <div className="p-2 bg-white rounded-lg border border-slate-200 text-center text-emerald-900">📱 Candidate</div>
-                <div className="p-2 bg-white rounded-lg border border-slate-200 text-center text-purple-900">⚡ Case Manager</div>
-                <div className="p-2 bg-white rounded-lg border border-slate-200 text-center text-amber-900">🛡️ Director</div>
+                <div className="p-2 bg-white rounded-lg border border-slate-200 text-center text-emerald-900">ðŸ“± Candidate</div>
+                <div className="p-2 bg-white rounded-lg border border-slate-200 text-center text-purple-900">âš¡ Case Manager</div>
+                <div className="p-2 bg-white rounded-lg border border-slate-200 text-center text-amber-900">ðŸ›¡ï¸ Director</div>
               </div>
             </div>
           )}

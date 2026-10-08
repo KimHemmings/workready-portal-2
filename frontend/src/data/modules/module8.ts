@@ -1,4 +1,4 @@
-import type { ModuleData } from '../modulesData';
+﻿import type { ModuleData } from '../modulesData';
 
 export const module8: ModuleData = {
   id: 'M08',
@@ -11,19 +11,19 @@ export const module8: ModuleData = {
 
   lesson1Title: 'Mastering Behavioral Questions & The STAR Framework',
   lesson1Content: [
-    'Australian employers across civil trades, healthcare, hospitality, retail, and corporate admin rely heavily on **Behavioral Interview Questions**. These questions operate on a simple premise: past performance predicts future workplace behavior. When an interviewer asks *"Tell me about a time when..."* or *"Give me an example of how you..."*, they are not looking for general opinions—they want a specific, real-world story that proves you possess key workplace capabilities like safety awareness, problem-solving, teamwork, or resilience.',
-    'To answer behavioral questions clearly without rambling, use the **STAR Framework**. STAR breaks your story down into four distinct steps: 1) **Situation** (set the brief context—where and when), 2) **Task** (explain the specific challenge or objective), 3) **Action** (detail the specific steps **YOU** took to resolve it—this is the longest part of your answer), and 4) **Result** (share the positive outcome, key learning, or measurable impact achieved).'
+    'Australian employers across civil trades, healthcare, hospitality, retail, and corporate admin rely heavily on **Behavioral Interview Questions**. These questions operate on a simple premise: past performance predicts future workplace behavior. When an interviewer asks *"Tell me about a time when..."* or *"Give me an example of how you..."*, they are not looking for general opinionsâ€”they want a specific, real-world story that proves you possess key workplace capabilities like safety awareness, problem-solving, teamwork, or resilience.',
+    'To answer behavioral questions clearly without rambling, use the **STAR Framework**. STAR breaks your story down into four distinct steps: 1) **Situation** (set the brief contextâ€”where and when), 2) **Task** (explain the specific challenge or objective), 3) **Action** (detail the specific steps **YOU** took to resolve itâ€”this is the longest part of your answer), and 4) **Result** (share the positive outcome, key learning, or measurable impact achieved).'
   ],
 
   graphicCard1: {
     title: 'STAR Interview Method: Pro Move vs. Rookie Mistake',
     bullets: [
-      '❌ ROOKIE MISTAKE: Giving vague general statements like "I am a great multi-tasker and I always handle pressure well."',
-      '✅ PRO MOVE: Using the STAR formula to give a 90-second concrete example detailing a specific incident and how you resolved it.',
-      '❌ ROOKIE MISTAKE: Spending 80% of your response explaining the background situation and forgetting to detail your personal actions.',
-      '✅ PRO MOVE: Keeping the Situation & Task brief (20%) and focusing 60% of your answer on YOUR specific Actions and 20% on the Result.',
-      'MATCHING CHALLENGE: Care & Health ➔ Frame STAR stories around patient safety, empathy, and clear shift handover communication.',
-      'MATCHING CHALLENGE: Trades & Civil ➔ Frame STAR stories around WH&S hazard identification, teamwork, and task completion deadlines.'
+      'âŒ ROOKIE MISTAKE: Giving vague general statements like "I am a great multi-tasker and I always handle pressure well."',
+      'âœ… PRO MOVE: Using the STAR formula to give a 90-second concrete example detailing a specific incident and how you resolved it.',
+      'âŒ ROOKIE MISTAKE: Spending 80% of your response explaining the background situation and forgetting to detail your personal actions.',
+      'âœ… PRO MOVE: Keeping the Situation & Task brief (20%) and focusing 60% of your answer on YOUR specific Actions and 20% on the Result.',
+      'MATCHING CHALLENGE: Care & Health âž” Frame STAR stories around patient safety, empathy, and clear shift handover communication.',
+      'MATCHING CHALLENGE: Trades & Civil âž” Frame STAR stories around WH&S hazard identification, teamwork, and task completion deadlines.'
     ]
   },
 
@@ -55,7 +55,7 @@ export const module8: ModuleData = {
   lesson2Title: 'Deconstructing the STAR Formula: Action & Result Focus',
   lesson2Content: [
     'The most common trap candidates fall into when using STAR is focusing too much on "we" instead of "I". While teamwork is critical, the recruiter is interviewing **you**. In the **Action** section of your story, explicitly highlight your personal contribution using strong active verbs: *"I identified the hazard...", "I suggested a shift adjustment...", "I calculated the required materials...", "I called the site supervisor directly..."*',
-    'The **Result** section is your closing punchline—and where most applicants stop short. Always complete your story with a positive, professional outcome. Where possible, quantify your results with numbers, time saved, zero safety incidents, or supervisor praise (e.g., *"As a result, we cleared the backlog 20 minutes ahead of schedule and the supervisor complimented our team coordination"*). If the situation was a mistake, explain what you learned and how it made you a sharper, safer worker.'
+    'The **Result** section is your closing punchlineâ€”and where most applicants stop short. Always complete your story with a positive, professional outcome. Where possible, quantify your results with numbers, time saved, zero safety incidents, or supervisor praise (e.g., *"As a result, we cleared the backlog 20 minutes ahead of schedule and the supervisor complimented our team coordination"*). If the situation was a mistake, explain what you learned and how it made you a sharper, safer worker.'
   ],
 
   practicalReflection: 'Think about a challenging situation from a past job, volunteer role, or training program. What were the specific Actions YOU took to resolve the issue?',
@@ -72,7 +72,7 @@ export const module8: ModuleData = {
         'Skills, Training, Attendance, Respect'
       ],
       correctAnswerIndex: 0,
-      explanation: 'Detailed feedback explaining why option 1 is correct: STAR stands for Situation, Task, Action, and Result—the standard behavioral response framework across Australian hiring.'
+      explanation: 'Detailed feedback explaining why option 1 is correct: STAR stands for Situation, Task, Action, and Resultâ€”the standard behavioral response framework across Australian hiring.'
     },
     {
       id: 'Q2',

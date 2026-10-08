@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+﻿import React, { useState, useEffect } from 'react';
 import { 
   ShieldAlert, Building2, Users, Cpu, Server, Key, Sliders, LogOut, 
   PlusCircle, Download, CheckCircle2, AlertTriangle, RefreshCw, X, Search, Sparkles,
@@ -203,25 +203,25 @@ export function SystemAdminDashboard() {
               onClick={() => handleSwitchRole('sales')}
               className="px-2.5 py-1 bg-amber-400 hover:bg-amber-300 text-purple-950 font-extrabold rounded-lg transition-all cursor-pointer shadow-sm"
             >
-              💼 Sales Portal
+              ðŸ’¼ Sales Portal
             </button>
             <button
               onClick={() => handleSwitchRole('candidate')}
               className="px-2.5 py-1 bg-purple-900/80 hover:bg-purple-800 text-white rounded-lg transition-all cursor-pointer"
             >
-              📱 Candidate
+              ðŸ“± Candidate
             </button>
             <button
               onClick={() => handleSwitchRole('coach')}
               className="px-2.5 py-1 bg-purple-900/80 hover:bg-purple-800 text-white rounded-lg transition-all cursor-pointer"
             >
-              ⚡ Coach
+              âš¡ Coach
             </button>
             <button
               onClick={() => handleSwitchRole('owner')}
               className="px-2.5 py-1 bg-purple-900/80 hover:bg-purple-800 text-white rounded-lg transition-all cursor-pointer"
             >
-              🛡 Executive
+              ðŸ›¡ Executive
             </button>
           </div>
 
@@ -230,7 +230,7 @@ export function SystemAdminDashboard() {
             <button
               onClick={() => {
                 resetSandboxState();
-                alert('↺ Global Sandbox State Reset!');
+                alert('â†º Global Sandbox State Reset!');
               }}
               className="px-3 py-1.5 bg-purple-800/80 hover:bg-purple-700 text-white text-xs font-bold rounded-xl transition-all flex items-center space-x-1 cursor-pointer"
             >
@@ -324,7 +324,7 @@ export function SystemAdminDashboard() {
                     onClick={() => setHideActionedLeads(prev => !prev)}
                     className="text-xs font-bold text-slate-600 hover:text-purple-950 bg-slate-100 border border-slate-200 px-3 py-1 rounded-lg transition-all cursor-pointer"
                   >
-                    {hideActionedLeads ? '👁️ Show Actioned/Archived' : '🙈 Hide Actioned/Archived'}
+                    {hideActionedLeads ? 'ðŸ‘ï¸ Show Actioned/Archived' : 'ðŸ™ˆ Hide Actioned/Archived'}
                   </button>
                   <span className="text-[10px] font-extrabold uppercase tracking-wider text-amber-900 bg-amber-100 border border-amber-300 px-2.5 py-0.5 rounded-full">
                     Live Lead Queue
@@ -504,7 +504,7 @@ export function SystemAdminDashboard() {
                             <Building2 className="w-4 h-4 text-purple-700 shrink-0"/>
                             <div>
                               <span className="font-black text-purple-950 text-xs">{t.name}</span>
-                              <span className="text-[10px] text-slate-500 font-mono block">[{t.code}] • Joined: {t.joinedDate}</span>
+                              <span className="text-[10px] text-slate-500 font-mono block">[{t.code}] â€¢ Joined: {t.joinedDate}</span>
                             </div>
                           </div>
                         </td>
@@ -522,7 +522,7 @@ export function SystemAdminDashboard() {
                             isRenewalDue ? 'bg-amber-100 text-amber-900 border-amber-300' :
                             'bg-slate-100 text-slate-700 border-slate-200'
                           }`}>
-                            {isExpired ? '🚨 Expired' : isRenewalDue ? `⚠️ ${daysLeft} Days to Renewal` : `🟢 ${daysLeft} Days Left`}
+                            {isExpired ? 'ðŸš¨ Expired' : isRenewalDue ? `âš ï¸ ${daysLeft} Days to Renewal` : `ðŸŸ¢ ${daysLeft} Days Left`}
                           </span>
                         </td>
                         <td className="p-3.5 text-right space-y-1">
@@ -535,7 +535,7 @@ export function SystemAdminDashboard() {
                                 t.autoRenewal ? 'bg-purple-100 text-purple-900 border-purple-300' : 'bg-slate-100 text-slate-600 border-slate-300'
                               }`}
                             >
-                              Auto-Renew: {t.autoRenewal ? 'ON 🔄' : 'OFF ⏸'}
+                              Auto-Renew: {t.autoRenewal ? 'ON ðŸ”„' : 'OFF â¸'}
                             </button>
                           </div>
                           <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-extrabold border inline-block ${

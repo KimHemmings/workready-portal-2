@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+﻿import React, { useState } from 'react';
 import { Lock, Mail, ArrowRight, AlertCircle, Eye, EyeOff, X, FileText, Shield, Users, LockKeyhole, KeyRound, CheckCircle2 } from 'lucide-react';
 import heroBgImg from '../assets/classroom.png';
 
@@ -267,7 +267,7 @@ const Login: React.FC<LoginProps> = ({ onLoginSuccess }) => {
                       type={showPassword ? 'text' : 'password'}
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
-                      placeholder="••••••••"
+                      placeholder="â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢"
                       required
                       autoComplete="current-password"
                       className="w-full bg-black/40 border border-white/20 focus:border-orange-400 focus:bg-black/60 focus:ring-2 focus:ring-orange-400/20 rounded-xl py-2.5 pl-10 pr-10 text-sm text-white placeholder-purple-300/60 outline-none transition-all"
@@ -298,7 +298,7 @@ const Login: React.FC<LoginProps> = ({ onLoginSuccess }) => {
           {/* Integrated Inner Footer Section */}
           <div className="max-w-7xl mx-auto w-full pt-4 mt-4 border-t border-white/10 flex flex-col sm:flex-row items-center justify-between text-xs text-purple-300/90 gap-2">
             <div>
-              © {new Date().getFullYear()} Straight Up Training. All rights reserved.
+              Â© {new Date().getFullYear()} Straight Up Training. All rights reserved.
             </div>
             <div className="flex items-center space-x-4">
               <button 
@@ -308,7 +308,7 @@ const Login: React.FC<LoginProps> = ({ onLoginSuccess }) => {
               >
                 Privacy Policy
               </button>
-              <span className="text-purple-400/40">•</span>
+              <span className="text-purple-400/40">â€¢</span>
               <button 
                 type="button" 
                 onClick={() => setModalType('terms')}

@@ -1,4 +1,4 @@
-import type { ModuleData } from '../modulesData';
+﻿import type { ModuleData } from '../modulesData';
 
 export const module20: ModuleData = {
   id: 'M20',
@@ -11,19 +11,19 @@ export const module20: ModuleData = {
 
   lesson1Title: 'Navigating Income Transitions & The 50/30/20 Budgeting Rule',
   lesson1Content: [
-    'Transitioning into paid employment—whether full-time, part-time, or casual—fundamentally changes your cash flow dynamics. When taking on new shifts, jobseekers must understand how net income (take-home pay after PAYG tax withholding) differs from gross earnings. Calculating your net pay accurately ensures you plan your household expenses around money actually deposited into your bank account.',
+    'Transitioning into paid employmentâ€”whether full-time, part-time, or casualâ€”fundamentally changes your cash flow dynamics. When taking on new shifts, jobseekers must understand how net income (take-home pay after PAYG tax withholding) differs from gross earnings. Calculating your net pay accurately ensures you plan your household expenses around money actually deposited into your bank account.',
     'A practical framework for managing wage earnings is the 50/30/20 Budgeting Rule. Allocate 50% of net income to Needs (rent/mortgage, groceries, utilities, transit costs, and basic phone/internet), 30% to Wants (leisure, eating out, personal hobbies), and 20% to Financial Goals (paying off high-interest debt, building an emergency buffer fund, or investing in work tools and tickets).'
   ],
 
   graphicCard1: {
     title: 'Financial Management: Pro Move vs. Rookie Mistake',
     bullets: [
-      '❌ ROOKIE MISTAKE: Spending your entire first paycheck immediately on luxury goods before paying essential bills or transit costs.',
-      '✅ PRO MOVE: Automating bill payments and setting aside emergency savings on payday before discretionary spending.',
-      '❌ ROOKIE MISTAKE: Relying on high-interest Buy Now Pay Later (BNPL) services or short-term payday loans for daily living expenses.',
-      '✅ PRO MOVE: Building a 1-month "Emergency Buffer Fund" in a high-interest savings account to cover unexpected costs.',
-      'MATCHING CHALLENGE: Casual Employment ➔ Set aside a buffer from high-earning weeks to cover slow shifts or public holiday closures.',
-      'MATCHING CHALLENGE: ATO Compliance ➔ Claim the Tax-Free Threshold on your primary employer TFN Declaration to maximize take-home pay.'
+      'âŒ ROOKIE MISTAKE: Spending your entire first paycheck immediately on luxury goods before paying essential bills or transit costs.',
+      'âœ… PRO MOVE: Automating bill payments and setting aside emergency savings on payday before discretionary spending.',
+      'âŒ ROOKIE MISTAKE: Relying on high-interest Buy Now Pay Later (BNPL) services or short-term payday loans for daily living expenses.',
+      'âœ… PRO MOVE: Building a 1-month "Emergency Buffer Fund" in a high-interest savings account to cover unexpected costs.',
+      'MATCHING CHALLENGE: Casual Employment âž” Set aside a buffer from high-earning weeks to cover slow shifts or public holiday closures.',
+      'MATCHING CHALLENGE: ATO Compliance âž” Claim the Tax-Free Threshold on your primary employer TFN Declaration to maximize take-home pay.'
     ]
   },
 

@@ -1,4 +1,4 @@
-import { Copy, Link as LinkIcon } from "lucide-react";
+﻿import { Copy, Link as LinkIcon } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import {
@@ -14,7 +14,7 @@ export function copyText(value: string, message: string) {
   navigator.clipboard
     .writeText(value)
     .then(() => toast.success(message))
-    .catch(() => toast.error("Copy failed — please select and copy the text manually."));
+    .catch(() => toast.error("Copy failed â€” please select and copy the text manually."));
 }
 
 /** Shows the magic invite link (and welcome message) so the inviter can hand it over directly. */
@@ -35,7 +35,7 @@ export function InviteLinkDialog({
             {result ? `${result.user.name} is ready to join` : "Invite link"}
           </DialogTitle>
           <DialogDescription>
-            No email is sent. Copy this personal magic link and give it to them — they set their own
+            No email is sent. Copy this personal magic link and give it to them â€” they set their own
             password when they open it.
           </DialogDescription>
         </DialogHeader>
@@ -62,7 +62,7 @@ export function InviteLinkDialog({
                 result &&
                 copyText(
                   result.welcome_message.replace(result.invite_path, fullLink),
-                  "Welcome message copied — paste it into your SMS or email.",
+                  "Welcome message copied â€” paste it into your SMS or email.",
                 )
               }
               data-testid="copy-welcome-message-button"

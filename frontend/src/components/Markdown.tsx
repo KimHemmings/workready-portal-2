@@ -1,4 +1,4 @@
-type Props = { markdown: string };
+﻿type Props = { markdown: string };
 
 // Small, dependency-free markdown renderer: headings, lists, blockquotes, bold, paragraphs.
 export default function Markdown({ markdown }: Props) {

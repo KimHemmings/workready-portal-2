@@ -1,5 +1,5 @@
-// Typed fetch layer over the backend. Base is the relative "/api" prefix so the
-// same code works in dev (Vite proxies /api → backend) and behind a single origin in prod.
+﻿// Typed fetch layer over the backend. Base is the relative "/api" prefix so the
+// same code works in dev (Vite proxies /api â†’ backend) and behind a single origin in prod.
 const BASE = "/api";
 /** Same base, exported for direct browser navigations (file downloads, new tabs). */
 export const API_BASE = BASE;
@@ -21,7 +21,7 @@ export class ApiError extends Error {
 type JsonBody = unknown;
 
 async function request<T>(method: string, path: string, body?: JsonBody): Promise<T> {
-  // Auth rides the httpOnly session cookie automatically — never add auth headers here.
+  // Auth rides the httpOnly session cookie automatically â€” never add auth headers here.
   const res = await fetch(`${BASE}${path}`, {
     method,
     headers: body === undefined ? undefined : { "Content-Type": "application/json" },

@@ -1,4 +1,4 @@
-import type { ModuleData } from '../modulesData';
+﻿import type { ModuleData } from '../modulesData';
 
 export const module4: ModuleData = {
   id: 'M04',
@@ -11,19 +11,19 @@ export const module4: ModuleData = {
 
   lesson1Title: 'Australian Resume Architecture & ATS Screening Standards',
   lesson1Content: [
-    'In the modern Australian job market—spanning healthcare, warehousing, civil construction, retail, and office administration—recruiters and employers process hundreds of applications per vacancy. Most medium-to-large Australian businesses utilize **Applicant Tracking Systems (ATS)** software to parse and rank incoming resumes before a human recruiter even views them. To ensure your resume successfully passes automated ATS filters, it must be formatted cleanly in a single-column layout using standard fonts (such as Arial, Calibri, or Inter) without complex visual tables, graphics, text boxes, or embedded image elements.',
-    'An Australian standard master resume should strictly run between **2 to 3 pages in length** and be logically structured into core sections: 1) Professional Header & Contact Details, 2) Tailored Professional Summary (3–4 lines), 3) Core Skills & Key Competencies, 4) Licences, Tickets & Certifications (placed prominently), 5) Employment History in reverse-chronological order, 6) Education & Training, and 7) Contactable Professional Referees.'
+    'In the modern Australian job marketâ€”spanning healthcare, warehousing, civil construction, retail, and office administrationâ€”recruiters and employers process hundreds of applications per vacancy. Most medium-to-large Australian businesses utilize **Applicant Tracking Systems (ATS)** software to parse and rank incoming resumes before a human recruiter even views them. To ensure your resume successfully passes automated ATS filters, it must be formatted cleanly in a single-column layout using standard fonts (such as Arial, Calibri, or Inter) without complex visual tables, graphics, text boxes, or embedded image elements.',
+    'An Australian standard master resume should strictly run between **2 to 3 pages in length** and be logically structured into core sections: 1) Professional Header & Contact Details, 2) Tailored Professional Summary (3â€“4 lines), 3) Core Skills & Key Competencies, 4) Licences, Tickets & Certifications (placed prominently), 5) Employment History in reverse-chronological order, 6) Education & Training, and 7) Contactable Professional Referees.'
   ],
 
   graphicCard1: {
     title: 'Australian Resume Standards: Pro Move vs. Rookie Mistake',
     bullets: [
-      '❌ ROOKIE MISTAKE: Including a personal profile photo, date of birth, age, or marital status on your Australian resume.',
-      '✅ PRO MOVE: Excluding personal photos and demographics entirely, focusing strictly on skills, tickets, experience, and reliability.',
-      '❌ ROOKIE MISTAKE: Designing complex dual-column graphical templates with skill progress bars that ATS software cannot read.',
-      '✅ PRO MOVE: Using a clean, single-column document layout saved as a standard PDF or Word (.docx) file.',
-      'MATCHING CHALLENGE: Trades & Civil ➔ Highlight White Card, Forklift (LF), First Aid, and Machinery Tickets right on Page 1.',
-      'MATCHING CHALLENGE: Care & Health ➔ Highlight NDIS Worker Screening, Working With Children Check (WWCC), and CPR certifications.'
+      'âŒ ROOKIE MISTAKE: Including a personal profile photo, date of birth, age, or marital status on your Australian resume.',
+      'âœ… PRO MOVE: Excluding personal photos and demographics entirely, focusing strictly on skills, tickets, experience, and reliability.',
+      'âŒ ROOKIE MISTAKE: Designing complex dual-column graphical templates with skill progress bars that ATS software cannot read.',
+      'âœ… PRO MOVE: Using a clean, single-column document layout saved as a standard PDF or Word (.docx) file.',
+      'MATCHING CHALLENGE: Trades & Civil âž” Highlight White Card, Forklift (LF), First Aid, and Machinery Tickets right on Page 1.',
+      'MATCHING CHALLENGE: Care & Health âž” Highlight NDIS Worker Screening, Working With Children Check (WWCC), and CPR certifications.'
     ]
   },
 

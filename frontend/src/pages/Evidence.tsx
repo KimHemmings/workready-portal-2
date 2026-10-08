@@ -1,4 +1,4 @@
-import { useState } from "react";
+﻿import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Link } from "react-router-dom";
 import {
@@ -76,7 +76,7 @@ export default function Evidence() {
       toast.success(
         log.review_status === "approved"
           ? "Evidence approved and the activity marked verified."
-          : "Evidence flagged — the learner's case manager can follow up.",
+          : "Evidence flagged â€” the learner's case manager can follow up.",
       );
     },
     onError: (err) => {
@@ -198,7 +198,7 @@ export default function Evidence() {
                       <TableCell>
                         <p className="font-medium">{r.log.employer_name}</p>
                         <p className="text-xs text-muted-foreground">
-                          {r.log.position_title} · {r.log.application_type}
+                          {r.log.position_title} Â· {r.log.application_type}
                         </p>
                       </TableCell>
                       <TableCell className="whitespace-nowrap text-sm">
@@ -275,7 +275,7 @@ export default function Evidence() {
         <DialogContent className="sm:max-w-lg" data-testid="evidence-review-dialog">
           <DialogHeader>
             <DialogTitle className="font-heading">
-              {reviewing ? `${reviewing.learner_name} — ${reviewing.log.employer_name}` : "Review"}
+              {reviewing ? `${reviewing.learner_name} â€” ${reviewing.log.employer_name}` : "Review"}
             </DialogTitle>
             <DialogDescription>
               Approving marks this activity verified for Mutual Obligation reporting. Flagging keeps

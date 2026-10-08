@@ -1,4 +1,4 @@
-import type { ModuleData } from '../modulesData';
+﻿import type { ModuleData } from '../modulesData';
 
 export const module14: ModuleData = {
   id: 'M14',
@@ -11,19 +11,19 @@ export const module14: ModuleData = {
 
   lesson1Title: 'Onboarding Compliance Documentation & Pre-Start Readiness',
   lesson1Content: [
-    'Before stepping foot on site for your first shift in Australia—whether in healthcare, civil construction, logistics, retail, or administration—you must complete mandatory employment onboarding paperwork. Employers require these completed documents to establish your legal payroll, tax withholding, superannuation contributions, and site safety compliance under Fair Work and ATO regulations.',
+    'Before stepping foot on site for your first shift in Australiaâ€”whether in healthcare, civil construction, logistics, retail, or administrationâ€”you must complete mandatory employment onboarding paperwork. Employers require these completed documents to establish your legal payroll, tax withholding, superannuation contributions, and site safety compliance under Fair Work and ATO regulations.',
     'Ensure you organize and submit your onboarding compliance pack prior to Day 1. This pack must include: 1) Tax File Number (TFN) Declaration form, 2) Superannuation Standard Choice form, 3) Verified bank account details for direct deposit, 4) Certified copies of valid licences/tickets (Driver Licence, White Card, First Aid, NDIS Check), and 5) Signed Employment Contract and Fair Work Information Statement acknowledgment.'
   ],
 
   graphicCard1: {
     title: 'Day 1 Execution: Pro Move vs. Rookie Mistake',
     bullets: [
-      '❌ ROOKIE MISTAKE: Arriving on Day 1 without banking details, TFN, or required safety tickets, delaying your onboarding and pay setup.',
-      '✅ PRO MOVE: Submitting all tax, super, and licence documentation 48 hours prior to your start date.',
-      '❌ ROOKIE MISTAKE: Showing up right on shift start time without knowing where to report, who to meet, or where to park.',
-      '✅ PRO MOVE: Conducting a dry-run commute the day before, arriving 15 minutes early, and asking for your supervisor by name.',
-      'MATCHING CHALLENGE: Trades & Logistics ➔ Bring personal steel-caps, hi-vis, hard hat, and physical ticket copies.',
-      'MATCHING CHALLENGE: Health & Care ➔ Bring certified police check, NDIS screening card, immunization records, and uniform.'
+      'âŒ ROOKIE MISTAKE: Arriving on Day 1 without banking details, TFN, or required safety tickets, delaying your onboarding and pay setup.',
+      'âœ… PRO MOVE: Submitting all tax, super, and licence documentation 48 hours prior to your start date.',
+      'âŒ ROOKIE MISTAKE: Showing up right on shift start time without knowing where to report, who to meet, or where to park.',
+      'âœ… PRO MOVE: Conducting a dry-run commute the day before, arriving 15 minutes early, and asking for your supervisor by name.',
+      'MATCHING CHALLENGE: Trades & Logistics âž” Bring personal steel-caps, hi-vis, hard hat, and physical ticket copies.',
+      'MATCHING CHALLENGE: Health & Care âž” Bring certified police check, NDIS screening card, immunization records, and uniform.'
     ]
   },
 

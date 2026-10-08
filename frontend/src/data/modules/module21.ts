@@ -1,4 +1,4 @@
-import type { ModuleData } from '../modulesData';
+﻿import type { ModuleData } from '../modulesData';
 
 export const module21: ModuleData = {
   id: 'M21',
@@ -11,19 +11,19 @@ export const module21: ModuleData = {
 
   lesson1Title: 'ATO Tax Deduction Rules & Work-Related Expense Basics',
   lesson1Content: [
-    'When purchasing items required for your job—such as compulsory branded uniforms, steel-cap boots, protective safety gear, trade tools, or industry ticket renewals—you may be eligible to claim them as Work-Related Tax Deductions through the Australian Taxation Office (ATO). Claiming legitimate tax deductions reduces your annual taxable income, potentially increasing your tax refund at the end of the financial year.',
+    'When purchasing items required for your jobâ€”such as compulsory branded uniforms, steel-cap boots, protective safety gear, trade tools, or industry ticket renewalsâ€”you may be eligible to claim them as Work-Related Tax Deductions through the Australian Taxation Office (ATO). Claiming legitimate tax deductions reduces your annual taxable income, potentially increasing your tax refund at the end of the financial year.',
     'To claim a work-related deduction under ATO regulations, you must meet Three Golden Rules: 1) You must have spent the money yourself and not been reimbursed by your employer, 2) The expense must be directly related to earning your income in your current job, and 3) You must have a record to prove it (such as a digital receipt, invoice, or bank statement).'
   ],
 
   graphicCard1: {
     title: 'Tax Deductions: Pro Move vs. Rookie Mistake',
     bullets: [
-      '❌ ROOKIE MISTAKE: Claiming plain everyday clothing (e.g., standard black jeans, plain shirts) as work uniform deductions.',
-      '✅ PRO MOVE: Claiming occupation-specific clothing (e.g., hi-vis with company logos, chef pants, steel-cap boots, medical scrubs).',
-      '❌ ROOKIE MISTAKE: Losing paper receipts and relying on vague memory when completing your annual tax return.',
-      '✅ PRO MOVE: Using the official ATO app myDeductions to take photos of receipts immediately upon purchase.',
-      'MATCHING CHALLENGE: Trades & Civil ➔ Deduct trade tools, safety gear, White Card renewals, and vehicle transit between job sites.',
-      'MATCHING CHALLENGE: Care & Health ➔ Deduct professional registrations, protective aprons/gloves, and First Aid course fees.'
+      'âŒ ROOKIE MISTAKE: Claiming plain everyday clothing (e.g., standard black jeans, plain shirts) as work uniform deductions.',
+      'âœ… PRO MOVE: Claiming occupation-specific clothing (e.g., hi-vis with company logos, chef pants, steel-cap boots, medical scrubs).',
+      'âŒ ROOKIE MISTAKE: Losing paper receipts and relying on vague memory when completing your annual tax return.',
+      'âœ… PRO MOVE: Using the official ATO app myDeductions to take photos of receipts immediately upon purchase.',
+      'MATCHING CHALLENGE: Trades & Civil âž” Deduct trade tools, safety gear, White Card renewals, and vehicle transit between job sites.',
+      'MATCHING CHALLENGE: Care & Health âž” Deduct professional registrations, protective aprons/gloves, and First Aid course fees.'
     ]
   },
 

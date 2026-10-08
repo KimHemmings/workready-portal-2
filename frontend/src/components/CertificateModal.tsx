@@ -1,4 +1,4 @@
-import React from 'react';
+﻿import React from 'react';
 import { Award, CheckCircle2, Printer, X } from 'lucide-react';
 
 export interface CertificateData {
@@ -114,7 +114,7 @@ export default function CertificateModal({ certificate, onClose, open, logo }: C
                 {displayTitle}
               </h3>
               <p className="text-xs font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200 inline-block px-3 py-1 rounded-full">
-                Score Achieved: {displayScore}% • Verified PBAS Competency
+                Score Achieved: {displayScore}% â€¢ Verified PBAS Competency
               </p>
             </div>
 

@@ -1,4 +1,4 @@
-import type { ModuleData } from '../modulesData';
+﻿import type { ModuleData } from '../modulesData';
 
 export const module16: ModuleData = {
   id: 'M16',
@@ -11,19 +11,19 @@ export const module16: ModuleData = {
 
   lesson1Title: 'Workplace Ethics, Honesty & Protecting Confidentiality',
   lesson1Content: [
-    'Professional integrity means doing the right thing, even when no one is watching. In Australian workplaces—whether handling client medical records in care, managing cash registers in retail, processing sensitive files in administration, or handling materials in construction—employers rely on your honesty, reliability, and moral judgment.',
+    'Professional integrity means doing the right thing, even when no one is watching. In Australian workplacesâ€”whether handling client medical records in care, managing cash registers in retail, processing sensitive files in administration, or handling materials in constructionâ€”employers rely on your honesty, reliability, and moral judgment.',
     'A core element of ethical conduct is maintaining **Privacy and Confidentiality**. Under the *Privacy Act 1988*, workers are legally obligated to protect sensitive customer, patient, and company data. Never discuss private client details, financial figures, or internal business operations outside of work or on personal social media platforms. Breaching confidentiality destroys employer trust and can result in immediate termination or legal liability.'
   ],
 
   graphicCard1: {
     title: 'Ethical Standards: Pro Move vs. Rookie Mistake',
     bullets: [
-      '❌ ROOKIE MISTAKE: Taking photos of workplace client records, job sites, or internal documents and posting them on social media.',
-      '✅ PRO MOVE: Keeping all client, patient, and proprietary company information strictly confidential at all times.',
-      '❌ ROOKIE MISTAKE: Falsifying timesheets, attendance logs, or claiming credit for work completed by a colleague.',
-      '✅ PRO MOVE: Recording hours and task records with 100% honesty and accuracy.',
-      'MATCHING CHALLENGE: Healthcare & Care ➔ Strictly uphold Privacy Act regulations regarding patient medical records and dignity.',
-      'MATCHING CHALLENGE: Retail & Trades ➔ Practice 100% stock integrity, accurate cash handling, and honest tool reporting.'
+      'âŒ ROOKIE MISTAKE: Taking photos of workplace client records, job sites, or internal documents and posting them on social media.',
+      'âœ… PRO MOVE: Keeping all client, patient, and proprietary company information strictly confidential at all times.',
+      'âŒ ROOKIE MISTAKE: Falsifying timesheets, attendance logs, or claiming credit for work completed by a colleague.',
+      'âœ… PRO MOVE: Recording hours and task records with 100% honesty and accuracy.',
+      'MATCHING CHALLENGE: Healthcare & Care âž” Strictly uphold Privacy Act regulations regarding patient medical records and dignity.',
+      'MATCHING CHALLENGE: Retail & Trades âž” Practice 100% stock integrity, accurate cash handling, and honest tool reporting.'
     ]
   },
 

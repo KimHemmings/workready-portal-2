@@ -1,4 +1,4 @@
-import type { ModuleData } from '../modulesData';
+﻿import type { ModuleData } from '../modulesData';
 
 export const module10: ModuleData = {
   id: 'M10',
@@ -18,12 +18,12 @@ export const module10: ModuleData = {
   graphicCard1: {
     title: 'Workplace Rights Standards: Pro Move vs. Rookie Mistake',
     bullets: [
-      '❌ ROOKIE MISTAKE: Accepting "cash-in-hand" pay below award minimum rates without payslips or tax withholding.',
-      '✅ PRO MOVE: Ensuring you receive an itemized electronic payslip within 1 working day of pay day detailing rate, hours, and superannuation.',
-      '❌ ROOKIE MISTAKE: Assuming casual employees receive paid annual leave or paid sick leave.',
-      '✅ PRO MOVE: Understanding that casuals receive a 25% pay loading in place of paid leave entitlements.',
-      'MATCHING CHALLENGE: Full-Time / Part-Time ➔ Entitled to paid annual leave (4 weeks/yr) and paid personal/carer\'s leave.',
-      'MATCHING CHALLENGE: Casual Employment ➔ Higher hourly rate (25% casual loading) + 2 days unpaid carer\'s leave per occasion.'
+      'âŒ ROOKIE MISTAKE: Accepting "cash-in-hand" pay below award minimum rates without payslips or tax withholding.',
+      'âœ… PRO MOVE: Ensuring you receive an itemized electronic payslip within 1 working day of pay day detailing rate, hours, and superannuation.',
+      'âŒ ROOKIE MISTAKE: Assuming casual employees receive paid annual leave or paid sick leave.',
+      'âœ… PRO MOVE: Understanding that casuals receive a 25% pay loading in place of paid leave entitlements.',
+      'MATCHING CHALLENGE: Full-Time / Part-Time âž” Entitled to paid annual leave (4 weeks/yr) and paid personal/carer\'s leave.',
+      'MATCHING CHALLENGE: Casual Employment âž” Higher hourly rate (25% casual loading) + 2 days unpaid carer\'s leave per occasion.'
     ]
   },
 
@@ -55,7 +55,7 @@ export const module10: ModuleData = {
   lesson2Title: 'Payslip Compliance, Superannuation & Raising Pay Inquiries',
   lesson2Content: [
     'Under the *Fair Work Act*, your employer is legally required to issue an itemized payslip within **1 working day** of paying you. A compliant Australian payslip must detail: employer name and ABN, employee name, pay period dates, gross and net pay amounts, ordinary hourly rates, worked hours, penalty rates or allowances, tax withheld (PAYG), and superannuation contribution details. Your employer must contribute a mandatory statutory percentage (Super Guarantee) into your nominated superannuation fund.',
-    'If you notice a discrepancy on your payslip—such as missing penalty rates, incorrect recorded hours, or uncredited superannuation—handle it using a professional, structured approach. Check your shift records against your relevant Modern Award first. Then, send a polite, clear written inquiry to your manager or payroll department stating: *"Hi [Manager Name], I noticed my payslip for period ending [Date] reflects 25 ordinary hours, but my roster record shows 30 hours including Sunday penalty rates. Could you please review this when you have a moment?"*'
+    'If you notice a discrepancy on your payslipâ€”such as missing penalty rates, incorrect recorded hours, or uncredited superannuationâ€”handle it using a professional, structured approach. Check your shift records against your relevant Modern Award first. Then, send a polite, clear written inquiry to your manager or payroll department stating: *"Hi [Manager Name], I noticed my payslip for period ending [Date] reflects 25 ordinary hours, but my roster record shows 30 hours including Sunday penalty rates. Could you please review this when you have a moment?"*'
   ],
 
   practicalReflection: 'Review a past payslip or sample Australian payslip. What are three mandatory details that must be clearly listed on every legal payslip under Fair Work standards?',

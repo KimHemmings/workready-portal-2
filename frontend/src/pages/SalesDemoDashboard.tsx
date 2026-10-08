@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+﻿import React, { useState } from 'react';
 import { useDemoParams } from '../useDemoParams';
 import { ProspectTourModal } from '../components/ProspectTourModal';
 import { usePortal } from '../context/PortalContext';
@@ -163,12 +163,12 @@ export function SalesDemoDashboard() {
                   localStorage.removeItem('star_practice_completed_count');
                   localStorage.removeItem('participant_points');
                   window.dispatchEvent(new Event('storage'));
-                  alert('↺ Demo state reset!');
+                  alert('â†º Demo state reset!');
                 }}
                 className="px-3.5 py-1.5 bg-purple-800/80 hover:bg-purple-700 border border-purple-400/40 text-white text-xs font-extrabold rounded-xl transition-all flex items-center space-x-1.5 shadow-sm cursor-pointer"
               >
                 <RotateCcw className="w-3.5 h-3.5 text-amber-300" />
-                <span>↺ Reset State</span>
+                <span>â†º Reset State</span>
               </button>
             )}
 
@@ -201,7 +201,7 @@ export function SalesDemoDashboard() {
               onClick={() => setShowProspectTour(true)}
               className="px-3.5 py-1.5 bg-amber-400 hover:bg-amber-300 text-purple-950 font-extrabold text-xs rounded-xl transition-all shadow-sm shrink-0 cursor-pointer"
             >
-              ✨ Re-open Guided Walkthrough
+              âœ¨ Re-open Guided Walkthrough
             </button>
           </div>
         )}
@@ -373,7 +373,7 @@ export function SalesDemoDashboard() {
                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-2 border-b border-purple-800/50 pb-4">
                   <div>
                     <span className="text-[10px] font-extrabold uppercase tracking-widest text-emerald-400 bg-emerald-500/20 border border-emerald-500/30 px-2.5 py-1 rounded-full">
-                      Projected Capacity ROI • {activePreset.framework}
+                      Projected Capacity ROI â€¢ {activePreset.framework}
                     </span>
                     <h3 className="text-2xl font-extrabold text-white mt-2">Commercial Impact Summary</h3>
                     <p className="text-xs text-purple-200/80">Estimated capacity gains and cost savings enabled by Straight Up Training integration.</p>
@@ -384,7 +384,7 @@ export function SalesDemoDashboard() {
                     className="px-3.5 py-2 bg-white/10 hover:bg-white/20 text-white text-xs font-bold rounded-xl border border-white/20 transition-all flex items-center space-x-1.5 shrink-0 cursor-pointer"
                   >
                     <FileSpreadsheet className="w-3.5 h-3.5 text-amber-300" />
-                    <span>🔍 How is this calculated?</span>
+                    <span>ðŸ” How is this calculated?</span>
                   </button>
                 </div>
 
@@ -473,7 +473,7 @@ export function SalesDemoDashboard() {
               </span>
               <h3 className="text-xl font-extrabold text-purple-950">Empowering Candidates & Unburdening Coaching Staff</h3>
               <p className="text-xs text-slate-600 leading-relaxed font-medium">
-                How Straight Up Training turns compliance friction into human momentum—giving candidates confidence, freeing case managers to coach, and protecting executive contract funding.
+                How Straight Up Training turns compliance friction into human momentumâ€”giving candidates confidence, freeing case managers to coach, and protecting executive contract funding.
               </p>
             </div>
 
@@ -491,7 +491,7 @@ export function SalesDemoDashboard() {
                     </span>
                   </div>
                   <p className="text-xs text-slate-600 leading-relaxed font-medium">
-                    Engineered to complement—not replace—your core database (ReadyTech, JobReady, ESSWeb, or RTO Student Management Systems). Operates as a lightweight, high-touch engagement engine that feeds verified evidence logs directly into your existing reporting workflow.
+                    Engineered to complementâ€”not replaceâ€”your core database (ReadyTech, JobReady, ESSWeb, or RTO Student Management Systems). Operates as a lightweight, high-touch engagement engine that feeds verified evidence logs directly into your existing reporting workflow.
                   </p>
                 </div>
               </div>
@@ -504,7 +504,7 @@ export function SalesDemoDashboard() {
               <div className="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm space-y-3 flex flex-col justify-between">
                 <div className="space-y-2">
                   <span className="text-[10px] font-extrabold uppercase tracking-wider text-emerald-800 bg-emerald-100 border border-emerald-200 px-2 py-0.5 rounded-md inline-block">
-                    ✨ CANDIDATE EXPERIENCE
+                    âœ¨ CANDIDATE EXPERIENCE
                   </span>
                   <h4 className="font-extrabold text-slate-900 text-sm">Candidate Confidence & Digital Inclusion</h4>
                   <p className="text-xs text-slate-600 leading-relaxed">
@@ -516,7 +516,7 @@ export function SalesDemoDashboard() {
                   className="w-full py-2.5 bg-purple-950 hover:bg-purple-900 text-white text-xs font-bold rounded-xl transition-all flex items-center justify-center space-x-1.5 cursor-pointer shadow-sm"
                 >
                   <Maximize2 className="w-3.5 h-3.5 text-amber-300" />
-                  <span>📱 Experience Candidate Portal</span>
+                  <span>ðŸ“± Experience Candidate Portal</span>
                 </button>
               </div>
 
@@ -524,7 +524,7 @@ export function SalesDemoDashboard() {
               <div className="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm space-y-3 flex flex-col justify-between">
                 <div className="space-y-2">
                   <span className="text-[10px] font-extrabold uppercase tracking-wider text-amber-900 bg-amber-100 border border-amber-200 px-2 py-0.5 rounded-md inline-block">
-                    🌱 STAFF EMPOWERMENT
+                    ðŸŒ± STAFF EMPOWERMENT
                   </span>
                   <h4 className="font-extrabold text-slate-900 text-sm">Coach Capacity & Operational Freedom</h4>
                   <p className="text-xs text-slate-600 leading-relaxed">
@@ -536,7 +536,7 @@ export function SalesDemoDashboard() {
                   className="w-full py-2.5 bg-purple-950 hover:bg-purple-900 text-white text-xs font-bold rounded-xl transition-all flex items-center justify-center space-x-1.5 cursor-pointer shadow-sm"
                 >
                   <Maximize2 className="w-3.5 h-3.5 text-amber-300" />
-                  <span>⚡ Experience Coach Dashboard</span>
+                  <span>âš¡ Experience Coach Dashboard</span>
                 </button>
               </div>
 
@@ -544,11 +544,11 @@ export function SalesDemoDashboard() {
               <div className="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm space-y-3 flex flex-col justify-between">
                 <div className="space-y-2">
                   <span className="text-[10px] font-extrabold uppercase tracking-wider text-purple-900 bg-purple-100 border border-purple-200 px-2 py-0.5 rounded-md inline-block">
-                    🛡️ GOVERNANCE & RISK
+                    ðŸ›¡ï¸ GOVERNANCE & RISK
                   </span>
                   <h4 className="font-extrabold text-slate-900 text-sm">Contract Integrity & Audit Safeguards</h4>
                   <p className="text-xs text-slate-600 leading-relaxed">
-                    Automates compliance behind the scenes with 90-day timestamped evidence lockers and 1-click auditor exports—eliminating clawback risks without overburdening staff.
+                    Automates compliance behind the scenes with 90-day timestamped evidence lockers and 1-click auditor exportsâ€”eliminating clawback risks without overburdening staff.
                   </p>
                 </div>
                 <button
@@ -556,7 +556,7 @@ export function SalesDemoDashboard() {
                   className="w-full py-2.5 bg-purple-950 hover:bg-purple-900 text-white text-xs font-bold rounded-xl transition-all flex items-center justify-center space-x-1.5 cursor-pointer shadow-sm"
                 >
                   <Maximize2 className="w-3.5 h-3.5 text-amber-300" />
-                  <span>🛡 Experience Leadership Overview</span>
+                  <span>ðŸ›¡ Experience Leadership Overview</span>
                 </button>
               </div>
             </div>
@@ -575,23 +575,23 @@ export function SalesDemoDashboard() {
                 </div>
 
                 <span className="text-[10px] font-extrabold uppercase tracking-widest text-emerald-800 bg-emerald-100 border border-emerald-200 px-3 py-1 rounded-full w-max">
-                  🔒 100% Onshore Australian Sovereignty
+                  ðŸ”’ 100% Onshore Australian Sovereignty
                 </span>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-3 gap-3 text-xs pt-1">
                 <div className="bg-slate-50 border border-slate-200 p-3 rounded-xl space-y-1">
-                  <span className="font-extrabold text-purple-950 block">🇦🇺 Onshore Data Hosting</span>
+                  <span className="font-extrabold text-purple-950 block">ðŸ‡¦ðŸ‡º Onshore Data Hosting</span>
                   <p className="text-[11px] text-slate-600">Candidate PII remains strictly within Australian data centers under Privacy Act requirements.</p>
                 </div>
 
                 <div className="bg-slate-50 border border-slate-200 p-3 rounded-xl space-y-1">
-                  <span className="font-extrabold text-emerald-900 block">📜 Immutable Evidence Vault</span>
+                  <span className="font-extrabold text-emerald-900 block">ðŸ“œ Immutable Evidence Vault</span>
                   <p className="text-[11px] text-slate-600">Every upload and sign-off is permanently archived for instant 1-click auditor CSV export.</p>
                 </div>
 
                 <div className="bg-slate-50 border border-slate-200 p-3 rounded-xl space-y-1">
-                  <span className="font-extrabold text-purple-900 block">🔐 Role-Based Access Controls</span>
+                  <span className="font-extrabold text-purple-900 block">ðŸ” Role-Based Access Controls</span>
                   <p className="text-[11px] text-slate-600">Strict organizational permissions safeguard candidate privacy and maintain compliance continuity.</p>
                 </div>
               </div>
@@ -638,7 +638,7 @@ export function SalesDemoDashboard() {
                       <td className="p-3.5 text-slate-500 bg-slate-50/50">
                         <div className="flex items-center gap-1.5">
                           <XCircle className="w-4 h-4 text-rose-500 shrink-0" />
-                          <span>15–20 minutes of repetitive paperwork per candidate</span>
+                          <span>15â€“20 minutes of repetitive paperwork per candidate</span>
                         </div>
                       </td>
                       <td className="p-3.5 font-bold text-purple-950 bg-purple-50/30">
@@ -711,7 +711,7 @@ export function SalesDemoDashboard() {
                 className="px-3 py-1 bg-rose-600 hover:bg-rose-700 text-white font-extrabold text-xs rounded-xl transition-all flex items-center space-x-1 shadow-sm cursor-pointer"
               >
                 <X className="w-4 h-4" />
-                <span>← Exit Live Sandbox</span>
+                <span>â† Exit Live Sandbox</span>
               </button>
             </div>
           </div>
@@ -741,7 +741,7 @@ export function SalesDemoDashboard() {
                 onClick={() => setShowCalculationDrawer(false)}
                 className="text-slate-400 hover:text-slate-600 font-bold text-lg cursor-pointer"
               >
-                ✕
+                âœ•
               </button>
             </div>
 
@@ -773,7 +773,7 @@ export function SalesDemoDashboard() {
                   <div className="p-3.5 bg-slate-50 rounded-xl border border-slate-200 space-y-1.5">
                     <h4 className="font-extrabold text-purple-950 uppercase text-[10px] tracking-wider">1. Staff Admin Hours Saved Formula</h4>
                     <p className="font-mono text-slate-700 bg-white p-2 rounded-lg border border-slate-200">
-                      Weekly Hours Saved = {avgStaffCount} Staff × {activePreset.adminHoursSavedPerStaff} hrs/wk = <strong>{totalWeeklyHoursSaved} hrs/wk</strong>
+                      Weekly Hours Saved = {avgStaffCount} Staff Ã— {activePreset.adminHoursSavedPerStaff} hrs/wk = <strong>{totalWeeklyHoursSaved} hrs/wk</strong>
                     </p>
                     <p className="text-slate-500 text-[11px]">
                       Calculated by replacing manual paper-chasing and phone calls with automated candidate evidence uploads.
@@ -783,7 +783,7 @@ export function SalesDemoDashboard() {
                   <div className="p-3.5 bg-slate-50 rounded-xl border border-slate-200 space-y-1.5">
                     <h4 className="font-extrabold text-purple-950 uppercase text-[10px] tracking-wider">2. Capacity Value Reclaimed Formula</h4>
                     <p className="font-mono text-slate-700 bg-white p-2 rounded-lg border border-slate-200">
-                      Annual Capacity Value = {totalWeeklyHoursSaved} hrs/wk × 52 weeks × ${hourlyStaffCost}/hr = <strong>+${annualCapacityValueReclaimed.toLocaleString()}/yr</strong>
+                      Annual Capacity Value = {totalWeeklyHoursSaved} hrs/wk Ã— 52 weeks Ã— ${hourlyStaffCost}/hr = <strong>+${annualCapacityValueReclaimed.toLocaleString()}/yr</strong>
                     </p>
                     <p className="text-slate-500 text-[11px]">
                       Represents the payroll value of case manager time reallocated from paperwork to 1-on-1 participant coaching.

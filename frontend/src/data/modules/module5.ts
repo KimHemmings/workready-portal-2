@@ -1,4 +1,4 @@
-import type { ModuleData } from '../modulesData';
+﻿import type { ModuleData } from '../modulesData';
 
 export const module5: ModuleData = {
   id: 'M05',
@@ -11,19 +11,19 @@ export const module5: ModuleData = {
 
   lesson1Title: 'Decoding Job Advertisements & ATS Keyword Matching',
   lesson1Content: [
-    'When Australian employers draft job advertisements—whether seeking a store person in logistics, a support worker in healthcare, an administrative assistant in corporate, or a plant operator in civil construction—they build specific requirements into the listing. These include mandatory licences, specialized software experience, key physical capabilities, and behavioral attributes. Automated ATS software and human recruiters scan incoming applications specifically searching for these exact key terms.',
+    'When Australian employers draft job advertisementsâ€”whether seeking a store person in logistics, a support worker in healthcare, an administrative assistant in corporate, or a plant operator in civil constructionâ€”they build specific requirements into the listing. These include mandatory licences, specialized software experience, key physical capabilities, and behavioral attributes. Automated ATS software and human recruiters scan incoming applications specifically searching for these exact key terms.',
     'Tailoring your application does not mean fabricating experience; it means adjusting the vocabulary, skill highlights, and personal summary of your master resume to align directly with the employer\'s requested terminology. If a job ad specifically requests *"experience in high-volume stock dispatch and RF scanning"*, ensuring those exact words appear in your skills list and work history dramatically increases your match percentage score.'
   ],
 
   graphicCard1: {
     title: 'Application Tailoring: Pro Move vs. Rookie Mistake',
     bullets: [
-      '❌ ROOKIE MISTAKE: Sending an identical generic resume to 30 completely different job postings with one click.',
-      '✅ PRO MOVE: Spending 10 minutes analyzing the job ad, highlighting 4-5 core keywords, and integrating them into your resume summary.',
-      '❌ ROOKIE MISTAKE: Ignoring mandatory licence requirements listed in the advertisement (e.g., applying without a White Card when strictly required).',
-      '✅ PRO MOVE: Placing required licences prominently at the very top of your resume and addressing your current status in your cover letter.',
-      'MATCHING CHALLENGE: Healthcare/Care Ads ➔ Mirror terms like "NDIS compliance", "patient advocacy", and "medication administration".',
-      'MATCHING CHALLENGE: Retail/Admin Ads ➔ Mirror terms like "POS reconciliation", "customer engagement", and "MS Office proficiency".'
+      'âŒ ROOKIE MISTAKE: Sending an identical generic resume to 30 completely different job postings with one click.',
+      'âœ… PRO MOVE: Spending 10 minutes analyzing the job ad, highlighting 4-5 core keywords, and integrating them into your resume summary.',
+      'âŒ ROOKIE MISTAKE: Ignoring mandatory licence requirements listed in the advertisement (e.g., applying without a White Card when strictly required).',
+      'âœ… PRO MOVE: Placing required licences prominently at the very top of your resume and addressing your current status in your cover letter.',
+      'MATCHING CHALLENGE: Healthcare/Care Ads âž” Mirror terms like "NDIS compliance", "patient advocacy", and "medication administration".',
+      'MATCHING CHALLENGE: Retail/Admin Ads âž” Mirror terms like "POS reconciliation", "customer engagement", and "MS Office proficiency".'
     ]
   },
 

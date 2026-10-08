@@ -1,4 +1,4 @@
-import { useState } from "react";
+﻿import { useState } from "react";
 import { useMutation } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
 import { KeyRound } from "lucide-react";
@@ -27,7 +27,7 @@ export default function ChangePassword() {
       }),
     onSuccess: (updated) => {
       beginSession(updated);
-      toast.success("Password updated — you're all set.");
+      toast.success("Password updated â€” you're all set.");
       navigate(homePathFor(updated.role));
     },
     onError: (err) => {
@@ -109,7 +109,7 @@ export default function ChangePassword() {
               data-testid="change-password-submit-button"
             >
               <KeyRound className="h-4 w-4 mr-1.5" aria-hidden="true" />
-              {change.isPending ? "Saving…" : "Save password"}
+              {change.isPending ? "Savingâ€¦" : "Save password"}
             </Button>
           </form>
         </div>

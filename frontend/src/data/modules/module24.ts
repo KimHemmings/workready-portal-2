@@ -1,4 +1,4 @@
-import type { ModuleData } from '../modulesData';
+﻿import type { ModuleData } from '../modulesData';
 
 export const module24: ModuleData = {
   id: 'M24',
@@ -18,10 +18,10 @@ export const module24: ModuleData = {
   graphicCard1: {
     title: 'Career Capstone Checklist: Pro Move vs. Rookie Mistake',
     bullets: [
-      '❌ ROOKIE MISTAKE: Finishing training modules without updating your resume or applying to real-world vacancies.',
-      '✅ PRO MOVE: Adding your completed 24-module Vocational Certificate to your resume and executing a daily application plan.',
-      '❌ ROOKIE MISTAKE: Entering job interviews without rehearsed STAR stories or verified ticket documentation.',
-      '✅ PRO MOVE: Approaching every interview with researched company knowledge, rehearsed STAR answers, and full ticket copies.',
+      'âŒ ROOKIE MISTAKE: Finishing training modules without updating your resume or applying to real-world vacancies.',
+      'âœ… PRO MOVE: Adding your completed 24-module Vocational Certificate to your resume and executing a daily application plan.',
+      'âŒ ROOKIE MISTAKE: Entering job interviews without rehearsed STAR stories or verified ticket documentation.',
+      'âœ… PRO MOVE: Approaching every interview with researched company knowledge, rehearsed STAR answers, and full ticket copies.',
       'PORTFOLIO ASSETS: Master Resume, Tailored Cover Letter, Verified Tickets, Professional Referees, PBAS Audit Log.',
       'NEXT MILESTONE: Submit 5 tailored applications weekly, make 2 direct employer contacts, and log all PBAS points.'
     ]
@@ -54,7 +54,7 @@ export const module24: ModuleData = {
 
   lesson2Title: 'Activating Your 90-Day Employment Action Plan & Long-Term Success',
   lesson2Content: [
-    'Your final step is activating your 90-Day Employment Action Plan. Break your ongoing job search into clear weekly targets: maintain a disciplined 3-hour daily job search routine, submit 4–5 tailored applications weekly, engage with 2 local employers directly, register with 2 specialist recruitment agencies, and log all completed activities for your monthly PBAS mutual obligation reporting.',
+    'Your final step is activating your 90-Day Employment Action Plan. Break your ongoing job search into clear weekly targets: maintain a disciplined 3-hour daily job search routine, submit 4â€“5 tailored applications weekly, engage with 2 local employers directly, register with 2 specialist recruitment agencies, and log all completed activities for your monthly PBAS mutual obligation reporting.',
     'Remember that securing employment is a journey that rewards consistency, resilience, and professionalism. Every application tailored, every follow-up email sent, and every interview attended brings you closer to long-term financial independence and career success. You now possess the tools, knowledge, and compliance verification needed to thrive in the Australian workforce.'
   ],
 

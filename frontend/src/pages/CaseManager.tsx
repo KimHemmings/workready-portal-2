@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+﻿import React, { useState, useEffect } from 'react';
 import { usePortal } from '../context/PortalContext';
 import { EvidenceInspectorModal } from '../components/EvidenceInspectorModal';
 import { 
@@ -217,7 +217,7 @@ export const CaseManager: React.FC = () => {
     respondToMessage(msgId, coachingInput);
     addAuditEntry(`Sent Coaching Note response`);
     setCoachingInput('');
-    alert('📩 Coaching Note sent to candidate dashboard!');
+    alert('ðŸ“© Coaching Note sent to candidate dashboard!');
   };
 
   const handleSaveObligations = (e: React.FormEvent) => {
@@ -226,7 +226,7 @@ export const CaseManager: React.FC = () => {
     updateCandidate(activeCandidate.id, { pbasTarget: newTargetPoints, status: newCandidateStatus as any });
     addAuditEntry(`Adjusted PBAS Obligations: Target set to ${newTargetPoints} Pts | Status: ${newCandidateStatus}`);
     setShowObligationModal(false);
-    alert(`⚙️ Obligations Updated! ${activeCandidate.name}'s target set to ${newTargetPoints} Pts.`);
+    alert(`âš™ï¸ Obligations Updated! ${activeCandidate.name}'s target set to ${newTargetPoints} Pts.`);
   };
 
   const handleBookAppointment = (e: React.FormEvent) => {
@@ -244,7 +244,7 @@ export const CaseManager: React.FC = () => {
     setAppointments((prev) => [newApt, ...prev]);
     addAuditEntry(`Scheduled Appointment: ${aptType} on ${aptDate}`);
     setShowAppointmentModal(false);
-    alert(`📅 Appointment scheduled for ${activeCandidate.name}!`);
+    alert(`ðŸ“… Appointment scheduled for ${activeCandidate.name}!`);
   };
 
   const handleUploadDocument = (e: React.FormEvent) => {
@@ -264,7 +264,7 @@ export const CaseManager: React.FC = () => {
     addAuditEntry(`Uploaded Document: ${docName.trim()} (${docCategory})`);
     setDocName('');
     setShowDocUploadModal(false);
-    alert(`📤 Document uploaded to ${activeCandidate.name}'s Locker!`);
+    alert(`ðŸ“¤ Document uploaded to ${activeCandidate.name}'s Locker!`);
   };
 
   const handleSendBmSupportTicket = (e: React.FormEvent) => {
@@ -273,7 +273,7 @@ export const CaseManager: React.FC = () => {
     addAuditEntry(`Escalated Support Ticket to Business Manager: ${bmSupportTopic}`);
     setBmSupportMessage('');
     setShowSupportBmModal(false);
-    alert('🆘 Support ticket dispatched directly to the Business Manager!');
+    alert('ðŸ†˜ Support ticket dispatched directly to the Business Manager!');
   };
 
   const handleDownloadFullAuditPackage = () => {
@@ -312,13 +312,13 @@ export const CaseManager: React.FC = () => {
   const getHeaderContractSubtitle = () => {
     switch (activeContract) {
       case 'TtW':
-        return 'Transition to Work (TtW) • Youth Activation, Milestone & Readiness Hub';
+        return 'Transition to Work (TtW) â€¢ Youth Activation, Milestone & Readiness Hub';
       case 'RTO':
-        return 'Vocational Education & RTO Hub • Competency Verification & Unit Tracking';
+        return 'Vocational Education & RTO Hub â€¢ Competency Verification & Unit Tracking';
       case 'DES':
-        return 'Disability Employment Services (DES) • Benchmark Hours & Capacity Support';
+        return 'Disability Employment Services (DES) â€¢ Benchmark Hours & Capacity Support';
       default:
-        return 'Workforce Australia & DES • Verification, Target Controls & Coverage Hub';
+        return 'Workforce Australia & DES â€¢ Verification, Target Controls & Coverage Hub';
     }
   };
 
@@ -367,7 +367,7 @@ export const CaseManager: React.FC = () => {
               onClick={() => setShowSupportBmModal(true)}
               className="px-3 py-1.5 bg-rose-600/80 hover:bg-rose-600 border border-rose-400/30 text-white font-bold text-xs rounded-xl flex items-center gap-1.5 transition-all shadow-sm"
             >
-              <LifeBuoy className="w-3.5 h-3.5" /> 🆘 Platform Support to BM
+              <LifeBuoy className="w-3.5 h-3.5" /> ðŸ†˜ Platform Support to BM
             </button>
 
             <button
@@ -469,7 +469,7 @@ export const CaseManager: React.FC = () => {
                 </span>
               </div>
               <p className="text-[11px] text-slate-500">
-                Primary CM: {activeCandidate.ownerStaff} • PBAS Cycle Target: <strong>{activeCandidate.verifiedPoints} / {activeCandidate.pbasTarget} Pts</strong>
+                Primary CM: {activeCandidate.ownerStaff} â€¢ PBAS Cycle Target: <strong>{activeCandidate.verifiedPoints} / {activeCandidate.pbasTarget} Pts</strong>
               </p>
             </div>
           </div>
@@ -479,7 +479,7 @@ export const CaseManager: React.FC = () => {
               onClick={handleDownloadFullAuditPackage}
               className="px-3.5 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold rounded-xl flex items-center gap-1.5 shadow-xs transition-all"
             >
-              <Download className="w-3.5 h-3.5 text-emerald-200" /> 📦 Download Complete PBAS Audit Package
+              <Download className="w-3.5 h-3.5 text-emerald-200" /> ðŸ“¦ Download Complete PBAS Audit Package
             </button>
 
             <button
@@ -490,7 +490,7 @@ export const CaseManager: React.FC = () => {
               }}
               className="px-3.5 py-1.5 bg-purple-900 hover:bg-purple-950 text-white font-extrabold rounded-xl flex items-center gap-1.5 shadow-xs transition-all"
             >
-              <Sliders className="w-3.5 h-3.5 text-purple-300" /> ⚙️ Adjust Obligations
+              <Sliders className="w-3.5 h-3.5 text-purple-300" /> âš™ï¸ Adjust Obligations
             </button>
           </div>
         </div>
@@ -527,7 +527,7 @@ export const CaseManager: React.FC = () => {
         {activeCandidateClaims.length > 0 && (
           <div className="space-y-3">
             <h3 className="font-black text-sm text-purple-950 uppercase tracking-wider flex items-center gap-1.5 animate-pulse">
-              <Sparkles className="w-4 h-4 text-amber-500" /> 🚨 URGENT: High-Impact Outcome Claim Awaiting Verification
+              <Sparkles className="w-4 h-4 text-amber-500" /> ðŸš¨ URGENT: High-Impact Outcome Claim Awaiting Verification
             </h3>
             {activeCandidateClaims.map((claim) => (
               <div key={claim.id} className="p-5 bg-linear-to-r from-purple-900 via-purple-950 to-slate-900 text-white rounded-2xl border-2 border-amber-400/80 flex flex-col md:flex-row md:items-center justify-between gap-4 shadow-xl">
@@ -535,9 +535,9 @@ export const CaseManager: React.FC = () => {
                   <span className="text-[10px] font-extrabold uppercase text-emerald-300 bg-emerald-500/20 px-2.5 py-0.5 rounded-full border border-emerald-500/30">
                     Candidate Submitted Milestone: {claim.type}
                   </span>
-                  <h4 className="text-lg font-black text-white">{claim.employer} — {claim.role}</h4>
+                  <h4 className="text-lg font-black text-white">{claim.employer} â€” {claim.role}</h4>
                   <p className="text-xs text-purple-200">
-                    Submitted Date: {claim.date} • Pay Rate: AUD ${claim.hourlyRate || claim.payRate || '28.50'}/hr • Reward Credit: +{claim.points} PBAS Points
+                    Submitted Date: {claim.date} â€¢ Pay Rate: AUD ${claim.hourlyRate || claim.payRate || '28.50'}/hr â€¢ Reward Credit: +{claim.points} PBAS Points
                   </p>
                 </div>
 
@@ -549,7 +549,7 @@ export const CaseManager: React.FC = () => {
                     }}
                     className="px-4 py-2.5 bg-emerald-400 hover:bg-emerald-300 text-purple-950 font-black text-xs rounded-xl shadow-md transition-all"
                   >
-                    🟢 Verify Outcome (+{claim.points} Pts)
+                    ðŸŸ¢ Verify Outcome (+{claim.points} Pts)
                   </button>
                   <button
                     onClick={() => {
@@ -657,7 +657,7 @@ export const CaseManager: React.FC = () => {
               <div key={apt.id} className="p-4 bg-slate-50 border rounded-xl flex justify-between items-center text-xs">
                 <div>
                   <div className="font-bold text-slate-900">{apt.type}</div>
-                  <div className="text-slate-500">📅 {apt.date} at {apt.time} • {apt.location}</div>
+                  <div className="text-slate-500">ðŸ“… {apt.date} at {apt.time} â€¢ {apt.location}</div>
                 </div>
                 <span className="px-2.5 py-1 bg-emerald-100 text-emerald-800 rounded-full font-bold">{apt.status}</span>
               </div>
@@ -674,14 +674,14 @@ export const CaseManager: React.FC = () => {
                 onClick={() => setShowDocUploadModal(true)}
                 className="px-3.5 py-1.5 bg-purple-950 hover:bg-purple-900 text-white font-bold text-xs rounded-xl flex items-center gap-1.5 shadow-xs"
               >
-                <Upload className="w-3.5 h-3.5" /> 📤 Upload Document to Candidate
+                <Upload className="w-3.5 h-3.5" /> ðŸ“¤ Upload Document to Candidate
               </button>
             </div>
             {documents.map((doc) => (
               <div key={doc.id} className="p-4 bg-slate-50 border rounded-xl flex justify-between items-center text-xs font-semibold">
                 <div>
                   <div className="font-bold text-slate-900">{doc.name}</div>
-                  <div className="text-slate-500">{doc.category} • Uploaded by {doc.uploadedBy} • {doc.date}</div>
+                  <div className="text-slate-500">{doc.category} â€¢ Uploaded by {doc.uploadedBy} â€¢ {doc.date}</div>
                 </div>
                 <button onClick={() => alert(`Downloading ${doc.name}...`)} className="px-3 py-1.5 bg-white border rounded-xl flex items-center gap-1 text-purple-950 font-bold">
                   <Download className="w-3.5 h-3.5" /> Download PDF
@@ -792,7 +792,7 @@ export const CaseManager: React.FC = () => {
                   rows={2}
                   value={exemptionNote}
                   onChange={(e) => setExemptionNote(e.target.value)}
-                  placeholder="e.g. Medical certificate verified — Target capped at 50 Pts."
+                  placeholder="e.g. Medical certificate verified â€” Target capped at 50 Pts."
                   className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 outline-none font-medium"
                 />
               </div>
