@@ -216,6 +216,14 @@ export const StarInterviewSimulator: React.FC = () => {
     setIsListening(false);
   };
 
+  const resetResponse = () => {
+    stopAndResetMic();
+    stopSpeech();
+    setCandidateAnswer('');
+    setCurrentFeedback(null);
+    setChatTranscript([]);
+  };
+
   const toggleMic = () => {
     if (isListening) return stopAndResetMic();
 
@@ -223,27 +231,30 @@ export const StarInterviewSimulator: React.FC = () => {
     if (!SpeechRecognition) return alert("Voice dictation is not supported in this browser.");
 
     const recognition = new SpeechRecognition();
-    recognition.continuous = false;
+    recognition.continuous = true; // Prevents cutting off on speech pauses
+    recognition.interimResults = true; // Captures speech smoothly while thinking
     recognition.lang = 'en-AU';
+
     recognition.onresult = (e: any) => {
-      const transcript = e.results[0][0].transcript;
-      setCandidateAnswer((prev) => `${prev} ${transcript}`.trim());
-      stopAndResetMic();
+      let currentTranscript = '';
+      for (let i = e.resultIndex; i < e.results.length; i++) {
+        currentTranscript += e.results[i][0].transcript;
+      }
+      if (currentTranscript.trim()) {
+        setCandidateAnswer((prev) => (prev ? `${prev} ${currentTranscript}`.trim() : currentTranscript));
+      }
     };
+
     recognition.onerror = () => stopAndResetMic();
-    recognition.onend = () => setIsListening(false);
+    recognition.onend = () => {
+      if (isListening) {
+        try { recognition.start(); } catch (e) {}
+      }
+    };
 
     recognitionRef.current = recognition;
     recognition.start();
     setIsListening(true);
-  };
-
-  const resetResponse = () => {
-    stopAndResetMic();
-    stopSpeech();
-    setCandidateAnswer('');
-    setCurrentFeedback(null);
-    setChatTranscript([]);
   };
 
  const downloadEvidencePDF = () => {
@@ -382,7 +393,6 @@ export const StarInterviewSimulator: React.FC = () => {
 
     const newSessionCount = monthlySessionsUsed + 1;
     const isCompletedTrio = !isRtoGraduate && newSessionCount >= MONTHLY_SESSION_LIMIT;
-    const pbasPointsAwarded = isCompletedTrio ? 25 : 0;
 
     const detailedBreakdown = sessionQuestions.map((q, idx) => ({
       question: q.question,
@@ -393,7 +403,6 @@ export const StarInterviewSimulator: React.FC = () => {
     const summaryReport = {
       scoreText: rubricScore,
       timestamp: formattedTimestamp,
-      pointsAwarded: pbasPointsAwarded,
       sessionNumber: newSessionCount,
       totalWords,
       totalOutcomes,
@@ -404,8 +413,8 @@ export const StarInterviewSimulator: React.FC = () => {
         `Personal Ownership: Used "I" to describe action in ${totalPersonalActions} of 8 answers.`,
         `Outcome Focus: Stated a clear positive result in ${totalOutcomes} answers.`,
         isCompletedTrio 
-          ? `3/3 Practice Sessions Complete! 25 PBAS Points submitted to your Activity Verification Log for approval.`
-          : `Session ${newSessionCount} of 3 Saved. Complete ${MONTHLY_SESSION_LIMIT - newSessionCount} more session(s) to earn your 25 PBAS Points!`
+          ? `3/3 Practice Sessions Completed. Full evidence package submitted to your Case Manager for verification.`
+          : `Session ${newSessionCount} of 3 Saved. Complete ${MONTHLY_SESSION_LIMIT - newSessionCount} more session(s) to finish your practice block.`
       ]
     };
 
@@ -428,8 +437,8 @@ export const StarInterviewSimulator: React.FC = () => {
       summaryReport,
       timestamp: formattedTimestamp,
       date: now.toLocaleDateString('en-AU'),
-      points: pbasPointsAwarded,
-      status: pbasPointsAwarded > 0 ? 'Pending Verification' : `Session ${newSessionCount}/3 Completed (0 Pts)`
+      points: 0, // Assigned solely at CM discretion upon evidence review
+      status: isCompletedTrio ? 'Pending CM Verification' : `Session ${newSessionCount}/3 Completed (In Progress)`
     };
 
     try {
@@ -597,7 +606,7 @@ Instructions:
               </span>
             </div>
             <p className="text-xs text-purple-200 mt-1.5 max-w-xl leading-relaxed font-medium">
-              Listen to questions, practice your answers aloud or by typing, and earn <strong>25 PBAS Points</strong> upon completing all 3 monthly practice sessions!
+              Listen to questions, practice your answers aloud or by typing, and build verified evidence for your Case Manager upon completing all 3 monthly practice sessions!
             </p>
           </div>
 
@@ -668,42 +677,40 @@ Instructions:
             </div>
           </div>
 
-          {/* Question Card with Read Aloud Trigger */}
-          <div className="p-6 bg-linear-to-r from-purple-950 via-[#24083b] to-purple-900 text-white rounded-2xl space-y-4 shadow-lg border border-purple-800 relative">
-            <div className="flex items-center justify-between gap-2">
-              <span className="text-xs font-black uppercase tracking-wider text-purple-200 bg-white/10 px-3 py-1 rounded-lg">
-                Scenario #{currentIndex + 1}
+          {/* Live Conversational Transcript Thread */}
+          {chatTranscript.length > 0 && (
+            <div className="p-4 bg-purple-50/60 border-2 border-purple-200 rounded-2xl space-y-3 max-h-60 overflow-y-auto">
+              <span className="text-[10px] font-black uppercase tracking-wider text-purple-900 flex items-center gap-1.5">
+                🎙️ Live Conversation Thread
               </span>
-
-              <button
-                type="button"
-                onClick={() => isSpeakingQuestion ? stopSpeech() : speakQuestion(currentQ.question)}
-                className={`inline-flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-black transition-all ${
-                  isSpeakingQuestion 
-                    ? 'bg-amber-400 text-slate-950 border border-amber-300 animate-pulse' 
-                    : 'bg-emerald-500 hover:bg-emerald-600 text-white shadow-md'
-                }`}
-              >
-                {isSpeakingQuestion ? <VolumeX className="w-4 h-4" /> : <Volume2 className="w-4 h-4" />}
-                {isSpeakingQuestion ? 'Stop Reading' : 'Listen to Question 🔊'}
-              </button>
+              {chatTranscript.map((msg, idx) => (
+                <div
+                  key={idx}
+                  className={`p-3 rounded-xl text-xs ${
+                    msg.role === 'user'
+                      ? 'bg-[#24083b] text-white font-medium ml-8 text-right'
+                      : 'bg-white text-slate-900 border border-slate-200 font-medium mr-8 shadow-xs'
+                  }`}
+                >
+                  <span className="block text-[10px] font-black opacity-70 mb-1">
+                    {msg.role === 'user' ? 'Candidate (You)' : 'Interviewer (Sarah)'}
+                  </span>
+                  {msg.content}
+                </div>
+              ))}
             </div>
-
-            <h3 className="text-lg md:text-xl font-black text-white leading-snug">
-              "{currentQ?.question}"
-            </h3>
-          </div>
+          )}
 
           {/* Form Input Area */}
           <form onSubmit={handleAnswerSubmit} className="space-y-4 text-xs">
             <div className="space-y-2">
               <div className="flex items-center justify-between">
-                <label className="block text-sm font-black text-slate-900">Your Response:</label>
+                <label className="block text-sm font-black text-slate-900">Your Response / Clarification:</label>
                 
                 <button
                   type="button"
                   onClick={toggleMic}
-                  className={`flex items-center gap-2 text-xs px-4 py-2 rounded-xl font-black transition-all border ${
+                  className={`flex items-center gap-2 text-xs px-4 py-2 rounded-xl font-black transition-all border cursor-pointer ${
                     isListening
                       ? 'bg-red-100 text-red-700 border-red-300 animate-pulse'
                       : 'bg-purple-100 hover:bg-purple-200 text-purple-900 border-purple-300'
@@ -719,7 +726,7 @@ Instructions:
                 rows={4}
                 value={candidateAnswer}
                 onChange={(e) => setCandidateAnswer(e.target.value)}
-                placeholder="Type your response here, or click 'Dictate Answer 🎙' to speak..."
+                placeholder="Type your response here, or click 'Ask Interviewer a Question' before answering..."
                 className="w-full p-4 border-2 border-slate-300 rounded-xl bg-slate-50 focus:bg-white focus:border-purple-600 outline-none text-xs text-slate-900 font-medium"
               />
             </div>
@@ -729,7 +736,7 @@ Instructions:
               <button
                 type="button"
                 onClick={() => setShowStarGuide(!showStarGuide)}
-                className="w-full flex items-center justify-between text-xs font-black text-slate-800"
+                className="w-full flex items-center justify-between text-xs font-black text-slate-800 cursor-pointer"
               >
                 <span className="flex items-center gap-1.5">
                   <HelpCircle className="w-4 h-4 text-purple-700" /> STAR Answer Sentence Starters
@@ -759,17 +766,28 @@ Instructions:
               )}
             </div>
 
-            <div className="flex items-center justify-between pt-2">
-              <button type="button" onClick={handleNextQuestion} className="text-slate-500 font-bold text-xs hover:text-slate-700">
-                Skip Question →
-              </button>
+            {/* Form Action Buttons */}
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 pt-2">
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={handleAskInterviewer}
+                  className="px-4 py-3 bg-amber-400 hover:bg-amber-300 text-purple-950 font-black text-xs rounded-xl flex items-center justify-center gap-2 shadow-md border-2 border-amber-300 transition-all cursor-pointer"
+                >
+                  💬 Ask Interviewer a Question
+                </button>
+                
+                <button type="button" onClick={handleNextQuestion} className="text-slate-500 font-bold text-xs hover:text-slate-700 px-2 cursor-pointer">
+                  Skip →
+                </button>
+              </div>
 
               <button
                 type="submit"
                 disabled={!candidateAnswer.trim()}
-                className="px-6 py-3 bg-[#24083b] hover:bg-[#320b52] text-white font-black text-xs rounded-xl shadow-md flex items-center gap-2 disabled:opacity-50 transition-all"
+                className="px-6 py-3 bg-[#24083b] hover:bg-[#320b52] text-white font-black text-xs rounded-xl shadow-md flex items-center justify-center gap-2 disabled:opacity-50 transition-all cursor-pointer"
               >
-                <Send className="w-4 h-4" /> Submit & Analyze Response
+                <Send className="w-4 h-4" /> Submit Final Answer
               </button>
             </div>
           </form>
