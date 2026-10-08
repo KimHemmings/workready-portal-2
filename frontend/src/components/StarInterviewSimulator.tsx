@@ -480,8 +480,8 @@ Key Skills: ${draft.skills || 'Not provided'}`;
     return `Candidate Name: ${activeCandidate?.name || 'Alex Mercer'}
 Target Industry: ${selectedRole}`;
   };
-const handleAskInterviewer = async (e: React.FormEvent) => {
-    e.preventDefault();
+const handleAskInterviewer = async (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
     if (!candidateAnswer.trim()) return;
 
     stopAndResetMic();
@@ -498,7 +498,7 @@ const handleAskInterviewer = async (e: React.FormEvent) => {
     ];
 
     setChatTranscript(updatedHistory);
-    setCurrentFeedback("Thinking...");
+    setCurrentFeedback("Interviewer is responding...");
 
     try {
       const resumeContext = getResumeContext();
@@ -507,23 +507,24 @@ const handleAskInterviewer = async (e: React.FormEvent) => {
       const reply = await sendChatMessage([
         {
           role: "system",
-          content: `You are an encouraging Australian hiring manager conducting a STAR behavioral interview for a ${selectedRole} role.
+          content: `You are Sarah, an encouraging Australian hiring manager conducting a STAR behavioral interview for a ${selectedRole} role.
 Candidate Context:
 ${resumeContext}
 
 Current Scenario Question: "${currentQ.question}"
 
-The candidate is asking you a clarifying question during the interview. Answer naturally in character as the interviewer in 2-3 concise sentences, then invite them to share their response.`
+The candidate is asking you a clarifying question or sharing a thought. Answer naturally in character as Sarah in 2 short, conversational sentences, then invite them to complete their answer.`
         },
         ...updatedHistory
       ]);
 
-      // 3. Append assistant response
+      // 3. Append assistant response & automatically read it aloud
       setChatTranscript((prev) => [...prev, { role: 'assistant', content: reply }]);
-      setCurrentFeedback(`💬 Interviewer: ${reply}`);
+      setCurrentFeedback(null);
+      speakQuestion(reply);
     } catch (err) {
       console.error("Failed to answer candidate question:", err);
-      setCurrentFeedback("Sorry, I couldn't process your question. Please try asking again or submit your answer.");
+      setCurrentFeedback("Sorry, I couldn't process your question. Please try again.");
     }
   };
 
@@ -586,8 +587,11 @@ Instructions:
   };
 
   const handleNextQuestion = () => {
+    stopSpeech();
+    stopAndResetMic();
     if (currentIndex < sessionQuestions.length - 1) {
-      setCurrentIndex((prev) => prev + 1);
+      const nextIdx = userAnswers.length;
+      setCurrentIndex(nextIdx < sessionQuestions.length ? nextIdx : currentIndex + 1);
       resetResponse();
     }
   };
@@ -732,7 +736,7 @@ Instructions:
                   }`}
                 >
                   <span className="block text-[10px] font-black opacity-70 mb-1">
-                    {msg.role === 'user' ? 'Candidate (You)' : 'Interviewer (Sarah)'}
+                    {msg.role === 'user' ? 'Candidate (You)' : 'Sarah (Interviewer)'}
                   </span>
                   {msg.content}
                 </div>
@@ -773,10 +777,10 @@ Instructions:
             {/* Dynamic STAR Highlighting Sentence Starters */}
             {(() => {
               const lower = candidateAnswer.toLowerCase();
-              const hasS = /\b(when|in my|at my|during|job|role|working at|coles|woolworths|company)\b/i.test(lower);
-              const hasT = /\b(task|needed|had to|responsible|assigned|required|objective|goal)\b/i.test(lower);
-              const hasA = /\b(i |my |decided|took|action|changed|implemented|called|talked|handled|resolved)\b/i.test(lower);
-              const hasR = /\b(result|outcome|so that|led to|improved|saved|completed|ensured|fixed)\b/i.test(lower);
+              const hasS = /\b(when|in my|at my|during|job|role|working at|coles|woolworths|company|bunnings)\b/i.test(lower);
+              const hasT = /\b(task|needed|had to|responsible|assigned|required|objective|goal|picking)\b/i.test(lower);
+              const hasA = /\b(i |my |decided|took|action|changed|implemented|called|talked|handled|resolved|made sure)\b/i.test(lower);
+              const hasR = /\b(result|outcome|so that|led to|improved|saved|completed|ensured|fixed|success rate)\b/i.test(lower);
 
               return (
                 <div className="bg-slate-100 rounded-xl border border-slate-200 p-3">
@@ -847,7 +851,7 @@ Instructions:
               <div className="flex items-center gap-2">
                 <button
                   type="button"
-                  onClick={handleAskInterviewer}
+                  onClick={() => handleAskInterviewer()}
                   className="px-4 py-3 bg-amber-400 hover:bg-amber-300 text-purple-950 font-black text-xs rounded-xl flex items-center justify-center gap-2 shadow-md border-2 border-amber-300 transition-all cursor-pointer"
                 >
                   💬 Ask Interviewer a Question
@@ -867,7 +871,6 @@ Instructions:
               </button>
             </div>
           </form>
-
           <button
   type="button"
   onClick={handleAskInterviewer}
