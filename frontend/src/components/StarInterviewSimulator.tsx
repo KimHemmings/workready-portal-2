@@ -231,18 +231,31 @@ export const StarInterviewSimulator: React.FC = () => {
     if (!SpeechRecognition) return alert("Voice dictation is not supported in this browser.");
 
     const recognition = new SpeechRecognition();
-    recognition.continuous = true; // Prevents cutting off on speech pauses
-    recognition.interimResults = true; // Captures speech smoothly while thinking
+    recognition.continuous = true;
+    recognition.interimResults = true;
     recognition.lang = 'en-AU';
 
+    let baseText = candidateAnswer;
+
     recognition.onresult = (e: any) => {
-      let currentTranscript = '';
+      let interimTranscript = '';
+      let finalTranscript = '';
+
       for (let i = e.resultIndex; i < e.results.length; i++) {
-        currentTranscript += e.results[i][0].transcript;
+        const transcript = e.results[i][0].transcript;
+        if (e.results[i].isFinal) {
+          finalTranscript += transcript + ' ';
+        } else {
+          interimTranscript += transcript;
+        }
       }
-      if (currentTranscript.trim()) {
-        setCandidateAnswer((prev) => (prev ? `${prev} ${currentTranscript}`.trim() : currentTranscript));
+
+      if (finalTranscript) {
+        baseText = baseText ? `${baseText} ${finalTranscript}`.trim() : finalTranscript.trim();
       }
+
+      const combined = baseText ? `${baseText} ${interimTranscript}`.trim() : interimTranscript.trim();
+      setCandidateAnswer(combined);
     };
 
     recognition.onerror = () => stopAndResetMic();
@@ -757,40 +770,77 @@ Instructions:
               />
             </div>
 
-            {/* Collapsible STAR Guide */}
-            <div className="bg-slate-100 rounded-xl border border-slate-200 p-3">
-              <button
-                type="button"
-                onClick={() => setShowStarGuide(!showStarGuide)}
-                className="w-full flex items-center justify-between text-xs font-black text-slate-800 cursor-pointer"
-              >
-                <span className="flex items-center gap-1.5">
-                  <HelpCircle className="w-4 h-4 text-purple-700" /> STAR Answer Sentence Starters
-                </span>
-                {showStarGuide ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
-              </button>
+            {/* Dynamic STAR Highlighting Sentence Starters */}
+            {(() => {
+              const lower = candidateAnswer.toLowerCase();
+              const hasS = /\b(when|in my|at my|during|job|role|working at|coles|woolworths|company)\b/i.test(lower);
+              const hasT = /\b(task|needed|had to|responsible|assigned|required|objective|goal)\b/i.test(lower);
+              const hasA = /\b(i |my |decided|took|action|changed|implemented|called|talked|handled|resolved)\b/i.test(lower);
+              const hasR = /\b(result|outcome|so that|led to|improved|saved|completed|ensured|fixed)\b/i.test(lower);
 
-              {showStarGuide && (
-                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-2.5 mt-3 pt-3 border-t border-slate-200 text-[11px]">
-                  <div className="p-2.5 bg-white rounded-lg border border-purple-200">
-                    <span className="block font-black text-purple-900">S • Situation</span>
-                    <span className="text-slate-600 font-medium">"In my job at..."</span>
-                  </div>
-                  <div className="p-2.5 bg-white rounded-lg border border-blue-200">
-                    <span className="block font-black text-blue-900">T • Task</span>
-                    <span className="text-slate-600 font-medium">"My role was to..."</span>
-                  </div>
-                  <div className="p-2.5 bg-white rounded-lg border border-amber-200">
-                    <span className="block font-black text-amber-900">A • Action</span>
-                    <span className="text-slate-600 font-medium">"I took action by..."</span>
-                  </div>
-                  <div className="p-2.5 bg-white rounded-lg border border-emerald-200">
-                    <span className="block font-black text-emerald-900">R • Result</span>
-                    <span className="text-slate-600 font-medium">"The outcome was..."</span>
-                  </div>
+              return (
+                <div className="bg-slate-100 rounded-xl border border-slate-200 p-3">
+                  <button
+                    type="button"
+                    onClick={() => setShowStarGuide(!showStarGuide)}
+                    className="w-full flex items-center justify-between text-xs font-black text-slate-800 cursor-pointer"
+                  >
+                    <span className="flex items-center gap-1.5">
+                      <HelpCircle className="w-4 h-4 text-purple-700" /> STAR Answer Guidance & Live Detection
+                    </span>
+                    {showStarGuide ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+                  </button>
+
+                  {showStarGuide && (
+                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-2.5 mt-3 pt-3 border-t border-slate-200 text-[11px]">
+                      <div className={`p-2.5 rounded-lg border transition-all duration-300 ${
+                        hasS 
+                          ? 'bg-purple-600 text-white border-purple-700 shadow-md font-bold' 
+                          : 'bg-white text-slate-800 border-purple-200'
+                      }`}>
+                        <span className={`block font-black ${hasS ? 'text-amber-300' : 'text-purple-900'}`}>
+                          S • Situation {hasS && '✓'}
+                        </span>
+                        <span className={`text-[10px] ${hasS ? 'text-purple-100' : 'text-slate-600'}`}>"In my job at..."</span>
+                      </div>
+
+                      <div className={`p-2.5 rounded-lg border transition-all duration-300 ${
+                        hasT 
+                          ? 'bg-blue-600 text-white border-blue-700 shadow-md font-bold' 
+                          : 'bg-white text-slate-800 border-blue-200'
+                      }`}>
+                        <span className={`block font-black ${hasT ? 'text-amber-300' : 'text-blue-900'}`}>
+                          T • Task {hasT && '✓'}
+                        </span>
+                        <span className={`text-[10px] ${hasT ? 'text-blue-100' : 'text-slate-600'}`}>"My role was to..."</span>
+                      </div>
+
+                      <div className={`p-2.5 rounded-lg border transition-all duration-300 ${
+                        hasA 
+                          ? 'bg-amber-500 text-slate-950 border-amber-600 shadow-md font-bold' 
+                          : 'bg-white text-slate-800 border-amber-200'
+                      }`}>
+                        <span className={`block font-black ${hasA ? 'text-purple-950' : 'text-amber-900'}`}>
+                          A • Action {hasA && '✓'}
+                        </span>
+                        <span className={`text-[10px] ${hasA ? 'text-amber-950' : 'text-slate-600'}`}>"I took action by..."</span>
+                      </div>
+
+                      <div className={`p-2.5 rounded-lg border transition-all duration-300 ${
+                        hasR 
+                          ? 'bg-emerald-600 text-white border-emerald-700 shadow-md font-bold' 
+                          : 'bg-white text-slate-800 border-emerald-200'
+                      }`}>
+                        <span className={`block font-black ${hasR ? 'text-amber-300' : 'text-emerald-900'}`}>
+                          R • Result {hasR && '✓'}
+                        </span>
+                        <span className={`text-[10px] ${hasR ? 'text-emerald-100' : 'text-slate-600'}`}>"The outcome was..."</span>
+                      </div>
+                    </div>
+                  )}
                 </div>
-              )}
-            </div>
+              );
+            })()}
 
             {/* Form Action Buttons */}
             <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 pt-2">
