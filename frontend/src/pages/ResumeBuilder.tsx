@@ -323,7 +323,7 @@ export default function ResumeBuilder() {
                         data-testid="resume-edit-input"
                       />
                     ) : (
-                      <div className="max-h-[420px] overflow-y-auto" data-testid="resume-preview">
+                      <div className="max-h-105 overflow-y-auto" data-testid="resume-preview">
                         <Markdown markdown={resumeText} />
                       </div>
                     )}
@@ -364,7 +364,7 @@ export default function ResumeBuilder() {
                             data-testid="cover-edit-input"
                           />
                         ) : (
-                          <div className="max-h-[420px] overflow-y-auto" data-testid="cover-preview">
+                          <div className="max-h-105 overflow-y-auto" data-testid="cover-preview">
                             <Markdown markdown={coverText} />
                           </div>
                         )}
