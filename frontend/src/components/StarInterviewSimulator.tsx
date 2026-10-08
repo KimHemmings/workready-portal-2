@@ -488,7 +488,7 @@ const handleAskInterviewer = async (e?: React.FormEvent) => {
     stopSpeech();
 
     const currentQ = sessionQuestions[currentIndex] || QUESTION_BANK[0];
-    const userQuestion = candidateAnswer;
+    const userQuestion = candidateAnswer.trim();
     setCandidateAnswer('');
 
     // 1. Append candidate question to running transcript
@@ -503,7 +503,7 @@ const handleAskInterviewer = async (e?: React.FormEvent) => {
     try {
       const resumeContext = getResumeContext();
 
-      // 2. Query Azure OpenAI with conversation history
+      // 2. Query Azure OpenAI with full conversation history
       const reply = await sendChatMessage([
         {
           role: "system",
@@ -513,7 +513,7 @@ ${resumeContext}
 
 Current Scenario Question: "${currentQ.question}"
 
-The candidate is asking you a clarifying question or sharing a thought. Answer naturally in character as Sarah in 2 short, conversational sentences, then invite them to complete their answer.`
+The candidate is asking you a clarifying question or sharing a thought prior to answering. Answer naturally in character as Sarah in 2 short, conversational sentences, addressing their question and warmly inviting them to share their response.`
         },
         ...updatedHistory
       ]);
@@ -846,18 +846,23 @@ Instructions:
               );
             })()}
 
-            {/* Form Action Buttons */}
+            {/* Form Action Buttons Bar */}
             <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 pt-2">
               <div className="flex items-center gap-2">
                 <button
                   type="button"
-                  onClick={() => handleAskInterviewer()}
-                  className="px-4 py-3 bg-amber-400 hover:bg-amber-300 text-purple-950 font-black text-xs rounded-xl flex items-center justify-center gap-2 shadow-md border-2 border-amber-300 transition-all cursor-pointer"
+                  onClick={(e) => handleAskInterviewer(e)}
+                  disabled={!candidateAnswer.trim()}
+                  className="px-4 py-3 bg-amber-400 hover:bg-amber-300 disabled:opacity-50 text-purple-950 font-black text-xs rounded-xl flex items-center justify-center gap-2 shadow-md border-2 border-amber-300 transition-all cursor-pointer"
                 >
                   💬 Ask Interviewer a Question
                 </button>
                 
-                <button type="button" onClick={handleNextQuestion} className="text-slate-500 font-bold text-xs hover:text-slate-700 px-2 cursor-pointer">
+                <button 
+                  type="button" 
+                  onClick={handleNextQuestion} 
+                  className="text-slate-500 font-bold text-xs hover:text-slate-700 px-2 cursor-pointer"
+                >
                   Skip →
                 </button>
               </div>
@@ -871,20 +876,13 @@ Instructions:
               </button>
             </div>
           </form>
-          <button
-  type="button"
-  onClick={handleAskInterviewer}
-  disabled={!candidateAnswer.trim()}
-  className="px-4 py-3 bg-purple-100 hover:bg-purple-200 text-purple-900 font-extrabold text-xs rounded-xl flex items-center gap-2 border border-purple-300 disabled:opacity-50 transition-all"
->
-  Ask Interviewer 💬
-</button>
 
           {/* Dynamic Personalized Feedback Box */}
           {currentFeedback && (
             <div className="p-5 bg-purple-50 border-2 border-purple-200 rounded-2xl space-y-3 text-xs text-purple-950 animate-fadeIn">
               <div className="whitespace-pre-line font-semibold leading-relaxed">{currentFeedback}</div>
               <button
+                type="button"
                 onClick={handleNextQuestion}
                 className="px-5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-black rounded-xl text-xs shadow-sm"
               >
