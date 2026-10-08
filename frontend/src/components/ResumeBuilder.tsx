@@ -19,6 +19,7 @@ import {
 } from 'lucide-react';
 import { usePortal } from '../context/PortalContext';
 import { sendChatMessage } from '../lib/api';
+
 export type TemplateStyle = 'modern' | 'classic' | 'trades' | 'minimalist' | 'creative' | 'technical';
 
 interface LocalWorkPosition {
@@ -81,7 +82,6 @@ export const ResumeBuilder: React.FC<{ maxAttempts?: number }> = () => {
       description: 'Handled daily stock receiving, packed pallet orders under tight delivery deadlines, and completed WHS safety checks.'
     }
   ]);
-
   // Gap Helper State
   const [gapDates, setGapDates] = useState('');
   const [gapReason, setGapReason] = useState('Parenting / Family Care');
