@@ -917,11 +917,11 @@ const itemsPerPage = 15;
               <div>
                 <h2 className="text-lg font-bold text-slate-900">Post-Placement Support (PPS) Retention Countdown</h2>
                 <p className="text-xs text-slate-500 mt-0.5">
-                  Automated milestone outcome calculations backed by verified payslip evidence.
+                  Automated milestone outcome calculations backed by verified payslip evidence and progress payment sign-offs.
                 </p>
               </div>
               <span className="text-xs font-semibold bg-emerald-50 text-emerald-700 px-3 py-1 rounded-full border border-emerald-200">
-                Active Framework: {activeContract}
+                Active Framework: {activeContract || 'Workforce Australia'}
               </span>
             </div>
 
@@ -943,7 +943,7 @@ const itemsPerPage = 15;
                       </div>
                     </div>
                     <span className="text-xs font-mono bg-white px-2.5 py-1 rounded border border-slate-200 text-slate-700">
-                      Rate: ${record.hourlyRate.toFixed(2)}/hr
+                      Rate: \${record.hourlyRate.toFixed(2)}/hr
                     </span>
                   </div>
 
@@ -970,7 +970,7 @@ const itemsPerPage = 15;
                           <div className="space-y-1">
                             <div className="flex justify-between text-xs text-slate-500 font-medium">
                               <span>Hours Worked</span>
-                              <span>{m.accumulatedHours} / {m.targetHours} hrs</span>
+                              <span className="font-bold text-slate-900">{m.accumulatedHours} / {m.targetHours} hrs</span>
                             </div>
                             <div className="w-full h-2 bg-slate-100 rounded-full overflow-hidden">
                               <div
@@ -989,18 +989,25 @@ const itemsPerPage = 15;
 
                           {m.status === 'Claim_Ready' && (
                             <button
-                              onClick={() => claimPPSOutcome(record.candidateId, mKey)}
-                              className="w-full mt-2 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-bold flex items-center justify-center gap-1.5 transition-colors shadow-sm"
+                              type="button"
+                              onClick={() => {
+                                claimPPSOutcome(record.candidateId, mKey);
+                                addAuditEntry(
+                                  record.candidateName,
+                                  `Generated DEWR progress payment outcome claim for ${m.label}`
+                                );
+                              }}
+                              className="w-full mt-2 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-bold flex items-center justify-center gap-1.5 transition-colors shadow-sm cursor-pointer"
                             >
                               <ShieldCheck className="w-4 h-4" />
-                              Generate DEWR Outcome Claim
+                              <span>Generate DEWR Outcome Claim</span>
                             </button>
                           )}
+
                           {m.status === 'Claimed' && (
                             <button
                               type="button"
                               onClick={() => {
-                                // Revert claim back to Claim_Ready in state
                                 m.status = 'Claim_Ready';
                                 addAuditEntry(
                                   record.candidateName,
