@@ -437,15 +437,34 @@ export const StarInterviewSimulator: React.FC = () => {
       window.dispatchEvent(new CustomEvent('starHistoryUpdated', { detail: newRecord }));
     } catch (err) {}
   };
+  
+const getResumeContext = () => {
+    try {
+      const rawDraft = localStorage.getItem('workready_resume_draft');
+      if (rawDraft) {
+        const draft = JSON.parse(rawDraft);
+        return `Candidate Name: ${draft.fullName || activeCandidate?.name || 'Alex Mercer'}
+Target Role: ${draft.targetRole || selectedRole}
+Summary/Objective: ${draft.summary || 'Not provided'}
+Work Experience: ${draft.experience || 'Not provided'}
+Key Skills: ${draft.skills || 'Not provided'}`;
+      }
+    } catch (e) {
+      console.error("Could not parse resume draft context", e);
+    }
 
- const handleAnswerSubmit = async (e: React.FormEvent) => {
+    return `Candidate Name: ${activeCandidate?.name || 'Alex Mercer'}
+Target Industry: ${selectedRole}`;
+  };
+
+  const handleAnswerSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     stopAndResetMic();
     stopSpeech();
 
-    const currentQ = sessionQuestions[currentIndex];
+    const currentQ = sessionQuestions[currentIndex] || QUESTION_BANK[0];
     
-    // 1. Keep existing STAR fallback structure for report generation
+    // 1. Local STAR fallback structure for report generation
     const analysis = analyzeAnswerSTAR(currentQ.question, candidateAnswer, currentQ.coachingTip);
 
     const updatedAnswers = [...userAnswers, candidateAnswer];
@@ -454,17 +473,27 @@ export const StarInterviewSimulator: React.FC = () => {
     setUserAnswers(updatedAnswers);
     setPerAnswerAnalysis(updatedAnalyses);
 
-    // 2. Display temporary loading state in the feedback box
-    setCurrentFeedback("Analyzing your response with AI...");
+    // 2. Display temporary loading state in feedback box
+    setCurrentFeedback("Analyzing your response with Azure OpenAI...");
 
     try {
-      // 3. Call Azure OpenAI via sendChatMessage
+      // 3. Extract candidate resume & profile context
+      const resumeContext = getResumeContext();
+
+      // 4. Call Azure OpenAI via sendChatMessage with full resume background
       const aiResponse = await sendChatMessage([
         {
           role: "system",
-          content: `You are an expert Australian career coach evaluating an interview response using the STAR method (Situation, Task, Action, Result).
-Industry Role: ${selectedRole}.
-Keep feedback encouraging, highly actionable, and concise (2-3 short bullet points max). Highlight key STAR strengths and 1 area for improvement.`
+          content: `You are an expert Australian career interviewer and coach evaluating a candidate's response using the STAR method (Situation, Task, Action, Result).
+
+Candidate Profile Context:
+${resumeContext}
+
+Instructions:
+- Evaluate the candidate's answer to the specific interview question below.
+- Cross-reference their response with their background/resume details above when relevant.
+- Keep feedback encouraging, highly actionable, and concise (2-3 short bullet points max).
+- Highlight key STAR strengths and 1 area for improvement.`
         },
         {
           role: "user",
@@ -472,21 +501,20 @@ Keep feedback encouraging, highly actionable, and concise (2-3 short bullet poin
         }
       ]);
 
-      // 4. Overwrite feedback box with dynamic AI response
+      // 5. Overwrite feedback box with dynamic AI response
       setCurrentFeedback(aiResponse);
     } catch (err) {
       console.error("Failed to fetch Azure OpenAI feedback:", err);
-      // Fallback to local heuristic if API fails
       setCurrentFeedback(analysis.personalizedHint);
     }
 
-    // 5. Complete session if all questions answered
+    // 6. Complete session if all questions answered
     if (updatedAnswers.length >= 8 || currentIndex >= sessionQuestions.length - 1) {
       setIsSessionFinished(true);
       evaluateAndSaveSession(updatedAnswers, updatedAnalyses);
     }
   };
-
+  
   const handleNextQuestion = () => {
     if (currentIndex < sessionQuestions.length - 1) {
       setCurrentIndex((prev) => prev + 1);
