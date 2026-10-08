@@ -237,10 +237,26 @@ export const StarInterviewSimulator: React.FC = () => {
 
   const speakQuestion = (text: string) => {
     if (!('speechSynthesis' in window)) return alert("Text-to-speech audio is not supported in this browser.");
+    
+    // 1. MUST stop microphone before speech begins so speaker audio isn't dictated back into textarea!
+    stopAndResetMic();
     stopSpeech();
+
     const utterance = new SpeechSynthesisUtterance(text);
     utterance.lang = 'en-AU';
-    utterance.rate = 0.9;
+    utterance.rate = 0.95;
+
+    // 2. Explicitly select an Australian or English Female Voice
+    const voices = window.speechSynthesis.getVoices();
+    const femaleVoice = voices.find((v) => 
+      (v.lang.includes('en-AU') || v.lang.includes('en-GB') || v.lang.includes('en-US')) &&
+      (v.name.includes('Karen') || v.name.includes('Catherine') || v.name.includes('Natasha') || v.name.includes('Zira') || v.name.includes('Samantha') || v.name.includes('Female'))
+    ) || voices.find((v) => v.lang.includes('en-AU')) || voices[0];
+
+    if (femaleVoice) {
+      utterance.voice = femaleVoice;
+    }
+
     utterance.onend = () => setIsSpeakingQuestion(false);
     utterance.onerror = () => setIsSpeakingQuestion(false);
     setIsSpeakingQuestion(true);
@@ -526,14 +542,16 @@ const handleAskInterviewer = async (e?: React.FormEvent) => {
     if (e) e.preventDefault();
     if (!candidateAnswer.trim()) return;
 
+    // Immediately stop listening so speech synthesis isn't picked up by mic
     stopAndResetMic();
     stopSpeech();
 
     const currentQ = sessionQuestions[currentIndex] || QUESTION_BANK[0];
     const userQuestion = candidateAnswer.trim();
+    
+    // Clear candidate input immediately
     setCandidateAnswer('');
 
-    // 1. Append candidate question to running transcript
     const updatedHistory: { role: 'system' | 'user' | 'assistant'; content: string }[] = [
       ...chatTranscript,
       { role: 'user', content: userQuestion }
