@@ -134,6 +134,7 @@ export const StarInterviewSimulator: React.FC = () => {
   const recognitionRef = useRef<any>(null);
 
   const [userAnswers, setUserAnswers] = useState<string[]>([]);
+  const [chatTranscript, setChatTranscript] = useState<Array<{ role: 'system' | 'user' | 'assistant'; content: string }>>([]);
   const [perAnswerAnalysis, setPerAnswerAnalysis] = useState<any[]>([]);
   const [currentFeedback, setCurrentFeedback] = useState<string | null>(null);
   const [isSessionFinished, setIsSessionFinished] = useState(false);
@@ -242,6 +243,7 @@ export const StarInterviewSimulator: React.FC = () => {
     stopSpeech();
     setCandidateAnswer('');
     setCurrentFeedback(null);
+    setChatTranscript([]);
   };
 
  const downloadEvidencePDF = () => {
@@ -456,6 +458,52 @@ Key Skills: ${draft.skills || 'Not provided'}`;
     return `Candidate Name: ${activeCandidate?.name || 'Alex Mercer'}
 Target Industry: ${selectedRole}`;
   };
+const handleAskInterviewer = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!candidateAnswer.trim()) return;
+
+    stopAndResetMic();
+    stopSpeech();
+
+    const currentQ = sessionQuestions[currentIndex] || QUESTION_BANK[0];
+    const userQuestion = candidateAnswer;
+    setCandidateAnswer('');
+
+    // 1. Append candidate question to running transcript
+    const updatedHistory: { role: 'system' | 'user' | 'assistant'; content: string }[] = [
+      ...chatTranscript,
+      { role: 'user', content: userQuestion }
+    ];
+
+    setChatTranscript(updatedHistory);
+    setCurrentFeedback("Thinking...");
+
+    try {
+      const resumeContext = getResumeContext();
+
+      // 2. Query Azure OpenAI with conversation history
+      const reply = await sendChatMessage([
+        {
+          role: "system",
+          content: `You are an encouraging Australian hiring manager conducting a STAR behavioral interview for a ${selectedRole} role.
+Candidate Context:
+${resumeContext}
+
+Current Scenario Question: "${currentQ.question}"
+
+The candidate is asking you a clarifying question during the interview. Answer naturally in character as the interviewer in 2-3 concise sentences, then invite them to share their response.`
+        },
+        ...updatedHistory
+      ]);
+
+      // 3. Append assistant response
+      setChatTranscript((prev) => [...prev, { role: 'assistant', content: reply }]);
+      setCurrentFeedback(`💬 Interviewer: ${reply}`);
+    } catch (err) {
+      console.error("Failed to answer candidate question:", err);
+      setCurrentFeedback("Sorry, I couldn't process your question. Please try asking again or submit your answer.");
+    }
+  };
 
   const handleAnswerSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -514,7 +562,7 @@ Instructions:
       evaluateAndSaveSession(updatedAnswers, updatedAnalyses);
     }
   };
-  
+
   const handleNextQuestion = () => {
     if (currentIndex < sessionQuestions.length - 1) {
       setCurrentIndex((prev) => prev + 1);
@@ -725,6 +773,15 @@ Instructions:
               </button>
             </div>
           </form>
+
+          <button
+  type="button"
+  onClick={handleAskInterviewer}
+  disabled={!candidateAnswer.trim()}
+  className="px-4 py-3 bg-purple-100 hover:bg-purple-200 text-purple-900 font-extrabold text-xs rounded-xl flex items-center gap-2 border border-purple-300 disabled:opacity-50 transition-all"
+>
+  Ask Interviewer 💬
+</button>
 
           {/* Dynamic Personalized Feedback Box */}
           {currentFeedback && (
