@@ -1,4 +1,5 @@
 ﻿import React, { useState, useEffect, useRef } from 'react';
+import { sendChatMessage } from '../lib/api';
 import { 
   Send, 
   Briefcase, 
@@ -437,12 +438,14 @@ export const StarInterviewSimulator: React.FC = () => {
     } catch (err) {}
   };
 
-  const handleAnswerSubmit = (e: React.FormEvent) => {
+ const handleAnswerSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     stopAndResetMic();
     stopSpeech();
 
     const currentQ = sessionQuestions[currentIndex];
+    
+    // 1. Keep existing STAR fallback structure for report generation
     const analysis = analyzeAnswerSTAR(currentQ.question, candidateAnswer, currentQ.coachingTip);
 
     const updatedAnswers = [...userAnswers, candidateAnswer];
@@ -450,8 +453,34 @@ export const StarInterviewSimulator: React.FC = () => {
 
     setUserAnswers(updatedAnswers);
     setPerAnswerAnalysis(updatedAnalyses);
-    setCurrentFeedback(analysis.personalizedHint);
 
+    // 2. Display temporary loading state in the feedback box
+    setCurrentFeedback("Analyzing your response with AI...");
+
+    try {
+      // 3. Call Azure OpenAI via sendChatMessage
+      const aiResponse = await sendChatMessage([
+        {
+          role: "system",
+          content: `You are an expert Australian career coach evaluating an interview response using the STAR method (Situation, Task, Action, Result).
+Industry Role: ${selectedRole}.
+Keep feedback encouraging, highly actionable, and concise (2-3 short bullet points max). Highlight key STAR strengths and 1 area for improvement.`
+        },
+        {
+          role: "user",
+          content: `Interview Question: "${currentQ.question}"\nCandidate's Answer: "${candidateAnswer}"`
+        }
+      ]);
+
+      // 4. Overwrite feedback box with dynamic AI response
+      setCurrentFeedback(aiResponse);
+    } catch (err) {
+      console.error("Failed to fetch Azure OpenAI feedback:", err);
+      // Fallback to local heuristic if API fails
+      setCurrentFeedback(analysis.personalizedHint);
+    }
+
+    // 5. Complete session if all questions answered
     if (updatedAnswers.length >= 8 || currentIndex >= sessionQuestions.length - 1) {
       setIsSessionFinished(true);
       evaluateAndSaveSession(updatedAnswers, updatedAnalyses);
@@ -472,7 +501,7 @@ export const StarInterviewSimulator: React.FC = () => {
     <div className="space-y-6 font-sans my-6">
       
       {/* HIGH-IMPACT BRAND BANNER */}
-      <div className="bg-gradient-to-r from-[#24083b] via-[#320b52] to-[#1c0630] text-white rounded-2xl p-6 shadow-xl border border-purple-900/60 relative overflow-hidden">
+      <div className="bg-linear-to-r from-[#24083b] via-[#320b52] to-[#1c0630] text-white rounded-2xl p-6 shadow-xl border border-purple-900/60 relative overflow-hidden">
         <div className="absolute -right-10 -bottom-10 w-48 h-48 bg-emerald-500/10 rounded-full blur-2xl pointer-events-none" />
 
         <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 relative z-10">
@@ -564,7 +593,7 @@ export const StarInterviewSimulator: React.FC = () => {
           </div>
 
           {/* Question Card with Read Aloud Trigger */}
-          <div className="p-6 bg-gradient-to-r from-purple-950 via-[#24083b] to-purple-900 text-white rounded-2xl space-y-4 shadow-lg border border-purple-800 relative">
+          <div className="p-6 bg-linear-to-r from-purple-950 via-[#24083b] to-purple-900 text-white rounded-2xl space-y-4 shadow-lg border border-purple-800 relative">
             <div className="flex items-center justify-between gap-2">
               <span className="text-xs font-black uppercase tracking-wider text-purple-200 bg-white/10 px-3 py-1 rounded-lg">
                 Scenario #{currentIndex + 1}
