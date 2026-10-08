@@ -330,7 +330,7 @@ export const CaseManager: React.FC = () => {
     <div className="min-h-screen bg-slate-50 text-slate-900 pb-16 font-sans">
       
       {/* HEADER BAR */}
-      <header className="bg-gradient-to-r from-[#1e1b4b] via-[#24083b] to-[#1e1b4b] text-white px-6 py-4 border-b border-purple-900/50 shadow-md">
+      <header className="bg-linear-to-r from-[#1e1b4b] via-[#24083b] to-[#1e1b4b] text-white px-6 py-4 border-b border-purple-900/50 shadow-md">
         <div className="max-w-7xl mx-auto flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div className="flex items-center space-x-4">
             <div className="w-10 h-10 bg-white rounded-xl p-1 flex items-center justify-center shadow-sm shrink-0 overflow-hidden">
@@ -530,7 +530,7 @@ export const CaseManager: React.FC = () => {
               <Sparkles className="w-4 h-4 text-amber-500" /> 🚨 URGENT: High-Impact Outcome Claim Awaiting Verification
             </h3>
             {activeCandidateClaims.map((claim) => (
-              <div key={claim.id} className="p-5 bg-gradient-to-r from-purple-900 via-purple-950 to-slate-900 text-white rounded-2xl border-2 border-amber-400/80 flex flex-col md:flex-row md:items-center justify-between gap-4 shadow-xl">
+              <div key={claim.id} className="p-5 bg-linear-to-r from-purple-900 via-purple-950 to-slate-900 text-white rounded-2xl border-2 border-amber-400/80 flex flex-col md:flex-row md:items-center justify-between gap-4 shadow-xl">
                 <div className="space-y-1">
                   <span className="text-[10px] font-extrabold uppercase text-emerald-300 bg-emerald-500/20 px-2.5 py-0.5 rounded-full border border-emerald-500/30">
                     Candidate Submitted Milestone: {claim.type}

@@ -122,6 +122,20 @@ export const StarInterviewSimulator: React.FC = () => {
   const programType = activeCandidate?.programType || 'workforce_australia';
   const isRtoGraduate = programType === 'rto_graduate';
 
+  // Check if candidate has completed an ATS resume draft
+  const checkResumeExists = (): boolean => {
+    try {
+      const raw = localStorage.getItem('workready_resume_draft');
+      if (!raw) return false;
+      const parsed = JSON.parse(raw);
+      return Boolean(parsed && (parsed.fullName || parsed.summary || parsed.experience));
+    } catch (e) {
+      return false;
+    }
+  };
+
+  const hasResumeDraft = checkResumeExists();
+
   const [selectedRole, setSelectedRole] = useState<'Warehouse & Logistics' | 'Retail & Hospitality' | 'Administration & Support' | 'Construction & Trades'>('Warehouse & Logistics');
   const [sessionQuestions, setSessionQuestions] = useState<InterviewQuestion[]>([]);
   const [currentIndex, setCurrentIndex] = useState<number>(0);
@@ -160,6 +174,19 @@ export const StarInterviewSimulator: React.FC = () => {
     initSession(selectedRole);
   }, [selectedRole]);
 
+  // Load initial interviewer message into chat stream for the current scenario
+  useEffect(() => {
+    if (sessionQuestions.length > 0 && sessionQuestions[currentIndex]) {
+      const q = sessionQuestions[currentIndex];
+      setChatTranscript([
+        {
+          role: 'assistant',
+          content: `G'day! I'm Sarah, your interviewer today. Here is Scenario #${currentIndex + 1}:\n\n"${q.question}"`
+        }
+      ]);
+    }
+  }, [currentIndex, sessionQuestions]);
+
   useEffect(() => {
     return () => {
       stopAndResetMic();
@@ -168,12 +195,27 @@ export const StarInterviewSimulator: React.FC = () => {
   }, []);
 
   const shuffleAndPick8 = (array: InterviewQuestion[]) => {
-    const shuffled = [...array];
+    let seenIds: string[] = [];
+    try {
+      seenIds = JSON.parse(localStorage.getItem('workready_seen_questions') || '[]');
+    } catch (e) {}
+
+    const unseen = array.filter(q => !seenIds.includes(q.id));
+    const pool = unseen.length >= 8 ? unseen : [...unseen, ...array.filter(q => seenIds.includes(q.id))];
+
+    const shuffled = [...pool];
     for (let i = shuffled.length - 1; i > 0; i--) {
       const j = Math.floor(Math.random() * (i + 1));
       [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
     }
-    return shuffled.slice(0, 8);
+    
+    const selected = shuffled.slice(0, 8);
+    try {
+      const newSeen = Array.from(new Set([...seenIds, ...selected.map(s => s.id)]));
+      localStorage.setItem('workready_seen_questions', JSON.stringify(newSeen));
+    } catch (e) {}
+
+    return selected;
   };
 
   const initSession = (role: typeof selectedRole) => {
@@ -555,16 +597,16 @@ The candidate is asking you a clarifying question or sharing a thought prior to 
       const aiResponse = await sendChatMessage([
         {
           role: "system",
-          content: `You are an expert Australian career interviewer and coach evaluating a candidate's response using the STAR method (Situation, Task, Action, Result).
-
-Candidate Profile Context:
+          content: `You are Sarah, a warm, encouraging Australian female hiring manager conducting a STAR interview for a ${selectedRole} role.
+Candidate Resume Context:
 ${resumeContext}
 
-Instructions:
-- Evaluate the candidate's answer to the specific interview question below.
-- Cross-reference their response with their background/resume details above when relevant.
-- Keep feedback encouraging, highly actionable, and concise (2-3 short bullet points max).
-- Highlight key STAR strengths and 1 area for improvement.`
+Current Scenario Question: "${currentQ.question}"
+
+INSTRUCTIONS:
+- The candidate is asking YOU (Sarah) a question or asking for clarification regarding the scenario.
+- Answer the candidate's question DIRECTLY and HELPFULLY in 1-2 friendly, conversational sentences.
+- DO NOT press the candidate for more information or push them to expand yet. Simply answer their question clearly, give them a helpful hint if requested, and warmly invite them to share their response when ready.`
         },
         {
           role: "user",
@@ -652,6 +694,33 @@ Instructions:
         </div>
       </div>
 
+{/* ATS RESUME PREREQUISITE GATE BANNER */}
+      {!hasResumeDraft && (
+        <div className="p-5 bg-amber-50 border-2 border-amber-300 rounded-2xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-sm">
+          <div className="space-y-1">
+            <div className="flex items-center gap-2">
+              <span className="p-1.5 bg-amber-200 text-amber-950 rounded-lg font-black text-xs">
+                ⚠️ Prerequisite Step
+              </span>
+              <h4 className="text-sm font-black text-amber-950">Active Resume Context Recommended</h4>
+            </div>
+            <p className="text-xs text-amber-900 font-medium leading-relaxed">
+              For Sarah (your AI interviewer) to ask candidate-specific questions and reference your target industry accurately, complete your ATS Resume in Step 1.
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={() => {
+              const resumeElem = document.getElementById('resume-builder-section');
+              if (resumeElem) resumeElem.scrollIntoView({ behavior: 'smooth' });
+            }}
+            className="px-4 py-2.5 bg-amber-400 hover:bg-amber-300 text-slate-950 font-black text-xs rounded-xl shadow-xs shrink-0 transition-colors cursor-pointer"
+          >
+            Go to ATS Resume Studio →
+          </button>
+        </div>
+      )}
+
       {isCapReached && !isSessionFinished ? (
         <div className="p-6 bg-amber-50 border-2 border-amber-300 rounded-2xl text-center space-y-3">
           <div className="inline-flex p-3 bg-amber-200 text-amber-900 rounded-full">
@@ -664,117 +733,69 @@ Instructions:
         </div>
       ) : !isSessionFinished ? (
         <div className="bg-white border-2 border-slate-200 rounded-2xl p-5 md:p-7 space-y-6 shadow-sm">
-          {/* Step Progress Bubbles (1 to 8) */}
-          <div className="space-y-2">
-            <div className="flex items-center justify-between text-xs font-extrabold text-slate-600">
-              <span>Question Progress ({currentIndex + 1} of 8)</span>
-              <span className="text-purple-800 font-black">{selectedRole}</span>
-            </div>
-
-            <div className="grid grid-cols-8 gap-1.5 md:gap-2">
-              {sessionQuestions.map((_, idx) => {
-                const isCurrent = idx === currentIndex;
-                const isDone = idx < userAnswers.length;
-
-                return (
-                  <div
-                    key={idx}
-                    className={`h-9 rounded-xl flex items-center justify-center font-black text-xs transition-all ${
-                      isCurrent
-                        ? 'bg-[#24083b] text-white shadow-md ring-2 ring-purple-400'
-                        : isDone
-                        ? 'bg-emerald-500 text-white'
-                        : 'bg-slate-100 border border-slate-200 text-slate-400'
-                    }`}
-                  >
-                    {isDone ? <CheckCircle2 className="w-4 h-4" /> : idx + 1}
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-
-          {/* Question Card with Read Aloud Trigger */}
-          <div className="p-6 bg-linear-to-r from-purple-950 via-[#24083b] to-purple-900 text-white rounded-2xl space-y-4 shadow-lg border border-purple-800 relative">
-            <div className="flex items-center justify-between gap-2">
-              <span className="text-xs font-black uppercase tracking-wider text-purple-200 bg-white/10 px-3 py-1 rounded-lg">
-                Scenario #{currentIndex + 1}
-              </span>
-
+          {/* UNIFIED INTERVIEW CHAT CONTAINER */}
+          <div className="bg-white border-2 border-slate-200 rounded-2xl shadow-sm overflow-hidden flex flex-col">
+            
+            {/* Header Bar */}
+            <div className="bg-linear-to-r from-[#24083b] to-[#320b52] text-white p-4 flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <span className="p-1.5 bg-amber-400 text-slate-950 font-black text-xs rounded-lg">
+                  Scenario #{currentIndex + 1}
+                </span>
+                <span className="text-xs font-bold text-purple-200">{selectedRole}</span>
+              </div>
+              
               <button
                 type="button"
                 onClick={() => isSpeakingQuestion ? stopSpeech() : speakQuestion(currentQ.question)}
-                className={`inline-flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-black transition-all border cursor-pointer ${
+                className={`px-3 py-1.5 rounded-xl text-xs font-black transition-all flex items-center gap-1.5 border cursor-pointer ${
                   isSpeakingQuestion 
                     ? 'bg-amber-400 text-slate-950 border-amber-300 animate-pulse' 
-                    : 'bg-emerald-500 hover:bg-emerald-600 text-white shadow-md'
+                    : 'bg-emerald-500 hover:bg-emerald-600 text-white border-emerald-400'
                 }`}
               >
-                {isSpeakingQuestion ? <VolumeX className="w-4 h-4" /> : <Volume2 className="w-4 h-4" />}
-                {isSpeakingQuestion ? 'Stop Reading' : 'Listen to Question 🔊'}
+                {isSpeakingQuestion ? <VolumeX className="w-3.5 h-3.5" /> : <Volume2 className="w-3.5 h-3.5" />}
+                <span>{isSpeakingQuestion ? 'Stop Audio' : 'Listen 🔊'}</span>
               </button>
             </div>
 
-            <h3 className="text-lg md:text-xl font-black text-white leading-snug">
-              "{currentQ?.question}"
-            </h3>
-          </div>
-
-          {/* Live Conversational Transcript Thread */}
-          {chatTranscript.length > 0 && (
-            <div className="p-4 bg-purple-50/60 border-2 border-purple-200 rounded-2xl space-y-3 max-h-60 overflow-y-auto">
-              <span className="text-[10px] font-black uppercase tracking-wider text-purple-900 flex items-center gap-1.5">
-                🎙️ Live Conversation Thread
-              </span>
+            {/* 1. CONTINUOUS SCROLLABLE CHAT STREAM */}
+            <div className="p-4 bg-slate-50 space-y-3 min-h-80 max-h-120 overflow-y-auto">
               {chatTranscript.map((msg, idx) => (
                 <div
                   key={idx}
-                  className={`p-3 rounded-xl text-xs ${
-                    msg.role === 'user'
-                      ? 'bg-[#24083b] text-white font-medium ml-8 text-right'
-                      : 'bg-white text-slate-900 border border-slate-200 font-medium mr-8 shadow-xs'
+                  className={`flex flex-col ${
+                    msg.role === 'user' ? 'items-end' : 'items-start'
                   }`}
                 >
-                  <span className="block text-[10px] font-black opacity-70 mb-1">
+                  <span className="text-[10px] font-black uppercase text-slate-400 mb-1 px-1">
                     {msg.role === 'user' ? 'Candidate (You)' : 'Sarah (Interviewer)'}
                   </span>
-                  {msg.content}
+                  
+                  <div
+                    className={`p-4 rounded-2xl text-xs max-w-[85%] font-medium leading-relaxed shadow-xs ${
+                      msg.role === 'user'
+                        ? 'bg-[#24083b] text-white rounded-br-none'
+                        : 'bg-white text-slate-900 border border-slate-200 rounded-bl-none'
+                    }`}
+                  >
+                    <div className="whitespace-pre-line">{msg.content}</div>
+                  </div>
                 </div>
               ))}
-            </div>
-          )}
 
-          {/* Form Input Area */}
-          <form onSubmit={handleAnswerSubmit} className="space-y-4 text-xs">
-            <div className="space-y-2">
-              <div className="flex items-center justify-between">
-                <label className="block text-sm font-black text-slate-900">Your Response / Clarification:</label>
-                
-                <button
-                  type="button"
-                  onClick={toggleMic}
-                  className={`flex items-center gap-2 text-xs px-4 py-2 rounded-xl font-black transition-all border cursor-pointer ${
-                    isListening
-                      ? 'bg-red-100 text-red-700 border-red-300 animate-pulse'
-                      : 'bg-purple-100 hover:bg-purple-200 text-purple-900 border-purple-300'
-                  }`}
-                >
-                  {isListening ? <Pause className="w-4 h-4 text-red-600" /> : <Mic className="w-4 h-4 text-purple-700" />}
-                  {isListening ? 'Stop Recording' : 'Dictate Answer 🎙️'}
-                </button>
-              </div>
-
-              <textarea
-                required
-                rows={4}
-                value={candidateAnswer}
-                onChange={(e) => setCandidateAnswer(e.target.value)}
-                placeholder="Type your response here, or click 'Ask Interviewer a Question' before answering..."
-                className="w-full p-4 border-2 border-slate-300 rounded-xl bg-slate-50 focus:bg-white focus:border-purple-600 outline-none text-xs text-slate-900 font-medium"
-              />
+              {/* AI Feedback Displayed directly inside stream */}
+              {currentFeedback && (
+                <div className="p-4 bg-purple-50 border-2 border-purple-200 rounded-2xl text-xs text-purple-950 font-semibold space-y-2 animate-fadeIn">
+                  <span className="text-[10px] font-black uppercase tracking-wider text-purple-900 block">
+                    🌟 Azure OpenAI STAR Feedback
+                  </span>
+                  <div className="whitespace-pre-line">{currentFeedback}</div>
+                </div>
+              )}
             </div>
 
-            {/* Dynamic STAR Highlighting Sentence Starters */}
+            {/* 2. DYNAMIC STAR KEYWORD LIGHTING */}
             {(() => {
               const lower = candidateAnswer.toLowerCase();
               const hasS = /\b(when|in my|at my|during|job|role|working at|coles|woolworths|company|bunnings)\b/i.test(lower);
@@ -783,113 +804,86 @@ Instructions:
               const hasR = /\b(result|outcome|so that|led to|improved|saved|completed|ensured|fixed|success rate)\b/i.test(lower);
 
               return (
-                <div className="bg-slate-100 rounded-xl border border-slate-200 p-3">
-                  <button
-                    type="button"
-                    onClick={() => setShowStarGuide(!showStarGuide)}
-                    className="w-full flex items-center justify-between text-xs font-black text-slate-800 cursor-pointer"
-                  >
-                    <span className="flex items-center gap-1.5">
-                      <HelpCircle className="w-4 h-4 text-purple-700" /> STAR Answer Guidance & Live Detection
-                    </span>
-                    {showStarGuide ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
-                  </button>
-
-                  {showStarGuide && (
-                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-2.5 mt-3 pt-3 border-t border-slate-200 text-[11px]">
-                      <div className={`p-2.5 rounded-lg border transition-all duration-300 ${
-                        hasS 
-                          ? 'bg-purple-600 text-white border-purple-700 shadow-md font-bold' 
-                          : 'bg-white text-slate-800 border-purple-200'
-                      }`}>
-                        <span className={`block font-black ${hasS ? 'text-amber-300' : 'text-purple-900'}`}>
-                          S • Situation {hasS && '✓'}
-                        </span>
-                        <span className={`text-[10px] ${hasS ? 'text-purple-100' : 'text-slate-600'}`}>"In my job at..."</span>
-                      </div>
-
-                      <div className={`p-2.5 rounded-lg border transition-all duration-300 ${
-                        hasT 
-                          ? 'bg-blue-600 text-white border-blue-700 shadow-md font-bold' 
-                          : 'bg-white text-slate-800 border-blue-200'
-                      }`}>
-                        <span className={`block font-black ${hasT ? 'text-amber-300' : 'text-blue-900'}`}>
-                          T • Task {hasT && '✓'}
-                        </span>
-                        <span className={`text-[10px] ${hasT ? 'text-blue-100' : 'text-slate-600'}`}>"My role was to..."</span>
-                      </div>
-
-                      <div className={`p-2.5 rounded-lg border transition-all duration-300 ${
-                        hasA 
-                          ? 'bg-amber-500 text-slate-950 border-amber-600 shadow-md font-bold' 
-                          : 'bg-white text-slate-800 border-amber-200'
-                      }`}>
-                        <span className={`block font-black ${hasA ? 'text-purple-950' : 'text-amber-900'}`}>
-                          A • Action {hasA && '✓'}
-                        </span>
-                        <span className={`text-[10px] ${hasA ? 'text-amber-950' : 'text-slate-600'}`}>"I took action by..."</span>
-                      </div>
-
-                      <div className={`p-2.5 rounded-lg border transition-all duration-300 ${
-                        hasR 
-                          ? 'bg-emerald-600 text-white border-emerald-700 shadow-md font-bold' 
-                          : 'bg-white text-slate-800 border-emerald-200'
-                      }`}>
-                        <span className={`block font-black ${hasR ? 'text-amber-300' : 'text-emerald-900'}`}>
-                          R • Result {hasR && '✓'}
-                        </span>
-                        <span className={`text-[10px] ${hasR ? 'text-emerald-100' : 'text-slate-600'}`}>"The outcome was..."</span>
-                      </div>
-                    </div>
-                  )}
+                <div className="bg-slate-100 p-2.5 border-t border-slate-200 flex items-center justify-between text-[11px]">
+                  <span className="font-extrabold text-slate-700 hidden sm:inline">STAR Live Detection:</span>
+                  <div className="grid grid-cols-4 gap-1.5 w-full sm:w-auto flex-1 sm:flex-initial">
+                    <span className={`px-2.5 py-1 rounded-lg font-black text-center ${hasS ? 'bg-purple-600 text-white' : 'bg-white text-slate-400 border border-slate-200'}`}>S {hasS && '✓'}</span>
+                    <span className={`px-2.5 py-1 rounded-lg font-black text-center ${hasT ? 'bg-blue-600 text-white' : 'bg-white text-slate-400 border border-slate-200'}`}>T {hasT && '✓'}</span>
+                    <span className={`px-2.5 py-1 rounded-lg font-black text-center ${hasA ? 'bg-amber-500 text-slate-950' : 'bg-white text-slate-400 border border-slate-200'}`}>A {hasA && '✓'}</span>
+                    <span className={`px-2.5 py-1 rounded-lg font-black text-center ${hasR ? 'bg-emerald-600 text-white' : 'bg-white text-slate-400 border border-slate-200'}`}>R {hasR && '✓'}</span>
+                  </div>
                 </div>
               );
             })()}
 
-            {/* Form Action Buttons Bar */}
-            <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 pt-2">
-              <div className="flex items-center gap-2">
+            {/* 3. INPUT & CONTROLS FOOTER */}
+            <form onSubmit={handleAnswerSubmit} className="p-4 bg-white border-t border-slate-200 space-y-3">
+              <div className="relative">
+                <textarea
+                  required
+                  rows={3}
+                  value={candidateAnswer}
+                  onChange={(e) => setCandidateAnswer(e.target.value)}
+                  placeholder="Type your response here, or ask Sarah a clarification question before answering..."
+                  className="w-full p-3.5 pr-32 border-2 border-slate-300 rounded-xl bg-slate-50 focus:bg-white focus:border-purple-600 outline-none text-xs text-slate-900 font-medium"
+                />
+
                 <button
                   type="button"
-                  onClick={(e) => handleAskInterviewer(e)}
-                  disabled={!candidateAnswer.trim()}
-                  className="px-4 py-3 bg-amber-400 hover:bg-amber-300 disabled:opacity-50 text-purple-950 font-black text-xs rounded-xl flex items-center justify-center gap-2 shadow-md border-2 border-amber-300 transition-all cursor-pointer"
+                  onClick={toggleMic}
+                  className={`absolute right-2.5 top-2.5 px-3 py-1.5 rounded-lg text-xs font-black border transition-all cursor-pointer flex items-center gap-1 ${
+                    isListening
+                      ? 'bg-red-100 text-red-700 border-red-300 animate-pulse'
+                      : 'bg-purple-100 hover:bg-purple-200 text-purple-900 border-purple-300'
+                  }`}
                 >
-                  💬 Ask Interviewer a Question
-                </button>
-                
-                <button 
-                  type="button" 
-                  onClick={handleNextQuestion} 
-                  className="text-slate-500 font-bold text-xs hover:text-slate-700 px-2 cursor-pointer"
-                >
-                  Skip →
+                  {isListening ? <Pause className="w-3.5 h-3.5 text-red-600" /> : <Mic className="w-3.5 h-3.5 text-purple-700" />}
+                  <span>{isListening ? 'Stop' : 'Dictate 🎙️'}</span>
                 </button>
               </div>
 
-              <button
-                type="submit"
-                disabled={!candidateAnswer.trim()}
-                className="px-6 py-3 bg-[#24083b] hover:bg-[#320b52] text-white font-black text-xs rounded-xl shadow-md flex items-center justify-center gap-2 disabled:opacity-50 transition-all cursor-pointer"
-              >
-                <Send className="w-4 h-4" /> Submit Final Answer
-              </button>
-            </div>
-          </form>
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2.5">
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={(e) => handleAskInterviewer(e)}
+                    disabled={!candidateAnswer.trim()}
+                    className="px-4 py-2.5 bg-amber-400 hover:bg-amber-300 disabled:opacity-50 text-slate-950 font-black text-xs rounded-xl shadow-xs border border-amber-300 transition-all cursor-pointer"
+                  >
+                    💬 Ask Sarah a Question
+                  </button>
 
-          {/* Dynamic Personalized Feedback Box */}
-          {currentFeedback && (
-            <div className="p-5 bg-purple-50 border-2 border-purple-200 rounded-2xl space-y-3 text-xs text-purple-950 animate-fadeIn">
-              <div className="whitespace-pre-line font-semibold leading-relaxed">{currentFeedback}</div>
-              <button
-                type="button"
-                onClick={handleNextQuestion}
-                className="px-5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-black rounded-xl text-xs shadow-sm"
-              >
-                Proceed to Scenario {currentIndex + 2} →
-              </button>
-            </div>
-          )}
+                  <button
+                    type="button"
+                    onClick={handleNextQuestion}
+                    className="px-3 py-2 text-slate-500 font-bold text-xs hover:text-slate-800 cursor-pointer"
+                  >
+                    Skip →
+                  </button>
+                </div>
+
+                {currentFeedback ? (
+                  <button
+                    type="button"
+                    onClick={handleNextQuestion}
+                    className="px-6 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xs rounded-xl shadow-md transition-all cursor-pointer flex items-center justify-center gap-1.5"
+                  >
+                    <span>Proceed to Scenario #{currentIndex + 2}</span>
+                    <span>→</span>
+                  </button>
+                ) : (
+                  <button
+                    type="submit"
+                    disabled={!candidateAnswer.trim()}
+                    className="px-6 py-2.5 bg-[#24083b] hover:bg-[#320b52] disabled:opacity-50 text-white font-black text-xs rounded-xl shadow-md transition-all cursor-pointer flex items-center justify-center gap-1.5"
+                  >
+                    <Send className="w-3.5 h-3.5 text-amber-400" />
+                    <span>Submit Final Answer</span>
+                  </button>
+                )}
+              </div>
+            </form>
+          </div>
         </div>
       ) : (
         /* Detailed Response Report with Download Button */
@@ -907,7 +901,7 @@ Instructions:
               <div className="flex items-center gap-2">
                 <button
                   onClick={downloadEvidencePDF}
-                  className="px-4 py-2 bg-[#24083b] hover:bg-[#320b52] text-white font-black rounded-xl text-xs shadow-sm flex items-center gap-1.5 transition-all"
+                  className="px-4 py-2 bg-[#24083b] hover:bg-[#320b52] text-white font-black rounded-xl text-xs shadow-sm flex items-center gap-1.5 transition-all cursor-pointer"
                 >
                   <Download className="w-4 h-4 text-emerald-400" /> Download Evidence Report
                 </button>
@@ -938,7 +932,6 @@ Instructions:
                   </div>
                 </div>
 
-                {/* Candidate Answers & Analysis Review */}
                 <div className="space-y-3">
                   <h4 className="font-black text-slate-900 text-xs flex items-center gap-1.5">
                     <FileText className="w-4 h-4 text-purple-700" /> Question-by-Question Response Review:
@@ -971,7 +964,7 @@ Instructions:
             <button
               onClick={() => initSession(selectedRole)}
               disabled={isCapReached}
-              className="px-6 py-3 bg-[#24083b] hover:bg-[#320b52] text-white font-black text-xs rounded-xl flex items-center gap-2 disabled:opacity-50"
+              className="px-6 py-3 bg-[#24083b] hover:bg-[#320b52] text-white font-black text-xs rounded-xl flex items-center gap-2 disabled:opacity-50 cursor-pointer"
             >
               <RefreshCw className="w-4 h-4" /> Start New Practice Session
             </button>
