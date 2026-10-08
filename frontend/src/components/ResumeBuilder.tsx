@@ -18,6 +18,8 @@ import {
   MapPin
 } from 'lucide-react';
 import { usePortal } from '../context/PortalContext';
+import { sendChatMessage } from '../lib/api';
+export type TemplateStyle = 'modern' | 'classic' | 'trades' | 'minimalist' | 'creative' | 'technical';
 
 interface LocalWorkPosition {
   id: string;
@@ -48,8 +50,19 @@ export const ResumeBuilder: React.FC<{ maxAttempts?: number }> = () => {
   // Step Navigation (1: Work History, 2: Gap Helper, 3: Referees, 4: Preview & Download)
   const [activeStep, setActiveStep] = useState<number>(1);
 
-  // Resume Template Selection
-  const [selectedTemplate, setSelectedTemplate] = useState<'modern' | 'classic' | 'trades'>('modern');
+  // Resume Template & Page Budget Selection
+  const [selectedTemplate, setSelectedTemplate] = useState<TemplateStyle>('modern');
+  const [pageBudget, setPageBudget] = useState<'1-page' | '2-page'>('1-page');
+
+  // File Upload & Critique State
+  const [uploadedFileName, setUploadedFileName] = useState<string>('');
+  const [rawPastedText, setRawPastedText] = useState<string>('');
+  const [aiCritiqueNotes, setAiCritiqueNotes] = useState<string[]>([]);
+  const [isParsingDocument, setIsParsingDocument] = useState<boolean>(false);
+  const [isEnhancingDuty, setIsEnhancingDuty] = useState<string | null>(null);
+
+  // Job Ad Text for Cover Letter Targeting
+  const [jobAdText, setJobAdText] = useState<string>('');
 
   // Candidate Core Details
   const [fullName, setFullName] = useState(activeCandidate?.name || 'Alex Mercer');
@@ -129,21 +142,95 @@ export const ResumeBuilder: React.FC<{ maxAttempts?: number }> = () => {
     setPositions(positions.map((p) => (p.id === id ? { ...p, [field]: val } : p)));
   };
 
-  // Duty Enhancer Tool
-  const enhancePositionWithAI = (id: string) => {
+  // Real Azure OpenAI Duty Enhancer with Realistic Human Tone Guardrails
+  const enhancePositionWithAI = async (id: string) => {
     const pos = positions.find((p) => p.id === id);
     if (!pos || !pos.jobTitle) return alert('Please enter a Position Title first.');
 
-    const draftNotes = pos.description.trim();
-    let enhanced = '';
+    setIsEnhancingDuty(id);
 
-    if (draftNotes) {
-      enhanced = `As a ${pos.jobTitle} at ${pos.company || 'workplace'}, I focused on ${draftNotes.toLowerCase()}. I prioritized team safety, followed instructions accurately, and maintained high daily productivity.`;
-    } else {
-      enhanced = `Worked as a key ${pos.jobTitle} at ${pos.company || 'workplace'}, responsible for routine operational duties, following supervisor directions, maintaining equipment safety, and supporting team goals reliably.`;
+    try {
+      const prompt = `You are a professional Australian resume writer creating clear, realistic, human-sounding resume bullet points for an entry/mid-level job candidate.
+Target Role: ${targetRole}
+Position Title: ${pos.jobTitle}
+Company: ${pos.company || 'Workplace'}
+User's Rough Notes: "${pos.description}"
+
+CRITICAL INSTRUCTIONS:
+- Write 3 to 4 concise, impact-driven bullet points describing daily responsibilities and achievements.
+- DO NOT use over-the-top corporate jargon or exaggerated buzzwords (avoid "visionary leader", "spearheaded synergy", etc.).
+- Keep the tone realistic, honest, and grounded in standard Australian workplace standards (e.g., WHS safety compliance, team reliability, customer service, accuracy).
+- If the notes are vague (e.g. "cashier at Bunnings" or "storeperson"), intelligently infer and add standard realistic duties for that exact industry role.
+- Output ONLY the bullet points, formatted with clear lines.`;
+
+      const response = await sendChatMessage([{ role: 'system', content: prompt }]);
+      updatePosition(id, 'description', response.trim());
+    } catch (err) {
+      console.error('Failed to enhance position description:', err);
+      const fallback = `• Operated as a key ${pos.jobTitle} at ${pos.company || 'workplace'}, managing daily operational routines and customer needs.\n• Followed standard operating procedures and strictly adhered to WHS safety guidelines.\n• Collaborated closely with team members and supervisors to maintain high daily output and workplace standards.`;
+      updatePosition(id, 'description', fallback);
+    } finally {
+      setIsEnhancingDuty(null);
     }
+  };
 
-    updatePosition(id, 'description', enhanced);
+  // Document Upload & AI Critique Handler
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setUploadedFileName(file.name);
+    setIsParsingDocument(true);
+
+    try {
+      const reader = new FileReader();
+      reader.onload = async (event) => {
+        const textContent = (event.target?.result as string) || '';
+        setRawPastedText(textContent);
+
+        if (textContent.trim()) {
+          const prompt = `Analyze this raw candidate resume text and extract core details into JSON format:
+{
+  "fullName": "Name if found",
+  "email": "Email if found",
+  "phone": "Phone if found",
+  "targetRole": "Suggested target role",
+  "critiqueTips": ["Tip 1 regarding gaps or WHS tickets", "Tip 2 for formatting"],
+  "extractedPositions": [
+    {"jobTitle": "Role Title", "company": "Company", "dates": "Dates", "description": "Bullet points"}
+  ]
+}
+
+Resume Text:
+${textContent.slice(0, 3000)}`;
+
+          try {
+            const aiRes = await sendChatMessage([{ role: 'system', content: prompt }]);
+            const parsed = JSON.parse(aiRes.substring(aiRes.indexOf('{'), aiRes.lastIndexOf('}') + 1));
+            
+            if (parsed.fullName) setFullName(parsed.fullName);
+            if (parsed.email) setEmail(parsed.email);
+            if (parsed.phone) setPhone(parsed.phone);
+            if (parsed.targetRole) setTargetRole(parsed.targetRole);
+            if (parsed.critiqueTips) setAiCritiqueNotes(parsed.critiqueTips);
+            if (parsed.extractedPositions && parsed.extractedPositions.length > 0) {
+              setPositions(parsed.extractedPositions.map((p: any, idx: number) => ({ ...p, id: `uploaded-${idx}` })));
+            }
+          } catch (jsonErr) {
+            setAiCritiqueNotes([
+              "Resume text imported! Please review extracted work history entries.",
+              "Ensure all tickets/licenses (e.g. Forklift, White Card) are highlighted.",
+              "Review work timeline dates for any unaddressed employment gaps."
+            ]);
+          }
+        }
+        setIsParsingDocument(false);
+      };
+      reader.readAsText(file);
+    } catch (err) {
+      console.error("Upload error:", err);
+      setIsParsingDocument(false);
+    }
   };
 
   // Gap Statement Generator
@@ -656,18 +743,28 @@ export const ResumeBuilder: React.FC<{ maxAttempts?: number }> = () => {
           <div className="p-6 bg-slate-50 border-2 border-slate-200 rounded-2xl space-y-5">
             <div>
               <h3 className="text-base font-black text-[#24083b]">Download Application Documents</h3>
-              <p className="text-xs text-slate-600 font-medium mt-0.5">Download your Resume and Cover Letter independently as clean PDF or Word files.</p>
+              <p className="text-xs text-slate-600 font-medium mt-0.5">
+                Download your Resume and Cover Letter independently as clean PDF or Word files matching your selected visual theme.
+              </p>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {/* Resume Downloads */}
               <div className="p-4 bg-white border border-slate-200 rounded-xl space-y-3">
-                <span className="font-black text-slate-900 block text-xs border-b pb-2">1. Resume Document</span>
+                <span className="font-black text-slate-900 block text-xs border-b pb-2">1. Resume Document ({selectedTemplate.toUpperCase()} Style)</span>
                 <div className="flex items-center gap-2">
-                  <button type="button" onClick={() => exportDocument('resume', 'pdf')} className="flex-1 py-2.5 bg-[#24083b] hover:bg-[#320b52] text-white font-extrabold rounded-xl flex items-center justify-center gap-1.5 shadow-sm">
+                  <button
+                    type="button"
+                    onClick={() => exportDocument('resume', 'pdf')}
+                    className="flex-1 py-2.5 bg-[#24083b] hover:bg-[#320b52] text-white font-extrabold rounded-xl flex items-center justify-center gap-1.5 shadow-xs cursor-pointer transition-all"
+                  >
                     <Download className="w-3.5 h-3.5 text-emerald-400" /> Download Resume (PDF)
                   </button>
-                  <button type="button" onClick={() => exportDocument('resume', 'doc')} className="flex-1 py-2.5 bg-blue-700 hover:bg-blue-800 text-white font-extrabold rounded-xl flex items-center justify-center gap-1.5 shadow-sm">
+                  <button
+                    type="button"
+                    onClick={() => exportDocument('resume', 'doc')}
+                    className="flex-1 py-2.5 bg-blue-700 hover:bg-blue-800 text-white font-extrabold rounded-xl flex items-center justify-center gap-1.5 shadow-xs cursor-pointer transition-all"
+                  >
                     <FileText className="w-3.5 h-3.5" /> Download Resume (Word)
                   </button>
                 </div>
@@ -675,12 +772,20 @@ export const ResumeBuilder: React.FC<{ maxAttempts?: number }> = () => {
 
               {/* Cover Letter Downloads */}
               <div className="p-4 bg-white border border-slate-200 rounded-xl space-y-3">
-                <span className="font-black text-slate-900 block text-xs border-b pb-2">2. Cover Letter Document</span>
+                <span className="font-black text-slate-900 block text-xs border-b pb-2">2. Cover Letter Document (Matched Style)</span>
                 <div className="flex items-center gap-2">
-                  <button type="button" onClick={() => exportDocument('cover', 'pdf')} className="flex-1 py-2.5 bg-[#24083b] hover:bg-[#320b52] text-white font-extrabold rounded-xl flex items-center justify-center gap-1.5 shadow-sm">
+                  <button
+                    type="button"
+                    onClick={() => exportDocument('cover', 'pdf')}
+                    className="flex-1 py-2.5 bg-[#24083b] hover:bg-[#320b52] text-white font-extrabold rounded-xl flex items-center justify-center gap-1.5 shadow-xs cursor-pointer transition-all"
+                  >
                     <Download className="w-3.5 h-3.5 text-emerald-400" /> Download Letter (PDF)
                   </button>
-                  <button type="button" onClick={() => exportDocument('cover', 'doc')} className="flex-1 py-2.5 bg-blue-700 hover:bg-blue-800 text-white font-extrabold rounded-xl flex items-center justify-center gap-1.5 shadow-sm">
+                  <button
+                    type="button"
+                    onClick={() => exportDocument('cover', 'doc')}
+                    className="flex-1 py-2.5 bg-blue-700 hover:bg-blue-800 text-white font-extrabold rounded-xl flex items-center justify-center gap-1.5 shadow-xs cursor-pointer transition-all"
+                  >
                     <FileText className="w-3.5 h-3.5" /> Download Letter (Word)
                   </button>
                 </div>
@@ -690,12 +795,17 @@ export const ResumeBuilder: React.FC<{ maxAttempts?: number }> = () => {
             {/* DEWR Activity Log Verification Trigger */}
             <div className="pt-4 border-t border-slate-200 flex flex-col sm:flex-row items-center justify-between gap-3">
               <div className="flex items-center gap-2 text-xs text-slate-500 font-medium">
-                <UserCheck className="w-4 h-4 text-purple-700" /> Saves a verification record into your Activity Log
+                <UserCheck className="w-4 h-4 text-purple-700" /> Saves a verification record into your Activity Log & updates Sarah's background memory.
               </div>
 
-              <button type="button" onClick={submitToActivityLog} disabled={isCapReached} className="w-full sm:w-auto px-6 py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-black rounded-xl shadow-md flex items-center justify-center gap-2 disabled:opacity-50">
-  <Award className="w-5 h-5 text-amber-300" /> Submit Application Package for CM Review
-</button>
+              <button
+                type="button"
+                onClick={submitToActivityLog}
+                disabled={isCapReached}
+                className="w-full sm:w-auto px-6 py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-black rounded-xl shadow-md flex items-center justify-center gap-2 disabled:opacity-50 cursor-pointer transition-all"
+              >
+                <Award className="w-5 h-5 text-amber-300" /> Submit Application Package for CM Review
+              </button>
             </div>
           </div>
 
