@@ -547,20 +547,20 @@ const handleAskInterviewer = async (e?: React.FormEvent) => {
   const questionText = candidateAnswer.trim();
   if (!questionText) return;
 
-  // Fully stop microphone dictation & current audio playback
+  // Stop active dictation and text-to-speech audio
   stopAndResetMic();
   stopSpeech();
   setCandidateAnswer('');
 
   const currentQ = sessionQuestions[currentIndex] || QUESTION_BANK[0];
 
+  // Append user's question to the transcript log without affecting main currentFeedback or advancing scenario count
   const updatedHistory: { role: 'system' | 'user' | 'assistant'; content: string }[] = [
     ...chatTranscript,
     { role: 'user', content: questionText }
   ];
 
   setChatTranscript(updatedHistory);
-  setCurrentFeedback("Sarah is thinking...");
 
   try {
     const resumeContext = getResumeContext();
@@ -568,27 +568,29 @@ const handleAskInterviewer = async (e?: React.FormEvent) => {
     const reply = await sendChatMessage([
       {
         role: "system",
-        content: `You are Sarah, a warm, encouraging, and professional Australian female hiring manager conducting an interview for a ${selectedRole} position.
+        content: `You are Sarah, a warm, encouraging Australian female hiring manager conducting an interview for a ${selectedRole} position.
 
-Candidate Background Context:
+Candidate Resume Context:
 ${resumeContext}
 
-Current Interview Scenario: "${currentQ.question}"
+Current Scenario Question: "${currentQ.question}"
 
 INSTRUCTIONS:
-- The candidate is asking you a direct question or seeking clarification before answering the scenario.
-- Answer their question DIRECTLY, WARMLY, and HELPFULLY in 1 to 2 short sentences in character as Sarah.
-- End by warmly encouraging them to share their STAR response whenever they feel ready.`
+- The candidate is asking you a direct question for clarification or job context before giving their final answer.
+- Answer their question DIRECTLY, WARMLY, and HELPFULLY in 1 to 2 short sentences.
+- Provide realistic workplace context about ${selectedRole} if asked.
+- DO NOT evaluate them on STAR criteria.
+- DO NOT advance the scenario count.
+- DO NOT tell them to proceed or submit. Simply answer their question in character as Sarah.`
       },
       ...updatedHistory
     ]);
 
+    // Append Sarah's response cleanly to conversation history WITHOUT touching currentFeedback or answer counts
     setChatTranscript((prev) => [...prev, { role: 'assistant', content: reply }]);
-    setCurrentFeedback(null);
     speakQuestion(reply);
   } catch (err) {
     console.error("Failed to ask interviewer:", err);
-    setCurrentFeedback("Sarah couldn't answer right now. Please try asking again.");
   }
 };
 
@@ -651,14 +653,14 @@ INSTRUCTIONS:
   };
 
   const handleNextQuestion = () => {
-    stopSpeech();
-    stopAndResetMic();
-    if (currentIndex < sessionQuestions.length - 1) {
-      const nextIdx = userAnswers.length;
-      setCurrentIndex(nextIdx < sessionQuestions.length ? nextIdx : currentIndex + 1);
-      resetResponse();
-    }
-  };
+  stopSpeech();
+  stopAndResetMic();
+  if (currentIndex < sessionQuestions.length - 1) {
+    const nextIdx = userAnswers.length;
+    setCurrentIndex(nextIdx);
+    resetResponse();
+  }
+};
 
   const currentQ = sessionQuestions[currentIndex] || QUESTION_BANK[0];
   const isCapReached = !isRtoGraduate && monthlySessionsUsed >= MONTHLY_SESSION_LIMIT;
@@ -759,26 +761,50 @@ INSTRUCTIONS:
           <div className="bg-white border-2 border-slate-200 rounded-2xl shadow-sm overflow-hidden flex flex-col">
             
             {/* Header Bar */}
-            <div className="bg-linear-to-r from-[#24083b] to-[#320b52] text-white p-4 flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <span className="p-1.5 bg-amber-400 text-slate-950 font-black text-xs rounded-lg">
-                  Scenario #{currentIndex + 1}
-                </span>
-                <span className="text-xs font-bold text-purple-200">{selectedRole}</span>
+            <div className="bg-linear-to-r from-[#24083b] to-[#320b52] text-white p-4 flex flex-col gap-2.5">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <span className="p-1.5 bg-amber-400 text-slate-950 font-black text-xs rounded-lg">
+                    Scenario #{currentIndex + 1} of 8
+                  </span>
+                  <span className="text-xs font-bold text-purple-200">{selectedRole}</span>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => isSpeakingQuestion ? stopSpeech() : speakQuestion(currentQ.question)}
+                  className={`px-3 py-1.5 rounded-xl text-xs font-black transition-all flex items-center gap-1.5 border cursor-pointer ${
+                    isSpeakingQuestion 
+                      ? 'bg-amber-400 text-slate-950 border-amber-300 animate-pulse' 
+                      : 'bg-emerald-500 hover:bg-emerald-600 text-white border-emerald-400'
+                  }`}
+                >
+                  {isSpeakingQuestion ? <VolumeX className="w-3.5 h-3.5" /> : <Volume2 className="w-3.5 h-3.5" />}
+                  <span>{isSpeakingQuestion ? 'Stop Audio' : 'Listen 🔊'}</span>
+                </button>
               </div>
-              
-              <button
-                type="button"
-                onClick={() => isSpeakingQuestion ? stopSpeech() : speakQuestion(currentQ.question)}
-                className={`px-3 py-1.5 rounded-xl text-xs font-black transition-all flex items-center gap-1.5 border cursor-pointer ${
-                  isSpeakingQuestion 
-                    ? 'bg-amber-400 text-slate-950 border-amber-300 animate-pulse' 
-                    : 'bg-emerald-500 hover:bg-emerald-600 text-white border-emerald-400'
-                }`}
-              >
-                {isSpeakingQuestion ? <VolumeX className="w-3.5 h-3.5" /> : <Volume2 className="w-3.5 h-3.5" />}
-                <span>{isSpeakingQuestion ? 'Stop Audio' : 'Listen 🔊'}</span>
-              </button>
+
+              {/* Synchronized 8-Step Progress Bar */}
+              <div className="flex items-center gap-1.5 pt-1">
+                {Array.from({ length: 8 }).map((_, idx) => {
+                  const isCompleted = idx < userAnswers.length;
+                  const isCurrent = idx === currentIndex && !isCompleted;
+
+                  return (
+                    <div
+                      key={idx}
+                      title={`Scenario ${idx + 1}`}
+                      className={`h-2 flex-1 rounded-full transition-all duration-300 ${
+                        isCompleted
+                          ? 'bg-emerald-400 shadow-xs'
+                          : isCurrent
+                          ? 'bg-amber-400 ring-2 ring-amber-300/60 animate-pulse'
+                          : 'bg-purple-900/80 border border-purple-800'
+                      }`}
+                    />
+                  );
+                })}
+              </div>
             </div>
 
             {/* 1. CONTINUOUS SCROLLABLE CHAT STREAM */}
@@ -820,10 +846,10 @@ INSTRUCTIONS:
             {/* 2. DYNAMIC STAR KEYWORD LIGHTING */}
             {(() => {
   const lower = candidateAnswer.toLowerCase();
-  const hasS = /\b(when|in my|at my|during|job|role|working at|coles|woolworths|company|bunnings)\b/i.test(lower);
-  const hasT = /\b(task|needed|had to|responsible|assigned|required|objective|goal|picking)\b/i.test(lower);
-  const hasA = /\b(i |my |decided|took|action|changed|implemented|called|talked|handled|resolved|made sure)\b/i.test(lower);
-  const hasR = /\b(result|outcome|so that|led to|improved|saved|completed|ensured|fixed|success rate)\b/i.test(lower);
+const hasS = /\b(when|while|at|during|role|working at|worked at|job at|coles|woolworths|bunnings|hasting|colles|mine|warehouse|store|office|site|shift|company|business|team|client)\b/i.test(lower);
+const hasT = /\b(job was|role was|duty was|task|tasked|needed to|had to|responsible for|assigned|required|objective|goal|pick|pack|picking|packing|orders|dispatch|filters|safety|hazard|stock|count|data|customer|phone)\b/i.test(lower);
+const hasA = /\b(i |my |did this|decided|took|action|changed|implemented|called|talked|handled|resolved|made sure|cleaned|put out|isolated|notified|reported|checked|organized|stepped in)\b/i.test(lower);
+const hasR = /\b(result|outcome|so that|led to|improved|saved|completed|ensured|fixed|always|on time|slipping|hurt|safe|prevented|achieved|satisfied|praise|zero incidents|passed)\b/i.test(lower);
 
   return (
     <div className="bg-slate-100 p-3 border-t border-slate-200 space-y-2">
