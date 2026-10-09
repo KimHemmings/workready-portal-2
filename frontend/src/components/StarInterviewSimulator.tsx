@@ -815,24 +815,53 @@ INSTRUCTIONS:
 
             {/* 2. DYNAMIC STAR KEYWORD LIGHTING */}
             {(() => {
-              const lower = candidateAnswer.toLowerCase();
-              const hasS = /\b(when|in my|at my|during|job|role|working at|coles|woolworths|company|bunnings)\b/i.test(lower);
-              const hasT = /\b(task|needed|had to|responsible|assigned|required|objective|goal|picking)\b/i.test(lower);
-              const hasA = /\b(i |my |decided|took|action|changed|implemented|called|talked|handled|resolved|made sure)\b/i.test(lower);
-              const hasR = /\b(result|outcome|so that|led to|improved|saved|completed|ensured|fixed|success rate)\b/i.test(lower);
+  const lower = candidateAnswer.toLowerCase();
+  const hasS = /\b(when|in my|at my|during|job|role|working at|coles|woolworths|company|bunnings)\b/i.test(lower);
+  const hasT = /\b(task|needed|had to|responsible|assigned|required|objective|goal|picking)\b/i.test(lower);
+  const hasA = /\b(i |my |decided|took|action|changed|implemented|called|talked|handled|resolved|made sure)\b/i.test(lower);
+  const hasR = /\b(result|outcome|so that|led to|improved|saved|completed|ensured|fixed|success rate)\b/i.test(lower);
 
-              return (
-                <div className="bg-slate-100 p-2.5 border-t border-slate-200 flex items-center justify-between text-[11px]">
-                  <span className="font-extrabold text-slate-700 hidden sm:inline">STAR Live Detection:</span>
-                  <div className="grid grid-cols-4 gap-1.5 w-full sm:w-auto flex-1 sm:flex-initial">
-                    <span className={`px-2.5 py-1 rounded-lg font-black text-center ${hasS ? 'bg-purple-600 text-white' : 'bg-white text-slate-400 border border-slate-200'}`}>S {hasS && '✓'}</span>
-                    <span className={`px-2.5 py-1 rounded-lg font-black text-center ${hasT ? 'bg-blue-600 text-white' : 'bg-white text-slate-400 border border-slate-200'}`}>T {hasT && '✓'}</span>
-                    <span className={`px-2.5 py-1 rounded-lg font-black text-center ${hasA ? 'bg-amber-500 text-slate-950' : 'bg-white text-slate-400 border border-slate-200'}`}>A {hasA && '✓'}</span>
-                    <span className={`px-2.5 py-1 rounded-lg font-black text-center ${hasR ? 'bg-emerald-600 text-white' : 'bg-white text-slate-400 border border-slate-200'}`}>R {hasR && '✓'}</span>
-                  </div>
-                </div>
-              );
-            })()}
+  return (
+    <div className="bg-slate-100 p-3 border-t border-slate-200 space-y-2">
+      <div className="text-[11px] font-black text-slate-700 uppercase tracking-wider">
+        STAR Answer Structure Guide (Live Detection):
+      </div>
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-2 text-xs">
+        <div className={`p-2.5 rounded-xl border transition-all ${hasS ? 'bg-purple-900 text-white border-purple-800 shadow-sm' : 'bg-white text-slate-600 border-slate-200'}`}>
+          <div className="font-black flex justify-between items-center">
+            <span>S — Situation</span>
+            {hasS && <span className="text-amber-300 font-bold">✓ Detected</span>}
+          </div>
+          <p className="text-[11px] opacity-90 mt-0.5">Prompt: "When I was working at..."</p>
+        </div>
+
+        <div className={`p-2.5 rounded-xl border transition-all ${hasT ? 'bg-indigo-900 text-white border-indigo-800 shadow-sm' : 'bg-white text-slate-600 border-slate-200'}`}>
+          <div className="font-black flex justify-between items-center">
+            <span>T — Task</span>
+            {hasT && <span className="text-amber-300 font-bold">✓ Detected</span>}
+          </div>
+          <p className="text-[11px] opacity-90 mt-0.5">Prompt: "My responsibility was to..."</p>
+        </div>
+
+        <div className={`p-2.5 rounded-xl border transition-all ${hasA ? 'bg-amber-400 text-slate-950 border-amber-300 font-bold shadow-sm' : 'bg-white text-slate-600 border-slate-200'}`}>
+          <div className="font-black flex justify-between items-center">
+            <span>A — Action</span>
+            {hasA && <span className="text-slate-950 font-black">✓ Detected</span>}
+          </div>
+          <p className="text-[11px] opacity-90 mt-0.5">Prompt: "I took action by..."</p>
+        </div>
+
+        <div className={`p-2.5 rounded-xl border transition-all ${hasR ? 'bg-emerald-600 text-white border-emerald-500 shadow-sm' : 'bg-white text-slate-600 border-slate-200'}`}>
+          <div className="font-black flex justify-between items-center">
+            <span>R — Result</span>
+            {hasR && <span className="text-amber-300 font-bold">✓ Detected</span>}
+          </div>
+          <p className="text-[11px] opacity-90 mt-0.5">Prompt: "The positive outcome was..."</p>
+        </div>
+      </div>
+    </div>
+  );
+})()}
 
             {/* 3. INPUT & CONTROLS FOOTER */}
             <form onSubmit={handleAnswerSubmit} className="p-4 bg-white border-t border-slate-200 space-y-3">
