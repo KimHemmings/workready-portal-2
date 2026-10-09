@@ -547,19 +547,21 @@ const handleAskInterviewer = async (e?: React.FormEvent) => {
   const questionText = candidateAnswer.trim();
   if (!questionText) return;
 
-  // Stop active dictation and text-to-speech audio
+  // Stop active speech and dictation immediately
   stopAndResetMic();
   stopSpeech();
   setCandidateAnswer('');
 
+  // Clear any existing STAR feedback so questions NEVER show rating cards
+  setCurrentFeedback(null);
+
   const currentQ = sessionQuestions[currentIndex] || QUESTION_BANK[0];
 
-  // Append user's question to the transcript log without affecting main currentFeedback or advancing scenario count
+  // Append user question directly to chat stream
   const updatedHistory: { role: 'system' | 'user' | 'assistant'; content: string }[] = [
     ...chatTranscript,
     { role: 'user', content: questionText }
   ];
-
   setChatTranscript(updatedHistory);
 
   try {
@@ -576,17 +578,16 @@ ${resumeContext}
 Current Scenario Question: "${currentQ.question}"
 
 INSTRUCTIONS:
-- The candidate is asking you a direct question for clarification or job context before giving their final answer.
+- The candidate is asking you a direct question for clarification or job context before giving their answer.
 - Answer their question DIRECTLY, WARMLY, and HELPFULLY in 1 to 2 short sentences.
-- Provide realistic workplace context about ${selectedRole} if asked.
 - DO NOT evaluate them on STAR criteria.
-- DO NOT advance the scenario count.
-- DO NOT tell them to proceed or submit. Simply answer their question in character as Sarah.`
+- DO NOT set feedback status or advance the scenario.
+- Simply answer their question in character as Sarah.`
       },
       ...updatedHistory
     ]);
 
-    // Append Sarah's response cleanly to conversation history WITHOUT touching currentFeedback or answer counts
+    // Append Sarah's response cleanly to conversation history
     setChatTranscript((prev) => [...prev, { role: 'assistant', content: reply }]);
     speakQuestion(reply);
   } catch (err) {
@@ -920,49 +921,45 @@ INSTRUCTIONS:
               </div>
 
               <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2.5">
-                <div className="flex items-center gap-2">
-                  <button
-                    type="button"
-                    onClick={(e) => {
-                      e.preventDefault();
-                      e.stopPropagation();
-                      handleAskInterviewer(e);
-                    }}
-                    disabled={!candidateAnswer.trim()}
-                    className="px-4 py-2.5 bg-amber-400 hover:bg-amber-300 disabled:opacity-50 text-slate-950 font-black text-xs rounded-xl shadow-xs border border-amber-300 transition-all cursor-pointer"
-                  >
-                    💬 Ask Sarah a Question
-                  </button>
+  <div className="flex items-center gap-2">
+    <button
+      type="button"
+      onClick={handleAskInterviewer}
+      disabled={!candidateAnswer.trim()}
+      className="px-4 py-2.5 bg-amber-400 hover:bg-amber-300 disabled:opacity-50 text-slate-950 font-black text-xs rounded-xl shadow-xs border border-amber-300 transition-all cursor-pointer"
+    >
+      💬 Ask Sarah a Question
+    </button>
 
-                  <button
-                    type="button"
-                    onClick={handleNextQuestion}
-                    className="px-3 py-2 text-slate-500 font-bold text-xs hover:text-slate-800 cursor-pointer"
-                  >
-                    Skip →
-                  </button>
-                </div>
+    <button
+      type="button"
+      onClick={handleNextQuestion}
+      className="px-3 py-2 text-slate-500 font-bold text-xs hover:text-slate-800 cursor-pointer"
+    >
+      Skip →
+    </button>
+  </div>
 
-                {currentFeedback ? (
-                  <button
-                    type="button"
-                    onClick={handleNextQuestion}
-                    className="px-6 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xs rounded-xl shadow-md transition-all cursor-pointer flex items-center justify-center gap-1.5"
-                  >
-                    <span>Proceed to Scenario #{currentIndex + 2}</span>
-                    <span>→</span>
-                  </button>
-                ) : (
-                  <button
-                    type="submit"
-                    disabled={!candidateAnswer.trim()}
-                    className="px-6 py-2.5 bg-[#24083b] hover:bg-[#320b52] disabled:opacity-50 text-white font-black text-xs rounded-xl shadow-md transition-all cursor-pointer flex items-center justify-center gap-1.5"
-                  >
-                    <Send className="w-3.5 h-3.5 text-amber-400" />
-                    <span>Submit Final Answer</span>
-                  </button>
-                )}
-              </div>
+  {currentFeedback ? (
+    <button
+      type="button"
+      onClick={handleNextQuestion}
+      className="px-6 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xs rounded-xl shadow-md transition-all cursor-pointer flex items-center justify-center gap-1.5"
+    >
+      <span>Proceed to Scenario #{currentIndex + 2}</span>
+      <span>→</span>
+    </button>
+  ) : (
+    <button
+      type="submit"
+      disabled={!candidateAnswer.trim()}
+      className="px-6 py-2.5 bg-[#24083b] hover:bg-[#320b52] disabled:opacity-50 text-white font-black text-xs rounded-xl shadow-md transition-all cursor-pointer flex items-center justify-center gap-1.5"
+    >
+      <Send className="w-3.5 h-3.5 text-amber-400" />
+      <span>Submit Final Answer</span>
+    </button>
+  )}
+</div>
             </form>
           </div>
         </div>
