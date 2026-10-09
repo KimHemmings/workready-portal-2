@@ -201,7 +201,7 @@ export const LmsModuleHub: React.FC<LmsModuleHubProps> = ({ onModuleCompleted, c
     <div className="space-y-6">
       
       {/* REAL-TIME PROGRESS TRACKER BANNER */}
-      <div className="bg-gradient-to-r from-[#24083b] via-[#320b52] to-[#1c0630] text-white rounded-2xl p-6 shadow-xl border border-purple-900/60 relative overflow-hidden">
+      <div className="bg-linear-to-r from-[#24083b] via-[#320b52] to-[#1c0630] text-white rounded-2xl p-6 shadow-xl border border-purple-900/60 relative overflow-hidden">
         <div className="absolute -right-10 -bottom-10 w-48 h-48 bg-emerald-500/10 rounded-full blur-2xl pointer-events-none" />
 
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 relative z-10">
@@ -279,7 +279,7 @@ export const LmsModuleHub: React.FC<LmsModuleHubProps> = ({ onModuleCompleted, c
           </div>
           <div className="w-full bg-slate-950/50 h-3.5 rounded-full overflow-hidden p-0.5 border border-purple-700/50">
             <div
-              className="bg-gradient-to-r from-emerald-400 via-teal-400 to-amber-300 h-full rounded-full transition-all duration-700 shadow-sm"
+              className="bg-linear-to-r from-emerald-400 via-teal-400 to-amber-300 h-full rounded-full transition-all duration-700 shadow-sm"
               style={{ width: `${progressPercent}%` }}
             />
           </div>
@@ -326,7 +326,7 @@ export const LmsModuleHub: React.FC<LmsModuleHubProps> = ({ onModuleCompleted, c
               }`}
             >
               {/* Header Accent */}
-              <div className={`h-2.5 w-full bg-gradient-to-r ${
+              <div className={`h-2.5 w-full bg-linear-to-r ${
                 isCompleted ? 'from-emerald-500 to-teal-400' : isLocked ? 'from-slate-300 to-slate-400' : style.bg
               }`} />
 
