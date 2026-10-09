@@ -879,9 +879,9 @@ const [showOtherActivityModal, setShowOtherActivityModal] = useState<boolean>(fa
 
          {activeTab === 2 && (
             <div className="space-y-8" key={`job-readiness-${activeCandidate?.id || 'default'}-${activeContract}`}>
-              <StarInterviewSimulator key={`star-${activeCandidate?.id}`} />
+              <ResumeBuilder key={`resume-${activeCandidate?.id}`} maxAttempts={3} />
               <div className="border-t border-slate-200 pt-8">
-                <ResumeBuilder key={`resume-${activeCandidate?.id}`} maxAttempts={3} />
+                <StarInterviewSimulator key={`star-${activeCandidate?.id}`} />
               </div>
             </div>
           )}
