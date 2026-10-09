@@ -236,32 +236,36 @@ export const StarInterviewSimulator: React.FC = () => {
   };
 
   const speakQuestion = (text: string) => {
-    if (!('speechSynthesis' in window)) return alert("Text-to-speech audio is not supported in this browser.");
-    
-    // 1. MUST stop microphone before speech begins so speaker audio isn't dictated back into textarea!
-    stopAndResetMic();
-    stopSpeech();
+  if (!('speechSynthesis' in window)) return alert("Text-to-speech audio is not supported in this browser.");
+  
+  stopAndResetMic();
+  stopSpeech();
 
-    const utterance = new SpeechSynthesisUtterance(text);
-    utterance.lang = 'en-AU';
-    utterance.rate = 0.95;
+  const utterance = new SpeechSynthesisUtterance(text);
+  utterance.lang = 'en-AU';
+  utterance.rate = 0.95;
 
-    // 2. Explicitly select an Australian or English Female Voice
-    const voices = window.speechSynthesis.getVoices();
-    const femaleVoice = voices.find((v) => 
-      (v.lang.includes('en-AU') || v.lang.includes('en-GB') || v.lang.includes('en-US')) &&
-      (v.name.includes('Karen') || v.name.includes('Catherine') || v.name.includes('Natasha') || v.name.includes('Zira') || v.name.includes('Samantha') || v.name.includes('Female'))
-    ) || voices.find((v) => v.lang.includes('en-AU')) || voices[0];
+  const voices = window.speechSynthesis.getVoices();
+  
+  // 1. Strictly look for an Australian Female Voice first (e.g. Karen, Catherine, Natasha)
+  // 2. Fallback to any English Female Voice (Zira, Samantha, Hazel, Susan, Victoria)
+  // 3. Explicitly exclude known male voice identifiers (David, Mark, George, James, Male)
+  const femaleVoice = 
+    voices.find((v) => v.lang.includes('en-AU') && /karen|catherine|natasha|samantha|female|zira/i.test(v.name)) ||
+    voices.find((v) => v.lang.includes('en-AU') && !/male|david|mark|george|james/i.test(v.name)) ||
+    voices.find((v) => /female|karen|catherine|natasha|zira|samantha|hazel|susan|victoria/i.test(v.name)) ||
+    voices.find((v) => v.lang.startsWith('en') && !/male|david|mark|george|james/i.test(v.name)) ||
+    voices[0];
 
-    if (femaleVoice) {
-      utterance.voice = femaleVoice;
-    }
+  if (femaleVoice) {
+    utterance.voice = femaleVoice;
+  }
 
-    utterance.onend = () => setIsSpeakingQuestion(false);
-    utterance.onerror = () => setIsSpeakingQuestion(false);
-    setIsSpeakingQuestion(true);
-    window.speechSynthesis.speak(utterance);
-  };
+  utterance.onend = () => setIsSpeakingQuestion(false);
+  utterance.onerror = () => setIsSpeakingQuestion(false);
+  setIsSpeakingQuestion(true);
+  window.speechSynthesis.speak(utterance);
+};
 
   const stopAndResetMic = () => {
     if (recognitionRef.current) {
@@ -539,54 +543,54 @@ Key Skills: ${draft.skills || 'Not provided'}`;
 Target Industry: ${selectedRole}`;
   };
 const handleAskInterviewer = async (e?: React.FormEvent) => {
-    if (e) e.preventDefault();
-    if (!candidateAnswer.trim()) return;
+  if (e) e.preventDefault();
+  const questionText = candidateAnswer.trim();
+  if (!questionText) return;
 
-    // Immediately stop listening so speech synthesis isn't picked up by mic
-    stopAndResetMic();
-    stopSpeech();
+  // Fully stop microphone dictation & current audio playback
+  stopAndResetMic();
+  stopSpeech();
+  setCandidateAnswer('');
 
-    const currentQ = sessionQuestions[currentIndex] || QUESTION_BANK[0];
-    const userQuestion = candidateAnswer.trim();
-    
-    // Clear candidate input immediately
-    setCandidateAnswer('');
+  const currentQ = sessionQuestions[currentIndex] || QUESTION_BANK[0];
 
-    const updatedHistory: { role: 'system' | 'user' | 'assistant'; content: string }[] = [
-      ...chatTranscript,
-      { role: 'user', content: userQuestion }
-    ];
+  const updatedHistory: { role: 'system' | 'user' | 'assistant'; content: string }[] = [
+    ...chatTranscript,
+    { role: 'user', content: questionText }
+  ];
 
-    setChatTranscript(updatedHistory);
-    setCurrentFeedback("Interviewer is responding...");
+  setChatTranscript(updatedHistory);
+  setCurrentFeedback("Sarah is thinking...");
 
-    try {
-      const resumeContext = getResumeContext();
+  try {
+    const resumeContext = getResumeContext();
 
-      // 2. Query Azure OpenAI with full conversation history
-      const reply = await sendChatMessage([
-        {
-          role: "system",
-          content: `You are Sarah, an encouraging Australian hiring manager conducting a STAR behavioral interview for a ${selectedRole} role.
-Candidate Context:
+    const reply = await sendChatMessage([
+      {
+        role: "system",
+        content: `You are Sarah, a warm, encouraging, and professional Australian female hiring manager conducting an interview for a ${selectedRole} position.
+
+Candidate Background Context:
 ${resumeContext}
 
-Current Scenario Question: "${currentQ.question}"
+Current Interview Scenario: "${currentQ.question}"
 
-The candidate is asking you a clarifying question or sharing a thought prior to answering. Answer naturally in character as Sarah in 2 short, conversational sentences, addressing their question and warmly inviting them to share their response.`
-        },
-        ...updatedHistory
-      ]);
+INSTRUCTIONS:
+- The candidate is asking you a direct question or seeking clarification before answering the scenario.
+- Answer their question DIRECTLY, WARMLY, and HELPFULLY in 1 to 2 short sentences in character as Sarah.
+- End by warmly encouraging them to share their STAR response whenever they feel ready.`
+      },
+      ...updatedHistory
+    ]);
 
-      // 3. Append assistant response & automatically read it aloud
-      setChatTranscript((prev) => [...prev, { role: 'assistant', content: reply }]);
-      setCurrentFeedback(null);
-      speakQuestion(reply);
-    } catch (err) {
-      console.error("Failed to answer candidate question:", err);
-      setCurrentFeedback("Sorry, I couldn't process your question. Please try again.");
-    }
-  };
+    setChatTranscript((prev) => [...prev, { role: 'assistant', content: reply }]);
+    setCurrentFeedback(null);
+    speakQuestion(reply);
+  } catch (err) {
+    console.error("Failed to ask interviewer:", err);
+    setCurrentFeedback("Sarah couldn't answer right now. Please try asking again.");
+  }
+};
 
   const handleAnswerSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
