@@ -112,18 +112,37 @@ const ResumeBuilder: React.FC<{ maxAttempts?: number }> = () => {
   const [monthlyUsed, setMonthlySessionsUsed] = useState<number>(0);
 
   useEffect(() => {
-    try {
-      const stored = localStorage.getItem('workready_resume_monthly_attempts');
-      if (stored) {
-        const attempts: number[] = JSON.parse(stored);
-        const thirtyDaysAgo = Date.now() - 30 * 24 * 60 * 60 * 1000;
-        const validRecent = attempts.filter((ts) => ts > thirtyDaysAgo);
-        setMonthlySessionsUsed(validRecent.length);
-      }
-    } catch (err) {
-      console.error('Error loading monthly resume attempts:', err);
+  try {
+    const stored = localStorage.getItem('workready_resume_monthly_attempts');
+    if (stored) {
+      const attempts: number[] = JSON.parse(stored);
+      const thirtyDaysAgo = Date.now() - 30 * 24 * 60 * 60 * 1000;
+      const validRecent = attempts.filter((ts) => ts > thirtyDaysAgo);
+      setMonthlySessionsUsed(validRecent.length);
     }
-  }, []);
+  } catch (err) {
+    console.error('Error loading monthly resume attempts:', err);
+  }
+}, []);
+
+// Context Bridge: Auto-sync active candidate draft to localStorage for Sarah (AI Interviewer)
+useEffect(() => {
+  try {
+    const draftPayload = {
+      fullName,
+      email,
+      phone,
+      targetRole,
+      experience: positions.map((p) => `${p.jobTitle} at ${p.company} (${p.dates}): ${p.description}`).join(' | '),
+      summary: `Targeting ${targetRole}. Located in ${location}.`,
+      skills: positions.map((p) => p.jobTitle).filter(Boolean).join(', '),
+      updatedAt: new Date().toISOString()
+    };
+    localStorage.setItem('workready_resume_draft', JSON.stringify(draftPayload));
+  } catch (err) {
+    console.error('Error syncing workready_resume_draft:', err);
+  }
+}, [fullName, email, phone, targetRole, location, positions]);
 
   // Work Position Handlers
   const addPosition = () => {
