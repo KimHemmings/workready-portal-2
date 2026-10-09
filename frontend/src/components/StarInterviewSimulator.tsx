@@ -845,53 +845,53 @@ INSTRUCTIONS:
 
             {/* 2. DYNAMIC STAR KEYWORD LIGHTING */}
             {(() => {
-  const lower = candidateAnswer.toLowerCase();
-const hasS = /\b(when|while|at|during|role|working at|worked at|job at|coles|woolworths|bunnings|hasting|colles|mine|warehouse|store|office|site|shift|company|business|team|client)\b/i.test(lower);
-const hasT = /\b(job was|role was|duty was|task|tasked|needed to|had to|responsible for|assigned|required|objective|goal|pick|pack|picking|packing|orders|dispatch|filters|safety|hazard|stock|count|data|customer|phone)\b/i.test(lower);
-const hasA = /\b(i |my |did this|decided|took|action|changed|implemented|called|talked|handled|resolved|made sure|cleaned|put out|isolated|notified|reported|checked|organized|stepped in)\b/i.test(lower);
-const hasR = /\b(result|outcome|so that|led to|improved|saved|completed|ensured|fixed|always|on time|slipping|hurt|safe|prevented|achieved|satisfied|praise|zero incidents|passed)\b/i.test(lower);
+              const lower = candidateAnswer.toLowerCase();
+              const hasS = /\b(when|while|at|during|role|working at|worked at|job at|coles|woolworths|bunnings|hasting|colles|mine|warehouse|store|office|site|shift|company|business|team|client)\b/i.test(lower);
+              const hasT = /\b(job was|role was|duty was|task|tasked|needed to|had to|responsible for|assigned|required|objective|goal|pick|pack|picking|packing|orders|dispatch|filters|safety|hazard|stock|count|data|customer|phone)\b/i.test(lower);
+              const hasA = /\b(i |my |did this|decided|took|action|changed|implemented|called|talked|handled|resolved|made sure|cleaned|put out|isolated|notified|reported|checked|organized|stepped in)\b/i.test(lower);
+              const hasR = /\b(result|outcome|so that|led to|improved|saved|completed|ensured|fixed|always|on time|slipping|hurt|safe|prevented|achieved|satisfied|praise|zero incidents|passed)\b/i.test(lower);
 
-  return (
-    <div className="bg-slate-100 p-3 border-t border-slate-200 space-y-2">
-      <div className="text-[11px] font-black text-slate-700 uppercase tracking-wider">
-        STAR Answer Structure Guide (Live Detection):
-      </div>
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-2 text-xs">
-        <div className={`p-2.5 rounded-xl border transition-all ${hasS ? 'bg-purple-900 text-white border-purple-800 shadow-sm' : 'bg-white text-slate-600 border-slate-200'}`}>
-          <div className="font-black flex justify-between items-center">
-            <span>S — Situation</span>
-            {hasS && <span className="text-amber-300 font-bold">✓ Detected</span>}
-          </div>
-          <p className="text-[11px] opacity-90 mt-0.5">Prompt: "When I was working at..."</p>
-        </div>
+              return (
+                <div className="bg-slate-100 p-3 border-t border-slate-200 space-y-2">
+                  <div className="text-[11px] font-black text-slate-700 uppercase tracking-wider">
+                    STAR Answer Structure Guide (Live Detection):
+                  </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-2 text-xs">
+                    <div className={`p-2.5 rounded-xl border transition-all ${hasS ? 'bg-purple-900 text-white border-purple-800 shadow-sm' : 'bg-white text-slate-600 border-slate-200'}`}>
+                      <div className="font-black flex justify-between items-center">
+                        <span>S — Situation</span>
+                        {hasS && <span className="text-amber-300 font-bold">✓ Detected</span>}
+                      </div>
+                      <p className="text-[11px] opacity-90 mt-0.5">Prompt: "When I was working at..."</p>
+                    </div>
 
-        <div className={`p-2.5 rounded-xl border transition-all ${hasT ? 'bg-indigo-900 text-white border-indigo-800 shadow-sm' : 'bg-white text-slate-600 border-slate-200'}`}>
-          <div className="font-black flex justify-between items-center">
-            <span>T — Task</span>
-            {hasT && <span className="text-amber-300 font-bold">✓ Detected</span>}
-          </div>
-          <p className="text-[11px] opacity-90 mt-0.5">Prompt: "My responsibility was to..."</p>
-        </div>
+                    <div className={`p-2.5 rounded-xl border transition-all ${hasT ? 'bg-indigo-900 text-white border-indigo-800 shadow-sm' : 'bg-white text-slate-600 border-slate-200'}`}>
+                      <div className="font-black flex justify-between items-center">
+                        <span>T — Task</span>
+                        {hasT && <span className="text-amber-300 font-bold">✓ Detected</span>}
+                      </div>
+                      <p className="text-[11px] opacity-90 mt-0.5">Prompt: "My responsibility was to..."</p>
+                    </div>
 
-        <div className={`p-2.5 rounded-xl border transition-all ${hasA ? 'bg-amber-400 text-slate-950 border-amber-300 font-bold shadow-sm' : 'bg-white text-slate-600 border-slate-200'}`}>
-          <div className="font-black flex justify-between items-center">
-            <span>A — Action</span>
-            {hasA && <span className="text-slate-950 font-black">✓ Detected</span>}
-          </div>
-          <p className="text-[11px] opacity-90 mt-0.5">Prompt: "I took action by..."</p>
-        </div>
+                    <div className={`p-2.5 rounded-xl border transition-all ${hasA ? 'bg-amber-400 text-slate-950 border-amber-300 font-bold shadow-sm' : 'bg-white text-slate-600 border-slate-200'}`}>
+                      <div className="font-black flex justify-between items-center">
+                        <span>A — Action</span>
+                        {hasA && <span className="text-slate-950 font-black">✓ Detected</span>}
+                      </div>
+                      <p className="text-[11px] opacity-90 mt-0.5">Prompt: "I took action by..."</p>
+                    </div>
 
-        <div className={`p-2.5 rounded-xl border transition-all ${hasR ? 'bg-emerald-600 text-white border-emerald-500 shadow-sm' : 'bg-white text-slate-600 border-slate-200'}`}>
-          <div className="font-black flex justify-between items-center">
-            <span>R — Result</span>
-            {hasR && <span className="text-amber-300 font-bold">✓ Detected</span>}
-          </div>
-          <p className="text-[11px] opacity-90 mt-0.5">Prompt: "The positive outcome was..."</p>
-        </div>
-      </div>
-    </div>
-  );
-})()}
+                    <div className={`p-2.5 rounded-xl border transition-all ${hasR ? 'bg-emerald-600 text-white border-emerald-500 shadow-sm' : 'bg-white text-slate-600 border-slate-200'}`}>
+                      <div className="font-black flex justify-between items-center">
+                        <span>R — Result</span>
+                        {hasR && <span className="text-amber-300 font-bold">✓ Detected</span>}
+                      </div>
+                      <p className="text-[11px] opacity-90 mt-0.5">Prompt: "The positive outcome was..."</p>
+                    </div>
+                  </div>
+                </div>
+              );
+            })()}
 
             {/* 3. INPUT & CONTROLS FOOTER */}
             <form onSubmit={handleAnswerSubmit} className="p-4 bg-white border-t border-slate-200 space-y-3">
@@ -907,7 +907,7 @@ const hasR = /\b(result|outcome|so that|led to|improved|saved|completed|ensured|
 
                 <button
                   type="button"
-                  onClick={toggleMic}
+                  onClick={stopAndResetMic}
                   className={`absolute right-2.5 top-2.5 px-3 py-1.5 rounded-lg text-xs font-black border transition-all cursor-pointer flex items-center gap-1 ${
                     isListening
                       ? 'bg-red-100 text-red-700 border-red-300 animate-pulse'
@@ -923,7 +923,11 @@ const hasR = /\b(result|outcome|so that|led to|improved|saved|completed|ensured|
                 <div className="flex items-center gap-2">
                   <button
                     type="button"
-                    onClick={(e) => handleAskInterviewer(e)}
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      handleAskInterviewer(e);
+                    }}
                     disabled={!candidateAnswer.trim()}
                     className="px-4 py-2.5 bg-amber-400 hover:bg-amber-300 disabled:opacity-50 text-slate-950 font-black text-xs rounded-xl shadow-xs border border-amber-300 transition-all cursor-pointer"
                   >
