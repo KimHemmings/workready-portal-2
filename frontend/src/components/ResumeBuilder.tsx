@@ -39,6 +39,13 @@ interface LocalReferee {
   relationship: string;
 }
 
+interface LocalTicket {
+  id: string;
+  name: string;
+  issuer: string;
+  year: string;
+}
+
 const MONTHLY_LIMIT = 1;
 
 const ResumeBuilder: React.FC<{ maxAttempts?: number }> = () => {
@@ -88,6 +95,21 @@ const ResumeBuilder: React.FC<{ maxAttempts?: number }> = () => {
       description: 'Handled daily stock receiving, packed pallet orders under tight delivery deadlines, and completed WHS safety checks.'
     }
   ]);
+
+  // Tickets & Licences State
+  const [tickets, setTickets] = useState<LocalTicket[]>([
+    { id: 't-1', name: 'Forklift Licence (LF Class)', issuer: 'WorkSafe QLD', year: '2023' },
+    { id: 't-2', name: 'General Construction Induction (White Card)', issuer: 'Master Builders', year: '2022' }
+  ]);
+
+  const addTicket = () => {
+    setTickets([...tickets, { id: `t-${Date.now()}`, name: '', issuer: '', year: '' }]);
+  };
+
+  const removeTicket = (id: string) => {
+    setTickets(tickets.filter((t) => t.id !== id));
+  };
+
   // Gap Helper State
   const [gapDates, setGapDates] = useState('');
   const [gapReason, setGapReason] = useState('Parenting / Family Care');
@@ -98,14 +120,8 @@ const ResumeBuilder: React.FC<{ maxAttempts?: number }> = () => {
   // Referees State
   const [refereesOnRequest, setRefereesOnRequest] = useState(false);
   const [referees, setReferees] = useState<LocalReferee[]>([
-    {
-      id: 'ref-1',
-      name: 'Sarah Jenkins',
-      title: 'Warehouse Supervisor',
-      company: 'Apex Logistics',
-      phone: '0499 111 222',
-      relationship: 'Direct Supervisor'
-    }
+    { id: 'ref-1', name: 'Sarah Jenkins', title: 'Warehouse Supervisor', company: 'Apex Logistics', phone: '0499 111 222', relationship: 'Direct Supervisor' },
+    { id: 'ref-2', name: 'David Ross', title: 'Site Operations Manager', company: 'Freight Express', phone: '0488 333 444', relationship: 'Former Manager' }
   ]);
 
   // Cover Letter Builder State
@@ -600,63 +616,123 @@ ${textContent.slice(0, 3000)}`;
         </div>
       )}
 
-      {/* STEP 2: GAP HELPER & TIMELINE */}
+      {/* STEP 2: WORK HISTORY & LICENCES / TICKETS */}
       {activeStep === 2 && (
-        <div className="space-y-5 text-xs">
-          <div className="p-5 bg-purple-50 border-2 border-purple-200 rounded-2xl space-y-3">
-            <h3 className="font-black text-purple-950 text-sm flex items-center gap-2">
-              <Sparkles className="w-4 h-4 text-purple-700" /> Employment Gap Helper
-            </h3>
-            <p className="text-slate-700 font-medium leading-relaxed">
-              If you have gaps in your formal work history, provide the approximate dates and context below to generate a clear, professional statement for your resume timeline.
-            </p>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
-              <div>
-                <label className="block font-bold text-purple-900 mb-1">Gap Dates:</label>
-                <input type="text" value={gapDates} onChange={(e) => setGapDates(e.target.value)} placeholder="e.g. March 2023 – January 2025" className="w-full p-2.5 border rounded-xl bg-white font-medium" />
-              </div>
-
-              <div>
-                <label className="block font-bold text-purple-900 mb-1">Primary Situation:</label>
-                <select value={gapReason} onChange={(e) => setGapReason(e.target.value)} className="w-full p-2.5 border rounded-xl bg-white font-black text-purple-950">
-                  <option value="Parenting / Family Care">Parenting / Full-time Family Care</option>
-                  <option value="Upskilling / Study">Vocational Upskilling / Accredited Training</option>
-                  <option value="Medical Recovery / Wellbeing">Medical Recovery & Rehabilitation</option>
-                  <option value="Travel / Relocation">Relocation / Community Support</option>
-                </select>
-              </div>
+        <div className="space-y-6 text-xs">
+          
+          {/* Work History Timeline */}
+          <div className="space-y-4">
+            <div className="flex items-center justify-between border-b border-slate-200 pb-2">
+              <h3 className="font-black text-slate-900 text-sm flex items-center gap-1.5">
+                <Briefcase className="w-4 h-4 text-purple-700" /> Work History ({positions.length}/6 Roles)
+              </h3>
+              <button 
+                type="button" 
+                onClick={addPosition} 
+                className="px-3 py-1.5 bg-[#24083b] hover:bg-[#320b52] text-white font-bold rounded-xl text-xs flex items-center gap-1 cursor-pointer transition-all"
+              >
+                <Plus className="w-3.5 h-3.5" /> Add Role
+              </button>
             </div>
 
-            <div>
-              <label className="block font-bold text-purple-900 mb-1">Specific Context (Optional):</label>
-              <input type="text" value={gapContextNote} onChange={(e) => setGapContextNote(e.target.value)} placeholder="e.g. Cared for elderly relative while taking night classes for Forklift License..." className="w-full p-2.5 border rounded-xl bg-white font-medium text-slate-800" />
+            {positions.map((pos, index) => (
+              <div key={pos.id} className="p-4 bg-slate-50 rounded-xl border border-slate-200 space-y-3">
+                <div className="flex items-center justify-between">
+                  <span className="font-black text-purple-900">Position #{index + 1}</span>
+                  {positions.length > 1 && (
+                    <button 
+                      type="button" 
+                      onClick={() => removePosition(pos.id)} 
+                      className="text-red-500 hover:text-red-700 font-bold flex items-center gap-1 text-[11px] cursor-pointer"
+                    >
+                      <Trash2 className="w-3.5 h-3.5" /> Remove
+                    </button>
+                  )}
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                  <input 
+                    type="text" 
+                    placeholder="Job Title (e.g. Storeperson)" 
+                    value={pos.jobTitle} 
+                    onChange={(e) => updatePosition(pos.id, 'jobTitle', e.target.value)} 
+                    className="p-2.5 border border-slate-300 rounded-xl font-medium bg-white outline-none focus:border-purple-600" 
+                  />
+                  <input 
+                    type="text" 
+                    placeholder="Company (e.g. Apex Logistics)" 
+                    value={pos.company} 
+                    onChange={(e) => updatePosition(pos.id, 'company', e.target.value)} 
+                    className="p-2.5 border border-slate-300 rounded-xl font-medium bg-white outline-none focus:border-purple-600" 
+                  />
+                  <input 
+                    type="text" 
+                    placeholder="Dates (e.g. 2022 - 2024)" 
+                    value={pos.dates} 
+                    onChange={(e) => updatePosition(pos.id, 'dates', e.target.value)} 
+                    className="p-2.5 border border-slate-300 rounded-xl font-medium bg-white outline-none focus:border-purple-600" 
+                  />
+                </div>
+
+                <div>
+                  <div className="flex items-center justify-between mb-1">
+                    <label className="font-bold text-slate-700">Key Responsibilities & Achievements:</label>
+                    <button 
+                      type="button" 
+                      onClick={() => enhancePositionWithAI(pos.id)} 
+                      disabled={isEnhancingDuty === pos.id}
+                      className="text-purple-800 font-black text-[11px] flex items-center gap-1 hover:underline cursor-pointer disabled:opacity-50"
+                    >
+                      <Sparkles className="w-3.5 h-3.5 text-amber-500" /> 
+                      {isEnhancingDuty === pos.id ? 'Expanding Duties...' : 'Expand Duties with AI'}
+                    </button>
+                  </div>
+                  <textarea 
+                    rows={3} 
+                    value={pos.description} 
+                    onChange={(e) => updatePosition(pos.id, 'description', e.target.value)} 
+                    placeholder="Type what you did in this role, then click 'Expand Duties with AI' to generate polished bullet points..." 
+                    className="w-full p-3 border border-slate-300 rounded-xl font-medium text-xs bg-white outline-none focus:border-purple-600 leading-relaxed" 
+                  />
+                  <p className="text-[10px] text-slate-500 mt-1 italic">
+                    💡 Tip: Please review and edit the generated duties to match your exact hands-on experience.
+                  </p>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* Licences, Tickets & Qualifications Section */}
+          <div className="space-y-4 pt-3 border-t border-slate-200">
+            <div className="flex items-center justify-between">
+              <div>
+                <h3 className="font-black text-slate-900 text-sm flex items-center gap-1.5">
+                  <Award className="w-4 h-4 text-purple-700" /> Licences, Vocational Tickets & Qualifications
+                </h3>
+                <p className="text-[11px] text-slate-500 font-medium">Add tickets employers look for (e.g. Forklift, White Card, First Aid, Driver's Licence).</p>
+              </div>
+              <button 
+                type="button" 
+                onClick={addTicket} 
+                className="px-3 py-1.5 bg-purple-900 hover:bg-purple-950 text-white font-bold rounded-xl text-[11px] flex items-center gap-1 cursor-pointer transition-all shrink-0"
+              >
+                <Plus className="w-3.5 h-3.5" /> Add Ticket
+              </button>
             </div>
 
-            <button type="button" onClick={handleGenerateGapEntry} disabled={isGeneratingGap} className="px-5 py-2.5 bg-[#24083b] text-white font-black rounded-xl flex items-center gap-2 shadow-sm">
-              <Sparkles className="w-4 h-4 text-amber-300" /> {isGeneratingGap ? 'Generating Statement...' : 'Generate Statement'}
-            </button>
-
-            {gapDescription && (
-              <div className="p-4 bg-white border border-purple-200 rounded-xl space-y-3 mt-3">
-                <p className="font-semibold text-slate-800 italic">"{gapDescription}"</p>
-                <button type="button" onClick={insertGapIntoPositions} className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-black rounded-xl flex items-center gap-1.5">
-                  <Plus className="w-4 h-4" /> Add to Work History Timeline
-                </button>
-              </div>
-            )}
-          </div>
-
-          <div className="flex justify-between pt-2">
-            <button type="button" onClick={() => setActiveStep(1)} className="px-5 py-2.5 bg-slate-100 font-bold rounded-xl text-xs flex items-center gap-1">
-              <ChevronLeft className="w-4 h-4" /> Back
-            </button>
-            <button type="button" onClick={() => setActiveStep(3)} className="px-6 py-2.5 bg-[#24083b] text-white font-black rounded-xl text-xs flex items-center gap-1.5">
-              Proceed to Step 3: Referees <ChevronRight className="w-4 h-4" />
-            </button>
-          </div>
-        </div>
-      )}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              {tickets.map((t) => (
+                <div key={t.id} className="p-3 bg-slate-50 border border-slate-200 rounded-xl flex items-center justify-between gap-2">
+                  <input 
+                    type="text" 
+                    placeholder="Ticket / Licence (e.g. White Card)" 
+                    value={t.name} 
+                    onChange={(e) => setTickets(tickets.map((item) => item.id === t.id ? { ...item, name: e.target.value } : item))} 
+                    className="p-2 border border-slate-300 rounded-lg flex-1 text-xs font-medium bg-white outline-none focus:border-purple-600" 
+                  />
+                  <input 
+                    type="text" 
+                    placeholder="Issuer /
 
       {/* STEP 3: REFEREES */}
       {activeStep === 3 && (
