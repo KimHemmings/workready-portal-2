@@ -15,7 +15,10 @@ import {
   CheckCircle2,
   Phone,
   Mail,
-  MapPin
+  MapPin,
+  Upload,
+  AlertTriangle,
+  Shield
 } from 'lucide-react';
 import { usePortal } from '../context/PortalContext';
 import { sendChatMessage } from '../lib/api';
@@ -732,7 +735,42 @@ ${textContent.slice(0, 3000)}`;
                   />
                   <input 
                     type="text" 
-                    placeholder="Issuer /
+                    placeholder="Issuer / Year" 
+                    value={t.issuer} 
+                    onChange={(e) => setTickets(tickets.map((item) => item.id === t.id ? { ...item, issuer: e.target.value } : item))} 
+                    className="w-28 p-2 border border-slate-300 rounded-lg text-xs font-medium bg-white outline-none focus:border-purple-600" 
+                  />
+                  <button 
+                    type="button" 
+                    onClick={() => removeTicket(t.id)} 
+                    className="text-red-500 hover:text-red-700 p-1 cursor-pointer"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </button>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Navigation Controls */}
+          <div className="flex justify-between pt-3 border-t border-slate-100">
+            <button 
+              type="button" 
+              onClick={() => setActiveStep(1)} 
+              className="px-5 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-xl text-xs flex items-center gap-1 cursor-pointer transition-all"
+            >
+              <ChevronLeft className="w-4 h-4" /> Back to Step 1
+            </button>
+            <button 
+              type="button" 
+              onClick={() => setActiveStep(3)} 
+              className="px-6 py-2.5 bg-[#24083b] hover:bg-[#320b52] text-white font-black rounded-xl text-xs flex items-center gap-1.5 cursor-pointer shadow-md transition-all"
+            >
+              Proceed to Step 3: Referees <ChevronRight className="w-4 h-4" />
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* STEP 3: REFEREES */}
       {activeStep === 3 && (
