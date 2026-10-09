@@ -147,6 +147,15 @@ export const StarInterviewSimulator: React.FC = () => {
   const [isListening, setIsListening] = useState(false);
   const recognitionRef = useRef<any>(null);
 
+// Track questions asked per current scenario to protect Azure OpenAI API budget
+  const [questionsAskedInCurrentScenario, setQuestionsAskedInCurrentScenario] = useState<number>(0);
+
+  // Australian & Workplace Profanity Censorship Filter
+  const containsProfanity = (text: string): boolean => {
+    const badWordsRegex = /\b(fuck|shit|cunt|bitch|asshole|bastard|dick|piss|bloody hell|slut|dickhead|cock)\b/i;
+    return badWordsRegex.test(text);
+  };
+
   const [userAnswers, setUserAnswers] = useState<string[]>([]);
   const [chatTranscript, setChatTranscript] = useState<Array<{ role: 'system' | 'user' | 'assistant'; content: string }>>([]);
   const [perAnswerAnalysis, setPerAnswerAnalysis] = useState<any[]>([]);
@@ -284,6 +293,7 @@ export const StarInterviewSimulator: React.FC = () => {
     setCandidateAnswer('');
     setCurrentFeedback(null);
     setChatTranscript([]);
+    setQuestionsAskedInCurrentScenario(0); // Resets 1-question limit for new scenario
   };
 
   const toggleMic = () => {
@@ -543,34 +553,45 @@ Key Skills: ${draft.skills || 'Not provided'}`;
 Target Industry: ${selectedRole}`;
   };
 const handleAskInterviewer = async (e?: React.FormEvent) => {
-  if (e) e.preventDefault();
-  const questionText = candidateAnswer.trim();
-  if (!questionText) return;
+    if (e) e.preventDefault();
+    const questionText = candidateAnswer.trim();
+    if (!questionText) return;
 
-  // Stop active speech and dictation immediately
-  stopAndResetMic();
-  stopSpeech();
-  setCandidateAnswer('');
+    // 1. Language Censorship Guardrail
+    if (containsProfanity(questionText)) {
+      setCandidateAnswer('');
+      alert("Please keep your interview responses professional and free from inappropriate language.");
+      return;
+    }
 
-  // Clear any existing STAR feedback so questions NEVER show rating cards
-  setCurrentFeedback(null);
+    // 2. API Budget Guardrail (1 Question / Scenario)
+    if (questionsAskedInCurrentScenario >= 1) {
+      alert("To stay focused and manage session time, you can ask Sarah 1 clarifying question per scenario.");
+      return;
+    }
 
-  const currentQ = sessionQuestions[currentIndex] || QUESTION_BANK[0];
+    stopAndResetMic();
+    stopSpeech();
+    setCandidateAnswer('');
+    setCurrentFeedback(null);
 
-  // Append user question directly to chat stream
-  const updatedHistory: { role: 'system' | 'user' | 'assistant'; content: string }[] = [
-    ...chatTranscript,
-    { role: 'user', content: questionText }
-  ];
-  setChatTranscript(updatedHistory);
+    setQuestionsAskedInCurrentScenario((prev) => prev + 1);
 
-  try {
-    const resumeContext = getResumeContext();
+    const currentQ = sessionQuestions[currentIndex] || QUESTION_BANK[0];
 
-    const reply = await sendChatMessage([
-      {
-        role: "system",
-        content: `You are Sarah, a warm, encouraging Australian female hiring manager conducting an interview for a ${selectedRole} position.
+    const updatedHistory: { role: 'system' | 'user' | 'assistant'; content: string }[] = [
+      ...chatTranscript,
+      { role: 'user', content: questionText }
+    ];
+    setChatTranscript(updatedHistory);
+
+    try {
+      const resumeContext = getResumeContext();
+
+      const reply = await sendChatMessage([
+        {
+          role: "system",
+          content: `You are Sarah, a warm, encouraging Australian female hiring manager conducting an interview for a ${selectedRole} position.
 
 Candidate Resume Context:
 ${resumeContext}
@@ -578,25 +599,30 @@ ${resumeContext}
 Current Scenario Question: "${currentQ.question}"
 
 INSTRUCTIONS:
-- The candidate is asking you a direct question for clarification or job context before giving their answer.
-- Answer their question DIRECTLY, WARMLY, and HELPFULLY in 1 to 2 short sentences.
+- Answer the candidate's question DIRECTLY, WARMLY, and HELPFULLY in 1 to 2 short sentences.
 - DO NOT evaluate them on STAR criteria.
-- DO NOT set feedback status or advance the scenario.
 - Simply answer their question in character as Sarah.`
-      },
-      ...updatedHistory
-    ]);
+        },
+        ...updatedHistory
+      ]);
 
-    // Append Sarah's response cleanly to conversation history
-    setChatTranscript((prev) => [...prev, { role: 'assistant', content: reply }]);
-    speakQuestion(reply);
-  } catch (err) {
-    console.error("Failed to ask interviewer:", err);
-  }
-};
+      setChatTranscript((prev) => [...prev, { role: 'assistant', content: reply }]);
+      speakQuestion(reply);
+    } catch (err) {
+      console.error("Failed to ask interviewer:", err);
+    }
+  };
 
   const handleAnswerSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    // Censorship check on final answer submit
+    if (containsProfanity(candidateAnswer)) {
+      setCandidateAnswer('');
+      alert("Please maintain professional language during your interview response.");
+      return;
+    }
+
     stopAndResetMic();
     stopSpeech();
 
@@ -921,45 +947,48 @@ INSTRUCTIONS:
               </div>
 
               <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2.5">
-  <div className="flex items-center gap-2">
-    <button
-      type="button"
-      onClick={handleAskInterviewer}
-      disabled={!candidateAnswer.trim()}
-      className="px-4 py-2.5 bg-amber-400 hover:bg-amber-300 disabled:opacity-50 text-slate-950 font-black text-xs rounded-xl shadow-xs border border-amber-300 transition-all cursor-pointer"
-    >
-      💬 Ask Sarah a Question
-    </button>
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={handleAskInterviewer}
+                    disabled={!candidateAnswer.trim() || questionsAskedInCurrentScenario >= 1}
+                    className="px-4 py-2.5 bg-amber-400 hover:bg-amber-300 disabled:opacity-50 text-slate-950 font-black text-xs rounded-xl shadow-xs border border-amber-300 transition-all cursor-pointer flex items-center gap-1.5"
+                  >
+                    <span>💬 Ask Sarah a Question</span>
+                    {questionsAskedInCurrentScenario >= 1 && (
+                      <span className="bg-slate-900 text-white text-[9px] px-1.5 py-0.5 rounded font-bold">1/1 Used</span>
+                    )}
+                  </button>
 
-    <button
-      type="button"
-      onClick={handleNextQuestion}
-      className="px-3 py-2 text-slate-500 font-bold text-xs hover:text-slate-800 cursor-pointer"
-    >
-      Skip →
-    </button>
-  </div>
+                  <button
+                    type="button"
+                    onClick={handleNextQuestion}
+                    className="px-3 py-2 text-slate-500 font-bold text-xs hover:text-slate-800 cursor-pointer"
+                  >
+                    Skip →
+                  </button>
+                </div>
 
-  {currentFeedback ? (
-    <button
-      type="button"
-      onClick={handleNextQuestion}
-      className="px-6 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xs rounded-xl shadow-md transition-all cursor-pointer flex items-center justify-center gap-1.5"
-    >
-      <span>Proceed to Scenario #{currentIndex + 2}</span>
-      <span>→</span>
-    </button>
-  ) : (
-    <button
-      type="submit"
-      disabled={!candidateAnswer.trim()}
-      className="px-6 py-2.5 bg-[#24083b] hover:bg-[#320b52] disabled:opacity-50 text-white font-black text-xs rounded-xl shadow-md transition-all cursor-pointer flex items-center justify-center gap-1.5"
-    >
-      <Send className="w-3.5 h-3.5 text-amber-400" />
-      <span>Submit Final Answer</span>
-    </button>
-  )}
-</div>
+                {currentFeedback ? (
+                  <button
+                    type="button"
+                    onClick={handleNextQuestion}
+                    className="px-6 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xs rounded-xl shadow-md transition-all cursor-pointer flex items-center justify-center gap-1.5"
+                  >
+                    <span>Proceed to Scenario #{currentIndex + 2}</span>
+                    <span>→</span>
+                  </button>
+                ) : (
+                  <button
+                    type="submit"
+                    disabled={!candidateAnswer.trim()}
+                    className="px-6 py-2.5 bg-[#24083b] hover:bg-[#320b52] disabled:opacity-50 text-white font-black text-xs rounded-xl shadow-md transition-all cursor-pointer flex items-center justify-center gap-1.5"
+                  >
+                    <Send className="w-3.5 h-3.5 text-amber-400" />
+                    <span>Submit Final Answer</span>
+                  </button>
+                )}
+              </div>
             </form>
           </div>
         </div>

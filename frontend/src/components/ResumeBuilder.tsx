@@ -48,6 +48,12 @@ const ResumeBuilder: React.FC<{ maxAttempts?: number }> = () => {
   const programType = activeCandidate?.programType || 'workforce_australia';
   const isRtoGraduate = programType === 'rto_graduate';
 
+  // Profanity Censorship Filter for Resume Builder
+  const containsProfanity = (text: string): boolean => {
+    const badWordsRegex = /\b(fuck|shit|cunt|bitch|asshole|bastard|dick|piss|bloody hell|slut|dickhead|cock)\b/i;
+    return badWordsRegex.test(text);
+  };
+
   // Step Navigation (1: Work History, 2: Gap Helper, 3: Referees, 4: Preview & Download)
   const [activeStep, setActiveStep] = useState<number>(1);
 
@@ -138,6 +144,12 @@ useEffect(() => {
       skills: positions.map((p) => p.jobTitle).filter(Boolean).join(', '),
       updatedAt: new Date().toISOString()
     };
+
+    // Prevent saving bad words to local storage or sending to Sarah
+    if (containsProfanity(JSON.stringify(draftPayload))) {
+      return;
+    }
+
     localStorage.setItem('workready_resume_draft', JSON.stringify(draftPayload));
   } catch (err) {
     console.error('Error syncing workready_resume_draft:', err);
@@ -163,8 +175,13 @@ useEffect(() => {
 
   // Real Azure OpenAI Duty Enhancer with Realistic Human Tone Guardrails
   const enhancePositionWithAI = async (id: string) => {
-    const pos = positions.find((p) => p.id === id);
-    if (!pos || !pos.jobTitle) return alert('Please enter a Position Title first.');
+  const pos = positions.find((p) => p.id === id);
+  if (!pos || !pos.jobTitle) return alert('Please enter a Position Title first.');
+
+  // Check for profanity before calling Azure OpenAI API
+  if (containsProfanity(pos.description || '') || containsProfanity(pos.jobTitle)) {
+    return alert('Please maintain professional language in your position title and notes.');
+  }
 
     setIsEnhancingDuty(id);
 
@@ -386,7 +403,12 @@ ${textContent.slice(0, 3000)}`;
 
   // BRANDED DEWR AUDIT LOG SUBMISSION
   const submitToActivityLog = () => {
-    const now = new Date();
+  const fullContent = JSON.stringify({ fullName, targetRole, positions, coverLetterText });
+  if (containsProfanity(fullContent)) {
+    return alert('Please review your resume and cover letter for professional language before submitting.');
+  }
+
+  const now = new Date();
     const timeStamp = `${now.toLocaleDateString('en-AU')} at ${now.toLocaleTimeString('en-AU', { hour: '2-digit', minute: '2-digit' })}`;
 
     const record = {
