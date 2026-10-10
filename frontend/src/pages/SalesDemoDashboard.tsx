@@ -98,12 +98,12 @@ export function SalesDemoDashboard() {
 
   // Sync Market Changes
   const handleMarketChange = (market: MarketSegment) => {
-    setSelectedMarket(market);
-    if (market === 'workforce_au') setActiveContract('Workforce Australia');
-    else if (market === 'des') setActiveContract('Inclusive Employment Australia (IEA)' as any);
-    else if (market === 'parentsnext_ttw') setActiveContract('TtW');
-    else if (market === 'rto_tafe') setActiveContract('RTO');
-  };
+  setSelectedMarket(market);
+  if (market === 'workforce_au') setActiveContract('Workforce Australia');
+  else if (market === 'des') setActiveContract('Inclusive Employment Australia (IEA)');
+  else if (market === 'parentsnext_ttw') setActiveContract('TtW');
+  else if (market === 'rto_tafe') setActiveContract('RTO');
+};
 
   // Formulas
   const hoursSavedPerStaff = activePreset.adminHoursSavedPerStaff;
@@ -112,13 +112,20 @@ export function SalesDemoDashboard() {
   const annualCapacityValueReclaimed = Math.round(totalAnnualHoursSaved * hourlyStaffCost);
 
   const handleSignOut = () => {
-    resetSandboxState();
-    const url = new URL(window.location.href);
-    url.searchParams.delete('role');
-    url.searchParams.delete('mode');
-    window.history.pushState({}, '', url.pathname);
-    window.dispatchEvent(new Event('popstate'));
-  };
+  resetSandboxState();
+  setSelectedMarket('workforce_au');
+  setActiveContract('Workforce Australia');
+  localStorage.removeItem('star_practice_completed_count');
+  localStorage.removeItem('participant_points');
+  
+  const url = new URL(window.location.href);
+  url.searchParams.delete('role');
+  url.searchParams.delete('mode');
+  url.searchParams.delete('market');
+  window.history.pushState({}, '', url.pathname);
+  window.dispatchEvent(new Event('popstate'));
+  window.dispatchEvent(new Event('storage'));
+};
 
   return (
     <div className="min-h-screen bg-slate-50 text-slate-900 font-sans pb-12">
@@ -158,18 +165,20 @@ export function SalesDemoDashboard() {
           <div className="flex items-center space-x-3 flex-wrap">
             {!urlParams.isProspect && (
               <button
-                onClick={() => {
-                  resetSandboxState();
-                  localStorage.removeItem('star_practice_completed_count');
-                  localStorage.removeItem('participant_points');
-                  window.dispatchEvent(new Event('storage'));
-                  alert('â†º Demo state reset!');
-                }}
-                className="px-3.5 py-1.5 bg-purple-800/80 hover:bg-purple-700 border border-purple-400/40 text-white text-xs font-extrabold rounded-xl transition-all flex items-center space-x-1.5 shadow-sm cursor-pointer"
-              >
-                <RotateCcw className="w-3.5 h-3.5 text-amber-300" />
-                <span>↺ Reset State</span>
-              </button>
+  onClick={() => {
+    resetSandboxState();
+    setSelectedMarket('workforce_au');
+    setActiveContract('Workforce Australia');
+    localStorage.removeItem('star_practice_completed_count');
+    localStorage.removeItem('participant_points');
+    window.dispatchEvent(new Event('storage'));
+    alert('↺ Demo state reset!');
+  }}
+  className="px-3.5 py-1.5 bg-purple-800/80 hover:bg-purple-700 border border-purple-400/40 text-white text-xs font-extrabold rounded-xl transition-all flex items-center space-x-1.5 shadow-sm cursor-pointer"
+>
+  <RotateCcw className="w-3.5 h-3.5 text-amber-300" />
+  <span>Reset State</span>
+</button>
             )}
 
             <button
