@@ -130,28 +130,51 @@ const ResumeBuilder: React.FC<{ maxAttempts?: number }> = () => {
 
   const handleSubmitToCaseManager = (actionType: 'updated' | 'reviewed') => {
     const timestamp = new Date().toLocaleDateString('en-AU');
+    const fullTimestamp = `${timestamp} at ${new Date().toLocaleTimeString('en-AU', { hour: '2-digit', minute: '2-digit' })}`;
     
+    // 1. Context verification entry (for Case Manager review portal)
     if (typeof addVerificationItem === 'function') {
       addVerificationItem({
         candidateId: activeCandidate?.id || 'c1',
-        candidateName: activeCandidate?.name || 'Alex Mercer',
+        candidateName: fullName || 'Alex Mercer',
         type: 'LMS Micro-credential',
         title: actionType === 'updated' 
           ? 'ATS Resume & Cover Letter Updated' 
           : 'Monthly Resume & Cover Letter Review Confirmed',
-        points: 0, // 0 points until verified & allocated by Case Manager
+        points: 0, // 0 points until CM verifies and allocates
         status: 'Pending',
-        details: `Candidate verified active job-readiness document on ${timestamp}. Awaiting Case Manager point allocation.`
+        details: `Candidate verified active job-readiness document on ${fullTimestamp}. Awaiting Case Manager point allocation.`
       });
     }
 
+    // 2. LocalStorage flags
     localStorage.setItem('resume_claimed_this_month', 'true');
     localStorage.setItem('resume_submission_status', 'pending');
     setHasClaimedThisMonth(true);
     setSubmissionStatus('pending');
 
+    // 3. Dispatch CustomEvent so Tab 3 (Activity Verification Log) updates instantly
+    const activityRecord = {
+      id: `res-claim-${Date.now()}`,
+      type: actionType === 'updated' ? 'Resume Updated & Logged' : 'Monthly Resume Review Confirmed',
+      jobRole: `${targetRole} (Monthly CV Audit)`,
+      fullName: fullName || 'Alex Mercer',
+      email,
+      phone,
+      positions,
+      coverLetterText: coverLetterText || 'Candidate verified active resume and cover letter readiness.',
+      referees: refereesOnRequest ? 'Available upon request' : referees,
+      timestamp: fullTimestamp,
+      date: timestamp,
+      points: 0, // Awarded solely by Case Manager upon verification
+      rubricScore: actionType === 'updated' ? 'Updated CV & Cover Letter Submitted' : 'Monthly CV Audit Confirmed',
+      status: 'Submitted for CM Verification'
+    };
+
+    window.dispatchEvent(new CustomEvent('starHistoryUpdated', { detail: activityRecord }));
     window.dispatchEvent(new Event('storage'));
-    alert('✅ Submitted to Case Manager! Evidence logged in your Activity Trail awaiting CM review and point allocation.');
+
+    alert('✅ Submitted to Case Manager! Logged directly to your Activity Verification Log in Tab 3.');
   };
 
   // 4-Step Navigation
@@ -268,7 +291,8 @@ const ResumeBuilder: React.FC<{ maxAttempts?: number }> = () => {
         summary: rawSummary,
         experience: positions.map((p) => `${p.jobTitle} at ${p.company} (${p.dates}): ${p.description}`).join(' | '),
         tickets: tickets.map((t) => t.name).join(', '),
-        skills: positions.map((p) => p.jobTitle).filter(Boolean).join(', '),
+        referees: refereesOnRequest ? 'Available upon request' : referees,
+        coverLetterText,
         updatedAt: new Date().toISOString()
       };
 
@@ -277,7 +301,7 @@ const ResumeBuilder: React.FC<{ maxAttempts?: number }> = () => {
     } catch (err) {
       console.error('Error syncing workready_resume_draft:', err);
     }
-  }, [fullName, email, phone, targetRole, location, rawSummary, positions, tickets]);
+  }, [fullName, email, phone, targetRole, location, rawSummary, positions, tickets, referees, coverLetterText]);
 
   // Refine Summary Handler (Professional Human Polish + Skill Alignment)
   const handleRefineSummary = async () => {
@@ -757,14 +781,19 @@ INSTRUCTIONS:
         </div>
 
         {!isRtoGraduate && (
-          <div className="bg-white/10 px-4 py-2 rounded-xl border border-white/20 text-right shrink-0">
-            <span className="block text-xs font-black text-amber-300">
-              {monthlyUsed} / {MONTHLY_LIMIT} {programType === 'workforce_australia' ? 'PBAS Cycle' : 'Monthly'} Claim Used
-            </span>
-            <span className="text-[10px] text-purple-200 font-bold">
-              {monthlyUsed > 0 ? 'Submitted for CM Verification' : 'Ready to Draft / Review'}
-            </span>
-          </div>
+          hasClaimedThisMonth ? (
+            <div className="bg-purple-900/60 border border-purple-400/30 px-3.5 py-1.5 rounded-xl text-right shrink-0">
+              <span className="text-xs font-extrabold text-amber-300 block">1/1 Monthly Cycle Logged</span>
+              <span className="text-[10px] text-purple-200">
+                {submissionStatus === 'verified' ? '✓ Verified by Case Manager' : 'Submitted for CM Verification'}
+              </span>
+            </div>
+          ) : (
+            <div className="bg-emerald-500/20 border border-emerald-400/30 px-3.5 py-1.5 rounded-xl text-right shrink-0">
+              <span className="text-xs font-extrabold text-emerald-300 block">Monthly Review Available</span>
+              <span className="text-[10px] text-emerald-100">Ready to Draft / Review</span>
+            </div>
+          )
         )}
       </div>
 
@@ -1222,38 +1251,17 @@ INSTRUCTIONS:
             )}
           </div>
 
-          {/* LIVE A4 DOCUMENT PREVIEW CANVAS WITH TOGGLE */}
-          <div className="p-5 bg-slate-100 border-2 border-slate-300 rounded-2xl space-y-3">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-200 pb-3">
-              <span className="font-black text-slate-900 text-xs flex items-center gap-1.5">
-                <Eye className="w-4 h-4 text-purple-700" /> Live A4 Document Preview Canvas
-              </span>
-
-              <div className="flex items-center gap-1 bg-slate-200 p-1 rounded-xl">
-                <button
-                  type="button"
-                  onClick={() => setPreviewDocType('resume')}
-                  className={`px-3 py-1 rounded-lg text-xs font-black transition-all cursor-pointer ${
-                    previewDocType === 'resume' ? 'bg-[#24083b] text-white shadow-sm' : 'text-slate-700 hover:text-slate-900'
-                  }`}
-                >
-                  📄 View Resume Canvas
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setPreviewDocType('cover')}
-                  className={`px-3 py-1 rounded-lg text-xs font-black transition-all cursor-pointer ${
-                    previewDocType === 'cover' ? 'bg-[#24083b] text-white shadow-sm' : 'text-slate-700 hover:text-slate-900'
-                  }`}
-                >
-                  ✉️ View Cover Letter Canvas
-                </button>
-              </div>
-            </div>
-
-            {/* A4 PAPER DISPLAY WRAPPER */}
+          {/* A4 PAPER DISPLAY WRAPPER WITH DYNAMIC TEMPLATE STYLING */}
             <div className="bg-slate-300 p-6 rounded-2xl flex justify-center overflow-y-auto max-h-187.5 border border-slate-300">
-              <div className="bg-white w-full max-w-198.5 min-h-198.5 p-12 shadow-2xl rounded-sm border border-slate-300 text-slate-900 font-sans space-y-6">
+              <div className={`bg-white w-full max-w-198.5 min-h-280.75 p-12 shadow-2xl rounded-sm border text-slate-900 space-y-6 transition-all ${
+                selectedTemplate === 'classic' ? 'font-serif border-2 border-slate-800' :
+                selectedTemplate === 'trades' ? 'font-sans border-l-8 border-amber-500 bg-slate-50' :
+                selectedTemplate === 'minimalist' ? 'font-sans border border-slate-200' :
+                selectedTemplate === 'creative' ? 'font-sans border-t-8 border-purple-800' :
+                selectedTemplate === 'technical' ? 'font-mono border-2 border-emerald-600 bg-slate-950 text-slate-100' :
+                'font-sans border-t-8 border-purple-700'
+              }`}>
+                {/* Header */}
                 <div className="border-b-2 border-purple-950 pb-4 flex justify-between items-end">
                   <div>
                     <h1 className="text-2xl font-black text-purple-950 uppercase tracking-tight">{fullName || 'Alex Mercer'}</h1>
@@ -1274,6 +1282,7 @@ INSTRUCTIONS:
                       </h3>
                       <p className="text-slate-700">{rawSummary}</p>
                     </div>
+
                     <div>
                       <h3 className="font-extrabold text-purple-950 text-xs uppercase border-b border-slate-200 pb-1 mb-2">
                         Work History & Experience
@@ -1285,18 +1294,39 @@ INSTRUCTIONS:
                         </div>
                       ))}
                     </div>
+
                     {tickets.length > 0 && (
                       <div>
                         <h3 className="font-extrabold text-purple-950 text-xs uppercase border-b border-slate-200 pb-1 mb-2">
-                          Licences & Qualifications
+                          Licences, Tickets & Qualifications
                         </h3>
-                        <ul className="list-disc list-inside text-slate-700">
+                        <ul className="list-disc list-inside text-slate-700 space-y-0.5">
                           {tickets.map(t => (
-                            <li key={t.id}>{t.name} ({t.issuer} {t.year})</li>
+                            <li key={t.id}><strong>{t.name}</strong> ({t.issuer} {t.year})</li>
                           ))}
                         </ul>
                       </div>
                     )}
+
+                    {/* REFEREES SECTION */}
+                    <div>
+                      <h3 className="font-extrabold text-purple-950 text-xs uppercase border-b border-slate-200 pb-1 mb-2">
+                        Referees
+                      </h3>
+                      {refereesOnRequest ? (
+                        <p className="text-slate-600 italic">Referees available upon request.</p>
+                      ) : (
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-slate-700">
+                          {referees.map(r => (
+                            <div key={r.id} className="p-2 bg-slate-50 border border-slate-200 rounded-lg">
+                              <p className="font-bold text-slate-900">{r.name}</p>
+                              <p className="text-[11px] text-slate-600">{r.title} — {r.company}</p>
+                              <p className="text-[11px] text-purple-900 font-medium">Ph: {r.phone} ({r.relationship})</p>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
                   </div>
                 ) : (
                   <div className="space-y-4 text-xs leading-relaxed">
@@ -1309,7 +1339,6 @@ INSTRUCTIONS:
                 )}
               </div>
             </div>
-          </div>
 
           {/* SUBMIT TO CM / MARK AS REVIEWED ACTION BOX */}
           <div className="p-5 bg-purple-950 text-white rounded-2xl border border-purple-800 shadow-md space-y-3 mt-6">
