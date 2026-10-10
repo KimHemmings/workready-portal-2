@@ -91,19 +91,25 @@ export function SalesDemoDashboard() {
   const [avgStaffCount, setAvgStaffCount] = useState<number>(5);
   const [hourlyStaffCost, setHourlyStaffCost] = useState<number>(45);
 
-  // Viewports & Tabs
+  // Viewports, Tabs & Remount Key
   const [activeDemoTab, setActiveDemoTab] = useState<'calculator' | 'presentation'>('calculator');
   const [showCalculationDrawer, setShowCalculationDrawer] = useState<boolean>(false);
   const [activeFullDemoRole, setActiveFullDemoRole] = useState<'participant' | 'coach' | 'owner' | null>(null);
+  const [resetKey, setResetKey] = useState<number>(0);
 
-  // Sync Market Changes
+  // Sync Market Changes across Portal Context
   const handleMarketChange = (market: MarketSegment) => {
-  setSelectedMarket(market);
-  if (market === 'workforce_au') setActiveContract('Workforce Australia');
-  else if (market === 'des') setActiveContract('Inclusive Employment Australia (IEA)');
-  else if (market === 'parentsnext_ttw') setActiveContract('TtW');
-  else if (market === 'rto_tafe') setActiveContract('RTO');
-};
+    setSelectedMarket(market);
+    if (market === 'workforce_au') {
+      setActiveContract('Workforce Australia');
+    } else if (market === 'des') {
+      setActiveContract('Inclusive Employment Australia (IEA)');
+    } else if (market === 'parentsnext_ttw') {
+      setActiveContract('TtW');
+    } else if (market === 'rto_tafe') {
+      setActiveContract('RTO');
+    }
+  };
 
   // Formulas
   const hoursSavedPerStaff = activePreset.adminHoursSavedPerStaff;
@@ -111,21 +117,48 @@ export function SalesDemoDashboard() {
   const totalAnnualHoursSaved = totalWeeklyHoursSaved * 52;
   const annualCapacityValueReclaimed = Math.round(totalAnnualHoursSaved * hourlyStaffCost);
 
+  // Master Demo Reset Handler
+  const triggerMasterReset = () => {
+    // 1. Reset Portal Context candidate baseline
+    resetSandboxState();
+
+    // 2. Clear all STAR session counters & resume storage keys
+    localStorage.removeItem('star_practice_completed_count');
+    localStorage.removeItem('star_completed_count');
+    localStorage.removeItem('participant_points');
+    localStorage.removeItem('workready_star_history');
+    localStorage.removeItem('workready_resume_draft');
+    localStorage.removeItem('star_runs_completed');
+    localStorage.removeItem('star_practice_count');
+    localStorage.removeItem('resume_claimed_this_month');
+    localStorage.removeItem('resume_submission_status');
+
+    // 3. Reset local selection states back to default WFA
+    setSelectedMarket('workforce_au');
+    setActiveContract('Workforce Australia');
+    setActiveDemoTab('calculator');
+    setActiveFullDemoRole(null);
+
+    // 4. Force React component remount
+    setResetKey((prev) => prev + 1);
+
+    // 5. Clean URL query parameters
+    const url = new URL(window.location.href);
+    url.searchParams.delete('role');
+    url.searchParams.delete('mode');
+    url.searchParams.delete('market');
+    window.history.pushState({}, '', url.pathname);
+
+    // 6. Dispatch events for instant listener sync
+    window.dispatchEvent(new Event('storage'));
+    window.dispatchEvent(new Event('starHistoryUpdated'));
+    window.dispatchEvent(new Event('popstate'));
+  };
+
+  // Sign-Out / Exit Portal Handler
   const handleSignOut = () => {
-  resetSandboxState();
-  setSelectedMarket('workforce_au');
-  setActiveContract('Workforce Australia');
-  localStorage.removeItem('star_practice_completed_count');
-  localStorage.removeItem('participant_points');
-  
-  const url = new URL(window.location.href);
-  url.searchParams.delete('role');
-  url.searchParams.delete('mode');
-  url.searchParams.delete('market');
-  window.history.pushState({}, '', url.pathname);
-  window.dispatchEvent(new Event('popstate'));
-  window.dispatchEvent(new Event('storage'));
-};
+    triggerMasterReset();
+  };
 
   return (
     <div className="min-h-screen bg-slate-50 text-slate-900 font-sans pb-12">
@@ -163,32 +196,27 @@ export function SalesDemoDashboard() {
           </div>
 
           <div className="flex items-center space-x-3 flex-wrap">
-            {!urlParams.isProspect && (
-              <button
-  onClick={() => {
-    resetSandboxState();
-    setSelectedMarket('workforce_au');
-    setActiveContract('Workforce Australia');
-    localStorage.removeItem('star_practice_completed_count');
-    localStorage.removeItem('participant_points');
-    window.dispatchEvent(new Event('storage'));
-    alert('↺ Demo state reset!');
-  }}
-  className="px-3.5 py-1.5 bg-purple-800/80 hover:bg-purple-700 border border-purple-400/40 text-white text-xs font-extrabold rounded-xl transition-all flex items-center space-x-1.5 shadow-sm cursor-pointer"
->
-  <RotateCcw className="w-3.5 h-3.5 text-amber-300" />
-  <span>Reset State</span>
-</button>
-            )}
+  {!urlParams.isProspect && (
+    <button
+      onClick={() => {
+        triggerMasterReset();
+        alert('↺ Demo state reset successfully!');
+      }}
+      className="px-3.5 py-1.5 bg-purple-800/80 hover:bg-purple-700 border border-purple-400/40 text-white text-xs font-extrabold rounded-xl transition-all flex items-center space-x-1.5 shadow-sm cursor-pointer"
+    >
+      <RotateCcw className="w-3.5 h-3.5 text-amber-300" />
+      <span>Reset State</span>
+    </button>
+  )}
 
-            <button
-              onClick={handleSignOut}
-              className="px-3.5 py-1.5 bg-white/10 hover:bg-white/20 border border-white/20 text-white text-xs font-bold rounded-xl transition-all flex items-center space-x-1.5 cursor-pointer"
-            >
-              <LogOut className="w-3.5 h-3.5" />
-              <span>Exit Portal</span>
-            </button>
-          </div>
+  <button
+    onClick={handleSignOut}
+    className="px-3.5 py-1.5 bg-white/10 hover:bg-white/20 border border-white/20 text-white text-xs font-bold rounded-xl transition-all flex items-center space-x-1.5 cursor-pointer"
+  >
+    <LogOut className="w-3.5 h-3.5" />
+    <span>Exit Portal</span>
+  </button>
+</div>
         </div>
       </header>
 
@@ -700,17 +728,17 @@ export function SalesDemoDashboard() {
 
       {/* FULL-SCREEN INTERACTIVE SANDBOX MODAL - LAUNCHES AUDIT TAB DIRECTLY FOR GOVERNANCE */}
       {activeFullDemoRole && (
-        <div className="fixed inset-0 bg-slate-950/90 backdrop-blur-md z-50 flex flex-col overflow-hidden animate-fadeIn">
+        <div key={resetKey} className="fixed inset-0 bg-slate-950/90 backdrop-blur-md z-50 flex flex-col overflow-hidden animate-fadeIn">
           <div className="bg-purple-950 text-white px-6 py-2.5 flex items-center justify-between border-b border-purple-800 shadow-lg shrink-0">
             <div className="flex items-center space-x-3">
               <span className="px-2.5 py-0.5 bg-emerald-500 text-purple-950 font-extrabold text-[10px] rounded-full uppercase tracking-wider flex items-center space-x-1">
                 <Maximize2 className="w-3 h-3" />
-                <span>Live Interactive Experience</span>
+                <span>Live Interactive Experience ({activePreset.name})</span>
               </span>
               <span className="text-xs font-bold text-purple-200">
-                {activeFullDemoRole === 'participant' && 'Viewing Candidate Portal (Alex Participant)'}
-                {activeFullDemoRole === 'coach' && 'Viewing Case Manager Dashboard (Casey Smith)'}
-                {activeFullDemoRole === 'owner' && 'Viewing Executive Overview (Morgan Taylor)'}
+                {activeFullDemoRole === 'participant' && `Viewing Candidate Portal — ${activePreset.framework}`}
+                {activeFullDemoRole === 'coach' && `Viewing Case Manager Dashboard — ${activePreset.framework}`}
+                {activeFullDemoRole === 'owner' && `Viewing Executive Governance — ${activePreset.framework}`}
               </span>
             </div>
 
@@ -726,10 +754,10 @@ export function SalesDemoDashboard() {
           </div>
 
           <div className="flex-1 overflow-y-auto bg-slate-50">
-            {activeFullDemoRole === 'participant' && <ParticipantHome />}
-            {activeFullDemoRole === 'coach' && <CoachDashboard />}
+            {activeFullDemoRole === 'participant' && <ParticipantHome key={`p-${resetKey}`} />}
+            {activeFullDemoRole === 'coach' && <CoachDashboard key={`c-${resetKey}`} />}
             {/* UPDATED: Passes defaultTab="audit" to load Activity Logs & CRM Export directly */}
-            {activeFullDemoRole === 'owner' && <OwnerDashboard defaultTab="audit" />}
+            {activeFullDemoRole === 'owner' && <OwnerDashboard key={`o-${resetKey}`} defaultTab="audit" />}
           </div>
         </div>
       )}
