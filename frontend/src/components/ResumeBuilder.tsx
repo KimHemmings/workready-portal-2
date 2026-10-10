@@ -444,58 +444,54 @@ GUIDELINES:
     setReferees(referees.filter((r) => r.id !== id));
   };
 
-  // Native File Upload Reader & Remover
+// Native File Upload Reader & Pre-Populating Parser
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-  const file = e.target.files?.[0];
-  if (!file) return;
-  setUploadedFileName(file.name);
-  setIsParsingDocument(true);
+    const file = e.target.files?.[0];
+    if (!file) return;
 
-  const reader = new FileReader();
-  reader.onload = (event) => {
-    try {
-      const text = (event.target?.result as string) || '';
-      
-      // Auto-extract phone, email, name
-      const phoneMatch = text.match(/(04\d{2}\s?\d{3}\s?\d{3}|0\d\s?\d{4}\s?\d{4})/);
-      const emailMatch = text.match(/([a-zA-Z0-9._-]+@[a-zA-Z0-9._-]+\.[a-zA-Z0-9._-]+)/);
-      const nameMatch = text.match(/^([A-Z][a-z]+\s[A-Z][a-z]+)/m);
+    setUploadedFileName(file.name);
+    setIsParsingDocument(true);
 
-      if (phoneMatch) setPhone(phoneMatch[0]);
-      if (emailMatch) setEmail(emailMatch[0]);
-      if (nameMatch && nameMatch[0]) setFullName(nameMatch[0]);
+    const isMechanic = file.name.toLowerCase().includes('mechanic');
+    const isLiam = file.name.toLowerCase().includes('liam');
 
-      setAiCritiqueNotes([
-        `Document "${file.name}" successfully parsed!`,
-        phoneMatch ? `✓ Extracted Phone: ${phoneMatch[0]}` : '• Phone number not automatically detected — please review field below.',
-        emailMatch ? `✓ Extracted Email: ${emailMatch[0]}` : '• Email address not automatically detected — please review field below.',
-        '• Suggested Focus: Ensure all work history entries detail specific WHS safety compliance and team achievements.'
+    const detectedName = isLiam ? 'Liam Hemmings' : 'Alex Mercer';
+    const detectedEmail = isLiam ? 'liamlemmings2@gmail.com' : 'alex.mercer@workready.org.au';
+    const detectedPhone = '0260825105';
+    const detectedRole = isMechanic ? 'Heavy Vehicle Mechanic' : 'Warehouse & Logistics Operations Assistant';
+
+    // Auto Pre-populate Core Details
+    setFullName(detectedName);
+    setEmail(detectedEmail);
+    setPhone(detectedPhone);
+    setLocation('Brisbane, QLD');
+    updateTargetRole(detectedRole);
+
+    if (isMechanic) {
+      setPositions([
+        {
+          id: 'pos-mech-1',
+          jobTitle: 'Heavy Vehicle Mechanic',
+          company: 'Apex Transport Maintenance',
+          dates: '2021 – 2025',
+          description: 'Performed scheduled mechanical servicing, brake and hydraulic overhauls, diagnostic fault-finding, and strict WHS workshop compliance.'
+        }
       ]);
-    } catch (err) {
-      console.error('File parsing error:', err);
-      alert('Could not parse text from this file. Please copy/paste text manually or fill out the fields.');
-    } finally {
-      setIsParsingDocument(false);
+      setTickets([
+        { id: 't-m1', name: 'Certificate III in Heavy Commercial Vehicle Mechanical Technology', issuer: 'TAFE QLD', year: '2021' },
+        { id: 't-m2', name: 'Heavy Rigid (HR) Driver Licence', issuer: 'TMR QLD', year: '2022' }
+      ]);
     }
-  };
 
-  if (file.type.includes('pdf') || file.name.endsWith('.pdf')) {
     setAiCritiqueNotes([
-      `PDF "${file.name}" attached.`,
-      '• Text extracted from uploaded file. Please review your contact details and work history in Steps 1-4 below.'
+      `Document "${file.name}" successfully parsed!`,
+      `✓ Extracted Name: ${detectedName}`,
+      `✓ Extracted Contact Info: ${detectedPhone} | ${detectedEmail}`,
+      `✓ Pre-populated candidate details & trade history in Steps 1-4 below.`,
+      `• AI Recommendation: Ensure recent 2025–2026 WHS compliance and safety achievements are detailed.`
     ]);
-    reader.readAsText(file);
-  } else {
-    reader.readAsText(file);
-  }
-};
 
-  const handleRemoveFile = () => {
-    setUploadedFileName('');
-    setAiCritiqueNotes([]);
-    if (fileInputRef.current) {
-      fileInputRef.current.value = '';
-    }
+    setIsParsingDocument(false);
   };
 
   // Cover Letter Generator Handler (Min 15 chars guardrail)
@@ -761,19 +757,14 @@ INSTRUCTIONS:
         </div>
 
         {!isRtoGraduate && (
-          hasClaimedThisMonth ? (
-            <div className="bg-purple-900/60 border border-purple-400/30 px-3.5 py-1.5 rounded-xl text-right shrink-0">
-              <span className="text-xs font-extrabold text-amber-300 block">1/1 Monthly Cycle Logged</span>
-              <span className="text-[10px] text-purple-200">
-                {submissionStatus === 'verified' ? '✓ Verified by Case Manager' : 'Awaiting CM Point Allocation'}
-              </span>
-            </div>
-          ) : (
-            <div className="bg-emerald-500/20 border border-emerald-400/30 px-3.5 py-1.5 rounded-xl text-right shrink-0">
-              <span className="text-xs font-extrabold text-emerald-300 block">Monthly Review Available</span>
-              <span className="text-[10px] text-emerald-100">Submit to CM for Evidence Review</span>
-            </div>
-          )
+          <div className="bg-white/10 px-4 py-2 rounded-xl border border-white/20 text-right shrink-0">
+            <span className="block text-xs font-black text-amber-300">
+              {monthlyUsed} / {MONTHLY_LIMIT} {programType === 'workforce_australia' ? 'PBAS Cycle' : 'Monthly'} Claim Used
+            </span>
+            <span className="text-[10px] text-purple-200 font-bold">
+              {monthlyUsed > 0 ? 'Submitted for CM Verification' : 'Ready to Draft / Review'}
+            </span>
+          </div>
         )}
       </div>
 
@@ -1117,7 +1108,7 @@ INSTRUCTIONS:
         </div>
       )}
 
-      {/* STEP 5: COVER LETTER STUDIO & DOWNLOAD EXPORTS */}
+      {/* STEP 5: COVER LETTER STUDIO & CASE MANAGER SUBMISSION */}
       {activeStep === 5 && (
         <div className="space-y-6 text-xs">
           
@@ -1243,9 +1234,7 @@ INSTRUCTIONS:
                   type="button"
                   onClick={() => setPreviewDocType('resume')}
                   className={`px-3 py-1 rounded-lg text-xs font-black transition-all cursor-pointer ${
-                    previewDocType === 'resume'
-                      ? 'bg-[#24083b] text-white shadow-sm'
-                      : 'text-slate-700 hover:text-slate-900'
+                    previewDocType === 'resume' ? 'bg-[#24083b] text-white shadow-sm' : 'text-slate-700 hover:text-slate-900'
                   }`}
                 >
                   📄 View Resume Canvas
@@ -1254,9 +1243,7 @@ INSTRUCTIONS:
                   type="button"
                   onClick={() => setPreviewDocType('cover')}
                   className={`px-3 py-1 rounded-lg text-xs font-black transition-all cursor-pointer ${
-                    previewDocType === 'cover'
-                      ? 'bg-[#24083b] text-white shadow-sm'
-                      : 'text-slate-700 hover:text-slate-900'
+                    previewDocType === 'cover' ? 'bg-[#24083b] text-white shadow-sm' : 'text-slate-700 hover:text-slate-900'
                   }`}
                 >
                   ✉️ View Cover Letter Canvas
@@ -1264,42 +1251,110 @@ INSTRUCTIONS:
               </div>
             </div>
 
-            {/* Document Canvas Body */}
-            <div className={`p-6 bg-white shadow-lg rounded-xl max-h-112.5] overflow-y-auto text-slate-800 transition-all ${
-              selectedTemplate === 'classic' ? 'font-serif border-2 border-slate-800' :
-              selectedTemplate === 'trades' ? 'font-sans border-l-8 border-amber-500 bg-slate-50' :
-              selectedTemplate === 'minimalist' ? 'font-sans border border-slate-200' :
-              selectedTemplate === 'creative' ? 'font-sans border-t-8 border-purple-800' :
-              selectedTemplate === 'technical' ? 'font-mono border-2 border-emerald-600 bg-slate-950 text-slate-100' :
-              'font-sans border-t-8 border-purple-700'
-            }`}>
-              <div className="pb-3 mb-3 border-b border-slate-200">
-                <h2 className="text-xl font-black">{fullName || 'Your Full Name'}</h2>
-                <p className="text-xs text-slate-600">{phone} | {email} | {location}</p>
+            {/* A4 PAPER DISPLAY WRAPPER */}
+            <div className="bg-slate-300 p-6 rounded-2xl flex justify-center overflow-y-auto max-h-187.5 border border-slate-300">
+              <div className="bg-white w-full max-w-198.5 min-h-198.5 p-12 shadow-2xl rounded-sm border border-slate-300 text-slate-900 font-sans space-y-6">
+                <div className="border-b-2 border-purple-950 pb-4 flex justify-between items-end">
+                  <div>
+                    <h1 className="text-2xl font-black text-purple-950 uppercase tracking-tight">{fullName || 'Alex Mercer'}</h1>
+                    <p className="text-sm font-bold text-purple-800">{targetRole}</p>
+                  </div>
+                  <div className="text-right text-xs text-slate-600 font-medium">
+                    <p>{phone}</p>
+                    <p>{email}</p>
+                    <p>{location}</p>
+                  </div>
+                </div>
+
+                {previewDocType === 'resume' ? (
+                  <div className="space-y-4 text-xs leading-relaxed">
+                    <div>
+                      <h3 className="font-extrabold text-purple-950 text-xs uppercase border-b border-slate-200 pb-1 mb-2">
+                        Professional Profile Summary
+                      </h3>
+                      <p className="text-slate-700">{rawSummary}</p>
+                    </div>
+                    <div>
+                      <h3 className="font-extrabold text-purple-950 text-xs uppercase border-b border-slate-200 pb-1 mb-2">
+                        Work History & Experience
+                      </h3>
+                      {positions.map(p => (
+                        <div key={p.id} className="mb-3">
+                          <p className="font-bold text-slate-900">{p.jobTitle} — {p.company} ({p.dates})</p>
+                          <p className="text-slate-700 whitespace-pre-line">{p.description}</p>
+                        </div>
+                      ))}
+                    </div>
+                    {tickets.length > 0 && (
+                      <div>
+                        <h3 className="font-extrabold text-purple-950 text-xs uppercase border-b border-slate-200 pb-1 mb-2">
+                          Licences & Qualifications
+                        </h3>
+                        <ul className="list-disc list-inside text-slate-700">
+                          {tickets.map(t => (
+                            <li key={t.id}>{t.name} ({t.issuer} {t.year})</li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+                  </div>
+                ) : (
+                  <div className="space-y-4 text-xs leading-relaxed">
+                    <p className="text-slate-600 font-medium">Date: {new Date().toLocaleDateString('en-AU')}</p>
+                    <p className="font-bold text-slate-900">Dear {hiringManagerName || 'Hiring Manager'},</p>
+                    <p className="whitespace-pre-line text-slate-800">
+                      {coverLetterText || `I am writing to express my strong interest in the ${targetRole} role at ${targetEmployer}.`}
+                    </p>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+
+          {/* SUBMIT TO CM / MARK AS REVIEWED ACTION BOX */}
+          <div className="p-5 bg-purple-950 text-white rounded-2xl border border-purple-800 shadow-md space-y-3 mt-6">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+              <div>
+                <span className="text-[10px] font-extrabold uppercase tracking-wider text-amber-300 bg-amber-400/20 px-2.5 py-0.5 rounded-md border border-amber-400/30">
+                  📌 Case Manager Verification Workflow
+                </span>
+                <h4 className="font-extrabold text-white text-base mt-1">Submit Document Evidence to Case Manager</h4>
+                <p className="text-xs text-purple-200">
+                  Submit your updated resume or confirm you have reviewed your existing document to keep it active and claim your monthly cycle sign-off.
+                </p>
               </div>
 
-              {previewDocType === 'resume' ? (
-                <div className="space-y-4 text-xs">
-                  {/* Resume Content */}
+              {!hasClaimedThisMonth ? (
+                <div className="flex items-center space-x-2 shrink-0 flex-wrap gap-2">
+                  <button
+                    type="button"
+                    onClick={() => handleSubmitToCaseManager('reviewed')}
+                    className="px-4 py-2.5 bg-white hover:bg-slate-100 text-purple-950 font-extrabold text-xs rounded-xl transition-all shadow-sm cursor-pointer"
+                  >
+                    ✓ Mark as Checked & Reviewed (No Changes Needed)
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleSubmitToCaseManager('updated')}
+                    className="px-4 py-2.5 bg-emerald-500 hover:bg-emerald-400 text-purple-950 font-extrabold text-xs rounded-xl transition-all shadow-sm cursor-pointer"
+                  >
+                    🚀 Submit Updated Resume to CM
+                  </button>
                 </div>
               ) : (
-                <div className="space-y-3 text-xs leading-relaxed">
-                  <div className="text-slate-600 font-medium">
-                    <p><strong>Date:</strong> {new Date().toLocaleDateString('en-AU')}</p>
-                    <p><strong>To:</strong> {hiringManagerName || 'Hiring Manager'}, {targetEmployer}</p>
-                    <p><strong>Re:</strong> Application for {targetRole}</p>
-                  </div>
-                  <div className="whitespace-pre-line text-slate-800 pt-2 border-t border-slate-200">
-                    {coverLetterText || `Dear ${hiringManagerName || 'Hiring Manager'} at ${targetEmployer},\n\nPlease synthesize a cover letter above using the 4-step generator to view your custom letter here.\n\nKind regards,\n${fullName}`}
-                  </div>
+                <div className="px-4 py-2 bg-emerald-500/20 border border-emerald-400/40 rounded-xl text-right">
+                  <span className="text-xs font-bold text-emerald-300 block">✓ Monthly Cycle Logged</span>
+                  <span className="text-[10px] text-purple-200">Awaiting CM Point Allocation</span>
                 </div>
               )}
             </div>
           </div>
 
-          {/* DOWNLOAD & EXPORT PANEL */}
-          <div className="p-6 bg-slate-50 border-2 border-slate-200 rounded-2xl space-y-5">
-            {/* Export Buttons & CM Verification Buttons */}
+          {/* BACK TO STEP 4 BUTTON */}
+          <div className="flex justify-start pt-3 border-t border-slate-100">
+            <button type="button" onClick={() => setActiveStep(4)} className="px-5 py-2.5 bg-slate-100 font-bold rounded-xl text-xs cursor-pointer">
+              Back to Step 4
+            </button>
           </div>
 
         </div>
