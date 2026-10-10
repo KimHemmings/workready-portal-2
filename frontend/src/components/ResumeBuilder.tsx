@@ -109,7 +109,7 @@ const polishTextLocally = (raw: string, contextType: 'summary' | 'duty' | 'gap',
 };
 
 const ResumeBuilder: React.FC<{ maxAttempts?: number }> = () => {
-  const { candidates } = usePortal();
+  const { candidates, addVerificationItem } = usePortal();
   const activeCandidate = candidates[0];
 
   const programType = activeCandidate?.programType || 'workforce_australia';
@@ -118,6 +118,40 @@ const ResumeBuilder: React.FC<{ maxAttempts?: number }> = () => {
   const containsProfanity = (text: string): boolean => {
     const badWordsRegex = /\b(fuck|shit|cunt|bitch|asshole|bastard|dick|piss|bloody hell|slut|dickhead|cock)\b/i;
     return badWordsRegex.test(text);
+  };
+
+  // Monthly Claim & Case Manager Submission States
+  const [hasClaimedThisMonth, setHasClaimedThisMonth] = useState<boolean>(() => {
+    return localStorage.getItem('resume_claimed_this_month') === 'true';
+  });
+  const [submissionStatus, setSubmissionStatus] = useState<'draft' | 'pending' | 'verified'>(() => {
+    return (localStorage.getItem('resume_submission_status') as any) || 'draft';
+  });
+
+  const handleSubmitToCaseManager = (actionType: 'updated' | 'reviewed') => {
+    const timestamp = new Date().toLocaleDateString('en-AU');
+    
+    if (typeof addVerificationItem === 'function') {
+      addVerificationItem({
+        candidateId: activeCandidate?.id || 'c1',
+        candidateName: activeCandidate?.name || 'Alex Mercer',
+        type: 'LMS Micro-credential',
+        title: actionType === 'updated' 
+          ? 'ATS Resume & Cover Letter Updated' 
+          : 'Monthly Resume & Cover Letter Review Confirmed',
+        points: 0, // 0 points until verified & allocated by Case Manager
+        status: 'Pending',
+        details: `Candidate verified active job-readiness document on ${timestamp}. Awaiting Case Manager point allocation.`
+      });
+    }
+
+    localStorage.setItem('resume_claimed_this_month', 'true');
+    localStorage.setItem('resume_submission_status', 'pending');
+    setHasClaimedThisMonth(true);
+    setSubmissionStatus('pending');
+
+    window.dispatchEvent(new Event('storage'));
+    alert('✅ Submitted to Case Manager! Evidence logged in your Activity Trail awaiting CM review and point allocation.');
   };
 
   // 4-Step Navigation
@@ -727,14 +761,19 @@ INSTRUCTIONS:
         </div>
 
         {!isRtoGraduate && (
-          <div className="bg-white/10 px-4 py-2 rounded-xl border border-white/20 text-right shrink-0">
-            <span className="block text-xs font-black text-amber-300">
-              {monthlyUsed} / {MONTHLY_LIMIT} {programType === 'workforce_australia' ? 'PBAS Cycle' : 'Monthly'} Claim Used
-            </span>
-            <span className="text-[10px] text-purple-200 font-bold">
-              {monthlyUsed > 0 ? 'Submitted for CM Verification' : 'Ready to Draft / Review'}
-            </span>
-          </div>
+          hasClaimedThisMonth ? (
+            <div className="bg-purple-900/60 border border-purple-400/30 px-3.5 py-1.5 rounded-xl text-right shrink-0">
+              <span className="text-xs font-extrabold text-amber-300 block">1/1 Monthly Cycle Logged</span>
+              <span className="text-[10px] text-purple-200">
+                {submissionStatus === 'verified' ? '✓ Verified by Case Manager' : 'Awaiting CM Point Allocation'}
+              </span>
+            </div>
+          ) : (
+            <div className="bg-emerald-500/20 border border-emerald-400/30 px-3.5 py-1.5 rounded-xl text-right shrink-0">
+              <span className="text-xs font-extrabold text-emerald-300 block">Monthly Review Available</span>
+              <span className="text-[10px] text-emerald-100">Submit to CM for Evidence Review</span>
+            </div>
+          )
         )}
       </div>
 
