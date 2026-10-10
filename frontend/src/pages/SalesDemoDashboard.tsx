@@ -473,7 +473,7 @@ export function SalesDemoDashboard() {
               </span>
               <h3 className="text-xl font-extrabold text-purple-950">Empowering Candidates & Unburdening Coaching Staff</h3>
               <p className="text-xs text-slate-600 leading-relaxed font-medium">
-                How Straight Up Training turns compliance friction into human momentumâ€”giving candidates confidence, freeing case managers to coach, and protecting executive contract funding.
+                How Straight Up Training turns compliance friction into human momentum — giving candidates candidates confidence, freeing case managers to coach, and protecting executive contract funding.
               </p>
             </div>
 
@@ -491,7 +491,7 @@ export function SalesDemoDashboard() {
                     </span>
                   </div>
                   <p className="text-xs text-slate-600 leading-relaxed font-medium">
-                    Engineered to complementâ€”not replaceâ€”your core database (ReadyTech, JobReady, ESSWeb, or RTO Student Management Systems). Operates as a lightweight, high-touch engagement engine that feeds verified evidence logs directly into your existing reporting workflow.
+                    Engineered to complement — "not replace" — your core database (ReadyTech, JobReady, ESSWeb, or RTO Student Management Systems). Operates as a lightweight, high-touch engagement engine that feeds verified evidence logs directly into your existing reporting workflow.
                   </p>
                 </div>
               </div>
@@ -504,7 +504,7 @@ export function SalesDemoDashboard() {
               <div className="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm space-y-3 flex flex-col justify-between">
                 <div className="space-y-2">
                   <span className="text-[10px] font-extrabold uppercase tracking-wider text-emerald-800 bg-emerald-100 border border-emerald-200 px-2 py-0.5 rounded-md inline-block">
-                    âœ¨ CANDIDATE EXPERIENCE
+                    📱 CANDIDATE EXPERIENCE
                   </span>
                   <h4 className="font-extrabold text-slate-900 text-sm">Candidate Confidence & Digital Inclusion</h4>
                   <p className="text-xs text-slate-600 leading-relaxed">
@@ -638,7 +638,7 @@ export function SalesDemoDashboard() {
                       <td className="p-3.5 text-slate-500 bg-slate-50/50">
                         <div className="flex items-center gap-1.5">
                           <XCircle className="w-4 h-4 text-rose-500 shrink-0" />
-                          <span>15â€“20 minutes of repetitive paperwork per candidate</span>
+                          <span>15-20 minutes of repetitive paperwork per candidate</span>
                         </div>
                       </td>
                       <td className="p-3.5 font-bold text-purple-950 bg-purple-50/30">
