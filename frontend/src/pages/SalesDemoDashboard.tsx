@@ -123,7 +123,7 @@ export function SalesDemoDashboard() {
   return (
     <div className="min-h-screen bg-slate-50 text-slate-900 font-sans pb-12">
       {/* HUMANIZED HEADER BAR */}
-      <header className="bg-gradient-to-r from-[#1e1b4b] via-[#24083b] to-[#1e1b4b] text-white px-6 py-4 border-b border-purple-900/50 shadow-md">
+      <header className="bg-linear-to-r from-[#1e1b4b] via-[#24083b] to-[#1e1b4b] text-white px-6 py-4 border-b border-purple-900/50 shadow-md">
         <div className="max-w-7xl mx-auto flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div className="flex items-center space-x-4">
             <div className="w-10 h-10 bg-white rounded-xl p-1 flex items-center justify-center shadow-sm overflow-hidden shrink-0">
@@ -168,7 +168,7 @@ export function SalesDemoDashboard() {
                 className="px-3.5 py-1.5 bg-purple-800/80 hover:bg-purple-700 border border-purple-400/40 text-white text-xs font-extrabold rounded-xl transition-all flex items-center space-x-1.5 shadow-sm cursor-pointer"
               >
                 <RotateCcw className="w-3.5 h-3.5 text-amber-300" />
-                <span>â†º Reset State</span>
+                <span>↺ Reset State</span>
               </button>
             )}
 
@@ -201,7 +201,7 @@ export function SalesDemoDashboard() {
               onClick={() => setShowProspectTour(true)}
               className="px-3.5 py-1.5 bg-amber-400 hover:bg-amber-300 text-purple-950 font-extrabold text-xs rounded-xl transition-all shadow-sm shrink-0 cursor-pointer"
             >
-              âœ¨ Re-open Guided Walkthrough
+              ✨ Re-open Guided Walkthrough
             </button>
           </div>
         )}
@@ -369,7 +369,7 @@ export function SalesDemoDashboard() {
               </div>
 
               {/* COMMERCIAL IMPACT CARD WITH NO VERTICAL VOID */}
-              <div className="lg:col-span-2 bg-gradient-to-br from-purple-950 via-slate-900 to-purple-950 text-white rounded-2xl p-6 shadow-xl border border-purple-800/50 space-y-5">
+              <div className="lg:col-span-2 bg-linear-to-br from-purple-950 via-slate-900 to-purple-950 text-white rounded-2xl p-6 shadow-xl border border-purple-800/50 space-y-5">
                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-2 border-b border-purple-800/50 pb-4">
                   <div>
                     <span className="text-[10px] font-extrabold uppercase tracking-widest text-emerald-400 bg-emerald-500/20 border border-emerald-500/30 px-2.5 py-1 rounded-full">
@@ -384,7 +384,7 @@ export function SalesDemoDashboard() {
                     className="px-3.5 py-2 bg-white/10 hover:bg-white/20 text-white text-xs font-bold rounded-xl border border-white/20 transition-all flex items-center space-x-1.5 shrink-0 cursor-pointer"
                   >
                     <FileSpreadsheet className="w-3.5 h-3.5 text-amber-300" />
-                    <span>ðŸ” How is this calculated?</span>
+                    <span>🔍 How is this calculated?</span>
                   </button>
                 </div>
 
@@ -478,7 +478,7 @@ export function SalesDemoDashboard() {
             </div>
 
             {/* SOFT COMPARISON: ZERO RIP-AND-REPLACE BANNER */}
-            <div className="bg-gradient-to-r from-purple-50 via-indigo-50/50 to-purple-50 border border-purple-200/80 rounded-2xl p-4 flex flex-col md:flex-row md:items-center justify-between gap-3 shadow-sm">
+            <div className="bg-linear-to-r from-purple-50 via-indigo-50/50 to-purple-50 border border-purple-200/80 rounded-2xl p-4 flex flex-col md:flex-row md:items-center justify-between gap-3 shadow-sm">
               <div className="flex items-start space-x-3">
                 <div className="p-2 bg-purple-950 text-amber-300 rounded-xl shrink-0 mt-0.5">
                   <Layers className="w-5 h-5" />
@@ -516,7 +516,7 @@ export function SalesDemoDashboard() {
                   className="w-full py-2.5 bg-purple-950 hover:bg-purple-900 text-white text-xs font-bold rounded-xl transition-all flex items-center justify-center space-x-1.5 cursor-pointer shadow-sm"
                 >
                   <Maximize2 className="w-3.5 h-3.5 text-amber-300" />
-                  <span>ðŸ“± Experience Candidate Portal</span>
+                  <span>📱 Experience Portal</span>
                 </button>
               </div>
 
@@ -524,7 +524,7 @@ export function SalesDemoDashboard() {
               <div className="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm space-y-3 flex flex-col justify-between">
                 <div className="space-y-2">
                   <span className="text-[10px] font-extrabold uppercase tracking-wider text-amber-900 bg-amber-100 border border-amber-200 px-2 py-0.5 rounded-md inline-block">
-                    ðŸŒ± STAFF EMPOWERMENT
+                    🌱 STAFF EMPOWERMENT
                   </span>
                   <h4 className="font-extrabold text-slate-900 text-sm">Coach Capacity & Operational Freedom</h4>
                   <p className="text-xs text-slate-600 leading-relaxed">
@@ -536,7 +536,7 @@ export function SalesDemoDashboard() {
                   className="w-full py-2.5 bg-purple-950 hover:bg-purple-900 text-white text-xs font-bold rounded-xl transition-all flex items-center justify-center space-x-1.5 cursor-pointer shadow-sm"
                 >
                   <Maximize2 className="w-3.5 h-3.5 text-amber-300" />
-                  <span>âš¡ Experience Coach Dashboard</span>
+                  <span>⚡ Experience Coach Dashboard</span>
                 </button>
               </div>
 
@@ -544,7 +544,7 @@ export function SalesDemoDashboard() {
               <div className="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm space-y-3 flex flex-col justify-between">
                 <div className="space-y-2">
                   <span className="text-[10px] font-extrabold uppercase tracking-wider text-purple-900 bg-purple-100 border border-purple-200 px-2 py-0.5 rounded-md inline-block">
-                    ðŸ›¡ï¸ GOVERNANCE & RISK
+                    🛡️ GOVERNANCE & RISK
                   </span>
                   <h4 className="font-extrabold text-slate-900 text-sm">Contract Integrity & Audit Safeguards</h4>
                   <p className="text-xs text-slate-600 leading-relaxed">
@@ -556,7 +556,7 @@ export function SalesDemoDashboard() {
                   className="w-full py-2.5 bg-purple-950 hover:bg-purple-900 text-white text-xs font-bold rounded-xl transition-all flex items-center justify-center space-x-1.5 cursor-pointer shadow-sm"
                 >
                   <Maximize2 className="w-3.5 h-3.5 text-amber-300" />
-                  <span>ðŸ›¡ Experience Leadership Overview</span>
+                  <span>🛡️ Experience Leadership Overview</span>
                 </button>
               </div>
             </div>
@@ -575,23 +575,23 @@ export function SalesDemoDashboard() {
                 </div>
 
                 <span className="text-[10px] font-extrabold uppercase tracking-widest text-emerald-800 bg-emerald-100 border border-emerald-200 px-3 py-1 rounded-full w-max">
-                  ðŸ”’ 100% Onshore Australian Sovereignty
+                  🔒 100% Onshore Australian Sovereignty
                 </span>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-3 gap-3 text-xs pt-1">
                 <div className="bg-slate-50 border border-slate-200 p-3 rounded-xl space-y-1">
-                  <span className="font-extrabold text-purple-950 block">ðŸ‡¦ðŸ‡º Onshore Data Hosting</span>
+                  <span className="font-extrabold text-purple-950 block">🇦🇺 Onshore Data Hosting</span>
                   <p className="text-[11px] text-slate-600">Candidate PII remains strictly within Australian data centers under Privacy Act requirements.</p>
                 </div>
 
                 <div className="bg-slate-50 border border-slate-200 p-3 rounded-xl space-y-1">
-                  <span className="font-extrabold text-emerald-900 block">ðŸ“œ Immutable Evidence Vault</span>
+                  <span className="font-extrabold text-emerald-900 block">📜 Immutable Evidence Vault</span>
                   <p className="text-[11px] text-slate-600">Every upload and sign-off is permanently archived for instant 1-click auditor CSV export.</p>
                 </div>
 
                 <div className="bg-slate-50 border border-slate-200 p-3 rounded-xl space-y-1">
-                  <span className="font-extrabold text-purple-900 block">ðŸ” Role-Based Access Controls</span>
+                  <span className="font-extrabold text-purple-900 block">🔑 Role-Based Access Controls</span>
                   <p className="text-[11px] text-slate-600">Strict organizational permissions safeguard candidate privacy and maintain compliance continuity.</p>
                 </div>
               </div>
@@ -711,7 +711,7 @@ export function SalesDemoDashboard() {
                 className="px-3 py-1 bg-rose-600 hover:bg-rose-700 text-white font-extrabold text-xs rounded-xl transition-all flex items-center space-x-1 shadow-sm cursor-pointer"
               >
                 <X className="w-4 h-4" />
-                <span>â† Exit Live Sandbox</span>
+                <span>← Exit Live Sandbox</span>
               </button>
             </div>
           </div>
