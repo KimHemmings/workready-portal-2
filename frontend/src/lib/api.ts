@@ -73,6 +73,11 @@ export interface ChatCompletionResponse {
   * Sends messages to the Azure OpenAI /api/chat endpoint and returns the AI text response.
   */
 export async function sendChatMessage(messages: ChatMessage[]): Promise<string> {
-  const response = await apiPost<ChatCompletionResponse>("/chat", { messages });
-  return response.choices[0]?.message?.content ?? "";
+  try {
+    const response = await apiPost<ChatCompletionResponse>("/chat", { messages });
+    return response.choices[0]?.message?.content ?? "";
+  } catch (err: any) {
+    console.warn("Azure OpenAI API call failed, activating offline fallback:", err);
+    return "Sarah is currently operating in offline mode. Focus on detailing your Situation, Task, Action, and Result clearly!";
+  }
 }
