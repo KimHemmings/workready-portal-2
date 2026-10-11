@@ -16,7 +16,8 @@ import {
   HelpCircle,
   ChevronDown,
   ChevronUp,
-  Download
+  Download,
+  Sparkles
 } from 'lucide-react';
 import { usePortal } from '../context/PortalContext';
 
@@ -116,11 +117,15 @@ const analyzeAnswerSTAR = (question: string, answer: string, defaultTip: string)
 };
 
 export const StarInterviewSimulator: React.FC = () => {
-  const { candidates } = usePortal();
+  const { candidates, activeContract, addVerificationItem } = usePortal();
   const activeCandidate = candidates[0];
 
   const programType = activeCandidate?.programType || 'workforce_australia';
   const isRtoGraduate = programType === 'rto_graduate';
+
+  // Dynamic Provider / Co-Branding Title for PDF Report
+  const licenseeName = (activeCandidate as any)?.licenseePartnerName || 
+    (activeContract === 'RTO' ? 'Graduate Pathways Network' : activeContract === 'TtW' ? 'Youth Transition Partner' : 'Workforce Australia Provider');
 
   // Check if candidate has completed an ATS resume draft
   const checkResumeExists = (): boolean => {
@@ -139,6 +144,7 @@ export const StarInterviewSimulator: React.FC = () => {
   const [selectedRole, setSelectedRole] = useState<'Warehouse & Logistics' | 'Retail & Hospitality' | 'Administration & Support' | 'Construction & Trades'>('Warehouse & Logistics');
   const [sessionQuestions, setSessionQuestions] = useState<InterviewQuestion[]>([]);
   const [currentIndex, setCurrentIndex] = useState<number>(0);
+  const [isGeneratingQuestions, setIsGeneratingQuestions] = useState<boolean>(false);
 
   const [showStarGuide, setShowStarGuide] = useState<boolean>(true);
   const [isSpeakingQuestion, setIsSpeakingQuestion] = useState(false);
@@ -227,16 +233,57 @@ export const StarInterviewSimulator: React.FC = () => {
     return selected;
   };
 
-  const initSession = (role: typeof selectedRole) => {
-    const questions = QUESTION_BANK.filter((q) => q.roleCategory === role);
-    const randomized = shuffleAndPick8(questions);
-    setSessionQuestions(randomized);
+  // Requirement 1: Context-Aware Dynamic AI Question Generation
+  const initSession = async (role: typeof selectedRole) => {
+    setIsGeneratingQuestions(true);
+    setSessionQuestions([]);
     setCurrentIndex(0);
     setUserAnswers([]);
     setPerAnswerAnalysis([]);
     setIsSessionFinished(false);
     setEvalReport(null);
     resetResponse();
+
+    const resumeContext = getResumeContext();
+    const isTailoredAvailable = checkResumeExists();
+
+    if (isTailoredAvailable) {
+      try {
+        const prompt = `You are Sarah, an Australian hiring manager conducting a STAR interview for a candidate targeting a ${role} position.
+
+Candidate Profile & Work History Context:
+${resumeContext}
+
+TASK:
+Generate exactly 8 realistic, tailored behavioral STAR interview questions specifically tailored to this candidate's work history, tickets, and chosen industry target (${role}).
+
+FORMAT INSTRUCTIONS:
+Return strictly a valid JSON array of 8 objects. Do not include markdown code blocks or meta commentary outside the JSON array.
+Each object must have the following keys:
+- "id": unique string (e.g. "ai-q1", "ai-q2")
+- "roleCategory": "${role}"
+- "question": string (Clear, tailored STAR scenario question mentioning relevant skills or work context where appropriate)
+- "coachingTip": string (1 concise sentence advising how to structure the STAR answer)`;
+
+        const response = await sendChatMessage([{ role: 'system', content: prompt }]);
+        const cleanJsonText = response.replace(/```json/g, '').replace(/```/g, '').trim();
+        const parsedQuestions = JSON.parse(cleanJsonText);
+
+        if (Array.isArray(parsedQuestions) && parsedQuestions.length >= 8) {
+          setSessionQuestions(parsedQuestions.slice(0, 8));
+          setIsGeneratingQuestions(false);
+          return;
+        }
+      } catch (err) {
+        console.warn("AI dynamic question generation fallback triggered:", err);
+      }
+    }
+
+    // Fallback to static bank if no resume draft or API error
+    const questions = QUESTION_BANK.filter((q) => q.roleCategory === role);
+    const randomized = shuffleAndPick8(questions);
+    setSessionQuestions(randomized);
+    setIsGeneratingQuestions(false);
   };
 
   const stopSpeech = () => {
@@ -351,47 +398,69 @@ export const StarInterviewSimulator: React.FC = () => {
       return;
     }
 
+    const auditVerificationId = evalReport.verificationAuditId || `SUT-STAR-${Math.floor(100000 + Math.random() * 900000)}`;
+
     const htmlContent = `
       <!DOCTYPE html>
       <html>
       <head>
-        <title>STAR Interview Practice Evidence - ${selectedRole}</title>
+        <title>STAR Interview Evidence Audit Report - ${selectedRole}</title>
         <style>
-          @body { font-family: 'Segoe UI', Helvetica, Arial, sans-serif; color: #1e293b; padding: 40px; margin: 0; }
-          .header { display: flex; justify-[#24083b]; align-items: center; justify-content: space-between; border-b: 3px solid #24083b; padding-bottom: 20px; margin-bottom: 25px; }
-          .brand { font-size: 24px; font-weight: 900; color: #24083b; }
-          .sub-brand { font-size: 12px; font-weight: 700; color: #16a34a; text-transform: uppercase; tracking-spacing: 1px; }
-          .meta-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; background: #f8fafc; padding: 15px; border-radius: 12px; border: 1px solid #e2e8f0; margin-bottom: 25px; font-size: 12px; }
-          .meta-item { line-height: 1.5; }
-          .meta-label { font-weight: 800; color: #475569; text-transform: uppercase; font-size: 10px; }
-          .meta-value { font-weight: 700; color: #0f172a; }
-          .section-title { font-size: 14px; font-weight: 900; color: #24083b; text-transform: uppercase; border-bottom: 2px solid #e2e8f0; padding-bottom: 5px; margin-top: 25px; margin-bottom: 12px; }
-          .card { background: #ffffff; border: 1px solid #cbd5e1; padding: 15px; border-radius: 10px; margin-bottom: 12px; }
-          .badge-green { background: #dcfce7; color: #15803d; padding: 4px 10px; border-radius: 20px; font-weight: 800; font-size: 11px; }
-          .badge-purple { background: #f3e8ff; color: #6b21a8; padding: 4px 10px; border-radius: 20px; font-weight: 800; font-size: 11px; }
-          .strength-box { background: #f0fdf4; border-left: 4px solid #16a34a; padding: 12px; margin-bottom: 10px; font-size: 12px; }
-          .support-box { background: #fffbeb; border-left: 4px solid #f59e0b; padding: 12px; margin-bottom: 10px; font-size: 12px; }
-          .footer { margin-top: 40px; border-top: 1px solid #e2e8f0; pt: 15px; font-size: 10px; text-align: center; color: #64748b; }
-          @media print { body { padding: 20px; } }
+          @page { size: A4; margin: 12mm 15mm; }
+          @media print {
+            body { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+            .no-print { display: none !important; }
+          }
+          body { font-family: 'Segoe UI', Helvetica, Arial, sans-serif; color: #1e293b; padding: 20px; margin: 0; background: #ffffff; line-height: 1.5; }
+          .header { display: flex; justify-content: space-between; align-items: center; border-bottom: 3px solid #24083b; padding-bottom: 16px; margin-bottom: 20px; }
+          .brand-box { display: flex; flex-direction: column; }
+          .brand { font-size: 22px; font-weight: 900; color: #24083b; letter-spacing: -0.5px; }
+          .sub-brand { font-size: 11px; font-weight: 800; color: #16a34a; text-transform: uppercase; letter-spacing: 1px; }
+          .partner-box { text-align: right; background: #f8fafc; padding: 8px 14px; border-radius: 8px; border: 1px solid #e2e8f0; }
+          .partner-title { font-size: 11px; font-weight: 800; color: #1e293b; text-transform: uppercase; }
+          .partner-sub { font-size: 10px; color: #64748b; font-weight: 600; }
+          .meta-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; background: #f8fafc; padding: 14px; border-radius: 10px; border: 1px solid #e2e8f0; margin-bottom: 20px; font-size: 11px; }
+          .meta-item { line-height: 1.4; }
+          .meta-label { font-weight: 800; color: #475569; text-transform: uppercase; font-size: 9px; letter-spacing: 0.5px; }
+          .meta-value { font-weight: 700; color: #0f172a; font-size: 12px; }
+          .section-title { font-size: 13px; font-weight: 900; color: #24083b; text-transform: uppercase; border-bottom: 2px solid #e2e8f0; padding-bottom: 4px; margin-top: 22px; margin-bottom: 10px; border-left: 4px solid #a855f7; padding-left: 8px; }
+          .card { background: #ffffff; border: 1px solid #cbd5e1; padding: 12px 14px; border-radius: 8px; margin-bottom: 10px; }
+          .badge-green { background: #dcfce7; color: #15803d; padding: 4px 10px; border-radius: 20px; font-weight: 800; font-size: 11px; border: 1px solid #86efac; }
+          .badge-purple { background: #f3e8ff; color: #6b21a8; padding: 4px 10px; border-radius: 20px; font-weight: 800; font-size: 11px; border: 1px solid #d8b4fe; }
+          .strength-box { background: #f0fdf4; border-left: 4px solid #16a34a; padding: 12px; margin-bottom: 10px; font-size: 11px; border-radius: 0 8px 8px 0; }
+          .support-box { background: #fffbeb; border-left: 4px solid #f59e0b; padding: 12px; margin-bottom: 10px; font-size: 11px; border-radius: 0 8px 8px 0; }
+          .footer { margin-top: 30px; border-top: 1px solid #e2e8f0; pt: 12px; font-size: 9px; text-align: center; color: #64748b; font-weight: 600; }
         </style>
       </head>
       <body>
         <div class="header">
-          <div>
+          <div class="brand-box">
             <div class="brand">STRAIGHT UP TRAINING</div>
             <div class="sub-brand">WorkReady Career & Employability Hub</div>
           </div>
-          <div style="text-align: right;">
-            <span class="${evalReport.pointsAwarded > 0 ? 'badge-green' : 'badge-purple'}">
-              ${evalReport.pointsAwarded > 0 ? '+25 PBAS Points Submitted' : `Session ${evalReport.sessionNumber}/3 Completed`}
-            </span>
+          <div class="partner-box">
+            <div class="partner-title">${licenseeName}</div>
+            <div class="partner-sub">Licensed Delivery Partner</div>
           </div>
+        </div>
+
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+          <span style="color: #24083b; font-size: 14px; font-weight: 900; text-transform: uppercase;">
+            STAR Behavioral Interview Audit Coversheet
+          </span>
+          <span class="${evalReport.sessionNumber >= 3 ? 'badge-green' : 'badge-purple'}">
+            ${evalReport.sessionNumber >= 3 ? '✓ 3/3 Cycle Quota Completed' : `Run \${evalReport.sessionNumber}/3 Completed`}
+          </span>
         </div>
 
         <div class="meta-grid">
           <div class="meta-item">
             <div class="meta-label">Candidate Name</div>
-            <div class="meta-value">${activeCandidate?.name || 'Alex Johnson'}</div>
+            <div class="meta-value">${activeCandidate?.name || 'Alex Mercer'}</div>
+          </div>
+          <div class="meta-item">
+            <div class="meta-label">Audit Verification ID</div>
+            <div class="meta-value" style="font-family: monospace;">${auditVerificationId}</div>
           </div>
           <div class="meta-item">
             <div class="meta-label">Date & Time Stamp</div>
@@ -402,31 +471,35 @@ export const StarInterviewSimulator: React.FC = () => {
             <div class="meta-value">${selectedRole}</div>
           </div>
           <div class="meta-item">
-            <div class="meta-label">Overall STAR Rating</div>
-            <div class="meta-value">${evalReport.scoreText}</div>
+            <div class="meta-label">Overall Rubric Rating</div>
+            <div class="meta-value" style="color: #15803d;">${evalReport.scoreText}</div>
+          </div>
+          <div class="meta-item">
+            <div class="meta-label">Verification Status</div>
+            <div class="meta-value" style="color: #6b21a8;">Pending Case Manager Sign-off</div>
           </div>
         </div>
 
         <div class="section-title">1. Performance Summary & DEWR Audit Log</div>
-        <div style="font-size: 12px; line-height: 1.6; margin-bottom: 20px;">
-          ${evalReport.keyTakeaways.map((t: string) => `<div style="margin-bottom: 6px;">✔ ${t}</div>`).join('')}
+        <div style="font-size: 11px; line-height: 1.6; margin-bottom: 15px;">
+          ${evalReport.keyTakeaways.map((t: string) => `<div style="margin-bottom: 4px;">✔ \${t}</div>`).join('')}
         </div>
 
         <div class="section-title">2. Identified Strengths (What You Did Well)</div>
         <div class="strength-box">
           <strong>Key Strengths Demonstrated:</strong>
-          <ul style="margin: 5px 0 0 0; padding-left: 20px;">
-            <li>High active participation across all 8 behavioral scenarios.</li>
-            <li>Direct personal accountability established using clear first-person ("I") actions.</li>
-            <li>Strong alignment with Australian workplace WHS safety and operational compliance protocols.</li>
+          <ul style="margin: 4px 0 0 0; padding-left: 18px;">
+            <li>Active participation across all 8 behavioral scenarios.</li>
+            <li>Direct personal accountability established using clear first-person ("I") actions in ${evalReport.totalPersonalActions || 0}/8 answers.</li>
+            <li>Outcome focus maintained across ${evalReport.totalOutcomes || 0}/8 scenarios.</li>
           </ul>
         </div>
 
-        <div class="section-title">3. Support & Growth Areas Identified (With Reasoning)</div>
+        <div class="section-title">3. Support & Growth Areas Identified</div>
         <div class="support-box">
-          <strong>Actionable Support Guidance:</strong>
-          <ul style="margin: 5px 0 0 0; padding-left: 20px;">
-            <li><strong>Quantifiable Results:</strong> Expand on the "Result" stage of STAR by giving explicit outcomes (e.g. shift time saved, zero safety incidents, or supervisor praise).</li>
+          <strong>Actionable Coaching Guidance:</strong>
+          <ul style="margin: 4px 0 0 0; padding-left: 18px;">
+            <li><strong>Quantifiable Results:</strong> Expand on the "Result" stage of STAR by giving explicit outcomes (e.g., shift time saved, zero safety incidents).</li>
             <li><strong>Concise Delivery:</strong> Aim for 45–60 second responses during live panel interviews to maintain high engagement.</li>
           </ul>
         </div>
@@ -434,24 +507,33 @@ export const StarInterviewSimulator: React.FC = () => {
         <div class="section-title">4. Question-by-Question Response Audit</div>
         ${evalReport.detailedBreakdown.map((item: any, idx: number) => `
           <div class="card">
-            <div style="font-weight: 800; font-size: 12px; color: #24083b; margin-bottom: 5px;">Scenario #${idx + 1}: "${item.question}"</div>
-            <div style="font-style: italic; font-size: 11px; color: #334155; background: #f8fafc; padding: 8px; border-radius: 6px; margin-bottom: 8px;">"${item.answer}"</div>
-            <div style="font-size: 11px; color: #475569;">
-              <strong>Word Count:</strong> ${item.analysis?.wordCount || 0} words | 
-              <strong>Strengths:</strong> ${item.analysis?.strengths?.join(', ') || 'Standard STAR delivery'} | 
-              <strong>Growth Focus:</strong> ${item.analysis?.missedElements?.join(' | ') || 'None (Complete)'}
+            <div style="font-weight: 800; font-size: 11px; color: #24083b; margin-bottom: 4px;">Scenario #${idx + 1}: "${item.question}"</div>
+            <div style="font-style: italic; font-size: 10.5px; color: #334155; background: #f8fafc; padding: 6px 10px; border-radius: 6px; margin-bottom: 6px;">"\${item.answer}"</div>
+            <div style="font-size: 10px; color: #475569;">
+              <strong>Word Count:</strong> \${item.analysis?.wordCount || 0} words | 
+              <strong>Strengths:</strong> \${item.analysis?.strengths?.join(', ') || 'Standard STAR delivery'} | 
+              <strong>Coaching Focus:</strong> \${item.analysis?.missedElements?.join(' | ') || 'None (Complete)'}
             </div>
           </div>
         `).join('')}
 
         <div class="footer">
-          Official Straight Up Training WorkReady Evidence Document • Generated on ${evalReport.timestamp} • Verification ID: STAR-${Date.now()}
+          Official Straight Up Training WorkReady Audit Evidence Document • Dual-Branded Delivery with ${licenseeName}<br/>
+          Generated on ${evalReport.timestamp} • Verification ID: ${auditVerificationId}
         </div>
 
         <script>
           window.onload = function() {
-            window.print();
+            setTimeout(function() {
+              window.print();
+            }, 300);
           };
+          window.onafterprint = function() {
+            window.close();
+          };
+          setTimeout(function() {
+            window.close();
+          }, 10000);
         </script>
       </body>
       </html>
@@ -513,8 +595,12 @@ export const StarInterviewSimulator: React.FC = () => {
       setMonthlySessionsUsed(attempts.length);
     } catch (err) {}
 
+    const auditVerificationId = `SUT-STAR-${Math.floor(100000 + Math.random() * 900000)}`;
+
     const newRecord = {
       id: `star-${Date.now()}`,
+      verificationId: auditVerificationId,
+      verificationAuditId: auditVerificationId,
       question: `STAR Practice: ${selectedRole} (${rubricScore})`,
       jobRole: selectedRole,
       rubricScore,
@@ -522,16 +608,57 @@ export const StarInterviewSimulator: React.FC = () => {
       summaryReport,
       timestamp: formattedTimestamp,
       date: now.toLocaleDateString('en-AU'),
-      points: 0, // Assigned solely at CM discretion upon evidence review
+      points: 0, // Assigned by CM upon evidence review
       status: isCompletedTrio ? 'Pending CM Verification' : `Session ${newSessionCount}/3 Completed (In Progress)`
     };
 
+    // 1. Sync local history
     try {
       const existingRaw = localStorage.getItem('workready_star_history');
       const existing = existingRaw ? JSON.parse(existingRaw) : [];
       localStorage.setItem('workready_star_history', JSON.stringify([newRecord, ...existing]));
-      window.dispatchEvent(new CustomEvent('starHistoryUpdated', { detail: newRecord }));
     } catch (err) {}
+
+    // 2. Handshake: Log directly to workready_activity_logs for Tab 3 Activity Log
+    try {
+      const existingLogs = localStorage.getItem('workready_activity_logs');
+      const logsArray = existingLogs ? JSON.parse(existingLogs) : [];
+      logsArray.unshift({
+        id: newRecord.id,
+        date: now.toLocaleDateString('en-AU'),
+        timestamp: formattedTimestamp,
+        type: 'Interview',
+        title: `STAR Interview Practice: ${selectedRole} (Run ${newSessionCount}/3)`,
+        verificationId: auditVerificationId,
+        fullName: activeCandidate?.name || 'Alex Mercer',
+        targetRole: selectedRole,
+        hours: '2.5 hrs',
+        points: isCompletedTrio ? 'Pending CM Verification' : `Session ${newSessionCount}/3 Saved`,
+        status: isCompletedTrio ? 'Submitted' : 'In Progress',
+        certType: 'coversheet',
+        reportData: newRecord
+      });
+      localStorage.setItem('workready_activity_logs', JSON.stringify(logsArray));
+    } catch (e) {
+      console.error('Failed to sync STAR activity log:', e);
+    }
+
+    // 3. Handshake: Trigger real-time reactivity across components and tabs
+    window.dispatchEvent(new CustomEvent('starHistoryUpdated', { detail: newRecord }));
+    window.dispatchEvent(new Event('storage'));
+
+    // 4. Handshake: Queue verification item directly in PortalContext Case Manager verification stream
+    if (isCompletedTrio && typeof addVerificationItem === 'function') {
+      addVerificationItem({
+        candidateId: activeCandidate?.id || 'c1',
+        candidateName: activeCandidate?.name || 'Alex Mercer',
+        type: 'STAR Interview',
+        title: `STAR Interview 3-Run Package (${selectedRole})`,
+        points: 0,
+        status: 'Pending',
+        details: `3/3 Monthly STAR interview quota completed on ${formattedTimestamp}. Audit ID: ${auditVerificationId}. Awaiting Case Manager point allocation.`
+      });
+    }
   };
   
 const getResumeContext = () => {
@@ -554,19 +681,16 @@ Target Industry: ${selectedRole}`;
   };
 const handleAskInterviewer = async (e?: React.FormEvent) => {
     if (e) e.preventDefault();
-    const questionText = candidateAnswer.trim();
-    if (!questionText) return;
+    const rawInput = candidateAnswer.trim();
 
-    // 1. Language Censorship Guardrail
-    if (containsProfanity(questionText)) {
+    if (rawInput && containsProfanity(rawInput)) {
       setCandidateAnswer('');
-      alert("Please keep your interview responses professional and free from inappropriate language.");
+      alert("Please keep your interview questions professional and free from inappropriate language.");
       return;
     }
 
-    // 2. API Budget Guardrail (1 Question / Scenario)
     if (questionsAskedInCurrentScenario >= 1) {
-      alert("To stay focused and manage session time, you can ask Sarah 1 clarifying question per scenario.");
+      alert("To manage session time and API budget, you can ask Sarah 1 clarifying question per scenario.");
       return;
     }
 
@@ -574,14 +698,14 @@ const handleAskInterviewer = async (e?: React.FormEvent) => {
     stopSpeech();
     setCandidateAnswer('');
     setCurrentFeedback(null);
-
     setQuestionsAskedInCurrentScenario((prev) => prev + 1);
 
     const currentQ = sessionQuestions[currentIndex] || QUESTION_BANK[0];
+    const userQueryText = rawInput || `Can you give me clarification or a tip on how to approach this scenario: "${currentQ.question}"?`;
 
     const updatedHistory: { role: 'system' | 'user' | 'assistant'; content: string }[] = [
       ...chatTranscript,
-      { role: 'user', content: questionText }
+      { role: 'user', content: userQueryText }
     ];
     setChatTranscript(updatedHistory);
 
@@ -599,9 +723,9 @@ ${resumeContext}
 Current Scenario Question: "${currentQ.question}"
 
 INSTRUCTIONS:
-- Answer the candidate's question DIRECTLY, WARMLY, and HELPFULLY in 1 to 2 short sentences.
-- DO NOT evaluate them on STAR criteria.
-- Simply answer their question in character as Sarah.`
+- Answer the candidate's query DIRECTLY, WARMLY, and HELPFULLY in 2 short sentences.
+- If they asked for clarification or didn't type text, explain what a day on the job looks like or give a hint.
+- DO NOT evaluate them on STAR criteria yet. Answer in character as Sarah.`
         },
         ...updatedHistory
       ]);
@@ -751,23 +875,24 @@ INSTRUCTIONS:
           <div className="space-y-1">
             <div className="flex items-center gap-2">
               <span className="p-1.5 bg-amber-200 text-amber-950 rounded-lg font-black text-xs">
-                ⚠️ Prerequisite Step
+                ⚠️ Recommended Prerequisite Step
               </span>
-              <h4 className="text-sm font-black text-amber-950">Active Resume Context Recommended</h4>
+              <h4 className="text-sm font-black text-amber-950">Build or Upload Your ATS Resume First</h4>
             </div>
             <p className="text-xs text-amber-900 font-medium leading-relaxed">
-              For Sarah (your AI interviewer) to ask candidate-specific questions and reference your target industry accurately, complete your ATS Resume in Step 1.
+              Sarah (your AI Interviewer) provides the highest quality, role-specific questions when your work history, tickets, and target role are active in your ATS Resume Studio.
             </p>
           </div>
           <button
             type="button"
             onClick={() => {
-              const resumeElem = document.getElementById('resume-builder-section');
+              const resumeElem = document.getElementById('resume-builder-section') || document.querySelector('button[onClick*="1"]');
               if (resumeElem) resumeElem.scrollIntoView({ behavior: 'smooth' });
             }}
-            className="px-4 py-2.5 bg-amber-400 hover:bg-amber-300 text-slate-950 font-black text-xs rounded-xl shadow-xs shrink-0 transition-colors cursor-pointer"
+            className="px-5 py-2.5 bg-amber-400 hover:bg-amber-300 text-slate-950 font-black text-xs rounded-xl shadow-md shrink-0 transition-all cursor-pointer flex items-center gap-1.5"
           >
-            Go to ATS Resume Studio →
+            <span>Go to ATS Resume Studio</span>
+            <span>→</span>
           </button>
         </div>
       )}
@@ -782,7 +907,16 @@ INSTRUCTIONS:
             You have completed all 3 practice sessions for this reporting cycle! Your 25 PBAS Points submission is saved in your <strong>Activity Verification Log</strong> for Casey to review.
           </p>
         </div>
+      ) : isGeneratingQuestions ? (
+        <div className="p-12 bg-white border-2 border-purple-200 rounded-2xl text-center space-y-3 shadow-xs">
+          <Sparkles className="w-8 h-8 text-amber-500 animate-spin mx-auto" />
+          <h3 className="text-base font-black text-purple-950">Generating Tailored Behavioral STAR Questions...</h3>
+          <p className="text-xs text-slate-500 max-w-md mx-auto">
+            Reading your active background and experience to construct 8 custom interview scenarios.
+          </p>
+        </div>
       ) : !isSessionFinished ? (
+
         <div className="bg-white border-2 border-slate-200 rounded-2xl p-5 md:p-7 space-y-6 shadow-sm">
           {/* UNIFIED INTERVIEW CHAT CONTAINER */}
           <div className="bg-white border-2 border-slate-200 rounded-2xl shadow-sm overflow-hidden flex flex-col">
@@ -873,47 +1007,49 @@ INSTRUCTIONS:
             {/* 2. DYNAMIC STAR KEYWORD LIGHTING */}
             {(() => {
               const lower = candidateAnswer.toLowerCase();
-              const hasS = /\b(when|while|at|during|role|working at|worked at|job at|coles|woolworths|bunnings|hasting|colles|mine|warehouse|store|office|site|shift|company|business|team|client)\b/i.test(lower);
-              const hasT = /\b(job was|role was|duty was|task|tasked|needed to|had to|responsible for|assigned|required|objective|goal|pick|pack|picking|packing|orders|dispatch|filters|safety|hazard|stock|count|data|customer|phone)\b/i.test(lower);
-              const hasA = /\b(i |my |did this|decided|took|action|changed|implemented|called|talked|handled|resolved|made sure|cleaned|put out|isolated|notified|reported|checked|organized|stepped in)\b/i.test(lower);
-              const hasR = /\b(result|outcome|so that|led to|improved|saved|completed|ensured|fixed|always|on time|slipping|hurt|safe|prevented|achieved|satisfied|praise|zero incidents|passed)\b/i.test(lower);
+              
+              const hasS = /\b(when|while|at|during|working at|worked at|job at|role at|shift at|on site|in my role|at my|supermarket|warehouse|store|office|site|coles|woolworths|bunnings)\b/i.test(lower);
+              const hasT = /\b(responsible for|tasked with|needed to|had to|objective was|my duty|my job was|assigned to|required to|handle|manage|work the)\b/i.test(lower);
+              const hasA = /\b(i |my action|decided to|took action|implemented|handled|isolated|notified|reported|organized|stepped in|made sure|served|cleaned)\b/i.test(lower);
+              const hasR = /\b(result|outcome|led to|improved|saved|completed|ensured|fixed|zero incidents|approved|resolved|achieved|so that|could get|happy|satisfied|prevented|on time|able to|so we)\b/i.test(lower);
 
               return (
                 <div className="bg-slate-100 p-3 border-t border-slate-200 space-y-2">
-                  <div className="text-[11px] font-black text-slate-700 uppercase tracking-wider">
-                    STAR Answer Structure Guide (Live Detection):
+                  <div className="text-[11px] font-black text-slate-700 uppercase tracking-wider flex items-center justify-between">
+                    <span>STAR Answer Structure Guide (Live Detection):</span>
+                    <span className="text-[10px] text-purple-900 font-bold">Type terms for S, T, A, & R to complete all 4 cards</span>
                   </div>
                   <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-2 text-xs">
-                    <div className={`p-2.5 rounded-xl border transition-all ${hasS ? 'bg-purple-900 text-white border-purple-800 shadow-sm' : 'bg-white text-slate-600 border-slate-200'}`}>
+                    <div className={`p-2.5 rounded-xl border transition-all ${hasS ? 'bg-purple-900 text-white border-purple-800 shadow-xs' : 'bg-white text-slate-600 border-slate-200'}`}>
                       <div className="font-black flex justify-between items-center">
                         <span>S — Situation</span>
                         {hasS && <span className="text-amber-300 font-bold">✓ Detected</span>}
                       </div>
-                      <p className="text-[11px] opacity-90 mt-0.5">Prompt: "When I was working at..."</p>
+                      <p className="text-[11px] opacity-90 mt-0.5">e.g. "When I was working at..."</p>
                     </div>
 
-                    <div className={`p-2.5 rounded-xl border transition-all ${hasT ? 'bg-indigo-900 text-white border-indigo-800 shadow-sm' : 'bg-white text-slate-600 border-slate-200'}`}>
+                    <div className={`p-2.5 rounded-xl border transition-all ${hasT ? 'bg-indigo-900 text-white border-indigo-800 shadow-xs' : 'bg-white text-slate-600 border-slate-200'}`}>
                       <div className="font-black flex justify-between items-center">
                         <span>T — Task</span>
                         {hasT && <span className="text-amber-300 font-bold">✓ Detected</span>}
                       </div>
-                      <p className="text-[11px] opacity-90 mt-0.5">Prompt: "My responsibility was to..."</p>
+                      <p className="text-[11px] opacity-90 mt-0.5">e.g. "My job was to handle..."</p>
                     </div>
 
-                    <div className={`p-2.5 rounded-xl border transition-all ${hasA ? 'bg-amber-400 text-slate-950 border-amber-300 font-bold shadow-sm' : 'bg-white text-slate-600 border-slate-200'}`}>
+                    <div className={`p-2.5 rounded-xl border transition-all ${hasA ? 'bg-amber-400 text-slate-950 border-amber-300 font-bold shadow-xs' : 'bg-white text-slate-600 border-slate-200'}`}>
                       <div className="font-black flex justify-between items-center">
                         <span>A — Action</span>
                         {hasA && <span className="text-slate-950 font-black">✓ Detected</span>}
                       </div>
-                      <p className="text-[11px] opacity-90 mt-0.5">Prompt: "I took action by..."</p>
+                      <p className="text-[11px] opacity-90 mt-0.5">e.g. "I made sure that..."</p>
                     </div>
 
-                    <div className={`p-2.5 rounded-xl border transition-all ${hasR ? 'bg-emerald-600 text-white border-emerald-500 shadow-sm' : 'bg-white text-slate-600 border-slate-200'}`}>
+                    <div className={`p-2.5 rounded-xl border transition-all ${hasR ? 'bg-emerald-600 text-white border-emerald-500 shadow-xs' : 'bg-white text-slate-600 border-slate-200'}`}>
                       <div className="font-black flex justify-between items-center">
                         <span>R — Result</span>
                         {hasR && <span className="text-amber-300 font-bold">✓ Detected</span>}
                       </div>
-                      <p className="text-[11px] opacity-90 mt-0.5">Prompt: "The positive outcome was..."</p>
+                      <p className="text-[11px] opacity-90 mt-0.5">e.g. "so that customers left happy"</p>
                     </div>
                   </div>
                 </div>
@@ -951,15 +1087,14 @@ INSTRUCTIONS:
                   <button
                     type="button"
                     onClick={handleAskInterviewer}
-                    disabled={!candidateAnswer.trim() || questionsAskedInCurrentScenario >= 1}
+                    disabled={questionsAskedInCurrentScenario >= 1}
                     className="px-4 py-2.5 bg-amber-400 hover:bg-amber-300 disabled:opacity-50 text-slate-950 font-black text-xs rounded-xl shadow-xs border border-amber-300 transition-all cursor-pointer flex items-center gap-1.5"
                   >
-                    <span>💬 Ask Sarah a Question</span>
+                    <span>💬 Ask Sarah a Question / Get Scenario Hint</span>
                     {questionsAskedInCurrentScenario >= 1 && (
                       <span className="bg-slate-900 text-white text-[9px] px-1.5 py-0.5 rounded font-bold">1/1 Used</span>
                     )}
                   </button>
-
                   <button
                     type="button"
                     onClick={handleNextQuestion}
