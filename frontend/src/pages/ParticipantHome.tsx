@@ -44,10 +44,11 @@ interface ActivityLog {
   type: 'Job Search' | 'Interview' | 'Job Placement' | 'LMS Module' | 'Employability Assessment' | 'Resume Tailoring';
   title: string;
   reference: string;
-  points: number;
-  hours: number; // Universal Activity Hours Logged
+  points: number | string;
+  hours: number;
   status: 'Pending Verification' | 'Verified';
   date: string;
+  certType?: string;
   reportData?: any;
 }
 
@@ -144,46 +145,81 @@ const isIea = isDes;
   useEffect(() => {
     const syncStarActivityLog = (e?: any) => {
       try {
-        let recordToSync = e?.detail;
+        // 1. Sync General Activity Logs (ResumeBuilder submissions)
+        const storedLogs = localStorage.getItem('workready_activity_logs');
+        let mappedLogs: ActivityLog[] = [];
+        if (storedLogs) {
+          const parsed: any[] = JSON.parse(storedLogs);
+          mappedLogs = parsed.map((item) => ({
+            id: item.id || `log-${Math.random()}`,
+            type: item.type || 'Job Search',
+            title: item.title || 'Activity Submission',
+            reference: item.verificationId || `SUT-${Math.floor(10000 + Math.random() * 90000)}`,
+            points: item.points || 'Pending CM Verification',
+            hours: parseFloat(item.hours) || 1.0,
+            status: item.status === 'Verified' ? 'Verified' : 'Pending Verification',
+            date: item.date || new Date().toLocaleDateString('en-AU'),
+            certType: item.certType,
+            reportData: item
+          }));
+        }
 
+        // 2. Sync STAR Simulator History
+        let recordToSync = e?.detail;
         if (!recordToSync) {
           const storedHistory = localStorage.getItem('workready_star_history');
-          if (!storedHistory) return;
-          const parsedRecords = JSON.parse(storedHistory);
-          if (parsedRecords.length === 0) return;
-          recordToSync = parsedRecords[0];
+          if (storedHistory) {
+            const parsedRecords = JSON.parse(storedHistory);
+            if (parsedRecords.length > 0) {
+              recordToSync = parsedRecords[0];
+            }
+          }
         }
 
         setActivities((prev) => {
-          const exists = prev.some((act) => act.id === recordToSync.id);
-          if (exists) return prev;
+          let updated = [...prev];
 
-          const pointsAwarded = recordToSync.points || 25;
+          // Merge stored activity logs
+          mappedLogs.forEach((log) => {
+            if (!updated.some((act) => act.id === log.id)) {
+              updated.unshift(log);
+            }
+          });
 
-          const newStarActivity: ActivityLog = {
-            id: recordToSync.id,
-            type: recordToSync.type || (recordToSync.question?.includes('Resume') ? 'Resume Tailoring' : 'Interview'),
-            title: recordToSync.question || recordToSync.title || `STAR Practice: ${recordToSync.jobRole}`,
-            reference: `EVID-${recordToSync.id.slice(-6).toUpperCase()}`,
-            points: pointsAwarded,
-            hours: 2.5, // Standard 2.5 Hours for 3-run STAR Interview simulator
-            status: recordToSync.status?.includes('Pending') ? 'Pending Verification' : 'Verified',
-            date: recordToSync.date || new Date().toLocaleDateString('en-AU'),
-            reportData: recordToSync
-          };
+          // Merge STAR record if present
+          if (recordToSync && !updated.some((act) => act.id === recordToSync.id)) {
+            const pointsAwarded = recordToSync.points || 25;
+            const newStarActivity: ActivityLog = {
+              id: recordToSync.id,
+              type: recordToSync.type || (recordToSync.question?.includes('Resume') ? 'Resume Tailoring' : 'Interview'),
+              title: recordToSync.question || recordToSync.title || `STAR Practice: ${recordToSync.jobRole}`,
+              reference: `EVID-${recordToSync.id.slice(-6).toUpperCase()}`,
+              points: pointsAwarded,
+              hours: 2.5,
+              status: recordToSync.status?.includes('Pending') ? 'Pending Verification' : 'Verified',
+              date: recordToSync.date || new Date().toLocaleDateString('en-AU'),
+              reportData: recordToSync
+            };
+            updated.unshift(newStarActivity);
+          }
 
-          return [newStarActivity, ...prev];
+          return updated;
         });
       } catch (err) {
-        console.error('Error syncing STAR history to main log', err);
+        console.error('Error syncing history to main activity log', err);
       }
     };
 
     syncStarActivityLog();
 
+    window.addEventListener('storage', syncStarActivityLog);
     window.addEventListener('starHistoryUpdated', syncStarActivityLog);
-    return () => window.removeEventListener('starHistoryUpdated', syncStarActivityLog);
+    return () => {
+      window.removeEventListener('storage', syncStarActivityLog);
+      window.removeEventListener('starHistoryUpdated', syncStarActivityLog);
+    };
   }, []);
+  
 const [showOtherActivityModal, setShowOtherActivityModal] = useState<boolean>(false);
   const [otherActivityType, setOtherActivityType] = useState<string>('Paid Work / Training');
   const [otherActivityTitle, setOtherActivityTitle] = useState<string>('');
@@ -388,8 +424,8 @@ const [showOtherActivityModal, setShowOtherActivityModal] = useState<boolean>(fa
   };
 
   const pendingPoints = activities
-    .filter((a) => a.status === 'Pending Verification')
-    .reduce((sum, a) => sum + a.points, 0);
+  .filter((a) => a.status === 'Pending Verification')
+  .reduce((sum, a) => sum + (typeof a.points === 'number' ? a.points : 0), 0);
 
   const totalLoggedHours = activities.reduce((sum, a) => sum + (a.hours || 0), 0);
 
@@ -1136,11 +1172,158 @@ const [showOtherActivityModal, setShowOtherActivityModal] = useState<boolean>(fa
                               )}
                             </td>
                             <td className="p-3 text-right">
-                              {act.reportData ? (
+                              {act.certType === 'coversheet' || act.reportData?.certType === 'coversheet' ? (
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    const logItem = act.reportData || act;
+                                    const printWindow = window.open('', '_blank');
+                                    if (!printWindow) return alert('Please allow pop-ups to open the official cover sheet.');
+
+                                    const candidateName = logItem.fullName || logItem.candidateName || activeCandidate?.name || 'Alex Mercer';
+                                    const roleTitle = logItem.targetRole || logItem.jobRole || 'Warehouse & Logistics Operations Assistant';
+                                    const contractFramework = logItem.activeContract || activeContract || 'Workforce Australia';
+                                    const verId = logItem.verificationId || `SUT-AUD-${Date.now()}`;
+                                    const timestamp = logItem.timestamp || `${new Date().toLocaleDateString('en-AU')} at ${new Date().toLocaleTimeString('en-AU', { hour: '2-digit', minute: '2-digit' })}`;
+
+                                    const actionText = logItem.actionType === 'reviewed'
+                                      ? '✓ Monthly Review & Accuracy Confirmation (No Document Edits Required)'
+                                      : logItem.actionType === 'updated'
+                                      ? '🚀 Active Version Revision / Updated Document Submission'
+                                      : '🆕 New Initial Job Application Package Created';
+
+                                    const scopeText = logItem.docScope === 'resume'
+                                      ? 'Resume Document Only'
+                                      : logItem.docScope === 'cover'
+                                      ? 'Cover Letter Document Only'
+                                      : 'Full Job Application Package (Resume & Cover Letter)';
+
+                                    const htmlContent = `
+                                      <!DOCTYPE html>
+                                      <html>
+                                        <head>
+                                          <title>DEWR Audit Evidence Coversheet - ${candidateName}</title>
+                                          <style>
+                                            @page { size: A4; margin: 12mm 15mm; }
+                                            @media print {
+                                              body { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+                                              .no-print { display: none !important; }
+                                            }
+                                            body { font-family: 'Segoe UI', Arial, sans-serif; color: #0f172a; margin: 0; padding: 24px; background: #ffffff; line-height: 1.5; }
+                                            .header-branding { display: flex; justify-content: space-between; align-items: center; border-bottom: 3px solid #581c87; padding-bottom: 16px; margin-bottom: 20px; }
+                                            .brand-logo { font-size: 20px; font-weight: 900; color: #3b0764; letter-spacing: -0.5px; }
+                                            .brand-sub { font-size: 10px; font-weight: 800; color: #7e22ce; text-transform: uppercase; letter-spacing: 1px; }
+                                            .licensee-box { text-align: right; background: #f8fafc; padding: 8px 14px; border-radius: 8px; border: 1px solid #e2e8f0; }
+                                            .licensee-title { font-size: 11px; font-weight: 800; color: #1e293b; text-transform: uppercase; }
+                                            .licensee-sub { font-size: 10px; color: #64748b; font-weight: 600; }
+                                            .doc-title { font-size: 15px; font-weight: 900; color: #3b0764; text-transform: uppercase; margin-bottom: 16px; letter-spacing: 0.5px; border-left: 4px solid #a855f7; padding-left: 10px; }
+                                            .meta-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; background: #faf5ff; padding: 16px; border-radius: 12px; border: 1px solid #e9d5ff; margin-bottom: 20px; }
+                                            .field-label { font-size: 10px; font-weight: 800; color: #6b21a8; text-transform: uppercase; letter-spacing: 0.5px; }
+                                            .field-value { font-size: 13px; font-weight: 700; color: #0f172a; margin-top: 2px; }
+                                            .section-block { margin-bottom: 20px; background: #ffffff; border: 1px solid #cbd5e1; border-radius: 10px; padding: 16px; }
+                                            .section-head { font-size: 11px; font-weight: 900; text-transform: uppercase; color: #3b0764; border-bottom: 1px solid #f1f5f9; padding-bottom: 6px; margin-bottom: 10px; }
+                                            .audit-row { display: flex; justify-content: space-between; padding: 6px 0; border-bottom: 1px dashed #e2e8f0; font-size: 12px; }
+                                            .audit-row:last-child { border-bottom: none; }
+                                            .audit-key { font-weight: 600; color: #475569; }
+                                            .audit-val { font-weight: 800; color: #0f172a; text-align: right; }
+                                            .badge-pending { background: #fef3c7; color: #92400e; padding: 3px 8px; border-radius: 12px; font-size: 10px; font-weight: 800; }
+                                            .stamp-box { margin-top: 24px; border: 2px dashed #166534; background: #f0fdf4; padding: 14px; text-align: center; border-radius: 10px; color: #166534; }
+                                            .stamp-title { font-size: 12px; font-weight: 900; letter-spacing: 1px; text-transform: uppercase; }
+                                            .stamp-sub { font-size: 10px; font-weight: 600; margin-top: 4px; color: #15803d; }
+                                            .footer-note { margin-top: 24px; border-top: 1px solid #e2e8f0; padding-top: 10px; text-align: center; font-size: 9px; color: #94a3b8; font-weight: 600; }
+                                          </style>
+                                        </head>
+                                        <body>
+                                          <div class="header-branding">
+                                            <div>
+                                              <div class="brand-logo">STRAIGHT UP TRAINING</div>
+                                              <div class="brand-sub">WorkReady Job-Readiness & Compliance Engine</div>
+                                            </div>
+                                            <div class="licensee-box">
+                                              <div class="licensee-title">${licenseeName}</div>
+                                              <div class="licensee-sub">Licensed Delivery Partner Verification</div>
+                                            </div>
+                                          </div>
+
+                                          <div class="doc-title">Official Job-Readiness Verification Coversheet</div>
+
+                                          <div class="meta-grid">
+                                            <div>
+                                              <div class="field-label">Candidate Name</div>
+                                              <div class="field-value">${candidateName}</div>
+                                            </div>
+                                            <div>
+                                              <div class="field-label">Verification Audit ID</div>
+                                              <div class="field-value">${verId}</div>
+                                            </div>
+                                            <div>
+                                              <div class="field-label">Target Role / Industry</div>
+                                              <div class="field-value">${roleTitle}</div>
+                                            </div>
+                                            <div>
+                                              <div class="field-label">Date & Time Stamped</div>
+                                              <div class="field-value">${timestamp}</div>
+                                            </div>
+                                          </div>
+
+                                          <div class="section-block">
+                                            <div class="section-head">Audit Action & Document Scope Breakdown</div>
+                                            <div class="audit-row">
+                                              <span class="audit-key">Verification Action:</span>
+                                              <span class="audit-val">${actionText}</span>
+                                            </div>
+                                            <div class="audit-row">
+                                              <span class="audit-key">Document Scope Included:</span>
+                                              <span class="audit-val">${scopeText}</span>
+                                            </div>
+                                            <div class="audit-row">
+                                              <span class="audit-key">Funding / Operational Stream:</span>
+                                              <span class="audit-val">${contractFramework}</span>
+                                            </div>
+                                            <div class="audit-row">
+                                              <span class="audit-key">PBAS / Compliance Point Status:</span>
+                                              <span class="audit-val"><span class="badge-pending">Pending CM Review & Point Allocation</span></span>
+                                            </div>
+                                          </div>
+
+                                          <div class="stamp-box">
+                                            <div class="stamp-title">OFFICIALLY LOGGED FOR CASE MANAGER VERIFICATION</div>
+                                            <div class="stamp-sub">Audit Evidence Record ID: ${verId} • Stamped ${timestamp}</div>
+                                          </div>
+
+                                          <div class="footer-note">
+                                            Straight Up Training Compliance System • DEWR & DSS Guidelines Compliant • Generated for Case Manager Verification and Audit File Log
+                                          </div>
+
+                                          <script>
+                                            window.onload = function() {
+                                              setTimeout(function() {
+                                                window.print();
+                                              }, 300);
+                                            };
+                                            window.onafterprint = function() {
+                                              window.close();
+                                            };
+                                            setTimeout(function() {
+                                              window.close();
+                                            }, 10000);
+                                          </script>
+                                        </body>
+                                      </html>
+                                    `;
+
+                                    printWindow.document.write(htmlContent);
+                                    printWindow.document.close();
+                                  }}
+                                  className="px-3 py-1 bg-purple-100 hover:bg-purple-200 text-purple-950 font-bold text-xs rounded-lg transition-all cursor-pointer inline-flex items-center gap-1"
+                                >
+                                  📄 View Coversheet
+                                </button>
+                              ) : act.reportData ? (
                                 <button
                                   type="button"
                                   onClick={() => setSelectedReport(act.reportData)}
-                                  className="px-2.5 py-1 bg-purple-50 hover:bg-purple-100 text-purple-800 border border-purple-200 rounded-lg text-[11px] font-bold inline-flex items-center gap-1 transition-all"
+                                  className="px-2.5 py-1 bg-purple-50 hover:bg-purple-100 text-purple-800 border border-purple-200 rounded-lg text-[11px] font-bold inline-flex items-center gap-1 transition-all cursor-pointer"
                                 >
                                   <FileText className="w-3.5 h-3.5 text-purple-700" /> {act.type === 'Job Search' ? 'View Receipt' : 'View Certificate'}
                                 </button>
@@ -1332,7 +1515,19 @@ const [showOtherActivityModal, setShowOtherActivityModal] = useState<boolean>(fa
                           Official Verification Record • Straight Up Training WorkReady Portal • Code: SUT-AUDIT-${selectedReport.id || Math.floor(100000 + Math.random() * 900000)}
                         </div>
 
-                        <script>window.onload = function() { setTimeout(function(){ window.print(); }, 300); };</script>
+                        <script>
+  window.onload = function() {
+    setTimeout(function() {
+      window.print();
+    }, 300);
+  };
+  window.onafterprint = function() {
+    window.close();
+  };
+  setTimeout(function() {
+    window.close();
+  }, 10000);
+</script>
                       </body>
                       </html>
                     `;
