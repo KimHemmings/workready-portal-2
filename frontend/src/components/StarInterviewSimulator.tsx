@@ -355,33 +355,34 @@ Each object must have the following keys:
     recognition.interimResults = true;
     recognition.lang = 'en-AU';
 
-    // Capture baseline text at mic toggle start
-    baseAnswerRef.current = candidateAnswer;
+    let baseText = candidateAnswer;
 
     recognition.onresult = (e: any) => {
       let interimTranscript = '';
-      let finalChunk = '';
+      let finalTranscript = '';
 
       for (let i = e.resultIndex; i < e.results.length; i++) {
         const transcript = e.results[i][0].transcript;
         if (e.results[i].isFinal) {
-          finalChunk += transcript + ' ';
+          finalTranscript += transcript + ' ';
         } else {
           interimTranscript += transcript;
         }
       }
 
-      if (finalChunk) {
-        baseAnswerRef.current = (baseAnswerRef.current + ' ' + finalChunk).replace(/\s+/g, ' ');
+      if (finalTranscript) {
+        baseText = baseText ? `${baseText} ${finalTranscript}`.trim() : finalTranscript.trim();
       }
 
-      const combined = (baseAnswerRef.current + ' ' + interimTranscript).replace(/\s+/g, ' ').trim();
+      const combined = baseText ? `${baseText} ${interimTranscript}`.trim() : interimTranscript.trim();
       setCandidateAnswer(combined);
     };
 
     recognition.onerror = () => stopAndResetMic();
     recognition.onend = () => {
-      setIsListening(false);
+      if (isListening) {
+        try { recognition.start(); } catch (e) {}
+      }
     };
 
     recognitionRef.current = recognition;
@@ -701,11 +702,7 @@ const handleAskInterviewer = async (e?: React.FormEvent) => {
     setQuestionsAskedInCurrentScenario((prev) => prev + 1);
 
     const currentQ = sessionQuestions[currentIndex] || QUESTION_BANK[0];
-    
-    // Explicit direct text query vs scenario hint prompt distinction
-    const userQueryText = rawInput
-      ? rawInput
-      : `Can you share a quick "Day-in-the-Life" hint or workplace scenario detail to help me structure my STAR response for: "${currentQ.question}"?`;
+    const userQueryText = rawInput || `Can you give me clarification or a tip on how to approach this scenario: "${currentQ.question}"?`;
 
     const updatedHistory: { role: 'system' | 'user' | 'assistant'; content: string }[] = [
       ...chatTranscript,
@@ -719,7 +716,7 @@ const handleAskInterviewer = async (e?: React.FormEvent) => {
       const reply = await sendChatMessage([
         {
           role: "system",
-          content: `You are Sarah, a warm, encouraging Australian female hiring manager interviewing for a ${selectedRole} role.
+          content: `You are Sarah, a warm, encouraging Australian female hiring manager conducting an interview for a ${selectedRole} position.
 
 Candidate Resume Context:
 ${resumeContext}
@@ -727,9 +724,9 @@ ${resumeContext}
 Current Scenario Question: "${currentQ.question}"
 
 INSTRUCTIONS:
-- If candidate typed a custom draft or question ("${rawInput}"), respond directly to their specific question with concise coaching.
-- If candidate asked for a tip/hint without typing text, provide a brief, practical "Day-in-the-Life" workplace detail for an Australian site.
-- Keep the response warm, professional, and limited to 2-3 sentences max.`
+- Answer the candidate's query DIRECTLY, WARMLY, and HELPFULLY in 2 short sentences.
+- If they asked for clarification or didn't type text, explain what a day on the job looks like or give a hint.
+- DO NOT evaluate them on STAR criteria yet. Answer in character as Sarah.`
         },
         ...updatedHistory
       ]);
@@ -738,11 +735,9 @@ INSTRUCTIONS:
       speakQuestion(reply);
     } catch (err) {
       console.error("Failed to ask interviewer:", err);
-      const fallbackMsg = "Sarah is briefly offline. Focus on stating the Situation, Task, Action, and Result clearly!";
-      setChatTranscript((prev) => [...prev, { role: 'assistant', content: fallbackMsg }]);
     }
   };
-  
+
   const handleAnswerSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
