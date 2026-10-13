@@ -152,9 +152,10 @@ export const StarInterviewSimulator: React.FC = () => {
   const [candidateAnswer, setCandidateAnswer] = useState('');
   const [isListening, setIsListening] = useState(false);
   const recognitionRef = useRef<any>(null);
+  const isListeningRef = useRef<boolean>(false);
   const baseAnswerRef = useRef<string>('');
 
-// Track questions asked per current scenario to protect Azure OpenAI API budget
+  // Track questions asked per current scenario to protect Azure OpenAI API budget
   const [questionsAskedInCurrentScenario, setQuestionsAskedInCurrentScenario] = useState<number>(0);
 
   // Australian & Workplace Profanity Censorship Filter
@@ -325,6 +326,8 @@ Each object must have the following keys:
 };
 
   const stopAndResetMic = () => {
+    isListeningRef.current = false;
+    setIsListening(false);
     if (recognitionRef.current) {
       try {
         recognitionRef.current.stop();
@@ -332,7 +335,6 @@ Each object must have the following keys:
       } catch (err) {}
       recognitionRef.current = null;
     }
-    setIsListening(false);
   };
 
   const resetResponse = () => {
@@ -345,17 +347,27 @@ Each object must have the following keys:
   };
 
   const toggleMic = () => {
-    if (isListening) return stopAndResetMic();
+    if (isListeningRef.current) {
+      stopAndResetMic();
+      return;
+    }
 
     const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
-    if (!SpeechRecognition) return alert("Voice dictation is not supported in this browser.");
+    if (!SpeechRecognition) {
+      alert("Voice dictation is not supported in this browser.");
+      return;
+    }
+
+    stopSpeech();
 
     const recognition = new SpeechRecognition();
     recognition.continuous = true;
     recognition.interimResults = true;
     recognition.lang = 'en-AU';
 
-    let baseText = candidateAnswer;
+    baseAnswerRef.current = candidateAnswer;
+    isListeningRef.current = true;
+    setIsListening(true);
 
     recognition.onresult = (e: any) => {
       let interimTranscript = '';
@@ -371,23 +383,39 @@ Each object must have the following keys:
       }
 
       if (finalTranscript) {
-        baseText = baseText ? `${baseText} ${finalTranscript}`.trim() : finalTranscript.trim();
+        const separator = baseAnswerRef.current && !baseAnswerRef.current.endsWith(' ') ? ' ' : '';
+        baseAnswerRef.current = `${baseAnswerRef.current}${separator}${finalTranscript}`.trim();
       }
 
-      const combined = baseText ? `${baseText} ${interimTranscript}`.trim() : interimTranscript.trim();
+      const prefix = baseAnswerRef.current ? `${baseAnswerRef.current} ` : '';
+      const combined = `${prefix}${interimTranscript}`.trim();
       setCandidateAnswer(combined);
     };
 
-    recognition.onerror = () => stopAndResetMic();
+    recognition.onerror = (event: any) => {
+      console.warn("Speech recognition error:", event.error);
+      if (event.error === 'not-allowed' || event.error === 'service-not-allowed') {
+        stopAndResetMic();
+      }
+    };
+
     recognition.onend = () => {
-      if (isListening) {
-        try { recognition.start(); } catch (e) {}
+      if (isListeningRef.current) {
+        try {
+          recognition.start();
+        } catch (err) {
+          stopAndResetMic();
+        }
       }
     };
 
     recognitionRef.current = recognition;
-    recognition.start();
-    setIsListening(true);
+    try {
+      recognition.start();
+    } catch (err) {
+      console.error("Failed to start speech recognition:", err);
+      stopAndResetMic();
+    }
   };
 
  const downloadEvidencePDF = () => {
@@ -685,7 +713,6 @@ const handleAskInterviewer = async (e?: React.FormEvent) => {
     const rawInput = candidateAnswer.trim();
 
     if (rawInput && containsProfanity(rawInput)) {
-      setCandidateAnswer('');
       alert("Please keep your interview questions professional and free from inappropriate language.");
       return;
     }
@@ -697,12 +724,11 @@ const handleAskInterviewer = async (e?: React.FormEvent) => {
 
     stopAndResetMic();
     stopSpeech();
-    setCandidateAnswer('');
     setCurrentFeedback(null);
     setQuestionsAskedInCurrentScenario((prev) => prev + 1);
 
     const currentQ = sessionQuestions[currentIndex] || QUESTION_BANK[0];
-    const userQueryText = rawInput || `Can you give me clarification or a tip on how to approach this scenario: "${currentQ.question}"?`;
+    const userQueryText = rawInput || `Could you give me a tip on how to approach this scenario or share what a typical day looks like on the job?`;
 
     const updatedHistory: { role: 'system' | 'user' | 'assistant'; content: string }[] = [
       ...chatTranscript,
@@ -724,9 +750,10 @@ ${resumeContext}
 Current Scenario Question: "${currentQ.question}"
 
 INSTRUCTIONS:
-- Answer the candidate's query DIRECTLY, WARMLY, and HELPFULLY in 2 short sentences.
-- If they asked for clarification or didn't type text, explain what a day on the job looks like or give a hint.
-- DO NOT evaluate them on STAR criteria yet. Answer in character as Sarah.`
+- The candidate is asking you for guidance or clarification: "${userQueryText}".
+- Answer the candidate's query DIRECTLY, WARMLY, and HELPFULLY in 2 concise sentences.
+- If they asked for a hint or didn't provide specific questions, clarify what a day on the job looks like or give an actionable tip.
+- DO NOT evaluate them on STAR criteria yet. Answer warmly in character as Sarah.`
         },
         ...updatedHistory
       ]);
@@ -773,20 +800,22 @@ INSTRUCTIONS:
       const aiResponse = await sendChatMessage([
         {
           role: "system",
-          content: `You are Sarah, a warm, encouraging Australian female hiring manager conducting a STAR interview for a ${selectedRole} role.
+          content: `You are Sarah, a warm, encouraging Australian female hiring manager evaluating a candidate's STAR interview response for a ${selectedRole} position.
+
 Candidate Resume Context:
 ${resumeContext}
 
 Current Scenario Question: "${currentQ.question}"
 
 INSTRUCTIONS:
-- The candidate is asking YOU (Sarah) a question or asking for clarification regarding the scenario.
-- Answer the candidate's question DIRECTLY and HELPFULLY in 1-2 friendly, conversational sentences.
-- DO NOT press the candidate for more information or push them to expand yet. Simply answer their question clearly, give them a helpful hint if requested, and warmly invite them to share their response when ready.`
+- Evaluate the candidate's answer using the STAR methodology (Situation, Task, Action, Result).
+- Provide constructive, encouraging feedback in 2-3 friendly sentences.
+- Commend clear personal ownership ("I" statements) and specific positive results.
+- Give 1 actionable tip to make their answer stand out to a hiring panel.`
         },
         {
           role: "user",
-          content: `Interview Question: "${currentQ.question}"\nCandidate's Answer: "${candidateAnswer}"`
+          content: `Scenario Question: "${currentQ.question}"\nCandidate's Response: "${candidateAnswer}"`
         }
       ]);
 
@@ -1009,10 +1038,10 @@ INSTRUCTIONS:
             {(() => {
               const lower = candidateAnswer.toLowerCase();
               
-              const hasS = /\b(when|while|at|during|working at|worked at|job at|role at|shift at|on site|in my role|at my|supermarket|warehouse|store|office|site|coles|woolworths|bunnings)\b/i.test(lower);
-              const hasT = /\b(responsible for|tasked with|needed to|had to|objective was|my duty|my job was|assigned to|required to|handle|manage|work the)\b/i.test(lower);
-              const hasA = /\b(i |my action|decided to|took action|implemented|handled|isolated|notified|reported|organized|stepped in|made sure|served|cleaned)\b/i.test(lower);
-              const hasR = /\b(result|outcome|led to|improved|saved|completed|ensured|fixed|zero incidents|approved|resolved|achieved|so that|could get|happy|satisfied|prevented|on time|able to|so we)\b/i.test(lower);
+              const hasS = /\b(when|while|at|during|working at|worked at|job at|role at|shift at|on site|in my role|at my|supermarket|warehouse|store|office|site|coles|woolworths|bunnings|we had|at my last|the site was|there was|in a situation|one time|previously|back when)\b/i.test(lower);
+              const hasT = /\b(responsible for|tasked with|needed to|had to|objective was|my duty|my job was|assigned to|required to|handle|manage|work the|was asked to|goal was|had a deadline|expected to|supposed to|problem was)\b/i.test(lower);
+              const hasA = /\b(i|i've|i'd|i'm|my action|decided to|took action|implemented|handled|isolated|notified|reported|organized|stepped in|made sure|served|cleaned|i talked to|i spoke with|i used|could get|so we|happy to|called|checked|assisted|helped|addressed)\b/i.test(lower);
+              const hasR = /\b(result|outcome|led to|improved|saved|completed|ensured|fixed|zero incidents|approved|resolved|achieved|so that|could get|happy|satisfied|prevented|on time|able to|so we|in the end|as a result|turned out|which meant|finished|successful|customer was pleased)\b/i.test(lower);
 
               return (
                 <div className="bg-slate-100 p-3 border-t border-slate-200 space-y-2">
@@ -1071,7 +1100,7 @@ INSTRUCTIONS:
 
                 <button
                   type="button"
-                  onClick={stopAndResetMic}
+                  onClick={toggleMic}
                   className={`absolute right-2.5 top-2.5 px-3 py-1.5 rounded-lg text-xs font-black border transition-all cursor-pointer flex items-center gap-1 ${
                     isListening
                       ? 'bg-red-100 text-red-700 border-red-300 animate-pulse'
