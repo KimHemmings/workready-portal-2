@@ -72,15 +72,25 @@ const QUESTION_BANK: InterviewQuestion[] = [
 
 const MONTHLY_SESSION_LIMIT = 3;
 
+// Shared Universal STAR Regex Patterns (Used by both Live Cards and Final Analysis)
+export const STAR_REGEX = {
+  S: /\b(when|while|at|during|working at|worked at|job at|role at|shift at|on site|in my role|at my|supermarket|warehouse|store|office|site|coles|woolworths|bunnings|we had|at my last|the site was|there was|in a situation|one time|previously|back when|in this scenario)\b/i,
+  T: /\b(responsible for|tasked with|needed to|had to|objective was|my duty|my job was|assigned to|required to|handle|manage|work the|was asked to|goal was|had a deadline|expected to|supposed to|problem was|aim was)\b/i,
+  A: /\b(i|i've|i'd|i'm|my action|decided to|took action|implemented|handled|isolated|notified|reported|organized|stepped in|made sure|served|cleaned|i talked to|i spoke with|i used|could get|so we|happy to|called|checked|assisted|helped|addressed|demonstrated)\b/i,
+  R: /\b(result|outcome|led to|improved|saved|completed|ensured|fixed|zero incidents|approved|resolved|achieved|so that|could get|happy|satisfied|prevented|on time|able to|so we|in the end|as a result|turned out|which meant|finished|successful|customer was pleased|boss was happy)\b/i,
+  Safety: /\b(safety|whs|ppe|hazard|risk|policy|procedure|protocol|guideline)\b/i,
+  Team: /\b(we|our|team|supervisor|manager|colleague|co-worker|crew)\b/i
+};
+
 const analyzeAnswerSTAR = (question: string, answer: string, defaultTip: string) => {
   const text = answer.trim();
   const lower = text.toLowerCase();
   const words = text.split(/\s+/).filter(Boolean);
 
-  const hasPersonalAction = /\b(i|my|me|myself)\b/i.test(lower);
-  const hasTeamContext = /\b(we|our|team|supervisor|manager|colleague|co-worker)\b/i.test(lower);
-  const hasOutcome = /\b(result|outcome|led to|resolved|fixed|learned|improved|approved|saved|completed|ensured|so that)\b/i.test(lower);
-  const hasSafety = /\b(safety|whs|ppe|hazard|risk|policy|procedure|protocol)\b/i.test(lower);
+  const hasPersonalAction = STAR_REGEX.A.test(lower);
+  const hasTeamContext = STAR_REGEX.Team.test(lower);
+  const hasOutcome = STAR_REGEX.R.test(lower);
+  const hasSafety = STAR_REGEX.Safety.test(lower);
 
   const missedElements: string[] = [];
   const strengths: string[] = [];
@@ -101,9 +111,9 @@ const analyzeAnswerSTAR = (question: string, answer: string, defaultTip: string)
 
   let personalizedHint = '';
   if (missedElements.length > 0) {
-    personalizedHint = `💡 Tips to Strengthen Your Answer:\n• ${missedElements.join('\n• ')}\n\n📌 Pro Coaching Hint: ${defaultTip}`;
+    personalizedHint = `💡 Tips to Strengthen Your Answer:\n${missedElements.join('\n')}\n\n📌 Pro Coaching Hint: ${defaultTip}`;
   } else {
-    personalizedHint = `🌟 Excellent Answer Structure!\n• Great job taking personal ownership and sharing the outcome.\n\n📌 Pro Coaching Hint: ${defaultTip}`;
+    personalizedHint = `🌟 Excellent Answer Structure!\nGreat job taking personal ownership and sharing the outcome.\n\n📌 Pro Coaching Hint: ${defaultTip}`;
   }
 
   return {
@@ -155,7 +165,12 @@ export const StarInterviewSimulator: React.FC = () => {
   const isListeningRef = useRef<boolean>(false);
   const baseAnswerRef = useRef<string>('');
 
-  // Track questions asked per current scenario to protect Azure OpenAI API budget
+  // Decoupled "Ask Sarah" States
+  const [showAskSarahModal, setShowAskSarahModal] = useState<boolean>(false);
+  const [customSarahQuestion, setCustomSarahQuestion] = useState<string>('');
+  const [isAskingSarah, setIsAskingSarah] = useState<boolean>(false);
+
+  // Track questions asked per current scenario to protect Azure OpenAI API budget (1 question per scenario cap)
   const [questionsAskedInCurrentScenario, setQuestionsAskedInCurrentScenario] = useState<number>(0);
 
   // Australian & Workplace Profanity Censorship Filter
@@ -235,7 +250,7 @@ export const StarInterviewSimulator: React.FC = () => {
     return selected;
   };
 
-  // Requirement 1: Context-Aware Dynamic AI Question Generation
+  // Requirement 1: Universal Adaptive Dynamic Scenario Generation
   const initSession = async (role: typeof selectedRole) => {
     setIsGeneratingQuestions(true);
     setSessionQuestions([]);
@@ -251,20 +266,27 @@ export const StarInterviewSimulator: React.FC = () => {
 
     if (isTailoredAvailable) {
       try {
-        const prompt = `You are Sarah, an Australian hiring manager conducting a STAR interview for a candidate targeting a ${role} position.
+        const prompt = `You are Sarah, an Australian hiring manager conducting a professional behavioral interview for an entry-to-mid level position in "${role}".
 
-Candidate Profile & Work History Context:
+CANDIDATE DOSSIER:
+Target Role Selected: "${role}"
+Candidate Resume Background:
 ${resumeContext}
 
-TASK:
-Generate exactly 8 realistic, tailored behavioral STAR interview questions specifically tailored to this candidate's work history, tickets, and chosen industry target (${role}).
+CRITICAL RULES FOR ADAPTIVE SCENARIO GENERATION:
+1. STRICT INDUSTRY GROUNDING: All 8 scenarios MUST take place within the context of "${role}". You are hiring for "${role}", NOT the candidate's previous field.
+2. TRANSFERABLE SKILLS BRIDGING:
+   - If the candidate's background is in a DIFFERENT industry (e.g., they have warehouse experience but applied for Retail & Hospitality), formulate questions grounded in the "${role}" workplace that invite them to draw on transferable strengths (e.g. pressure handling, stock counts during peak customer rushes, reliability, problem-solving, teamwork, or safety).
+   - If the candidate has DIRECT experience in "${role}", formulate scenarios testing industry-specific standards and workflows.
+   - If the candidate has MINIMAL or NO formal work experience, formulate accessible behavioral scenarios where they can draw upon school, community, volunteer, or general life experiences.
+3. REALISTIC AUSTRALIAN WORKPLACE CONTEXT: Use natural, realistic Australian workplace situations.
 
 FORMAT INSTRUCTIONS:
 Return strictly a valid JSON array of 8 objects. Do not include markdown code blocks or meta commentary outside the JSON array.
 Each object must have the following keys:
 - "id": unique string (e.g. "ai-q1", "ai-q2")
 - "roleCategory": "${role}"
-- "question": string (Clear, tailored STAR scenario question mentioning relevant skills or work context where appropriate)
+- "question": string (Clear, tailored STAR scenario question set firmly in the ${role} workplace)
 - "coachingTip": string (1 concise sentence advising how to structure the STAR answer)`;
 
         const response = await sendChatMessage([{ role: 'system', content: prompt }]);
@@ -708,27 +730,29 @@ Key Skills: ${draft.skills || 'Not provided'}`;
     return `Candidate Name: ${activeCandidate?.name || 'Alex Mercer'}
 Target Industry: ${selectedRole}`;
   };
-const handleAskInterviewer = async (e?: React.FormEvent) => {
-    if (e) e.preventDefault();
-    const rawInput = candidateAnswer.trim();
-
-    if (rawInput && containsProfanity(rawInput)) {
-      alert("Please keep your interview questions professional and free from inappropriate language.");
-      return;
-    }
-
+// Handlers for Decoupled "Ask Sarah" (1 question per scenario budget + profanity censorship strictly enforced)
+  const handleAskInterviewer = async (explicitQuestion?: string | unknown) => {
     if (questionsAskedInCurrentScenario >= 1) {
       alert("To manage session time and API budget, you can ask Sarah 1 clarifying question per scenario.");
       return;
     }
 
+    const currentQ = sessionQuestions[currentIndex] || QUESTION_BANK[0];
+    const questionToSend = typeof explicitQuestion === 'string' ? explicitQuestion.trim() : "";
+    // Strictly enforce profanity filter on custom question input
+    if (questionToSend && containsProfanity(questionToSend)) {
+      alert("Please keep your interview questions professional and free from inappropriate language.");
+      return;
+    }
+
+    const userQueryText = questionToSend || "Could you give me a tip on what you look for in this scenario and what a typical day on the job looks like?";
+
     stopAndResetMic();
     stopSpeech();
-    setCurrentFeedback(null);
+    setIsAskingSarah(true);
+    setShowAskSarahModal(false);
+    setCustomSarahQuestion('');
     setQuestionsAskedInCurrentScenario((prev) => prev + 1);
-
-    const currentQ = sessionQuestions[currentIndex] || QUESTION_BANK[0];
-    const userQueryText = rawInput || `Could you give me a tip on how to approach this scenario or share what a typical day looks like on the job?`;
 
     const updatedHistory: { role: 'system' | 'user' | 'assistant'; content: string }[] = [
       ...chatTranscript,
@@ -744,16 +768,16 @@ const handleAskInterviewer = async (e?: React.FormEvent) => {
           role: "system",
           content: `You are Sarah, a warm, encouraging Australian female hiring manager conducting an interview for a ${selectedRole} position.
 
+Current Scenario Question: "${currentQ.question}"
 Candidate Resume Context:
 ${resumeContext}
 
-Current Scenario Question: "${currentQ.question}"
-
 INSTRUCTIONS:
-- The candidate is asking you for guidance or clarification: "${userQueryText}".
+- The candidate is asking you for clarification: "${userQueryText}".
 - Answer the candidate's query DIRECTLY, WARMLY, and HELPFULLY in 2 concise sentences.
-- If they asked for a hint or didn't provide specific questions, clarify what a day on the job looks like or give an actionable tip.
-- DO NOT evaluate them on STAR criteria yet. Answer warmly in character as Sarah.`
+- DO NOT ask the candidate for more information.
+- DO NOT evaluate or critique the candidate's story yet.
+- Simply answer their question or provide a friendly scenario hint, and warmly encourage them to share their response when ready.`
         },
         ...updatedHistory
       ]);
@@ -762,6 +786,8 @@ INSTRUCTIONS:
       speakQuestion(reply);
     } catch (err) {
       console.error("Failed to ask interviewer:", err);
+    } finally {
+      setIsAskingSarah(false);
     }
   };
 
@@ -883,11 +909,28 @@ INSTRUCTIONS:
             )}
 
             <div className="flex items-center gap-2 pl-1">
-              <label className="text-xs font-extrabold text-purple-200 shrink-0">Industry:</label>
+              <label className="text-xs font-extrabold text-purple-200 shrink-0 flex items-center gap-1">
+                <span>Industry:</span>
+                {(userAnswers.length > 0 || currentIndex > 0) && (
+                  <span title="Locked during active interview" className="inline-flex items-center">
+                    <Lock className="w-3 h-3 text-amber-300" />
+                  </span>
+                )}
+              </label>
               <select
                 value={selectedRole}
+                disabled={userAnswers.length > 0 || currentIndex > 0}
                 onChange={(e) => setSelectedRole(e.target.value as any)}
-                className="p-2 bg-white text-[#24083b] font-black rounded-xl text-xs outline-none shadow-md"
+                title={
+                  (userAnswers.length > 0 || currentIndex > 0)
+                    ? "Industry is locked once an interview session begins"
+                    : "Select target industry"
+                }
+                className={`p-2 bg-white text-[#24083b] font-black rounded-xl text-xs outline-none shadow-md transition-all ${
+                  (userAnswers.length > 0 || currentIndex > 0)
+                    ? 'opacity-70 cursor-not-allowed border-2 border-purple-400/40 bg-slate-100 text-slate-700'
+                    : 'cursor-pointer hover:bg-slate-50'
+                }`}
               >
                 <option value="Warehouse & Logistics">Warehouse & Logistics</option>
                 <option value="Retail & Hospitality">Retail & Hospitality</option>
@@ -1112,19 +1155,69 @@ INSTRUCTIONS:
                 </button>
               </div>
 
+              {/* Dedicated Custom Question Popover/Field */}
+              {showAskSarahModal && (
+                <div className="p-3 bg-amber-50/90 border-2 border-amber-400 rounded-xl space-y-2 animate-fadeIn shadow-xs">
+                  <div className="flex items-center justify-between">
+                    <span className="text-[11px] font-black text-amber-950 flex items-center gap-1.5">
+                      <span>💬 Ask Sarah a Clarifying Question (1 per scenario):</span>
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => setShowAskSarahModal(false)}
+                      className="text-xs font-black text-slate-400 hover:text-slate-700 cursor-pointer px-1"
+                    >
+                      ✕
+                    </button>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="text"
+                      value={customSarahQuestion}
+                      onChange={(e) => setCustomSarahQuestion(e.target.value)}
+                      placeholder="e.g. Can I use an example from volunteer work? or What tools are used?"
+                      className="flex-1 p-2 bg-white border border-amber-300 rounded-lg text-xs font-medium text-slate-900 outline-none focus:border-amber-500"
+                    />
+                    <button
+                      type="button"
+                      disabled={!customSarahQuestion.trim() || isAskingSarah}
+                      onClick={() => handleAskInterviewer(customSarahQuestion)}
+                      className="px-4 py-2 bg-slate-950 hover:bg-slate-800 disabled:opacity-50 text-amber-400 font-black text-xs rounded-lg shadow-xs cursor-pointer shrink-0"
+                    >
+                      {isAskingSarah ? 'Asking...' : 'Send to Sarah →'}
+                    </button>
+                  </div>
+                </div>
+              )}
+
               <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2.5">
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2 flex-wrap">
+                  {/* Option 1: Quick Scenario Hint */}
                   <button
                     type="button"
-                    onClick={handleAskInterviewer}
-                    disabled={questionsAskedInCurrentScenario >= 1}
-                    className="px-4 py-2.5 bg-amber-400 hover:bg-amber-300 disabled:opacity-50 text-slate-950 font-black text-xs rounded-xl shadow-xs border border-amber-300 transition-all cursor-pointer flex items-center gap-1.5"
+                    onClick={() => handleAskInterviewer()}
+                    disabled={questionsAskedInCurrentScenario >= 1 || isAskingSarah}
+                    className="px-3 py-2 bg-amber-100 hover:bg-amber-200 disabled:opacity-40 text-amber-950 font-black text-xs rounded-xl border border-amber-300 transition-all cursor-pointer flex items-center gap-1.5 shadow-2xs"
                   >
-                    <span>💬 Ask Sarah a Question / Get Scenario Hint</span>
+                    <span>💡 Get Scenario Hint</span>
                     {questionsAskedInCurrentScenario >= 1 && (
                       <span className="bg-slate-900 text-white text-[9px] px-1.5 py-0.5 rounded font-bold">1/1 Used</span>
                     )}
                   </button>
+
+                  {/* Option 2: Ask Custom Question */}
+                  <button
+                    type="button"
+                    onClick={() => setShowAskSarahModal(!showAskSarahModal)}
+                    disabled={questionsAskedInCurrentScenario >= 1 || isAskingSarah}
+                    className="px-3 py-2 bg-amber-400 hover:bg-amber-300 disabled:opacity-40 text-slate-950 font-black text-xs rounded-xl shadow-xs border border-amber-300 transition-all cursor-pointer flex items-center gap-1.5"
+                  >
+                    <span>💬 Ask Sarah a Question</span>
+                    {questionsAskedInCurrentScenario >= 1 && (
+                      <span className="bg-slate-900 text-white text-[9px] px-1.5 py-0.5 rounded font-bold">1/1 Used</span>
+                    )}
+                  </button>
+
                   <button
                     type="button"
                     onClick={handleNextQuestion}
