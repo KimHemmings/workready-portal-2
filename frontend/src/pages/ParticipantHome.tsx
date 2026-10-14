@@ -6,6 +6,7 @@ import React, { useState, useEffect } from 'react';
 import LmsModuleHub from '../components/LmsModuleHub';
 import ResumeBuilder from '../components/ResumeBuilder';
 import StarInterviewSimulator from '../components/StarInterviewSimulator';
+import PersonalGoalStudio, { type GoalStudioSubmitData } from '../components/PersonalGoalStudio';
 import { usePortal } from '../context/PortalContext';
 import { 
   Briefcase, 
@@ -70,17 +71,8 @@ const isIea = isDes;
   const [verifiedPoints, setVerifiedPoints] = useState<number>(activeCandidate?.pbasVerified ?? 45);
   const targetPoints = activeCandidate?.pbasTarget ?? 100;
 
-  // Fear-Free Goal & Motivation Wizard State
-  const [reviewSubmitted, setReviewSubmitted] = useState<boolean>(false);
-  const [wizardStep, setWizardStep] = useState<number>(1);
-  const [myWhyMotivation, setMyWhyMotivation] = useState<string>('Creating a stable routine and financial security for my family');
-  const [customWhyInput, setCustomWhyInput] = useState<string>('');
-  const [actionPathway, setActionPathway] = useState<string>('balanced');
-  const [primaryGoal, setPrimaryGoal] = useState<string>('Apply for 6–8 warehouse or logistics roles and complete 1 skill module');
-  
-  // Support Needed Selection
-  const [supportTag, setSupportTag] = useState<string>('');
-  const [supportNote, setSupportNote] = useState<string>('');
+  // Active Barriers for LMS Gating
+  const [activeBarriers, setActiveBarriers] = useState<string[]>([]);
 
   // 5-Day PBAS Expiry Alert Modal State
   const [showPbasExpiryModal, setShowPbasExpiryModal] = useState<boolean>(() => {
@@ -219,7 +211,7 @@ const isIea = isDes;
       window.removeEventListener('starHistoryUpdated', syncStarActivityLog);
     };
   }, []);
-  
+
 const [showOtherActivityModal, setShowOtherActivityModal] = useState<boolean>(false);
   const [otherActivityType, setOtherActivityType] = useState<string>('Paid Work / Training');
   const [otherActivityTitle, setOtherActivityTitle] = useState<string>('');
@@ -286,38 +278,38 @@ const [showOtherActivityModal, setShowOtherActivityModal] = useState<boolean>(fa
     }
   };
 
-  const handleAssessmentGoalSubmit = () => {
-    const finalWhy = customWhyInput.trim() || myWhyMotivation;
-    const scoresSummary = Object.entries(pillarScores)
+  const handleGoalStudioSave = (data: GoalStudioSubmitData) => {
+    setActiveBarriers(data.selectedBarriers);
+
+    const scoresSummary = Object.entries(data.pillarScores)
       .map(([key, val]) => `${key.split(' ')[0]}: ${val}/5`)
       .join(', ');
 
     const newAct: ActivityLog = {
       id: Date.now().toString(),
       type: 'Employability Assessment',
-      title: `Goal & Motivation Studio — [${finalWhy}]`,
+      title: `Goal & Motivation Studio — [${data.myWhyMotivation}]`,
       reference: `GOAL-${new Date().getMonth() + 1}-2026`,
-      points: 10,
+      points: 'Pending CM Verification',
       hours: 1.0,
       status: 'Pending Verification',
       date: new Date().toLocaleDateString('en-AU'),
       reportData: {
         candidateName: activeCandidate?.name || 'Alex Mercer',
         jobRole: 'Employability Self-Assessment & Personal Roadmap',
-        timestamp: new Date().toLocaleString('en-AU'),
+        timestamp: `${new Date().toLocaleDateString('en-AU')} at ${new Date().toLocaleTimeString('en-AU', { hour: '2-digit', minute: '2-digit' })}`,
         rubricScore: 'Personal Goal Agreement Completed',
         feedbackNotes: [
-          `Personal "Why" Motivation: "${finalWhy}"`,
-          `Monthly Target Goal: "${primaryGoal}"`,
-          `Direct Case Manager Support Request: ${supportTag ? `${supportTag} — ${supportNote || 'No additional note'}` : 'None requested this period'}`,
-          `5-Pillar Confidence Rating: ${scoresSummary}`
+          `Personal "Why" Motivation: "${data.myWhyMotivation}"`,
+          `Monthly Target Goal: "${data.primaryGoal}"`,
+          `Direct Support Request: ${data.supportTag ? `${data.supportTag} —${data.supportNote || 'No note'}` : 'None requested'}`,
+          `5-Pillar Confidence: ${scoresSummary}`,
+          `Identified Focus Barriers: ${data.selectedBarriers.length > 0 ? data.selectedBarriers.join(', ') : 'None'}`
         ]
       }
     };
 
     setActivities((prev) => [newAct, ...prev]);
-    setMyWhyMotivation(finalWhy);
-    setReviewSubmitted(true);
   };
 
   const handleSubmitJobSearch = (e: React.FormEvent) => {
@@ -533,289 +525,11 @@ const [showOtherActivityModal, setShowOtherActivityModal] = useState<boolean>(fa
       {/* MAIN CONTAINER */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6 space-y-6">
         
-        {/* GUIDED FEAR-FREE GOAL & MOTIVATION STUDIO */}
-        <section className="bg-linear-to-r from-purple-950 via-[#24083b] to-purple-900 text-white rounded-2xl p-6 shadow-xl border border-purple-800 relative overflow-hidden">
-          {!reviewSubmitted ? (
-            <div className="space-y-5 relative z-10 text-xs">
-              
-              {/* Step Navigation Header */}
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-purple-800/80 pb-3">
-                <div className="flex items-center gap-3">
-                  <div className="p-2.5 bg-amber-400 text-slate-950 rounded-xl font-black shadow-md shrink-0">
-                    <Target className="w-5 h-5" />
-                  </div>
-                  <div>
-                    <h2 className="text-sm font-black text-white uppercase tracking-wider">My Personal Goal & Motivation Studio</h2>
-                    <p className="text-xs text-purple-200 font-medium mt-0.5">
-                      There are no wrong answers here. Reflect on what motivates you, set your monthly pace, and let us know if you need assistance.
-                    </p>
-                  </div>
-                </div>
-
-                {reviewSubmitted && (
-                  <span className="text-[11px] font-black bg-amber-300 text-slate-950 px-3 py-1 rounded-full shadow-sm shrink-0">
-                    Submitted for CM Point Sign-off
-                  </span>
-                )}
-              </div>
-
-              {/* Wizard Step Stepper Badges */}
-              <div className="flex items-center gap-2">
-                {[
-                  { num: 1, label: '1. What Motivates Me' },
-                  { num: 2, label: '2. My Monthly Action Focus' },
-                  { num: 3, label: '3. Confidence & Support Request' }
-                ].map((s) => (
-                  <button
-                    key={s.num}
-                    type="button"
-                    onClick={() => setWizardStep(s.num)}
-                    className={`px-3 py-1.5 rounded-xl font-extrabold text-[11px] transition-all ${
-                      wizardStep === s.num
-                        ? 'bg-amber-300 text-slate-950 shadow-md'
-                        : 'bg-purple-900/60 text-purple-200 hover:bg-purple-800/80'
-                    }`}
-                  >
-                    {s.label}
-                  </button>
-                ))}
-              </div>
-
-              {/* STEP 1: MOTIVATION SEEDS */}
-              {wizardStep === 1 && (
-                <div className="space-y-3 bg-purple-900/40 p-4 rounded-xl border border-purple-700/50">
-                  <label className="text-xs font-bold text-amber-300 flex items-center gap-1.5">
-                    <Heart className="w-4 h-4 fill-amber-300" /> What is your main personal reason for wanting to find the right job?
-                  </label>
-
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-                    {[
-                      'Creating a stable routine and financial security for my family',
-                      'Building independence and getting my driver license or vehicle',
-                      'Learning practical, hands-on skills in a supportive team environment',
-                      'Re-entering the workforce and rebuilding my self-confidence'
-                    ].map((option) => (
-                      <button
-                        key={option}
-                        type="button"
-                        onClick={() => {
-                          setMyWhyMotivation(option);
-                          setCustomWhyInput('');
-                        }}
-                        className={`p-3 rounded-xl border text-left font-medium transition-all ${
-                          myWhyMotivation === option && !customWhyInput
-                            ? 'bg-white text-slate-950 border-amber-300 font-bold shadow-md'
-                            : 'bg-purple-950/80 text-purple-100 border-purple-700/60 hover:bg-purple-900'
-                        }`}
-                      >
-                        {option}
-                      </button>
-                    ))}
-                  </div>
-
-                  <div className="pt-2">
-                    <label className="block text-[11px] font-bold text-purple-200 mb-1">Or write your own personal motivation:</label>
-                    <input
-                      type="text"
-                      value={customWhyInput}
-                      onChange={(e) => setCustomWhyInput(e.target.value)}
-                      placeholder="e.g. Saving for a house deposit and growing my career in logistics..."
-                      className="w-full p-2.5 bg-purple-950/90 border border-purple-700 text-purple-100 rounded-xl text-xs font-medium outline-none focus:ring-2 focus:ring-amber-300"
-                    />
-                  </div>
-
-                  <div className="flex justify-end pt-2">
-                    <button
-                      type="button"
-                      onClick={() => setWizardStep(2)}
-                      className="px-5 py-2 bg-amber-300 text-slate-950 font-black rounded-xl hover:bg-amber-400 transition-all"
-                    >
-                      Next: Choose Action Focus →
-                    </button>
-                  </div>
-                </div>
-              )}
-
-              {/* STEP 2: MONTHLY ACTION PATHWAY */}
-              {wizardStep === 2 && (
-                <div className="space-y-3 bg-purple-900/40 p-4 rounded-xl border border-purple-700/50">
-                  <label className="text-xs font-bold text-amber-300 flex items-center gap-1.5">
-                    <Target className="w-4 h-4" /> How would you prefer to structure your efforts this month?
-                  </label>
-
-                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                    {[
-                      { id: 'balanced', title: 'Balanced Pathway', desc: 'Apply for 6–8 roles + 1 skill module + 1 interview practice' },
-                      { id: 'jobsearch', title: 'Active Job Seeker', desc: 'Focus heavily on tailoring resumes & submitting job applications' },
-                      { id: 'skillfirst', title: 'Skill & Confidence Builder', desc: 'Focus first on short LMS safety modules & interview prep' }
-                    ].map((path) => (
-                      <button
-                        key={path.id}
-                        type="button"
-                        onClick={() => {
-                          setActionPathway(path.id);
-                          setPrimaryGoal(path.desc);
-                        }}
-                        className={`p-3.5 rounded-xl border text-left transition-all ${
-                          actionPathway === path.id
-                            ? 'bg-white text-slate-950 border-amber-300 shadow-md font-bold'
-                            : 'bg-purple-950/80 text-purple-100 border-purple-700/60 hover:bg-purple-900'
-                        }`}
-                      >
-                        <span className="block font-black text-xs mb-1">{path.title}</span>
-                        <span className="text-[11px] font-normal leading-relaxed opacity-90">{path.desc}</span>
-                      </button>
-                    ))}
-                  </div>
-
-                  <div className="flex justify-between pt-2">
-                    <button
-                      type="button"
-                      onClick={() => setWizardStep(1)}
-                      className="px-4 py-2 bg-purple-900 text-purple-200 font-bold rounded-xl"
-                    >
-                      ← Back
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setWizardStep(3)}
-                      className="px-5 py-2 bg-amber-300 text-slate-950 font-black rounded-xl hover:bg-amber-400"
-                    >
-                      Next: Confidence & Support Request →
-                    </button>
-                  </div>
-                </div>
-              )}
-
-              {/* STEP 3: 5-PILLAR CONFIDENCE & DIRECT CASE MANAGER MESSAGE */}
-              {wizardStep === 3 && (
-                <div className="space-y-4 bg-purple-900/40 p-4 rounded-xl border border-purple-700/50">
-                  <div>
-                    <label className="text-xs font-bold text-amber-300 mb-2 flex items-center gap-1.5">
-                      <Smile className="w-4 h-4" /> 1. Rate your current confidence across key pillars (1 = Would like support, 5 = Confident):
-                    </label>
-
-                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-3">
-                      {Object.keys(pillarScores).map((pillar) => (
-                        <div key={pillar} className="bg-purple-950/80 p-2.5 rounded-xl border border-purple-700/60 flex flex-col justify-between space-y-2">
-                          <span className="text-[11px] font-bold text-purple-200 leading-tight">
-                            {pillar}
-                          </span>
-                          <div className="flex items-center gap-1">
-                            {[1, 2, 3, 4, 5].map((score) => (
-                              <button
-                                key={score}
-                                type="button"
-                                onClick={() => setPillarScores((prev) => ({ ...prev, [pillar]: score }))}
-                                className={`flex-1 py-1 rounded-lg text-xs font-bold border transition-all ${
-                                  pillarScores[pillar] === score
-                                    ? 'bg-emerald-500 text-slate-950 border-emerald-400 ring-2 ring-emerald-400/40 font-black shadow-md'
-                                    : 'bg-purple-900/40 text-purple-200 border-purple-700/50 hover:bg-purple-800'
-                                }`}
-                              >
-                                {score}
-                              </button>
-                            ))}
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* DIRECT CASE MANAGER SUPPORT REQUEST */}
-                  <div className="pt-2 border-t border-purple-800/80 space-y-3">
-                    <label className="text-xs font-bold text-amber-300 flex items-center gap-1.5">
-                      <MessageSquare className="w-4 h-4" /> 2. Do you need direct assistance or funding support from Casey (Case Manager)?
-                    </label>
-
-                    <div className="flex flex-wrap gap-2">
-                      {[
-                        '👔 Interview Clothes / Work Attire',
-                        '🚗 Driver License Lessons & Fuel',
-                        '🛠️ Work Boots & PPE Safety Gear',
-                        '🚌 Public Transport Card',
-                        '📄 White Card / License Course Fee'
-                      ].map((tag) => (
-                        <button
-                          key={tag}
-                          type="button"
-                          onClick={() => setSupportTag(supportTag === tag ? '' : tag)}
-                          className={`px-3 py-1.5 rounded-xl font-extrabold text-[11px] border transition-all ${
-                            supportTag === tag
-                              ? 'bg-amber-300 text-slate-950 border-amber-400 shadow-md'
-                              : 'bg-purple-950/80 text-purple-200 border-purple-700/60 hover:bg-purple-900'
-                          }`}
-                        >
-                          {tag}
-                        </button>
-                      ))}
-                    </div>
-
-                    <div>
-                      <input
-                        type="text"
-                        value={supportNote}
-                        onChange={(e) => setSupportNote(e.target.value)}
-                        placeholder="Optional note to your Case Manager (e.g. Have an upcoming interview next Tuesday and need steel-cap boots)..."
-                        className="w-full p-2.5 bg-purple-950/90 border border-purple-700 text-purple-100 rounded-xl text-xs font-medium outline-none focus:ring-2 focus:ring-amber-300"
-                      />
-                    </div>
-                  </div>
-
-                  <div className="flex justify-between pt-2">
-                    <button
-                      type="button"
-                      onClick={() => setWizardStep(2)}
-                      className="px-4 py-2 bg-purple-900 text-purple-200 font-bold rounded-xl"
-                    >
-                      ← Back
-                    </button>
-                    <button
-                      type="button"
-                      onClick={handleAssessmentGoalSubmit}
-                      className="px-6 py-2.5 bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black rounded-xl shadow-lg flex items-center gap-1.5"
-                    >
-                      <Check className="w-4 h-4" /> Save Plan & Log Activity
-                    </button>
-                  </div>
-                </div>
-              )}
-
-            </div>
-          ) : (
-            /* COLLAPSED PERSISTENT MOTIVATION & MOMENTUM BANNER */
-            <div className="flex flex-col md:flex-row items-center justify-between gap-4 p-2 relative z-10 text-xs">
-              <div className="space-y-1.5">
-                <div className="flex items-center gap-2">
-                  <span className="px-3 py-1 bg-amber-300 text-slate-950 font-black rounded-full flex items-center gap-1">
-                    <Heart className="w-3.5 h-3.5 fill-slate-950" /> My Personal "Why" Anchor
-                  </span>
-                  <span className="px-3 py-1 bg-purple-800 text-purple-100 font-bold rounded-full flex items-center gap-1 border border-purple-700">
-                    <Flame className="w-3.5 h-3.5 text-amber-400 fill-amber-400" /> 🔥 3-Day Momentum Streak
-                  </span>
-                </div>
-                <p className="text-sm font-black text-white italic">"{myWhyMotivation}"</p>
-                <p className="text-xs text-purple-200 font-medium">Monthly Focus: <strong className="text-amber-300">{primaryGoal}</strong></p>
-                {supportTag && (
-                  <p className="text-[11px] text-amber-200 font-bold flex items-center gap-1 pt-0.5">
-                    <MessageSquare className="w-3 h-3 text-amber-300" /> Case Manager Support Requested: <u>{supportTag}</u>
-                  </p>
-                )}
-              </div>
-
-              <button
-                type="button"
-                onClick={() => {
-                  setReviewSubmitted(false);
-                  setWizardStep(1);
-                }}
-                className="px-4 py-2 bg-white/10 hover:bg-white/20 border border-white/20 text-white font-bold rounded-xl transition-all shrink-0"
-              >
-                Update Goal Plan
-              </button>
-            </div>
-          )}
-        </section>
+        {/* MODULAR PERSONAL GOAL & MOTIVATION STUDIO */}
+        <PersonalGoalStudio 
+          onSaveGoalPlan={handleGoalStudioSave} 
+          candidateName={activeCandidate?.name} 
+        />
 
         {/* 3 MAIN ACTION NAVIGATION CARDS */}
         <section aria-label="Main Navigation" className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -910,7 +624,11 @@ const [showOtherActivityModal, setShowOtherActivityModal] = useState<boolean>(fa
         {/* TAB CONTENT AREA */}
         <div className="mt-6 space-y-6">
           {activeTab === 1 && (
-            <LmsModuleHub onModuleCompleted={handleModuleCompleted} candidateId={activeCandidate?.id} />
+            <LmsModuleHub 
+              onModuleCompleted={handleModuleCompleted} 
+              candidateId={activeCandidate?.id} 
+              activeBarriers={activeBarriers} 
+            />
           )}
 
          {activeTab === 2 && (

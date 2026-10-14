@@ -75,8 +75,8 @@ export default function CertificateModal({ certificate, onClose, open, logo }: C
         </div>
 
         {/* Printable Landscape Certificate Canvas */}
-        <div className="p-8 md:p-12 print:p-8 bg-slate-50 min-h-[500px] flex items-center justify-center">
-          <div className="w-full aspect-[1.414/1] bg-white border-[12px] border-double border-purple-900 p-8 md:p-10 relative flex flex-col justify-between shadow-lg print:shadow-none print:border-purple-900">
+        <div className="p-8 md:p-12 print:p-8 bg-slate-50 min-h-125 flex items-center justify-center">
+          <div className="w-full aspect-[1.414/1] bg-white border-12 border-double border-purple-900 p-8 md:p-10 relative flex flex-col justify-between shadow-lg print:shadow-none print:border-purple-900">
             
             {/* Corner Decorative Accents */}
             <div className="absolute top-2 left-2 w-6 h-6 border-t-2 border-l-2 border-amber-500" />
@@ -98,7 +98,7 @@ export default function CertificateModal({ certificate, onClose, open, logo }: C
               <h1 className="text-3xl sm:text-4xl font-black text-slate-900 font-serif tracking-tight pt-2">
                 Certificate of Completion
               </h1>
-              <div className="w-24 h-1 bg-gradient-to-r from-amber-400 via-purple-900 to-emerald-400 mx-auto rounded-full" />
+              <div className="w-24 h-1 bg-linear-to-r from-amber-400 via-purple-900 to-emerald-400 mx-auto rounded-full" />
             </div>
 
             {/* Candidate & Course Body */}

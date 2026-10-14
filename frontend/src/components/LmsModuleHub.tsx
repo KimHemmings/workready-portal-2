@@ -22,6 +22,7 @@ import {
 interface LmsModuleHubProps {
   onModuleCompleted?: (moduleId: string, points: number) => void;
   candidateId?: string;
+  activeBarriers?: string[];
 }
 
 // PBAS MONTHLY LMS RULES
@@ -84,10 +85,11 @@ const CATEGORIES = [
   'Financial Literacy'
 ];
 
-export const LmsModuleHub: React.FC<LmsModuleHubProps> = ({ onModuleCompleted, candidateId = 'CAN-101' }) => {
+export const LmsModuleHub: React.FC<LmsModuleHubProps> = ({ onModuleCompleted, candidateId = 'CAN-101', activeBarriers = [] }) => {
   const { candidates, activeContract } = usePortal();
   const isWfa = activeContract === 'Workforce Australia';
   const activeCandidate = candidates.find((c) => c.id === candidateId) || candidates[0];
+  
 
   const programType = activeCandidate?.programType || 'workforce_australia';
   const isRtoGraduate = programType === 'rto_graduate';
