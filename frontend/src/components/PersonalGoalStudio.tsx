@@ -200,7 +200,7 @@ export const PersonalGoalStudio: React.FC<PersonalGoalStudioProps> = ({
                     className="px-6 py-3 bg-amber-400 hover:bg-amber-500 text-[#24083b] font-black rounded-xl transition-all flex items-center gap-2 cursor-pointer shadow-sm"
                   >
                     <span>Next: Action Focus</span>
-                    <ArrowRight className="w-4 h-4 stroke-[3]" />
+                    <ArrowRight className="w-4 h-4 stroke-3" />
                   </button>
                 </div>
               </div>
@@ -258,7 +258,7 @@ export const PersonalGoalStudio: React.FC<PersonalGoalStudioProps> = ({
                     className="px-6 py-3 bg-amber-400 hover:bg-amber-500 text-[#24083b] font-black rounded-xl cursor-pointer flex items-center gap-2 shadow-sm transition-all"
                   >
                     <span>Next: Confidence & Support</span>
-                    <ArrowRight className="w-4 h-4 stroke-[3]" />
+                    <ArrowRight className="w-4 h-4 stroke-3" />
                   </button>
                 </div>
               </div>
@@ -291,7 +291,7 @@ export const PersonalGoalStudio: React.FC<PersonalGoalStudioProps> = ({
                           <div className={`w-5 h-5 rounded-md flex items-center justify-center shrink-0 border-2 transition-all ${
                             active ? 'bg-purple-600 border-purple-600 text-white' : 'border-slate-300 bg-slate-50'
                           }`}>
-                            {active && <Check className="w-3.5 h-3.5 stroke-[3]" />}
+                            {active && <Check className="w-3.5 h-3.5 stroke-3" />}
                           </div>
                           <span className={`text-sm ${active ? 'font-bold text-purple-950' : 'font-medium text-slate-600'}`}>
                             {barrier.label}
@@ -387,7 +387,7 @@ export const PersonalGoalStudio: React.FC<PersonalGoalStudioProps> = ({
                     onClick={handleSave}
                     className="px-6 py-3 bg-emerald-500 hover:bg-emerald-600 text-white font-black rounded-xl shadow-md flex items-center gap-2 cursor-pointer transition-all"
                   >
-                    <Check className="w-5 h-5 stroke-[3]" /> Save Plan & Unlock Tracks
+                    <Check className="w-5 h-5 stroke-3" /> Save Plan & Unlock Tracks
                   </button>
                 </div>
               </div>
